@@ -20,16 +20,12 @@ const ClientsCarousel = () => {
         </div>
         {/* Carousel */}
         <div className="relative overflow-hidden">
-          <div className="flex flex-col items-center space-x-8 md:space-x-16 min-w-max  bg-red-100">
+          <div className="flex flex-row flex-wrap justify-center items-center gap-4">
             {clients.map((client, index) => (
-              <div
-                key={index}
-                className="flex-shrink-0 flex items-center justify-center space-x-3 opacity-60 hover:opacity-100 group w-60 bg-slate-600 ml-0" 
-              >
-                <div className="text-4xl group-hover:scale-110 transition-transform">
-                  {client.logo}
-                </div>
-              </div>
+                <img
+                    key={index}
+                    className="" 
+                />
             ))}
           </div>
         </div>

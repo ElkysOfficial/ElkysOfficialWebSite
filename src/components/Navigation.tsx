@@ -31,7 +31,7 @@ const Navigation = () => {
     ];
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${ viewportPosition !== 0 && viewportPosition <= 900? 'bg-gradient-hero shadow-lg' : 'bg-transparent'} ${viewportPosition > 900 ? 'bg-[#ebebebda] shadow-lg' : ''} transition-all transition-[background-color 2s ease-in-out]`} >
+        <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md ${ viewportPosition !== 0 && viewportPosition <= 900? 'bg-gradient-hero shadow-lg' : 'bg-transparent'} ${viewportPosition > 900 ? 'bg-[#ebebebe0] shadow-lg' : ''} transition-all transition-[background-color 2s ease-in-out]`} >
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                 <div className="flex items-center space-x-2">
