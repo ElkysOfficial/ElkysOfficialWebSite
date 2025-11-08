@@ -53,7 +53,7 @@ const Testimonials = () => {
     },
   ];
 
-  const itemWidth = 320; // largura do card + espaçamento, ajuste conforme seu CSS
+  const itemWidth = 320;
   const totalItems = testimonialsData.length;
   const extendedTestimonials = [...testimonialsData, ...testimonialsData];
 
@@ -62,7 +62,6 @@ const Testimonials = () => {
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Controla se a animação está em andamento para bloquear cliques
   const animationTimeoutRef = useRef(null);
   const autoplayTimeoutRef = useRef(null);
 
@@ -71,7 +70,6 @@ const Testimonials = () => {
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev + 1);
-    // Reset autoplay timer when user interacts
     resetAutoplayTimer();
   };
 
@@ -80,7 +78,6 @@ const Testimonials = () => {
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev - 1);
-    // Reset autoplay timer when user interacts
     resetAutoplayTimer();
   };
 
@@ -100,40 +97,34 @@ const Testimonials = () => {
         setTransitionEnabled(true);
         setCurrentIndex((prev) => prev + 1);
       }
-    }, 4000); // 4 seconds - smooth and natural timing
+    }, 4000);
   };
 
   useEffect(() => {
     if (!isAnimating) return;
 
-    // Timeout igual ao tempo da transição CSS para resetar o índice
     animationTimeoutRef.current = setTimeout(() => {
       setIsAnimating(false);
 
       if (currentIndex >= totalItems) {
-        // Reset invisível para índice 0 (primeira metade)
         setTransitionEnabled(false);
         setCurrentIndex(0);
       } else if (currentIndex < 0) {
-        // Reset invisível para último índice da primeira metade
         setTransitionEnabled(false);
         setCurrentIndex(totalItems - 1);
       }
-    }, 500); // 500ms = duração da transição
+    }, 500);
 
     return () => clearTimeout(animationTimeoutRef.current);
   }, [currentIndex, isAnimating, totalItems]);
 
-  // Quando desativamos a transição para resetar índice, reativamos na próxima renderização
   useEffect(() => {
     if (!transitionEnabled) {
-      // Reativar a transição no próximo tick
       const timer = setTimeout(() => setTransitionEnabled(true), 20);
       return () => clearTimeout(timer);
     }
   }, [transitionEnabled]);
 
-  // Autoplay effect - start on mount
   useEffect(() => {
     startAutoplay();
     return () => {
@@ -143,7 +134,6 @@ const Testimonials = () => {
     };
   }, []);
 
-  // Restart autoplay after animation completes
   useEffect(() => {
     if (!isAnimating && !isPaused) {
       startAutoplay();
@@ -181,7 +171,7 @@ const Testimonials = () => {
 
           <div
             className="relative mb-12 overflow-hidden"
-            style={{ width: `${itemWidth * 2.5}px` }} // largura visível (2.5 cards)
+            style={{ width: `${itemWidth * 2.5}px` }}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >

@@ -1,13 +1,33 @@
+import { useState, useEffect } from 'react';
+
 const ClientsCarousel = () => {
-  // Mock client logos - in a real project, these would be actual client logos
-  const clients = [
-    { logo: '💡' },
-    { logo: '⭐' },
-    { logo: '📦' }
-  ];
+  const [logos, setLogos] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/imgs/logo/logos.json')
+      .then(res => res.json())
+      .then(data => {
+        const logoPaths = data.logos.map((filename: string) => `/imgs/logo/${filename}`);
+        setLogos(logoPaths);
+      })
+      .catch(error => {
+        console.error('Error loading logos:', error);
+        setLogos([
+          '/imgs/logo/1UmPrintComunicação.svg',
+          '/imgs/logo/AKProducoes.svg',
+          '/imgs/logo/Antônio Oliveira Advogados.png',
+          '/imgs/logo/Developers Logo.png',
+          '/imgs/logo/hapvida.png',
+          '/imgs/logo/Logo Inline White.png',
+          '/imgs/logo/PlansCoop.png'
+        ]);
+      });
+  }, []);
+
+  const duplicatedLogos = [...logos, ...logos, ...logos];
 
   return (
-    <section className="py-16 bg-background border-y border-border">
+    <section className="py-16 bg-background border-y border-border overflow-hidden">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
@@ -18,14 +38,22 @@ const ClientsCarousel = () => {
             Parceiros de sucesso em diversos segmentos
           </p>
         </div>
-        {/* Carousel */}
-        <div className="relative overflow-hidden">
-          <div className="flex flex-row flex-wrap justify-center items-center gap-4">
-            {clients.map((client, index) => (
+
+        {/* Carrossel */}
+        <div className="relative w-full overflow-hidden">
+          <div className="clients-carousel-track flex items-center gap-12">
+            {duplicatedLogos.map((logo, index) => (
+              <div
+                key={index}
+                className="clients-logo-wrapper flex-shrink-0 transition-all duration-300"
+              >
                 <img
-                    key={index}
-                    className="" 
+                  src={logo}
+                  alt={`Client logo ${index + 1}`}
+                  className="clients-logo-grayscale"
+                  loading="lazy"
                 />
+              </div>
             ))}
           </div>
         </div>

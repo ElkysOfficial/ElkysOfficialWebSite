@@ -176,9 +176,9 @@ All colors MUST be HSL.
     }
   }
 
-  /* Apple-inspired Hero Animations - Subtle & Professional */
+  /* Hero Animations */
 
-  /* Subtle rotation for the purple diamond background - Even Faster */
+  /* Diamond rotation */
   .animate-diamond-rotate {
     animation: diamond-rotate 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -192,7 +192,7 @@ All colors MUST be HSL.
     }
   }
 
-  /* Alternating pulse animation for feature cards - Apple style */
+  /* Card pulse animation */
   .animate-card-pulse {
     animation: card-pulse 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -215,7 +215,7 @@ All colors MUST be HSL.
     }
   }
 
-  /* Gentle float with fade for feature cards */
+  /* Feature float animation */
   .animate-feature-float {
     animation: feature-float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -229,7 +229,7 @@ All colors MUST be HSL.
     }
   }
 
-  /* Subtle scale on hover - Apple style */
+  /* Hover lift effect */
   .hover-lift {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -238,9 +238,9 @@ All colors MUST be HSL.
     transform: translateY(-2px);
   }
 
-  /* Apple-inspired Button Animations - Minimal & Professional */
+  /* Button Animations */
 
-  /* Primary CTA button - Accent with smooth interactions */
+  /* Primary button */
   .btn-primary-animate {
     position: relative;
     overflow: hidden;
@@ -271,7 +271,7 @@ All colors MUST be HSL.
     transform: translateY(0) scale(0.98);
   }
 
-  /* Secondary outline button - Same animations as primary but preserves colors */
+  /* Secondary button */
   .btn-secondary-animate {
     position: relative;
     overflow: hidden;
@@ -311,7 +311,7 @@ All colors MUST be HSL.
     transform: translateX(4px);
   }
 
-  /* Subtle breathing effect for buttons at rest */
+  /* Button breathing effect */
   .btn-breathe {
     animation: btn-breathe 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -322,6 +322,41 @@ All colors MUST be HSL.
     }
     50% {
       box-shadow: 0 6px 16px rgba(251, 146, 60, 0.35);
+    }
+  }
+
+  /* Clients Carousel */
+
+  /* Logo grayscale filter */
+  .clients-logo-grayscale {
+    filter: grayscale(100%) opacity(0.6);
+    transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 80px;
+    width: 160px;
+    object-fit: contain;
+  }
+
+  .clients-logo-wrapper:hover .clients-logo-grayscale {
+    filter: grayscale(0%) opacity(1);
+    transform: scale(1.1);
+  }
+
+  /* Infinite scroll animation */
+  .clients-carousel-track {
+    animation: clients-scroll 60s linear infinite;
+    will-change: transform;
+  }
+
+  .clients-carousel-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes clients-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% / 3));
     }
   }
 }
