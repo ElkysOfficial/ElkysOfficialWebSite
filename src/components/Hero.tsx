@@ -11,7 +11,7 @@ const Hero = () => {
             <div className="absolute top-40 right-20 w-24 h-24 bg-accent rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
             <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-primary-light rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
         </div>
-        <img src={backgroundPattern} alt="Background" className="absolute inset-0 object-cover opacity-50 top-[800px] left-[100px] translate-x-[-50%] translate-y-[-50%] w-[1000px]"  />
+        <img src={backgroundPattern} alt="Background" className="absolute inset-0 object-cover opacity-50 top-[800px] left-[100px] w-[1000px] animate-diamond-rotate"  />
 
         <div className="container mx-auto px-4 py-20 relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -28,11 +28,11 @@ const Hero = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <Button size="lg" variant="accent" className="border-white text-white hover:text-white hover:opacity-90">
+                <Button size="lg" variant="accent" className="btn-primary-animate btn-breathe border-white text-white hover:text-white">
                     Fale com um especialista
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-primary hover:text-primary hover:bg-white hover:opacity-90">
+                <Button size="lg" variant="outline" className="btn-secondary-animate border-white text-primary hover:text-primary hover:bg-white hover:opacity-90">
                     Ver nossos cases
                 </Button>
                 </div>
@@ -58,21 +58,21 @@ const Hero = () => {
             <div className="relative animate-fade-in" style={{ animationDelay: '0.6s' }}>
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
                 <div className="space-y-6">
-                    <div className="flex items-center space-x-4 p-4 bg-white/10 rounded-lg">
+                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse">
                     <Code2 className="h-8 w-8 text-accent" />
                     <div>
                         <h3 className="text-white font-semibold">Clean Code</h3>
                         <p className="text-gray-300 text-sm">Código limpo e documentado</p>
                     </div>
                     </div>
-                    <div className="flex items-center space-x-4 p-4 bg-white/10 rounded-lg">
+                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '2s' }}>
                     <Zap className="h-8 w-8 text-accent" />
                     <div>
                         <h3 className="text-white font-semibold">Entregas Ágeis</h3>
                         <p className="text-gray-300 text-sm">Metodologia ágil e entregas rápidas</p>
                     </div>
                     </div>
-                    <div className="flex items-center space-x-4 p-4 bg-white/10 rounded-lg">
+                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '4s' }}>
                     <Shield className="h-8 w-8 text-accent" />
                     <div>
                         <h3 className="text-white font-semibold">Suporte Contínuo</h3>

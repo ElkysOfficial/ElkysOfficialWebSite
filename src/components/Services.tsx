@@ -111,9 +111,9 @@ const Services = () => {
             <p className="text-lg mb-6 opacity-90">
               Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com tecnologia.
             </p>
-            <Button size="lg" variant="accent">
+            <Button size="lg" variant="accent" className="btn-primary-animate btn-breathe">
               Solicitar Orçamento
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
             </Button>
           </div>
         </div>

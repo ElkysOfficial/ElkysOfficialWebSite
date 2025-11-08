@@ -60,15 +60,19 @@ const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Controla se a animação está em andamento para bloquear cliques
   const animationTimeoutRef = useRef(null);
+  const autoplayTimeoutRef = useRef(null);
 
   const handleNext = () => {
     if (isAnimating) return;
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev + 1);
+    // Reset autoplay timer when user interacts
+    resetAutoplayTimer();
   };
 
   const handlePrev = () => {
@@ -76,6 +80,27 @@ const Testimonials = () => {
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev - 1);
+    // Reset autoplay timer when user interacts
+    resetAutoplayTimer();
+  };
+
+  const resetAutoplayTimer = () => {
+    if (autoplayTimeoutRef.current) {
+      clearTimeout(autoplayTimeoutRef.current);
+    }
+    if (!isPaused) {
+      startAutoplay();
+    }
+  };
+
+  const startAutoplay = () => {
+    autoplayTimeoutRef.current = setTimeout(() => {
+      if (!isPaused && !isAnimating) {
+        setIsAnimating(true);
+        setTransitionEnabled(true);
+        setCurrentIndex((prev) => prev + 1);
+      }
+    }, 4000); // 4 seconds - smooth and natural timing
   };
 
   useEffect(() => {
@@ -108,6 +133,28 @@ const Testimonials = () => {
     }
   }, [transitionEnabled]);
 
+  // Autoplay effect - start on mount
+  useEffect(() => {
+    startAutoplay();
+    return () => {
+      if (autoplayTimeoutRef.current) {
+        clearTimeout(autoplayTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Restart autoplay after animation completes
+  useEffect(() => {
+    if (!isAnimating && !isPaused) {
+      startAutoplay();
+    }
+    return () => {
+      if (autoplayTimeoutRef.current) {
+        clearTimeout(autoplayTimeoutRef.current);
+      }
+    };
+  }, [isAnimating, isPaused, currentIndex]);
+
   return (
     <section id="testimonials" className="py-20 bg-gradient-subtle">
       <div className="container mx-auto px-4">
@@ -135,6 +182,8 @@ const Testimonials = () => {
           <div
             className="relative mb-12 overflow-hidden"
             style={{ width: `${itemWidth * 2.5}px` }} // largura visível (2.5 cards)
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
           >
             <div
               className="flex space-x-8"

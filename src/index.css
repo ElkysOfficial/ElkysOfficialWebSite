@@ -175,6 +175,155 @@ All colors MUST be HSL.
       transform: translateX(-80%);
     }
   }
+
+  /* Apple-inspired Hero Animations - Subtle & Professional */
+
+  /* Subtle rotation for the purple diamond background - Even Faster */
+  .animate-diamond-rotate {
+    animation: diamond-rotate 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes diamond-rotate {
+    0%, 100% {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) rotate(8deg);
+    }
+  }
+
+  /* Alternating pulse animation for feature cards - Apple style */
+  .animate-card-pulse {
+    animation: card-pulse 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes card-pulse {
+    0%, 100% {
+      transform: scale(1);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    33.33% {
+      transform: scale(1.03);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(251, 146, 60, 0.4);
+    }
+    66.66% {
+      transform: scale(1);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  /* Gentle float with fade for feature cards */
+  .animate-feature-float {
+    animation: feature-float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes feature-float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  /* Subtle scale on hover - Apple style */
+  .hover-lift {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Apple-inspired Button Animations - Minimal & Professional */
+
+  /* Primary CTA button - Accent with smooth interactions */
+  .btn-primary-animate {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-primary-animate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-primary-animate:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary-animate:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(251, 146, 60, 0.3);
+  }
+
+  .btn-primary-animate:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Secondary outline button - Same animations as primary but preserves colors */
+  .btn-secondary-animate {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-secondary-animate::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-secondary-animate:hover::before {
+    left: 100%;
+  }
+
+  .btn-secondary-animate:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .btn-secondary-animate:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* Arrow icon animation */
+  .btn-arrow-animate {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-primary-animate:hover .btn-arrow-animate {
+    transform: translateX(4px);
+  }
+
+  /* Subtle breathing effect for buttons at rest */
+  .btn-breathe {
+    animation: btn-breathe 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes btn-breathe {
+    0%, 100% {
+      box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+    }
+    50% {
+      box-shadow: 0 6px 16px rgba(251, 146, 60, 0.35);
+    }
+  }
 }
 
 * {
