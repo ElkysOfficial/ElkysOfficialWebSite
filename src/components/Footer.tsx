@@ -1,4 +1,4 @@
-import { ArrowUp, Mail, Phone, MapPin, Linkedin, Github } from 'lucide-react';
+import { ArrowUp, Mail, Phone, Linkedin, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Footer = () => {
@@ -98,15 +98,11 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary-light" />
-                <span className="text-sm text-gray-300">+55 (11) 99999-9999</span>
+                <span className="text-sm text-gray-300">+55 (31) 9 9973-8235</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-primary-light" />
                 <span className="text-sm text-gray-300">contato@elys.com.br</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4 text-primary-light" />
-                <span className="text-sm text-gray-300">São Paulo, SP - Brasil</span>
               </div>
             </div>
           </div>

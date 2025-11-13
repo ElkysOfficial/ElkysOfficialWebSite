@@ -1,4 +1,4 @@
-import { Phone, Mail, MapPin, Linkedin, Github, Clock } from 'lucide-react';
+import { Phone, Mail, Linkedin, Github, Clock, Instagram } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 const Contact = () => {
@@ -6,14 +6,14 @@ const Contact = () => {
     {
       icon: Phone,
       title: 'Telefone',
-      value: '+55 (31) 9973-8235',
+      value: '+55 (31) 9 9973-8235',
       subtitle: 'Seg - Sex: 8h às 18h'
     },
     {
       icon: Mail,
       title: 'E-mail',
       value: 'contato@elys.com.br',
-      subtitle: 'Resposta em até 2h'
+      subtitle: 'Resposta em até 1h'
     }
   ];
 
@@ -29,7 +29,15 @@ const Contact = () => {
       name: 'GitHub',
       url: 'https://github.com/elys',
       color: 'hover:text-gray-800'
-    }
+    },
+    {
+      icon: Instagram,
+      name: 'Instagram',
+      url: 'https://instagram.com/elys_.oficial',
+      color: 'hover:text-red-600'
+    },
+
+
   ];
 
   return (
@@ -122,7 +130,7 @@ const Contact = () => {
                 </p>
                 <div className="pt-2">
                   <a
-                    href="tel:+5511999999999"
+                    href="tel:+5531999738235"
                     className="inline-flex items-center space-x-2 bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
                   >
                     <Phone className="h-4 w-4" />

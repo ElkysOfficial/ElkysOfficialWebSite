@@ -24,7 +24,7 @@ const About = () => {
     { number: '50+', label: 'Projetos Entregues' },
     { number: '25+', label: 'Clientes Ativos' },
     { number: '98%', label: 'Taxa de Satisfação' },
-    { number: '5+', label: 'Anos de Mercado' }
+    { number: '3+', label: 'Anos de Mercado' }
   ];
 
   return (
@@ -47,14 +47,14 @@ const About = () => {
               Nossa História
             </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Fundada com a missão de democratizar o acesso à tecnologia de qualidade, a Elys nasceu da percepção de que muitas PMEs enfrentam desafios para encontrar soluções tecnológicas que realmente atendam suas necessidades específicas.
+              Fundada com a missão de democratizar o acesso à tecnologia de qualidade, a Elys nasceu da percepção de que muitas PMEs enfrentam desafios para encontrar soluções tecnológicas que realmente atendam às suas necessidades específicas. Ao longo dos anos, evoluímos para entregar sistemas robustos, seguros e alinhados aos objetivos de cada cliente.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              Ao longo dos anos, desenvolvemos uma metodologia única que combina agilidade, qualidade técnica e proximidade com o cliente, garantindo que cada projeto seja uma extensão natural do negócio de nossos parceiros.
+              Desenvolvemos uma metodologia própria que une eficiência, qualidade técnica e proximidade no processo, tornando cada entrega uma extensão direta das operações dos nossos parceiros e acelerando seus resultados.
             </p>
             <div className="flex items-center space-x-2 text-primary">
               <TrendingUp className="h-5 w-5" />
-              <span className="font-semibold">Crescimento sustentável através da tecnologia</span>
+              <span className="font-semibold">Crescimento sustentável através da tecnologia.</span>
             </div>
           </div>
 

@@ -19,7 +19,8 @@ const ClientsCarousel = () => {
           '/imgs/logo/Developers Logo.png',
           '/imgs/logo/hapvida.png',
           '/imgs/logo/Logo Inline White.png',
-          '/imgs/logo/PlansCoop.png'
+          '/imgs/logo/PlansCoop.png',
+          '/imgs/logo/Dps Celulares.png'
         ]);
       });
   }, []);
