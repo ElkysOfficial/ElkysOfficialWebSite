@@ -1,5 +1,6 @@
 import { ArrowRight, Code2, Zap, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import backgroundPattern from '../../public/imgs/icons/hexagonal.png';
 
 const Hero = () => {
@@ -32,9 +33,11 @@ const Hero = () => {
                     Fale com um especialista
                     <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
                 </Button>
-                <Button size="lg" variant="outline" className="btn-secondary-animate border-white text-primary hover:text-primary hover:bg-white hover:opacity-90">
-                    Ver nossos cases
-                </Button>
+                <Link to="/cases">
+                  <Button size="lg" variant="outline" className="btn-secondary-animate border-white text-primary hover:text-primary hover:bg-white hover:opacity-90">
+                      Ver nossos cases
+                  </Button>
+                </Link>
                 </div>
 
                 {/* Stats */}

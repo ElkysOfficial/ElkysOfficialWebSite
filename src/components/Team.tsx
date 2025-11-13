@@ -13,11 +13,11 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     id: 1,
-    name: "Nome do Membro",
+    name: "Lucelho Silva",
     role: "CEO & Founder",
     bio: "Breve descrição sobre a experiência e expertise do membro da equipe.",
     image: "/imgs/team/member-1.jpg",
-    linkedin: "https://linkedin.com/in/",
+    linkedin: "https://linkedin.com/in/lucelhosilva",
   },
   {
     id: 2,
@@ -82,85 +82,130 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
 
   return (
     <div className="group relative">
+      {/* Gradient Border Effect on Hover */}
+      <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/0 via-violet-500/0 to-purple-600/0 opacity-0 blur transition-all duration-500 group-hover:from-primary/30 group-hover:via-violet-500/30 group-hover:to-purple-600/30 group-hover:opacity-100"></div>
+
       {/* Card Container */}
-      <div className="relative overflow-hidden rounded-2xl bg-white transition-all duration-500 hover:shadow-elegant">
+      <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg shadow-slate-200/50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
           {!imageError ? (
             <img
               src={member.image}
               alt={member.name}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110"
               onError={() => setImageError(true)}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-4xl font-light text-primary">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/10 to-violet-500/10 flex items-center justify-center">
+                <span className="text-4xl font-semibold bg-gradient-to-br from-primary to-violet-600 bg-clip-text text-transparent">
                   {member.name.charAt(0)}
                 </span>
               </div>
             </div>
           )}
 
-          {/* LinkedIn Overlay - Appears on hover */}
-          <div className="absolute inset-0 bg-primary/95 opacity-0 transition-opacity duration-500 group-hover:opacity-100 flex items-center justify-center">
+          {/* Gradient Purple Overlay - Shows photo through gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-violet-600/70 to-purple-600/80 opacity-0 transition-all duration-700 group-hover:opacity-100 flex items-center justify-center">
+            {/* Subtle inner gradient for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+
+            {/* LinkedIn Button */}
             <a
               href={member.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="transform scale-75 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100"
+              className="relative z-10 transform translate-y-8 opacity-0 transition-all duration-700 delay-150 group-hover:translate-y-0 group-hover:opacity-100"
             >
-              <div className="rounded-full bg-white p-4 shadow-glow transition-transform hover:scale-110">
-                <Linkedin className="h-8 w-8 text-primary" />
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-2xl shadow-black/20 transition-all duration-300 hover:scale-110 hover:shadow-white/40 hover:bg-gradient-to-br hover:from-white hover:to-slate-50">
+                <Linkedin className="h-9 w-9 text-primary transition-all duration-300" />
               </div>
             </a>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <h3 className="mb-1 text-xl font-semibold text-foreground transition-colors">
+        <div className="p-7 lg:p-8">
+          {/* Decorative Line */}
+          <div className="mb-4 h-0.5 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-12"></div>
+
+          <h3 className="mb-2 text-xl font-bold text-slate-900 transition-all duration-500 lg:text-2xl group-hover:text-primary">
             {member.name}
           </h3>
-          <p className="mb-3 text-sm font-medium text-primary">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 transition-colors duration-500 group-hover:text-primary">
             {member.role}
           </p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-slate-600">
             {member.bio}
           </p>
         </div>
+
+        {/* Bottom Accent Line */}
+        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-full"></div>
       </div>
     </div>
   );
 };
 
 export const Team = () => {
+  const [showAll, setShowAll] = useState(false);
+  const displayedMembers = showAll ? teamMembers : teamMembers.slice(0, 4);
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/30 py-24 md:py-32">
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white py-24 md:py-32">
       <div className="container mx-auto px-4">
-        {/* Header - Apple-style minimal */}
-        <div className="mx-auto mb-16 max-w-3xl text-center">
-          <h2 className="mb-4 text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-            Nossa Equipe
+        {/* Header - Consistent with other sections */}
+        <div className="mx-auto mb-20 max-w-3xl text-center">
+          <h2 className="mb-6 text-4xl font-bold tracking-tight text-slate-900 md:text-5xl lg:text-6xl animate-fade-in leading-tight">
+            Nossa{' '}
+            <span className="bg-gradient-to-r from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
+              Equipe
+            </span>
           </h2>
-          <p className="text-lg text-muted-foreground md:text-xl">
-            Conheça as pessoas que tornam tudo possível
+          <p className="text-lg text-slate-600 md:text-xl leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+            Especialistas dedicados a transformar sua visão em realidade
           </p>
         </div>
 
-        {/* Grid - Responsive layout */}
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {teamMembers.map((member) => (
-            <TeamMemberCard key={member.id} member={member} />
+        {/* Grid - Show 4 initially, all when expanded */}
+        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
+          {displayedMembers.map((member, index) => (
+            <div
+              key={member.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <TeamMemberCard member={member} />
+            </div>
           ))}
         </div>
+
+        {/* Ver Mais Button */}
+        {teamMembers.length > 4 && (
+          <div className="flex justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-primary via-violet-600 to-purple-600 px-8 py-4 font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
+            >
+              {showAll ? 'Ver Menos' : 'Ver Mais'}
+              <svg
+                className={`h-5 w-5 transition-transform duration-300 ${showAll ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Subtle background decoration */}
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-full opacity-30">
-        <div className="absolute left-1/4 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-secondary/10 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.06]">
+        <div className="absolute left-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-primary/40 to-violet-300/40 blur-3xl animate-float" />
+        <div className="absolute bottom-1/3 right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-purple-300/30 to-indigo-300/40 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
       </div>
     </section>
   );
