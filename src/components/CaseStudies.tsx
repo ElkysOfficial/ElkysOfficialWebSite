@@ -10,6 +10,7 @@ interface CaseStudy {
   category: string;
   description: string;
   image: string;
+  video?: string;
   results: {
     metric: string;
     value: string;
@@ -51,32 +52,33 @@ const caseStudies: CaseStudy[] = [
   },
   {
     id: 3,
-    title: "Plataforma de Gestão Jurídica",
-    client: "Antônio Oliveira Advogados",
+    title: "Como transformamos um site de advocacia em uma vitrine de autoridade",
+    client: "Dr. Antônio",
     category: "Jurídico",
-    description: "Sistema completo de gestão de processos e clientes, com automação de documentos e integração com tribunais.",
+    description: "Redesenhamos do zero um site institucional com foco em clareza, design responsivo e estrutura que transmite autoridade e confiança.",
     image: "/imgs/cases/case-3.jpg",
+    video: "imgs/cases/videos/case-3-preview.mp4",
     results: [
-      { metric: "Economia de tempo", value: "60%" },
-      { metric: "Processos automatizados", value: "450+" },
-      { metric: "Redução de erros", value: "95%" },
+      { metric: "Design", value: "100%" },
+      { metric: "Responsivo", value: "Todos" },
+      { metric: "Confiança", value: "Máxima" },
     ],
-    tags: ["Desenvolvimento", "Automação", "Sistema Web"],
-    link: "#",
+    tags: ["Web Design", "Site Institucional", "Branding"],
+    link: "https://www.antonioadvogado.com.br/",
   },
   {
     id: 4,
-    title: "E-commerce de Alto Desempenho",
+    title: "De inexistente a digital: criamos o primeiro canal online da 1UmPrint",
     client: "1Um Print Comunicação",
-    category: "Varejo",
-    description: "Loja virtual otimizada com sistema de personalização de produtos e checkout simplificado.",
+    category: "Comunicação Visual",
+    description: "Site moderno com navegação responsiva, formulário inteligente de orçamento e infraestrutura otimizada para SEO e performance.",
     image: "/imgs/cases/case-4.jpg",
     results: [
-      { metric: "Aumento em vendas", value: "180%" },
-      { metric: "Taxa de conversão", value: "8.5%" },
-      { metric: "Tempo de carregamento", value: "1.2s" },
+      { metric: "Presença Digital", value: "100%" },
+      { metric: "Mobile First", value: "✓" },
+      { metric: "Conversão", value: "Otimizada" },
     ],
-    tags: ["E-commerce", "UX Design", "Performance"],
+    tags: ["Web Design", "SEO", "Formulário Inteligente"],
     link: "#",
   },
   {
@@ -113,14 +115,31 @@ const caseStudies: CaseStudy[] = [
 
 const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
   const [imageError, setImageError] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl bg-white shadow-lg shadow-purple-900/10 transition-all duration-700 hover:shadow-2xl hover:shadow-purple-900/20 hover:-translate-y-3">
+    <article
+      className="group relative overflow-hidden rounded-3xl bg-white shadow-lg shadow-purple-900/10 transition-all duration-700 hover:shadow-2xl hover:shadow-purple-900/20 hover:-translate-y-3"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       {/* Gradient Border Effect - Harmonic */}
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-400/25 via-purple-300/15 to-indigo-400/25 opacity-0 transition-opacity duration-700 group-hover:opacity-100 -z-10"></div>
 
       {/* Image Container */}
       <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+        {/* Video on Hover */}
+        {caseStudy.video && isHovering && (
+          <video
+            src={caseStudy.video}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover z-10"
+          />
+        )}
+
         {!imageError ? (
           <img
             src={caseStudy.image}
@@ -155,11 +174,19 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         </div>
 
         {/* Hover Indicator - Harmonic */}
-        <div className="absolute bottom-6 right-6 z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 translate-y-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-50 shadow-2xl shadow-purple-900/20 ring-2 ring-white/50">
-            <ArrowRight className="h-6 w-6 text-primary transition-transform group-hover:translate-x-1" />
-          </div>
-        </div>
+        {caseStudy.link && (
+          <a
+            href={caseStudy.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-6 right-6 z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 translate-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-50 shadow-2xl shadow-purple-900/20 ring-2 ring-white/50 hover:scale-110 transition-transform">
+              <ArrowRight className="h-6 w-6 text-primary transition-transform group-hover:translate-x-1" />
+            </div>
+          </a>
+        )}
       </div>
 
       {/* Content */}
@@ -210,6 +237,8 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         {caseStudy.link && (
           <a
             href={caseStudy.link}
+            target="_blank"
+            rel="noopener noreferrer"
             className="group/link inline-flex items-center gap-3 font-bold bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent transition-all hover:gap-5"
           >
             Ver case completo

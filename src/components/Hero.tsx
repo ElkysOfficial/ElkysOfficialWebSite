@@ -5,7 +5,7 @@ import backgroundPattern from '../../public/imgs/icons/hexagonal.png';
 
 const Hero = () => {
   return (
-    <section id="home" className="min-h-screen flex items-center bg-gradient-hero relative overflow-hidden">
+    <section id="hero" className="min-h-screen flex items-center bg-gradient-hero relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 left-10 w-32 h-32 bg-primary rounded-full blur-3xl animate-float"></div>

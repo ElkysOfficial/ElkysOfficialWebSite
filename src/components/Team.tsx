@@ -81,14 +81,14 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div className="group relative">
+    <div className="group relative h-full">
       {/* Gradient Border Effect on Hover */}
       <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/0 via-violet-500/0 to-purple-600/0 opacity-0 blur transition-all duration-500 group-hover:from-primary/30 group-hover:via-violet-500/30 group-hover:to-purple-600/30 group-hover:opacity-100"></div>
 
       {/* Card Container */}
-      <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg shadow-slate-200/50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2">
+      <div className="relative h-full overflow-hidden rounded-3xl bg-white shadow-lg shadow-slate-200/50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2 flex flex-col">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 flex-shrink-0">
           {!imageError ? (
             <img
               src={member.image}
@@ -126,7 +126,7 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
         </div>
 
         {/* Content */}
-        <div className="p-7 lg:p-8">
+        <div className="p-7 lg:p-8 flex flex-col flex-grow">
           {/* Decorative Line */}
           <div className="mb-4 h-0.5 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-12"></div>
 
@@ -136,7 +136,7 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
           <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 transition-colors duration-500 group-hover:text-primary">
             {member.role}
           </p>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <p className="text-sm leading-relaxed text-slate-600 flex-grow">
             {member.bio}
           </p>
         </div>

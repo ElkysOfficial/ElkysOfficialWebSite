@@ -27,7 +27,7 @@ const Navigation = () => {
     console.log(viewportPosition);
 
     const navItems = [
-        { label: 'Início', href: '/', isRoute: true },
+        { label: 'Início', href: isHomePage ? '#hero' : '/#hero', isRoute: false },
         { label: 'Sobre', href: isHomePage ? '#about' : '/#about', isRoute: false },
         { label: 'Serviços', href: isHomePage ? '#services' : '/#services', isRoute: false },
         { label: 'Cases', href: '/cases', isRoute: true },
@@ -47,9 +47,15 @@ const Navigation = () => {
         }`}>
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
-                <Link to="/" className="flex items-center space-x-2">
-                    <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
-                </Link>
+                {isHomePage ? (
+                    <a href="#hero" className="flex items-center space-x-2">
+                        <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
+                    </a>
+                ) : (
+                    <Link to="/#hero" className="flex items-center space-x-2">
+                        <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
+                    </Link>
+                )}
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
                     {navItems.map((item) => (
