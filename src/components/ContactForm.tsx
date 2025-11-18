@@ -1,42 +1,64 @@
-import { useState } from 'react';
 import { Send, CheckCircle } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
+// Validation schema with Zod
+const contactFormSchema = z.object({
+  name: z.string()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(100, 'Nome muito longo')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
+  email: z.string()
+    .email('E-mail inválido')
+    .min(5, 'E-mail muito curto')
+    .max(100, 'E-mail muito longo'),
+  company: z.string()
+    .max(100, 'Nome da empresa muito longo')
+    .optional(),
+  message: z.string()
+    .min(10, 'Mensagem deve ter no mínimo 10 caracteres')
+    .max(1000, 'Mensagem muito longa (máximo 1000 caracteres)')
+});
+
+type ContactFormData = z.infer<typeof contactFormSchema>;
+
 const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+    mode: 'onBlur' // Validate on blur for better UX
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  const onSubmit = async (data: ContactFormData) => {
+    try {
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+      toast({
+        title: "Mensagem enviada com sucesso!",
+        description: "Entraremos em contato em breve. Obrigado!",
+      });
 
-    toast({
-      title: "Mensagem enviada com sucesso!",
-      description: "Entraremos em contato em breve. Obrigado!",
-    });
-
-    setFormData({ name: '', email: '', company: '', message: '' });
-    setIsSubmitting(false);
+      reset(); // Reset form after successful submission
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar mensagem",
+        description: "Por favor, tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -103,7 +125,7 @@ const ContactForm = () => {
                   <CardTitle>Solicitar Orçamento</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -111,14 +133,14 @@ const ContactForm = () => {
                         </label>
                         <Input
                           id="name"
-                          name="name"
                           type="text"
-                          required
-                          value={formData.name}
-                          onChange={handleChange}
                           placeholder="Seu nome"
                           className="w-full"
+                          {...register('name')}
                         />
+                        {errors.name && (
+                          <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                        )}
                       </div>
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -126,14 +148,14 @@ const ContactForm = () => {
                         </label>
                         <Input
                           id="email"
-                          name="email"
                           type="email"
-                          required
-                          value={formData.email}
-                          onChange={handleChange}
                           placeholder="seu.email@empresa.com"
                           className="w-full"
+                          {...register('email')}
                         />
+                        {errors.email && (
+                          <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                        )}
                       </div>
                     </div>
 
@@ -143,13 +165,14 @@ const ContactForm = () => {
                       </label>
                       <Input
                         id="company"
-                        name="company"
                         type="text"
-                        value={formData.company}
-                        onChange={handleChange}
                         placeholder="Nome da sua empresa"
                         className="w-full"
+                        {...register('company')}
                       />
+                      {errors.company && (
+                        <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -158,14 +181,14 @@ const ContactForm = () => {
                       </label>
                       <Textarea
                         id="message"
-                        name="message"
-                        required
-                        value={formData.message}
-                        onChange={handleChange}
                         placeholder="Conte-nos sobre seu projeto, desafios e objetivos..."
                         rows={5}
                         className="w-full"
+                        {...register('message')}
                       />
+                      {errors.message && (
+                        <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>
+                      )}
                     </div>
 
                     <Button

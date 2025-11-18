@@ -1,20 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Elys - Construímos software que transforma a maneira que você faz negócio</title>
-        <meta name="description" content="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável." />
-        <meta name="author" content="Elys" />
-        <meta property="og:title" content="Elys - Software sob demanda para PMEs" />
-        <meta property="og:description" content="Construímos software que transforma a maneira que você faz negócio. Desenvolvimento sob demanda, automação e integrações." />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@lovable_dev" />
-        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    </head>
-    <body>
-        <div id="root"></div>
-        <script type="module" src="/src/main.tsx"></script>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>Elys - Construímos software que transforma a maneira que você faz negócio</title>
+    <meta
+      name="description"
+      content="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável."
+    />
+    <meta name="author" content="Elys" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://elys.com.br/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://elys.com.br/" />
+    <meta property="og:title" content="Elys - Software sob demanda para PMEs" />
+    <meta
+      property="og:description"
+      content="Construímos software que transforma a maneira que você faz negócio. Desenvolvimento sob demanda, automação e integrações."
+    />
+    <meta property="og:image" content="https://elys.com.br/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Elys" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://elys.com.br/" />
+    <meta name="twitter:title" content="Elys - Software sob demanda para PMEs" />
+    <meta
+      name="twitter:description"
+      content="Construímos software que transforma a maneira que você faz negócio. Desenvolvimento sob demanda, automação e integrações."
+    />
+    <meta name="twitter:image" content="https://elys.com.br/twitter-card.jpg" />
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareCompany",
+        "name": "Elys",
+        "description": "Desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
+        "url": "https://elys.com.br",
+        "logo": "https://elys.com.br/logo.png",
+        "foundingDate": "2020",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Sua Cidade",
+          "addressRegion": "SP",
+          "addressCountry": "BR"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "Sales",
+          "availableLanguage": ["Portuguese"]
+        },
+        "sameAs": ["https://linkedin.com/company/elys", "https://instagram.com/elys"],
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5",
+          "reviewCount": "5",
+          "bestRating": "5",
+          "worstRating": "1"
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "offerCount": "4",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Desenvolvimento de Software",
+              "description": "Desenvolvimento de aplicações web e mobile sob demanda"
+            },
+            {
+              "@type": "Offer",
+              "name": "Automação de Processos",
+              "description": "Automação de processos empresariais e integrações"
+            },
+            {
+              "@type": "Offer",
+              "name": "Integrações",
+              "description": "Integração de sistemas e APIs"
+            },
+            {
+              "@type": "Offer",
+              "name": "Consultoria",
+              "description": "Consultoria em arquitetura de software e tecnologia"
+            }
+          ]
+        }
+      }
+    </script>
+
+    <!-- Breadcrumb Schema -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://elys.com.br/"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

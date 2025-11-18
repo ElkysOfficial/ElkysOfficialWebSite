@@ -1,3 +1,6 @@
+# Elys - Robots.txt
+# https://elys.com.br/robots.txt
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,20 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Disallow admin or private paths (if any in the future)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Sitemaps
+Sitemap: https://elys.com.br/sitemap.xml
+
+# Crawl-delay (optional, helps prevent overload)
+Crawl-delay: 1
+
+# Block or slow down aggressive crawlers
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
