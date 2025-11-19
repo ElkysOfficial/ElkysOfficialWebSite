@@ -1,5 +1,6 @@
 import { ArrowUp, Mail, Phone, Linkedin, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const quickLinks = [
@@ -126,14 +127,14 @@ const Footer = () => {
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center gap-4">
               {legal.map((item, index) => (
-                <a
+                <Link
                   key={index}
-                  href={item.href}
+                  to={item.href}
                   className="text-xs text-gray-400 hover:text-primary-light transition-colors"
                   aria-label={`Acessar página de ${item.label}`}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
             </div>
 

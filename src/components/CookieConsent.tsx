@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Cookie, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -69,23 +70,19 @@ const CookieConsent = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Utilizamos cookies para melhorar sua experiência, analisar o tráfego do site e personalizar conteúdo.
                 Ao clicar em "Aceitar", você concorda com o uso de cookies conforme nossa{' '}
-                <a
-                  href="/cookie-policy"
+                <Link
+                  to="/cookie-policy"
                   className="text-primary hover:underline font-medium"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   Política de Cookies
-                </a>{' '}
+                </Link>{' '}
                 e{' '}
-                <a
-                  href="/privacy-policy"
+                <Link
+                  to="/privacy-policy"
                   className="text-primary hover:underline font-medium"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   Política de Privacidade
-                </a>.
+                </Link>.
               </p>
             </div>
 

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 // Validation schema with Zod
 const contactFormSchema = z.object({
@@ -213,23 +214,19 @@ const ContactForm = () => {
 
                     <p className="text-xs text-muted-foreground text-center">
                       Ao enviar este formulário, você concorda com nossos{' '}
-                      <a
-                        href="/terms-of-service"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        to="/terms-of-service"
                         className="text-primary hover:underline font-medium"
                       >
                         Termos de Uso
-                      </a>{' '}
+                      </Link>{' '}
                       e{' '}
-                      <a
-                        href="/privacy-policy"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        to="/privacy-policy"
                         className="text-primary hover:underline font-medium"
                       >
                         Política de Privacidade
-                      </a>.
+                      </Link>.
                     </p>
                   </form>
                 </CardContent>
