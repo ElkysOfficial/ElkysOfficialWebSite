@@ -78,7 +78,7 @@ const About = () => {
                 <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                   <value.icon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground">{value.title}</h3>
+                <p className="text-xl font-bold text-foreground">{value.title}</p>
                 <p className="text-muted-foreground leading-relaxed">{value.description}</p>
               </CardContent>
             </Card>

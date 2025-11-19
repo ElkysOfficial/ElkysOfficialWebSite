@@ -98,6 +98,8 @@ const Navigation = () => {
                 <button
                     className={`md:hidden p-2 transition-colors duration-300 ${useLightNavbar ? 'text-slate-700' : 'text-white'}`}
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    aria-label={isMenuOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+                    aria-expanded={isMenuOpen}
                 >
                     {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>

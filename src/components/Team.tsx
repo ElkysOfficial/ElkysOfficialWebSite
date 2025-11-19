@@ -122,6 +122,7 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="relative z-10 transform translate-y-8 opacity-0 transition-all duration-700 delay-150 group-hover:translate-y-0 group-hover:opacity-100"
+              aria-label={`Visitar perfil do LinkedIn de ${member.name}`}
             >
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-2xl shadow-black/20 transition-all duration-300 hover:scale-110 hover:shadow-white/40 hover:bg-gradient-to-br hover:from-white hover:to-slate-50">
                 <Linkedin className="h-9 w-9 text-primary transition-all duration-300" />
@@ -192,6 +193,8 @@ export const Team = () => {
             <button
               onClick={() => setShowAll(!showAll)}
               className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-primary via-violet-600 to-purple-600 px-8 py-4 font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
+              aria-label={showAll ? 'Ver menos membros da equipe' : 'Ver mais membros da equipe'}
+              aria-expanded={showAll}
             >
               {showAll ? 'Ver Menos' : 'Ver Mais'}
               <svg
@@ -199,6 +202,7 @@ export const Team = () => {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                aria-hidden="true"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>

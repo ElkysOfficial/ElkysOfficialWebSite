@@ -53,12 +53,18 @@ const Footer = () => {
               <a
                 href="https://linkedin.com/company/elys"
                 className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary transition-colors"
+                aria-label="Visite nosso perfil no LinkedIn"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Linkedin className="h-4 w-4" />
               </a>
               <a
                 href="https://github.com/elys"
                 className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary transition-colors"
+                aria-label="Visite nosso perfil no Github"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Github className="h-4 w-4" />
               </a>
@@ -67,7 +73,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Links Rápidos</h3>
+            <p className="font-semibold text-white mb-4">Links Rápidos</p>
             <ul className="space-y-2">
               {quickLinks.map((link, index) => (
                 <li key={index}>
@@ -84,7 +90,7 @@ const Footer = () => {
 
           {/* Services */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Serviços</h3>
+            <p className="font-semibold text-white mb-4">Serviços</p>
             <ul className="space-y-2">
               {services.map((service, index) => (
                 <li key={index}>
@@ -96,7 +102,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Contato</h3>
+            <p className="font-semibold text-white mb-4">Contato</p>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-primary-light" />
@@ -125,6 +131,7 @@ const Footer = () => {
                   key={index}
                   href="#"
                   className="text-xs text-gray-400 hover:text-primary-light transition-colors"
+                  aria-label={`Acessar página de ${item}`}
                 >
                   {item}
                 </a>
@@ -137,6 +144,7 @@ const Footer = () => {
               size="sm"
               onClick={scrollToTop}
               className="text-gray-400 hover:text-white hover:bg-gray-800"
+              aria-label="Voltar ao topo da página"
             >
               <ArrowUp className="h-4 w-4 mr-1" />
               Topo

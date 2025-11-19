@@ -32,9 +32,9 @@ const ClientsCarousel = () => {
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h3 className="text-2xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Empresas que confiam na <span className="text-primary">Elys</span>
-          </h3>
+          </h2>
           <p className="text-muted-foreground">
             Parceiros de sucesso em diversos segmentos
           </p>
@@ -50,7 +50,7 @@ const ClientsCarousel = () => {
               >
                 <img
                   src={logo.replace(/\.(png|jpg|jpeg)$/i, '.webp')}
-                  alt={`Client logo ${index + 1}`}
+                  alt={`Logo do cliente parceiro da Elys`}
                   width={200}
                   height={100}
                   loading="lazy"

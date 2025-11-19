@@ -64,21 +64,21 @@ const Hero = () => {
                     <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse">
                     <Code2 className="h-8 w-8 text-accent" />
                     <div>
-                        <h3 className="text-white font-semibold">Clean Code</h3>
+                        <p className="text-white font-semibold">Clean Code</p>
                         <p className="text-gray-300 text-sm">Código limpo e documentado</p>
                     </div>
                     </div>
                     <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '1s' }}>
                     <Zap className="h-8 w-8 text-accent" />
                     <div>
-                        <h3 className="text-white font-semibold">Entregas Ágeis</h3>
+                        <p className="text-white font-semibold">Entregas Ágeis</p>
                         <p className="text-gray-300 text-sm">Metodologia ágil e entregas rápidas</p>
                     </div>
                     </div>
                     <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '2s' }}>
                     <Shield className="h-8 w-8 text-accent" />
                     <div>
-                        <h3 className="text-white font-semibold">Suporte Contínuo</h3>
+                        <p className="text-white font-semibold">Suporte Contínuo</p>
                         <p className="text-gray-300 text-sm">Acompanhamento pós-entrega</p>
                     </div>
                     </div>

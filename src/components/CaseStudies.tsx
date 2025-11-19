@@ -186,6 +186,7 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
             rel="noopener noreferrer"
             className="absolute bottom-6 right-6 z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0 translate-y-4"
             onClick={(e) => e.stopPropagation()}
+            aria-label={`Ver case completo: ${caseStudy.title}`}
           >
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-50 shadow-2xl shadow-purple-900/20 ring-2 ring-white/50 hover:scale-110 transition-transform">
               <ArrowRight className="h-6 w-6 text-primary transition-transform group-hover:translate-x-1" />
@@ -205,9 +206,9 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         </div>
 
         {/* Title - Harmonic Hover */}
-        <h3 className="mb-5 text-2xl font-bold leading-tight text-slate-900 transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-primary group-hover:via-violet-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent lg:text-3xl">
+        <h2 className="mb-5 text-2xl font-bold leading-tight text-slate-900 transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-primary group-hover:via-violet-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent lg:text-3xl">
           {caseStudy.title}
-        </h3>
+        </h2>
 
         {/* Description */}
         <p className="mb-8 leading-relaxed text-slate-600">
@@ -352,6 +353,8 @@ export const CaseStudies = () => {
                       : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-primary"
                   }`}
                   style={{ animationDelay: `${index * 0.05}s` }}
+                  aria-label={`Filtrar cases por ${category === "all" ? "todos os setores" : category}`}
+                  aria-pressed={filter === category}
                 >
                   {category === "all" ? "Todos os Cases" : category}
                 </button>

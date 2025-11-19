@@ -107,7 +107,7 @@ const ContactForm = () => {
               </Card>
 
               <div className="bg-gradient-primary rounded-xl p-6 text-white">
-                <h3 className="font-bold mb-4">Resposta rápida garantida</h3>
+                <p className="font-bold mb-4">Resposta rápida garantida</p>
                 <p className="text-sm opacity-90 mb-4">
                   Nossa equipe responde em até 2 horas durante horário comercial.
                 </p>

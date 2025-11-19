@@ -93,7 +93,11 @@ const Services = () => {
                     </li>
                   ))}
                 </ul>
-                <Button variant="ghost" className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                  aria-label={`Saiba mais sobre ${service.title}`}
+                >
                   Saiba mais
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -105,9 +109,9 @@ const Services = () => {
         {/* Call to Action */}
         <div className="text-center">
           <div className="bg-gradient-primary rounded-2xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">
+            <p className="text-2xl font-bold mb-4">
               Pronto para transformar seu negócio?
-            </h3>
+            </p>
             <p className="text-lg mb-6 opacity-90">
               Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com tecnologia.
             </p>

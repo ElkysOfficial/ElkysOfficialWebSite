@@ -65,7 +65,7 @@ const Contact = () => {
                         <info.icon className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground mb-1">{info.title}</h3>
+                        <p className="font-semibold text-foreground mb-1">{info.title}</p>
                         <p className="text-primary font-medium">{info.value}</p>
                         <p className="text-sm text-muted-foreground mt-1">{info.subtitle}</p>
                       </div>
@@ -88,6 +88,7 @@ const Contact = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`w-12 h-12 bg-white border border-border rounded-lg flex items-center justify-center transition-all hover:shadow-md ${social.color}`}
+                    aria-label={`Visite nosso perfil no ${social.name}`}
                   >
                     <social.icon className="h-5 w-5" />
                   </a>
@@ -109,7 +110,7 @@ const Contact = () => {
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-2">Horário de Atendimento</h3>
+                    <p className="font-semibold text-foreground mb-2">Horário de Atendimento</p>
                     <div className="space-y-1 text-sm text-muted-foreground">
                       <div>Segunda a Sexta: 8h às 18h</div>
                       <div>Sábado: 8h às 12h</div>
@@ -124,7 +125,7 @@ const Contact = () => {
             </Card>
             <Card className="shadow-elegant bg-gradient-primary text-white">
               <CardContent className="p-6 text-center space-y-4">
-                <h3 className="text-xl font-bold">Precisa de ajuda urgente?</h3>
+                <p className="text-xl font-bold">Precisa de ajuda urgente?</p>
                 <p className="opacity-90">
                   Nossa equipe está disponível para atendimento de emergência 24 horas por dia, 7 dias por semana.
                 </p>
@@ -132,6 +133,7 @@ const Contact = () => {
                   <a
                     href="tel:+5531999738235"
                     className="inline-flex items-center space-x-2 bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    aria-label="Ligar agora para atendimento de emergência"
                   >
                     <Phone className="h-4 w-4" />
                     <span>Ligar Agora</span>
