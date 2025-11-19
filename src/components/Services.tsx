@@ -115,7 +115,16 @@ const Services = () => {
             <p className="text-lg mb-6 opacity-90">
               Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com tecnologia.
             </p>
-            <Button size="lg" variant="accent" className="btn-primary-animate btn-breathe">
+            <Button
+              size="lg"
+              variant="accent"
+              className="btn-primary-animate btn-breathe"
+              onClick={() => {
+                const contactSection = document.getElementById('contact');
+                contactSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              aria-label="Solicitar orçamento - ir para formulário de contato"
+            >
               Solicitar Orçamento
               <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
             </Button>

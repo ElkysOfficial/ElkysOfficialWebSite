@@ -89,7 +89,11 @@ const Navigation = () => {
                             </a>
                         )
                     ))}
-                    <Button variant={useLightNavbar ? 'gradient' : 'gradient_secondary'}>
+                    <Button
+                        variant={useLightNavbar ? 'gradient' : 'gradient_secondary'}
+                        onClick={() => window.open('https://wa.me/5531997382935', '_blank')}
+                        aria-label="Fale conosco pelo WhatsApp"
+                    >
                     Fale Conosco
                     </Button>
                 </div>
@@ -130,7 +134,15 @@ const Navigation = () => {
                             </a>
                         )
                     ))}
-                    <Button variant={useLightNavbar ? 'gradient' : 'gradient_secondary'} className="mt-4">
+                    <Button
+                        variant={useLightNavbar ? 'gradient' : 'gradient_secondary'}
+                        className="mt-4"
+                        onClick={() => {
+                            window.open('https://wa.me/5531997382935', '_blank');
+                            setIsMenuOpen(false);
+                        }}
+                        aria-label="Fale conosco pelo WhatsApp"
+                    >
                         Fale Conosco
                     </Button>
                     </div>

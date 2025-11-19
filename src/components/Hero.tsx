@@ -29,7 +29,13 @@ const Hero = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <Button size="lg" variant="accent" className="btn-primary-animate btn-breathe border-white text-white hover:text-white">
+                <Button
+                  size="lg"
+                  variant="accent"
+                  className="btn-primary-animate btn-breathe border-white text-white hover:text-white"
+                  onClick={() => window.open('https://wa.me/5531997382935', '_blank')}
+                  aria-label="Fale com um especialista no WhatsApp"
+                >
                     Fale com um especialista
                     <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
                 </Button>
