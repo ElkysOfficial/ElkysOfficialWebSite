@@ -10,6 +10,9 @@ import ScrollToTop from "@/components/ScrollToTop";
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Cases = lazy(() => import("./pages/Cases"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -36,6 +39,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/cases" element={<Cases />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

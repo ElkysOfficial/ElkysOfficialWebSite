@@ -19,10 +19,9 @@ const Footer = () => {
   ];
 
   const legal = [
-    'Política de Privacidade',
-    'Termos de Uso',
-    'Cookies',
-    'LGPD'
+    { label: 'Política de Privacidade', href: '/privacy-policy' },
+    { label: 'Termos de Uso', href: '/terms-of-service' },
+    { label: 'Cookies', href: '/cookie-policy' }
   ];
 
   const scrollToTop = () => {
@@ -129,11 +128,11 @@ const Footer = () => {
               {legal.map((item, index) => (
                 <a
                   key={index}
-                  href="#"
+                  href={item.href}
                   className="text-xs text-gray-400 hover:text-primary-light transition-colors"
-                  aria-label={`Acessar página de ${item}`}
+                  aria-label={`Acessar página de ${item.label}`}
                 >
-                  {item}
+                  {item.label}
                 </a>
               ))}
             </div>
