@@ -2,12 +2,14 @@ import { Send, CheckCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import emailjs from '@emailjs/browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { EMAILJS_CONFIG } from '@/config/emailjs';
 
 // Validation schema with Zod
 const contactFormSchema = z.object({
@@ -44,19 +46,45 @@ const ContactForm = () => {
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Initialize EmailJS (only once)
+      emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+
+      // Prepare template parameters
+      const templateParams = {
+        name: data.name,
+        email: data.email,
+        company: data.company || 'Não informado',
+        message: data.message,
+        calendar_link: EMAILJS_CONFIG.CALENDAR_LINK
+      };
+
+      // Send both emails in parallel for better performance
+      await Promise.all([
+        // Send email to business owner (Contact Us template)
+        emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.TEMPLATE_ID,
+          templateParams
+        ),
+        // Send auto-reply to client (Auto-Reply template)
+        emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID,
+          templateParams
+        )
+      ]);
 
       toast({
-        title: "Mensagem enviada com sucesso!",
-        description: "Entraremos em contato em breve. Obrigado!",
+        title: "✅ Mensagem enviada com sucesso!",
+        description: "Respondemos em até 2 horas. Verifique seu email!",
       });
 
       reset(); // Reset form after successful submission
     } catch (error) {
+      console.error('EmailJS Error:', error);
       toast({
-        title: "Erro ao enviar mensagem",
-        description: "Por favor, tente novamente mais tarde.",
+        title: "❌ Erro ao enviar mensagem",
+        description: "Por favor, tente novamente ou entre em contato via WhatsApp.",
         variant: "destructive"
       });
     }
