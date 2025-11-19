@@ -212,7 +212,24 @@ const ContactForm = () => {
                     </Button>
 
                     <p className="text-xs text-muted-foreground text-center">
-                      Ao enviar este formulário, você concorda com nossa política de privacidade.
+                      Ao enviar este formulário, você concorda com nossos{' '}
+                      <a
+                        href="/terms-of-service"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Termos de Uso
+                      </a>{' '}
+                      e{' '}
+                      <a
+                        href="/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Política de Privacidade
+                      </a>.
                     </p>
                   </form>
                 </CardContent>
