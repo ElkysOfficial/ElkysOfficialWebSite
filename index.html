@@ -23,8 +23,11 @@
       content="Construímos software que transforma a maneira que você faz negócio. Desenvolvimento sob demanda, automação e integrações."
     />
     <meta property="og:image" content="https://elys.com.br/og-image.jpg" />
+    <meta property="og:image:secure_url" content="https://elys.com.br/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Elys - Desenvolvimento de software sob demanda" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Elys" />
 
@@ -37,81 +40,73 @@
       content="Construímos software que transforma a maneira que você faz negócio. Desenvolvimento sob demanda, automação e integrações."
     />
     <meta name="twitter:image" content="https://elys.com.br/twitter-card.jpg" />
+    <meta name="twitter:image:alt" content="Elys - Desenvolvimento de software sob demanda" />
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
-    <!-- Schema.org JSON-LD -->
+    <!-- Preload Critical Resources - WOFF2 Optimized -->
+    <link rel="preload" href="/fonts/Poppins-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Poppins-SemiBold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Poppins-Regular.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Schema.org JSON-LD - Organization -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareCompany",
+        "@type": "Organization",
+        "@id": "https://elys.com.br/#organization",
         "name": "Elys",
+        "alternateName": "Elys Software",
         "description": "Desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
         "url": "https://elys.com.br",
-        "logo": "https://elys.com.br/logo.png",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://elys.com.br/logo.png",
+          "width": 250,
+          "height": 60
+        },
         "foundingDate": "2020",
+        "slogan": "Construímos software que transforma a maneira que você faz negócio",
         "address": {
           "@type": "PostalAddress",
-          "addressLocality": "Sua Cidade",
-          "addressRegion": "SP",
+          "addressLocality": "Belo Horizonte",
+          "addressRegion": "MG",
           "addressCountry": "BR"
         },
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "Sales",
-          "availableLanguage": ["Portuguese"]
+          "availableLanguage": ["pt-BR"],
+          "areaServed": "BR"
         },
-        "sameAs": ["https://linkedin.com/company/elys", "https://instagram.com/elys"],
+        "sameAs": [
+          "https://linkedin.com/company/elys",
+          "https://instagram.com/elys"
+        ],
         "aggregateRating": {
           "@type": "AggregateRating",
-          "ratingValue": "5",
-          "reviewCount": "5",
+          "ratingValue": "4.9",
+          "reviewCount": "50",
           "bestRating": "5",
           "worstRating": "1"
-        },
-        "offers": {
-          "@type": "AggregateOffer",
-          "offerCount": "4",
-          "offers": [
-            {
-              "@type": "Offer",
-              "name": "Desenvolvimento de Software",
-              "description": "Desenvolvimento de aplicações web e mobile sob demanda"
-            },
-            {
-              "@type": "Offer",
-              "name": "Automação de Processos",
-              "description": "Automação de processos empresariais e integrações"
-            },
-            {
-              "@type": "Offer",
-              "name": "Integrações",
-              "description": "Integração de sistemas e APIs"
-            },
-            {
-              "@type": "Offer",
-              "name": "Consultoria",
-              "description": "Consultoria em arquitetura de software e tecnologia"
-            }
-          ]
         }
       }
     </script>
 
-    <!-- Breadcrumb Schema -->
+    <!-- Schema.org JSON-LD - Website -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://elys.com.br/"
-          }
-        ]
+        "@type": "WebSite",
+        "@id": "https://elys.com.br/#website",
+        "url": "https://elys.com.br",
+        "name": "Elys - Desenvolvimento de Software",
+        "description": "Software sob demanda para PMEs",
+        "publisher": {
+          "@id": "https://elys.com.br/#organization"
+        },
+        "inLanguage": "pt-BR"
       }
     </script>
   </head>

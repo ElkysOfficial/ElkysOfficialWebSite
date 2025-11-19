@@ -35,13 +35,12 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img 
-                src="/lovable-uploads/24ea4510-732b-4aa8-9151-e8e71aeb8002.png" 
-                alt="Elys" 
-                className="h-8 w-8 brightness-0 invert"
+            <div className="flex items-center">
+              <img
+                src="/imgs/icons/lettering_elys.png"
+                alt="Elys"
+                className="h-10 w-auto"
               />
-              <span className="text-xl font-bold text-primary-light">elys.</span>
             </div>
             <p className="text-sm text-gray-300 leading-relaxed">
               Construímos software que transforma a maneira que você faz negócio. 

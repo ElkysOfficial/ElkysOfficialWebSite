@@ -12,7 +12,7 @@ const Hero = () => {
             <div className="absolute top-40 right-20 w-24 h-24 bg-accent rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
             <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-primary-light rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
         </div>
-        <img src={backgroundPattern} alt="Background" className="absolute inset-0 object-cover opacity-50 top-[800px] left-[100px] w-[1000px] animate-diamond-rotate"  />
+        <img src={backgroundPattern} alt="Background" width={1000} height={1000} loading="eager" className="absolute inset-0 object-cover opacity-50 top-[700px] left-[100px] w-[1000px] animate-diamond-rotate"  />
 
         <div className="container mx-auto px-4 py-20 relative z-10">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -68,14 +68,14 @@ const Hero = () => {
                         <p className="text-gray-300 text-sm">Código limpo e documentado</p>
                     </div>
                     </div>
-                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '2s' }}>
+                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '1s' }}>
                     <Zap className="h-8 w-8 text-accent" />
                     <div>
                         <h3 className="text-white font-semibold">Entregas Ágeis</h3>
                         <p className="text-gray-300 text-sm">Metodologia ágil e entregas rápidas</p>
                     </div>
                     </div>
-                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '4s' }}>
+                    <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse" style={{ animationDelay: '2s' }}>
                     <Shield className="h-8 w-8 text-accent" />
                     <div>
                         <h3 className="text-white font-semibold">Suporte Contínuo</h3>

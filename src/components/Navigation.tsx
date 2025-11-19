@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import lettering_elys_purple from '../../public/imgs/icons/lettering_elys_purple.png';
 import lettering_elys_white from '../../public/imgs/icons/lettering_elys.png';
 
@@ -9,6 +9,7 @@ const Navigation = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [viewportPosition, setViewportPosition] = useState(0);
     const location = useLocation();
+    const navigate = useNavigate();
     const isHomePage = location.pathname === '/';
     const isCasesPage = location.pathname === '/cases';
 
@@ -24,7 +25,23 @@ const Navigation = () => {
         };
     },[]);
 
-    console.log(viewportPosition);
+    const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isHomePage) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handleHomeClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isHomePage) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            e.preventDefault();
+            navigate('/');
+        }
+        setIsMenuOpen(false);
+    };
 
     const navItems = [
         { label: 'Início', href: isHomePage ? '#hero' : '/#hero', isRoute: false },
@@ -47,15 +64,9 @@ const Navigation = () => {
         }`}>
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
-                {isHomePage ? (
-                    <a href="#hero" className="flex items-center space-x-2">
-                        <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
-                    </a>
-                ) : (
-                    <Link to="/#hero" className="flex items-center space-x-2">
-                        <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
-                    </Link>
-                )}
+                <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-2">
+                    <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
+                </Link>
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
                     {navItems.map((item) => (
@@ -71,6 +82,7 @@ const Navigation = () => {
                             <a
                                 key={item.label}
                                 href={item.href}
+                                onClick={item.label === 'Início' ? handleHomeClick : undefined}
                                 className={`${useLightNavbar ? 'text-slate-700 hover:text-primary' : 'text-white hover:text-[#F97415]'} transition-colors duration-300 font-medium`}
                             >
                                 {item.label}
@@ -109,8 +121,8 @@ const Navigation = () => {
                             <a
                                 key={item.label}
                                 href={item.href}
+                                onClick={item.label === 'Início' ? handleHomeClick : () => setIsMenuOpen(false)}
                                 className={`${useLightNavbar ? 'text-slate-700 hover:text-primary' : 'text-white hover:text-[#F97415]'} transition-colors duration-300 font-medium px-2 py-1`}
-                                onClick={() => setIsMenuOpen(false)}
                             >
                                 {item.label}
                             </a>

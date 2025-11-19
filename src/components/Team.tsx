@@ -16,7 +16,7 @@ const teamMembers: TeamMember[] = [
     name: "Lucelho Silva",
     role: "Founder",
     bio: "Profissional com ampla experiência em tecnologia, automação e arquitetura de soluções. Lidera produtos digitais com foco em eficiência, segurança e impacto real para o cliente.",
-    image: "/imgs/team/member-1.jpg",
+    image: "/imgs/team/member-1.webp",
     linkedin: "https://linkedin.com/in/lucelhosilva",
   },
   {
@@ -24,7 +24,7 @@ const teamMembers: TeamMember[] = [
     name: "Thiago Michaelsen",
     role: "Co-Founder",
     bio: "Atua há anos na organização de operações, processos e gestão estratégica. Especialista em transformar demandas complexas em entregas claras, consistentes e de alto padrão.",
-    image: "/imgs/team/member-2.jpg",
+    image: "/imgs/team/member-2.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -32,7 +32,7 @@ const teamMembers: TeamMember[] = [
     name: "Matheus Urban",
     role: "Lead Developer",
     bio: "Desenvolvedor experiente em arquiteturas modernas, performance e escalabilidade. Responsável por garantir código robusto, seguro e preparado para crescer junto com o cliente.",
-    image: "/imgs/team/member-3.jpg",
+    image: "/imgs/team/member-3.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -40,7 +40,7 @@ const teamMembers: TeamMember[] = [
     name: "Priscilla trevizan",
     role: "Full Stack Developer",
     bio: "Domínio completo em front-end e back-end, entregando sistemas bem estruturados, estáveis e com excelente experiência para o usuário final.",
-    image: "/imgs/team/member-4.jpg",
+    image: "/imgs/team/member-4.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -48,7 +48,7 @@ const teamMembers: TeamMember[] = [
     name: "Martim Cavalho",
     role: "UX/UI Designer",
     bio: "Expert em criar interfaces funcionais e intuitivas. Une pesquisa, usabilidade e design moderno para garantir que cada cliente tenha uma experiência simples e eficiente.",
-    image: "/imgs/team/member-5.jpg",
+    image: "/imgs/team/member-5.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -56,7 +56,7 @@ const teamMembers: TeamMember[] = [
     name: "Douglas Monteiro",
     role: "UX/UI Designer",
     bio: "Profissional com forte atuação em design centrado no usuário. Converte necessidades reais em soluções visuais claras, acessíveis e de alto impacto.",
-    image: "/imgs/team/member-6.jpg",
+    image: "/imgs/team/member-6.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -64,7 +64,7 @@ const teamMembers: TeamMember[] = [
     name: "Gustavo Archein",
     role: "Product Manager",
     bio: "Profundo conhecimento em gestão de produtos, definição de estratégia e análise de mercado. Mantém o produto alinhado às expectativas do cliente e às metas de negócio.",
-    image: "/imgs/team/member-7.jpg",
+    image: "/imgs/team/member-7.webp",
     linkedin: "https://linkedin.com/in/",
   },
   {
@@ -72,7 +72,7 @@ const teamMembers: TeamMember[] = [
     name: "Matheus Mello",
     role: "Customer Success & Business Development",
     bio: "Experiência sólida em relacionamento com clientes, acompanhamento de resultados e expansão comercial. Garante satisfação contínua e constrói relações duradouras e de confiança.",
-    image: "/imgs/team/member-8.jpg",
+    image: "/imgs/team/member-8.webp",
     linkedin: "https://linkedin.com/in/",
   },
 ];
@@ -92,7 +92,12 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
           {!imageError ? (
             <img
               src={member.image}
+              srcSet={`${member.image.replace('.webp', '-400w.webp')} 400w, ${member.image.replace('.webp', '-800w.webp')} 800w`}
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
               alt={member.name}
+              width={800}
+              height={800}
+              loading="lazy"
               className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110"
               onError={() => setImageError(true)}
             />

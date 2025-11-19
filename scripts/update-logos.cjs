@@ -7,7 +7,7 @@ const JSON_PATH = path.join(__dirname, '../public/imgs/logo/logos.json');
 const logoFiles = fs.readdirSync(LOGOS_DIR)
   .filter(file => {
     const ext = path.extname(file).toLowerCase();
-    return ['.png', '.svg', '.jpg', '.jpeg'].includes(ext) &&
+    return ['.png', '.svg', '.jpg', '.jpeg', '.webp'].includes(ext) &&
            file !== 'README.md' &&
            file !== 'logos.json';
   })

@@ -8,21 +8,46 @@ import { Team } from '@/components/Team';
 import ContactForm from '@/components/ContactForm';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const Index = () => {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://elys.com.br/#webpage",
+    "url": "https://elys.com.br/",
+    "name": "Elys - Desenvolvimento de Software sob Demanda",
+    "isPartOf": {
+      "@id": "https://elys.com.br/#website"
+    },
+    "about": {
+      "@id": "https://elys.com.br/#organization"
+    },
+    "description": "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
+    "inLanguage": "pt-BR"
+  };
+
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <Hero />
-      <About />
-      <Services />
-      <ClientsCarousel />
-      <Testimonials />
-      <Team />
-      <ContactForm />
-      <Contact />
-      <Footer />
-    </div>
+    <>
+      <SEO
+        title="Elys - Construímos software que transforma a maneira que você faz negócio"
+        description="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável."
+        canonical="https://elys.com.br/"
+        jsonLd={jsonLd}
+      />
+      <div className="min-h-screen">
+        <Navigation />
+        <Hero />
+        <About />
+        <Services />
+        <ClientsCarousel />
+        <Testimonials />
+        <Team />
+        <ContactForm />
+        <Contact />
+        <Footer />
+      </div>
+    </>
   );
 };
 

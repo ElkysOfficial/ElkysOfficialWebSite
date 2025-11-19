@@ -192,9 +192,9 @@ All colors MUST be HSL.
     }
   }
 
-  /* Card pulse animation */
+  /* Card pulse animation - Accelerated */
   .animate-card-pulse {
-    animation: card-pulse 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    animation: card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 
   @keyframes card-pulse {

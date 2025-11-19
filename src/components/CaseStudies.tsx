@@ -56,7 +56,7 @@ const caseStudies: CaseStudy[] = [
     client: "Dr. Antônio",
     category: "Jurídico",
     description: "Redesenhamos do zero um site institucional com foco em clareza, design responsivo e estrutura que transmite autoridade e confiança.",
-    image: "/imgs/cases/case-3.jpg",
+    image: "/imgs/cases/case-3.webp",
     video: "imgs/cases/videos/case-3-preview.mp4",
     results: [
       { metric: "Design", value: "100%" },
@@ -143,7 +143,12 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         {!imageError ? (
           <img
             src={caseStudy.image}
+            srcSet={caseStudy.image.endsWith('.webp') ? `${caseStudy.image.replace('.webp', '-640w.webp')} 640w, ${caseStudy.image.replace('.webp', '-1024w.webp')} 1024w, ${caseStudy.image.replace('.webp', '-1920w.webp')} 1920w` : undefined}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px"
             alt={caseStudy.title}
+            width={1920}
+            height={1200}
+            loading="lazy"
             className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
             onError={() => setImageError(true)}
           />

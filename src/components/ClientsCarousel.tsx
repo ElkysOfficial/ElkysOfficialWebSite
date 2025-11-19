@@ -49,10 +49,12 @@ const ClientsCarousel = () => {
                 className="clients-logo-wrapper flex-shrink-0 transition-all duration-300"
               >
                 <img
-                  src={logo}
+                  src={logo.replace(/\.(png|jpg|jpeg)$/i, '.webp')}
                   alt={`Client logo ${index + 1}`}
-                  className="clients-logo-grayscale"
+                  width={200}
+                  height={100}
                   loading="lazy"
+                  className="clients-logo-grayscale"
                 />
               </div>
             ))}
