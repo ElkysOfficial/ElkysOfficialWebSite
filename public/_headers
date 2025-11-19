@@ -1,0 +1,48 @@
+# Security Headers for Elys Website
+# This file works with Netlify, Vercel, and other modern hosting platforms
+# For other servers (Apache, Nginx), see the corresponding config files
+
+/*
+  # Content Security Policy (CSP)
+  # Protects against XSS attacks by controlling which resources can be loaded
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://linkedin.com https://github.com https://instagram.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+  # HTTP Strict Transport Security (HSTS)
+  # Forces HTTPS connections for 2 years (gradual rollout recommended)
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+  # X-Frame-Options (XFO)
+  # Prevents clickjacking by blocking iframe embedding
+  X-Frame-Options: DENY
+
+  # X-Content-Type-Options
+  # Prevents MIME type sniffing
+  X-Content-Type-Options: nosniff
+
+  # Referrer Policy
+  # Controls how much referrer information is shared
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Permissions Policy (formerly Feature Policy)
+  # Restricts browser features and APIs
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+
+  # Cross-Origin-Opener-Policy (COOP)
+  # Isolates browsing context from cross-origin windows
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+  # Cross-Origin-Resource-Policy (CORP)
+  # Protects resources from being loaded by cross-origin pages
+  Cross-Origin-Resource-Policy: same-origin
+
+  # Cache Control
+  # Optimize caching for performance
+  Cache-Control: public, max-age=31536000, immutable
+
+# Specific rules for HTML files (shorter cache)
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# API or dynamic content (no cache)
+/api/*
+  Cache-Control: no-cache, no-store, must-revalidate

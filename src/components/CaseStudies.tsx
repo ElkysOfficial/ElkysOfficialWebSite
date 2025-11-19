@@ -281,7 +281,7 @@ export const CaseStudies = () => {
           <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-violet-400/40 to-indigo-300/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
           <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-purple-300/30 to-primary/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
         </div>
-        <img src={backgroundPattern} alt="Background" className="absolute inset-0 object-cover opacity-[0.08] top-[500px] left-[100px] w-[1000px] animate-diamond-rotate" />
+        <img src={backgroundPattern} alt="Background" width={1000} height={1000} loading="lazy" className="absolute inset-0 object-cover opacity-[0.08] top-[500px] left-[100px] w-[1000px] animate-diamond-rotate" />
 
         <div className="container relative z-10 mx-auto">
           {/* Breadcrumb - Refined */}

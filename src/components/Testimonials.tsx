@@ -166,7 +166,7 @@ const Testimonials = () => {
             className="rounded-full hover:bg-[#0000002f] transition-all p-2"
             aria-label="Anterior"
           >
-            <img src={ArrowLeft} alt="Voltar" className="w-10 h-10" />
+            <img src={ArrowLeft} alt="Voltar" width={40} height={40} loading="lazy" className="w-10 h-10" />
           </button>
 
           <div
@@ -232,7 +232,7 @@ const Testimonials = () => {
             className="rounded-full hover:bg-[#0000002f] transition-all p-2"
             aria-label="Próximo"
           >
-            <img src={ArrowRight} alt="Avançar" className="w-10 h-10" />
+            <img src={ArrowRight} alt="Avançar" width={40} height={40} loading="lazy" className="w-10 h-10" />
           </button>
         </div>
 

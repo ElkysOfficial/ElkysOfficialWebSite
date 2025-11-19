@@ -65,7 +65,7 @@ const Navigation = () => {
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                 <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-2">
-                    <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" className='w-16 transition-all duration-500'/>
+                    <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" width={64} height={32} className='w-16 transition-all duration-500'/>
                 </Link>
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
