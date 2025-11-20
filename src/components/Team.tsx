@@ -37,7 +37,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     id: 4,
-    name: "Priscilla trevizan",
+    name: "Priscilla Trevizan",
     role: "Full Stack Developer",
     bio: "Domínio completo em front-end e back-end, entregando sistemas bem estruturados, estáveis e com excelente experiência para o usuário final.",
     image: "/imgs/team/member-4.webp",
@@ -82,17 +82,14 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
 
   return (
     <div className="group relative h-full">
-      {/* Gradient Border Effect on Hover */}
-      <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/0 via-violet-500/0 to-purple-600/0 opacity-0 blur transition-all duration-500 group-hover:from-primary/30 group-hover:via-violet-500/30 group-hover:to-purple-600/30 group-hover:opacity-100"></div>
+      <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-primary/0 via-violet-500/0 to-purple-600/0 opacity-0 blur transition-all duration-500 group-hover:from-primary/30 group-hover:via-violet-500/30 group-hover:to-purple-600/30 group-hover:opacity-100" />
 
-      {/* Card Container */}
-      <div className="relative h-full overflow-hidden rounded-3xl bg-white shadow-lg shadow-slate-200/50 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:-translate-y-2 flex flex-col">
-        {/* Image Container */}
+      <div className="relative h-full overflow-hidden rounded-3xl bg-white dark:bg-card shadow-elegant transition-all duration-500 group-hover:shadow-glow group-hover:-translate-y-2 flex flex-col">
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 flex-shrink-0">
           {!imageError ? (
             <img
               src={member.image}
-              srcSet={`${member.image.replace('.webp', '-400w.webp')} 400w, ${member.image.replace('.webp', '-800w.webp')} 800w`}
+              srcSet={`${member.image.replace(".webp", "-400w.webp")} 400w, ${member.image.replace(".webp", "-800w.webp")} 800w`}
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
               alt={member.name}
               width={800}
@@ -111,12 +108,9 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
             </div>
           )}
 
-          {/* Gradient Purple Overlay - Shows photo through gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-violet-600/70 to-purple-600/80 opacity-0 transition-all duration-700 group-hover:opacity-100 flex items-center justify-center">
-            {/* Subtle inner gradient for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
-            {/* LinkedIn Button */}
             <a
               href={member.linkedin}
               target="_blank"
@@ -131,24 +125,19 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-5 sm:p-6 lg:p-8 flex flex-col flex-grow">
-          {/* Decorative Line */}
-          <div className="mb-4 h-0.5 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-12"></div>
+          <div className="mb-4 h-0.5 w-0 bg-gradient-to-r from-primary via-violet-500 to-purple-500 transition-all duration-500 group-hover:w-12" />
 
-          <h3 className="mb-2 text-xl font-bold text-slate-900 transition-all duration-500 lg:text-2xl group-hover:text-primary">
+          <h3 className="mb-2 text-xl font-bold text-foreground dark:text-white transition-all duration-500 lg:text-2xl group-hover:text-primary">
             {member.name}
           </h3>
-          <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500 transition-colors duration-500 group-hover:text-primary">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground/60 dark:text-slate-400 transition-colors duration-500 group-hover:text-primary">
             {member.role}
           </p>
-          <p className="text-sm leading-relaxed text-slate-600 flex-grow">
-            {member.bio}
-          </p>
+          <p className="text-sm leading-relaxed text-foreground/70 dark:text-slate-300 flex-grow">{member.bio}</p>
         </div>
 
-        {/* Bottom Accent Line */}
-        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-full"></div>
+        <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary via-violet-500 to-purple-500 transition-all duration-500 group-hover:w-full" />
       </div>
     </div>
   );
@@ -159,46 +148,39 @@ export const Team = () => {
   const displayedMembers = showAll ? teamMembers : teamMembers.slice(0, 4);
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white py-24 md:py-32">
+    <section className="relative overflow-hidden bg-slate-50 dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-24 md:py-32">
       <div className="container mx-auto px-4">
-        {/* Header - Consistent with other sections */}
         <div className="mx-auto mb-12 md:mb-16 lg:mb-20 max-w-3xl text-center">
-          <h2 className="mb-4 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 animate-fade-in leading-tight">
-            Nossa{' '}
-            <span className="bg-gradient-to-r from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
-              Equipe
-            </span>
+          <h2 className="mb-4 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground dark:text-white animate-fade-in leading-tight">
+            Nossa <span className="bg-gradient-to-r from-primary via-violet-500 to-purple-500 bg-clip-text text-transparent">Equipe</span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p
+            className="text-base sm:text-lg md:text-xl text-foreground/70 dark:text-slate-300 leading-relaxed animate-slide-up"
+            style={{ animationDelay: "0.2s" }}
+          >
             Especialistas dedicados a transformar sua visão em realidade
           </p>
         </div>
 
-        {/* Grid - Show 4 initially, all when expanded */}
         <div className="mx-auto grid max-w-7xl gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8 md:mb-12">
           {displayedMembers.map((member, index) => (
-            <div
-              key={member.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+            <div key={member.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <TeamMemberCard member={member} />
             </div>
           ))}
         </div>
 
-        {/* Ver Mais Button */}
         {teamMembers.length > 4 && (
-          <div className="flex justify-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <div className="flex justify-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <button
               onClick={() => setShowAll(!showAll)}
               className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-primary via-violet-600 to-purple-600 px-8 py-4 font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
-              aria-label={showAll ? 'Ver menos membros da equipe' : 'Ver mais membros da equipe'}
+              aria-label={showAll ? "Ver menos membros da equipe" : "Ver mais membros da equipe"}
               aria-expanded={showAll}
             >
-              {showAll ? 'Ver Menos' : 'Ver Mais'}
+              {showAll ? "Ver Menos" : "Ver Mais"}
               <svg
-                className={`h-5 w-5 transition-transform duration-300 ${showAll ? 'rotate-180' : ''}`}
+                className={`h-5 w-5 transition-transform duration-300 ${showAll ? "rotate-180" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -211,10 +193,12 @@ export const Team = () => {
         )}
       </div>
 
-      {/* Subtle background decoration */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.06]">
         <div className="absolute left-1/4 top-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-primary/40 to-violet-300/40 blur-3xl animate-float" />
-        <div className="absolute bottom-1/3 right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-purple-300/30 to-indigo-300/40 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-1/3 right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-purple-300/30 to-indigo-300/40 blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
     </section>
   );

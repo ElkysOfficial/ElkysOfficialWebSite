@@ -1,32 +1,32 @@
-import { Send, CheckCircle } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import emailjs from '@emailjs/browser';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
-import { EMAILJS_CONFIG } from '@/config/emailjs';
+import { Send, CheckCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import emailjs from "@emailjs/browser";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { EMAILJS_CONFIG } from "@/config/emailjs";
 
-// Validation schema with Zod
 const contactFormSchema = z.object({
-  name: z.string()
-    .min(3, 'Nome deve ter no mínimo 3 caracteres')
-    .max(100, 'Nome muito longo')
-    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
-  email: z.string()
-    .email('E-mail inválido')
-    .min(5, 'E-mail muito curto')
-    .max(100, 'E-mail muito longo'),
-  company: z.string()
-    .max(100, 'Nome da empresa muito longo')
-    .optional(),
-  message: z.string()
-    .min(10, 'Mensagem deve ter no mínimo 10 caracteres')
-    .max(1000, 'Mensagem muito longa (máximo 1000 caracteres)')
+  name: z
+    .string()
+    .min(3, "Nome deve ter no mínimo 3 caracteres")
+    .max(100, "Nome muito longo")
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras"),
+  email: z
+    .string()
+    .email("E-mail inválido")
+    .min(5, "E-mail muito curto")
+    .max(100, "E-mail muito longo"),
+  company: z.string().max(100, "Nome da empresa muito longo").optional(),
+  message: z
+    .string()
+    .min(10, "Mensagem deve ter no mínimo 10 caracteres")
+    .max(1000, "Mensagem muito longa (máximo 1000 caracteres)"),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -38,40 +38,27 @@ const ContactForm = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset
+    reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
-    mode: 'onBlur' // Validate on blur for better UX
+    mode: "onBlur",
   });
 
   const onSubmit = async (data: ContactFormData) => {
     try {
-      // Initialize EmailJS (only once)
       emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
 
-      // Prepare template parameters
       const templateParams = {
         name: data.name,
         email: data.email,
-        company: data.company || 'Não informado',
+        company: data.company || "Não informado",
         message: data.message,
-        calendar_link: EMAILJS_CONFIG.CALENDAR_LINK
+        calendar_link: EMAILJS_CONFIG.CALENDAR_LINK,
       };
 
-      // Send both emails in parallel for better performance
       await Promise.all([
-        // Send email to business owner (Contact Us template)
-        emailjs.send(
-          EMAILJS_CONFIG.SERVICE_ID,
-          EMAILJS_CONFIG.TEMPLATE_ID,
-          templateParams
-        ),
-        // Send auto-reply to client (Auto-Reply template)
-        emailjs.send(
-          EMAILJS_CONFIG.SERVICE_ID,
-          EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID,
-          templateParams
-        )
+        emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams),
+        emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID, templateParams),
       ]);
 
       toast({
@@ -79,13 +66,13 @@ const ContactForm = () => {
         description: "Respondemos em até 2 horas. Verifique seu email!",
       });
 
-      reset(); // Reset form after successful submission
+      reset();
     } catch (error) {
-      console.error('EmailJS Error:', error);
+      console.error("EmailJS Error:", error);
       toast({
         title: "❌ Erro ao enviar mensagem",
         description: "Por favor, tente novamente ou entre em contato via WhatsApp.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -94,7 +81,6 @@ const ContactForm = () => {
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
               Vamos conversar sobre seu <span className="text-primary">projeto</span>
@@ -105,33 +91,24 @@ const ContactForm = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Contact Info */}
             <div className="space-y-6">
               <Card className="shadow-elegant">
                 <CardHeader>
-                  <CardTitle className="text-lg text-primary">Por que escolher a Elys?</CardTitle>
+                  <CardTitle className="text-lg text-primary">Por que escolher a elys?</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Consulta inicial gratuita</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Proposta em até 48h</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Desenvolvimento ágil</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Suporte contínuo</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-accent" />
-                    <span className="text-sm text-muted-foreground">Código limpo e documentado</span>
-                  </div>
+                  {[
+                    "Consulta inicial gratuita",
+                    "Proposta em até 48h",
+                    "Desenvolvimento ágil",
+                    "Suporte contínuo",
+                    "Código limpo e documentado",
+                  ].map((text) => (
+                    <div key={text} className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-accent" />
+                      <span className="text-sm text-muted-foreground">{text}</span>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 
@@ -141,13 +118,13 @@ const ContactForm = () => {
                   Nossa equipe responde em até 2 horas durante horário comercial.
                 </p>
                 <div className="text-xs opacity-75">
-                  Seg-Sex: 8h às 18h<br />
+                  Seg-Sex: 8h às 18h
+                  <br />
                   Sáb: 8h às 12h
                 </div>
               </div>
             </div>
 
-            {/* Contact Form */}
             <div className="lg:col-span-2">
               <Card className="shadow-elegant">
                 <CardHeader>
@@ -160,16 +137,8 @@ const ContactForm = () => {
                         <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
                           Nome completo *
                         </label>
-                        <Input
-                          id="name"
-                          type="text"
-                          placeholder="Seu nome"
-                          className="w-full"
-                          {...register('name')}
-                        />
-                        {errors.name && (
-                          <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-                        )}
+                        <Input id="name" type="text" placeholder="Seu nome" className="w-full" {...register("name")} />
+                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                       </div>
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -180,11 +149,9 @@ const ContactForm = () => {
                           type="email"
                           placeholder="seu.email@empresa.com"
                           className="w-full"
-                          {...register('email')}
+                          {...register("email")}
                         />
-                        {errors.email && (
-                          <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-                        )}
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                       </div>
                     </div>
 
@@ -197,11 +164,9 @@ const ContactForm = () => {
                         type="text"
                         placeholder="Nome da sua empresa"
                         className="w-full"
-                        {...register('company')}
+                        {...register("company")}
                       />
-                      {errors.company && (
-                        <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>
-                      )}
+                      {errors.company && <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>}
                     </div>
 
                     <div>
@@ -213,20 +178,12 @@ const ContactForm = () => {
                         placeholder="Conte-nos sobre seu projeto, desafios e objetivos..."
                         rows={5}
                         className="w-full"
-                        {...register('message')}
+                        {...register("message")}
                       />
-                      {errors.message && (
-                        <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>
-                      )}
+                      {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
                     </div>
 
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      variant="gradient"
-                      size="lg"
-                      className="w-full"
-                    >
+                    <Button type="submit" disabled={isSubmitting} variant="gradient" size="lg" className="w-full">
                       {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
@@ -241,20 +198,15 @@ const ContactForm = () => {
                     </Button>
 
                     <p className="text-xs text-muted-foreground text-center">
-                      Ao enviar este formulário, você concorda com nossos{' '}
-                      <Link
-                        to="/terms-of-service"
-                        className="text-primary hover:underline font-medium"
-                      >
+                      Ao enviar este formulário, você concorda com nossos{" "}
+                      <Link to="/terms-of-service" className="text-primary hover:underline font-medium">
                         Termos de Uso
-                      </Link>{' '}
-                      e{' '}
-                      <Link
-                        to="/privacy-policy"
-                        className="text-primary hover:underline font-medium"
-                      >
+                      </Link>{" "}
+                      e{" "}
+                      <Link to="/privacy-policy" className="text-primary hover:underline font-medium">
                         Política de Privacidade
-                      </Link>.
+                      </Link>
+                      .
                     </p>
                   </form>
                 </CardContent>
