@@ -45,7 +45,11 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
 
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.emailjs.com https://linkedin.com https://github.com https://instagram.com;">
+
     <!-- Preconnect to External Domains -->
+    <link rel="preconnect" href="https://api.emailjs.com" crossorigin />
     <link rel="preconnect" href="https://linkedin.com" crossorigin />
     <link rel="preconnect" href="https://github.com" crossorigin />
     <link rel="preconnect" href="https://instagram.com" crossorigin />

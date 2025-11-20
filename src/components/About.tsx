@@ -58,15 +58,17 @@ const About = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 sm:gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index} className="text-center p-4 sm:p-6 shadow-elegant hover:shadow-glow transition-all">
-                <CardContent className="p-0">
-                  <div className="text-2xl sm:text-3xl font-bold text-primary mb-2">{stat.number}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex justify-center lg:justify-end w-full">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5 md:gap-6 w-full max-w-sm sm:max-w-md lg:max-w-xl">
+              {stats.map((stat, index) => (
+                <Card key={index} className="text-center p-4 sm:p-5 md:p-6 shadow-elegant hover:shadow-glow transition-all border-border bg-card">
+                  <CardContent className="p-0 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px]">
+                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-1 sm:mb-2">{stat.number}</div>
+                    <div className="text-xs sm:text-sm md:text-base text-muted-foreground leading-tight px-2">{stat.label}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
 
