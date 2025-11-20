@@ -132,7 +132,7 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
         </div>
 
         {/* Content */}
-        <div className="p-7 lg:p-8 flex flex-col flex-grow">
+        <div className="p-5 sm:p-6 lg:p-8 flex flex-col flex-grow">
           {/* Decorative Line */}
           <div className="mb-4 h-0.5 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-500 group-hover:w-12"></div>
 
@@ -162,20 +162,20 @@ export const Team = () => {
     <section className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/50 to-white py-24 md:py-32">
       <div className="container mx-auto px-4">
         {/* Header - Consistent with other sections */}
-        <div className="mx-auto mb-20 max-w-3xl text-center">
-          <h2 className="mb-6 text-4xl font-bold tracking-tight text-slate-900 md:text-5xl lg:text-6xl animate-fade-in leading-tight">
+        <div className="mx-auto mb-12 md:mb-16 lg:mb-20 max-w-3xl text-center">
+          <h2 className="mb-4 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 animate-fade-in leading-tight">
             Nossa{' '}
             <span className="bg-gradient-to-r from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
               Equipe
             </span>
           </h2>
-          <p className="text-lg text-slate-600 md:text-xl leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-base sm:text-lg md:text-xl text-slate-600 leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
             Especialistas dedicados a transformar sua visão em realidade
           </p>
         </div>
 
         {/* Grid - Show 4 initially, all when expanded */}
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-2 lg:grid-cols-4 mb-12">
+        <div className="mx-auto grid max-w-7xl gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8 md:mb-12">
           {displayedMembers.map((member, index) => (
             <div
               key={member.id}

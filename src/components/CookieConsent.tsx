@@ -52,7 +52,7 @@ const CookieConsent = () => {
       aria-label="Banner de consentimento de cookies"
       aria-live="polite"
     >
-      <div className="container mx-auto max-w-6xl">
+      <div className="container mx-auto max-w-7xl px-4">
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-2xl p-4 md:p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             {/* Icon */}

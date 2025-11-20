@@ -19,11 +19,11 @@ const Hero = () => {
             {/* Content */}
             <div className="text-white space-y-8">
                 <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-fade-in">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-fade-in">
                     Construímos software que {' '}
                     <span className="text-accent">transforma</span> a maneira que você faz negócio
                 </h1>
-                <p className="text-xl text-gray-200 leading-relaxed animate-slide-up">
+                <p className="text-base sm:text-lg md:text-xl text-gray-200 leading-relaxed animate-slide-up">
                     Desenvolvemos soluções sob demanda para PMEs, com entregas ágeis, código limpo e arquitetura escalável que cresce com seu negócio.
                 </p>
                 </div>
@@ -47,18 +47,18 @@ const Hero = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="flex flex-wrap gap-8 pt-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="flex flex-wrap gap-4 sm:gap-6 md:gap-8 pt-6 md:pt-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <div className="text-center">
-                    <div className="text-3xl font-bold text-accent">50+</div>
-                    <div className="text-sm text-gray-300">Projetos entregues</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-accent">50+</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Projetos entregues</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-3xl font-bold text-accent">98%</div>
-                    <div className="text-sm text-gray-300">Satisfação do cliente</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-accent">98%</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Satisfação do cliente</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-3xl font-bold text-accent">5+</div>
-                    <div className="text-sm text-gray-300">Anos de experiência</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-accent">5+</div>
+                    <div className="text-xs sm:text-sm text-gray-300">Anos de experiência</div>
                 </div>
                 </div>
             </div>

@@ -68,7 +68,7 @@ const Navigation = () => {
                     <img src={useLightNavbar ? lettering_elys_purple : lettering_elys_white} alt="Elys" width={64} height={32} className='w-16 transition-all duration-500'/>
                 </Link>
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center space-x-8">
+                <div className="hidden md:flex items-center space-x-4 lg:space-x-6 xl:space-x-8">
                     {navItems.map((item) => (
                         item.isRoute ? (
                             <Link
@@ -136,7 +136,7 @@ const Navigation = () => {
                     ))}
                     <Button
                         variant={useLightNavbar ? 'gradient' : 'gradient_secondary'}
-                        className="mt-4"
+                        className="mt-3 sm:mt-4"
                         onClick={() => {
                             window.open('https://wa.me/5531997382935', '_blank');
                             setIsMenuOpen(false);

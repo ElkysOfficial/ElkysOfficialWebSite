@@ -58,12 +58,12 @@ const About = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-4 sm:gap-6">
             {stats.map((stat, index) => (
-              <Card key={index} className="text-center p-6 shadow-elegant hover:shadow-glow transition-all">
+              <Card key={index} className="text-center p-4 sm:p-6 shadow-elegant hover:shadow-glow transition-all">
                 <CardContent className="p-0">
-                  <div className="text-3xl font-bold text-primary mb-2">{stat.number}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary mb-2">{stat.number}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
                 </CardContent>
               </Card>
             ))}
@@ -71,7 +71,7 @@ const About = () => {
         </div>
 
         {/* Mission, Vision, Values */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
           {values.map((value, index) => (
             <Card key={index} className="text-center p-8 shadow-elegant hover:shadow-glow transition-all group">
               <CardContent className="p-0 space-y-4">

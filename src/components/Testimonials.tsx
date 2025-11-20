@@ -170,13 +170,12 @@ const Testimonials = () => {
           </button>
 
           <div
-            className="relative mb-12 overflow-hidden"
-            style={{ width: `${itemWidth * 2.5}px` }}
+            className="relative mb-12 overflow-hidden max-w-[300px] sm:max-w-[640px] md:max-w-[680px] lg:max-w-[800px]"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
             <div
-              className="flex space-x-8"
+              className="flex space-x-4 sm:space-x-6 md:space-x-8"
               style={{
                 transform: `translateX(-${currentIndex * itemWidth}px)`,
                 transition: transitionEnabled ? "transform 0.5s ease" : "none",
@@ -237,7 +236,7 @@ const Testimonials = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center mt-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center mt-12 md:mt-16">
           <div>
             <div className="text-3xl font-bold text-primary mb-2">98%</div>
             <div className="text-sm text-muted-foreground">Taxa de Satisfação</div>

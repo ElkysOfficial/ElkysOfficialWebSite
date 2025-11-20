@@ -23,11 +23,11 @@ const PrivacyPolicy = () => {
         </nav>
 
         {/* Header */}
-        <header className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <header className="mb-8 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
             Política de <span className="gradient-text">Privacidade</span>
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Última atualização: {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
           <p className="text-muted-foreground mt-2">

@@ -216,7 +216,7 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         </p>
 
         {/* Results Grid - Soft Colors */}
-        <div className="mb-8 grid grid-cols-3 gap-6 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 p-6 shadow-sm">
+        <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 p-4 sm:p-6 shadow-sm">
           {caseStudy.results.map((result, index) => (
             <div key={index} className="text-center group/stat">
               <p className="mb-2 text-2xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent lg:text-3xl transition-transform group-hover/stat:scale-110 duration-300">
@@ -275,7 +275,7 @@ export const CaseStudies = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30">
       {/* Hero Section */}
-      <section className="relative min-h-[75vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50/80 via-white to-purple-50/30 px-4 pb-24 pt-32 md:pt-40">
+      <section className="relative min-h-[60vh] sm:min-h-[70vh] md:min-h-[75vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50/80 via-white to-purple-50/30 px-4 pb-16 md:pb-24 pt-20 md:pt-32 lg:pt-40">
         {/* Background Pattern - Subtle & Harmonious */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-primary/60 to-purple-400/40 rounded-full blur-3xl animate-float"></div>
@@ -305,29 +305,29 @@ export const CaseStudies = () => {
                 Portfólio
               </span>
             </div>
-            <h1 className="mb-8 text-5xl font-bold tracking-tight text-slate-900 md:text-6xl lg:text-7xl xl:text-8xl animate-fade-in leading-[1.1]" style={{ animationDelay: '0.1s' }}>
+            <h1 className="mb-6 md:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight text-slate-900 animate-fade-in leading-[1.1]" style={{ animationDelay: '0.1s' }}>
               Nossos Cases de{' '}
               <span className="bg-gradient-to-r from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
                 Sucesso
               </span>
             </h1>
-            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl lg:text-2xl animate-slide-up font-light" style={{ animationDelay: '0.2s' }}>
+            <p className="mx-auto max-w-2xl text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed text-slate-600 animate-slide-up font-light" style={{ animationDelay: '0.2s' }}>
               Descubra como transformamos desafios em resultados excepcionais para nossos clientes
             </p>
 
             {/* Stats Mini - Harmonic Colors */}
-            <div className="mt-12 flex flex-wrap justify-center gap-8 md:gap-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">50+</div>
-                <div className="mt-2 text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Projetos</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">50+</div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Projetos</div>
               </div>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">98%</div>
-                <div className="mt-2 text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Satisfação</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">98%</div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Satisfação</div>
               </div>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">6+</div>
-                <div className="mt-2 text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Setores</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">6+</div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Setores</div>
               </div>
             </div>
           </div>
