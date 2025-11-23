@@ -2,6 +2,7 @@ import Navigation from '@/components/Navigation';
 import { CaseStudies } from '@/components/CaseStudies';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 const Cases = () => {
   const jsonLd = {
@@ -47,7 +48,10 @@ const Cases = () => {
       />
       <div className="min-h-screen">
         <Navigation />
-        <CaseStudies />
+        <Breadcrumbs />
+        <main id="main-content">
+          <CaseStudies />
+        </main>
         <Footer />
       </div>
     </>

@@ -430,13 +430,15 @@ export const CaseStudies = () => {
             <p className="mx-auto mb-10 max-w-xl text-lg text-slate-600 dark:text-slate-300">
               Converse com nossa equipe e descubra como podemos ajudar seu negócio
             </p>
-            <Link
-              to="/#contact"
+            <a
+              href="https://wa.me/5531997382935"
+              target="_blank"
+              rel="noopener noreferrer"
               className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-primary via-violet-600 to-purple-600 px-8 py-4 font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30"
             >
               Falar com especialista
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-2" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

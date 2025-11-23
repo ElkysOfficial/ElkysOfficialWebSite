@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { useEffect } from "react";
 
 const TermsOfService = () => {
@@ -11,17 +12,9 @@ const TermsOfService = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <Breadcrumbs />
 
-      <main className="container mx-auto px-4 py-24 max-w-4xl">
-        {/* Breadcrumb */}
-        <nav className="text-sm text-muted-foreground mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2">
-            <li><a href="/" className="hover:text-primary transition-colors">Início</a></li>
-            <li>/</li>
-            <li className="text-foreground font-medium">Termos de Uso</li>
-          </ol>
-        </nav>
-
+      <main id="main-content" className="container mx-auto px-4 py-24 max-w-4xl">
         {/* Header */}
         <header className="mb-8 md:mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">

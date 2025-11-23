@@ -120,8 +120,8 @@ const Services = () => {
               variant="accent"
               className="btn-primary-animate btn-breathe"
               onClick={() => {
-                const contactSection = document.getElementById('contact');
-                contactSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const contactForm = document.getElementById('contact-form');
+                contactForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
               aria-label="Solicitar orçamento - ir para formulário de contato"
             >
