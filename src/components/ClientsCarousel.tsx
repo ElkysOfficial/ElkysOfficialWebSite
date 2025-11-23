@@ -15,12 +15,12 @@ const ClientsCarousel = () => {
         setLogos([
           '/imgs/logo/1UmPrintComunicação.svg',
           '/imgs/logo/AKProducoes.svg',
-          '/imgs/logo/Antônio Oliveira Advogados.png',
-          '/imgs/logo/Developers Logo.png',
-          '/imgs/logo/hapvida.png',
-          '/imgs/logo/Logo Inline White.png',
-          '/imgs/logo/PlansCoop.png',
-          '/imgs/logo/Dps Celulares.png'
+          '/imgs/logo/Antônio Oliveira Advogados.webp',
+          '/imgs/logo/Dps Celulares.webp',
+          '/imgs/logo/God of Baber.webp',
+          '/imgs/logo/Hapvida.webp',
+          '/imgs/logo/Logo Inline White.webp',
+          '/imgs/logo/plansCoop.webp'
         ]);
       });
   }, []);
@@ -49,7 +49,7 @@ const ClientsCarousel = () => {
                 className="clients-logo-wrapper flex-shrink-0 transition-all duration-300"
               >
                 <img
-                  src={logo.replace(/\.(png|jpg|jpeg)$/i, '.webp')}
+                  src={logo}
                   alt={`Logo do cliente parceiro da Elys`}
                   width={200}
                   height={100}
