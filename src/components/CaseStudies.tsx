@@ -36,10 +36,9 @@ const caseStudies: CaseStudy[] = [
     tags: ["Web Design", "Site Institucional", "Branding"],
     link: "https://www.antonioadvogado.com.br/",
   },
-  // TODO: Adicionar imagens para os cases abaixo antes de descomentar
   // {
   //   id: 1,
-  //   title: "Transformação Digital Completa",
+  //   title: "Chatbot de Cotação de Planos",
   //   client: "Hapvida",
   //   category: "Saúde",
   //   description: "Desenvolvemos uma plataforma integrada que revolucionou o atendimento ao paciente, reduzindo tempo de espera e aumentando satisfação.",

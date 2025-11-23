@@ -138,7 +138,7 @@ const ContactForm = () => {
                           Nome completo *
                         </label>
                         <Input id="name" type="text" placeholder="Seu nome" className="w-full" {...register("name")} />
-                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                        {errors.name && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.name.message}</p>}
                       </div>
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -151,7 +151,7 @@ const ContactForm = () => {
                           className="w-full"
                           {...register("email")}
                         />
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                        {errors.email && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>}
                       </div>
                     </div>
 
@@ -166,7 +166,7 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("company")}
                       />
-                      {errors.company && <p className="text-red-500 text-xs mt-1">{errors.company.message}</p>}
+                      {errors.company && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.company.message}</p>}
                     </div>
 
                     <div>
@@ -180,7 +180,7 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("message")}
                       />
-                      {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
+                      {errors.message && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.message.message}</p>}
                     </div>
 
                     <Button type="submit" disabled={isSubmitting} variant="gradient" size="lg" className="w-full">
