@@ -1,73 +1,142 @@
-# Welcome to your Lovable project
+# Elys - Website Oficial
 
-## Project info
+Website institucional da Elys, especialista em desenvolvimento de software sob demanda para PMEs.
 
-**URL**: https://lovable.dev/projects/b4a2923a-29c2-47c2-b534-5f557adb3ac0
+## 🚀 Quick Start
 
-## How can I edit this code?
+### Requisitos
 
-There are several ways of editing your application.
+- Node.js >= 18.16.1
+- npm >= 9.5.1
 
-**Use Lovable**
+### Instalação
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b4a2923a-29c2-47c2-b534-5f557adb3ac0) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
+# Clone o repositório
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Navegue até o diretório do projeto
+cd WebSiteOficial
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Instale as dependências
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O servidor de desenvolvimento estará disponível em `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📦 Build Commands
 
-**Use GitHub Codespaces**
+O projeto possui múltiplas configurações de build otimizadas:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### `npm run build`
+Build padrão para produção usando esbuild (rápido e otimizado):
+- Minificação básica de JavaScript e CSS
+- Gera sourcemaps desabilitados
+- Code splitting automático
+- Ideal para builds rápidos de desenvolvimento/testes
 
-## What technologies are used for this project?
+### `npm run build:min`
+Build minificado avançado usando Terser:
+- **Minificação agressiva de JavaScript**: Terser com 2 passes
+- **Remove logs**: console.log, console.info, console.debug, console.trace
+- **Remove debuggers**: Todos os statements de debug
+- **Minificação de CSS**: Otimizada e comprimida
+- **Minificação de HTML**: Remove espaços, comentários e atributos redundantes
+- **Remove comentários**: Código final sem comentários
+- Ideal para produção e deploy final
 
-This project is built with:
+### `npm run build:dev`
+Build de desenvolvimento:
+- Modo development ativo
+- Inclui ferramentas de debug
+- Ideal para testar builds localmente
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+**Comparação de tamanhos:**
 
-## How can I deploy this project?
+| Arquivo | Build Normal | Build Minificado | Economia |
+|---------|-------------|------------------|----------|
+| index.html | 5.88 kB (gzip: 1.74 kB) | 4.91 kB (gzip: 1.45 kB) | ~17% |
+| JavaScript | 529 kB (gzip: 139 kB) | 505 kB (gzip: 132 kB) | ~5% |
+| **Total** | **535 kB** (gzip: **141 kB**) | **510 kB** (gzip: **133 kB**) | **~4.7% menor** |
 
-Simply open [Lovable](https://lovable.dev/projects/b4a2923a-29c2-47c2-b534-5f557adb3ac0) and click on Share -> Publish.
+*Nota: CSS permanece igual em ambos os builds*
 
-## Can I connect a custom domain to my Lovable project?
+Todos os builds incluem automaticamente:
+- Geração do sitemap.xml
+- Cópia do arquivo .htaccess para dist/
 
-Yes, you can!
+## 🛠️ Tecnologias
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Este projeto foi desenvolvido com as seguintes tecnologias:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Vite** - Build tool e dev server de alta performance
+- **TypeScript** - Superset JavaScript com tipagem estática
+- **React 18** - Biblioteca para construção de interfaces
+- **React Router** - Roteamento client-side
+- **Tailwind CSS** - Framework CSS utility-first
+- **Radix UI** - Componentes acessíveis e não estilizados
+- **React Hook Form + Zod** - Gerenciamento e validação de formulários
+- **EmailJS** - Serviço de envio de emails
+- **Sharp** - Processamento de imagens
+
+## 📁 Estrutura do Projeto
+
+```
+WebSiteOficial/
+├── src/
+│   ├── components/     # Componentes React reutilizáveis
+│   ├── pages/          # Páginas da aplicação
+│   ├── lib/            # Utilitários e configurações
+│   ├── hooks/          # Custom React hooks
+│   └── integrations/   # Integrações externas
+├── public/             # Arquivos estáticos
+├── scripts/            # Scripts de build e automação
+└── dist/               # Build de produção (gerado)
+```
+
+## 🚀 Deploy
+
+O projeto está configurado para deploy na Hostinger. Os builds incluem automaticamente:
+
+- Geração do `sitemap.xml`
+- Cópia do arquivo `.htaccess` para configuração do servidor
+- Otimização de assets e code splitting
+
+### Processo de Deploy
+
+1. Execute o build minificado:
+   ```bash
+   npm run build:min
+   ```
+
+2. Faça upload da pasta `dist/` para o servidor
+
+3. Certifique-se de que o arquivo `.htaccess` está configurado corretamente para React Router
+
+## 📝 Scripts Disponíveis
+
+- `npm run dev` - Inicia servidor de desenvolvimento
+- `npm run build` - Build de produção padrão
+- `npm run build:min` - Build minificado para produção
+- `npm run build:dev` - Build de desenvolvimento
+- `npm run preview` - Preview do build de produção
+- `npm run generate-sitemap` - Gera sitemap.xml
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente
+
+Configure as seguintes variáveis para integração com EmailJS:
+
+```env
+VITE_EMAILJS_SERVICE_ID=your_service_id
+VITE_EMAILJS_TEMPLATE_ID=your_template_id
+VITE_EMAILJS_PUBLIC_KEY=your_public_key
+```
+
+## 📄 Licença
+
+© 2024 Elys. Todos os direitos reservados.
