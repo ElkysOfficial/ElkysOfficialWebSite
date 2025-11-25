@@ -3,8 +3,8 @@ import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.png";
-import letteringWhite from "../../public/imgs/icons/lettering_elys.png";
+import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.webp";
+import letteringWhite from "../../public/imgs/icons/lettering_elys.webp";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

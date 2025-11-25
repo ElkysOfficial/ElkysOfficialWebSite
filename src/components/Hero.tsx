@@ -1,7 +1,7 @@
 import { ArrowRight, Code2, Zap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import backgroundPattern from "../../public/imgs/icons/hexagonal.png";
+import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 
 const Hero = () => {
   return (

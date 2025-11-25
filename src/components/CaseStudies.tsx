@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import backgroundPattern from '../../public/imgs/icons/hexagonal.png';
+import backgroundPattern from '../../public/imgs/icons/hexagonal.webp';
 
 interface CaseStudy {
   id: number;

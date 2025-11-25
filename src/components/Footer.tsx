@@ -28,7 +28,7 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img
-                src="/imgs/icons/lettering_elys.png"
+                src="/imgs/icons/lettering_elys.webp"
                 alt="elys"
                 width={80}
                 height={40}

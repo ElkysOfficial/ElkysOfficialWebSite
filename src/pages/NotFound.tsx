@@ -4,7 +4,7 @@ import { Home, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.png";
+import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.webp";
 
 const NotFound = () => {
   const location = useLocation();
