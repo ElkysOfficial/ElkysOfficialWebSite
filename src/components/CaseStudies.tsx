@@ -36,21 +36,21 @@ const caseStudies: CaseStudy[] = [
     tags: ["Web Design", "Site Institucional", "Branding"],
     link: "https://www.antonioadvogado.com.br/",
   },
-  // {
-  //   id: 1,
-  //   title: "Chatbot de Cotação de Planos",
-  //   client: "Hapvida",
-  //   category: "Saúde",
-  //   description: "Desenvolvemos uma plataforma integrada que revolucionou o atendimento ao paciente, reduzindo tempo de espera e aumentando satisfação.",
-  //   image: "/imgs/cases/case-1.jpg",
-  //   results: [
-  //     { metric: "Redução no tempo de atendimento", value: "45%" },
-  //     { metric: "Aumento na satisfação", value: "92%" },
-  //     { metric: "Processos digitalizados", value: "100%" },
-  //   ],
-  //   tags: ["UX/UI Design", "Desenvolvimento Web", "Mobile"],
-  //   link: "#",
-  // },
+  {
+    id: 1,
+    title: "Chatbot de Cotação de Planos",
+    client: "Planscoop",
+    category: "Saúde",
+    description: "Desenvolvemos um chatbot automatizado para cotação de planos de saúde, capaz de coletar dados, consultar tabelas, gerar valores e encaminhar o cliente diretamente para atendimento no WhatsApp. O sistema recebeu melhorias adicionais, incluindo módulos de tabelas, suporte, treinamento, cadastro e consulta de premiação.",
+    image: "/imgs/cases/case-1.jpg",
+    results: [
+      { metric: "Tempo de resposta mais rápido", value: "Processo 100% automatizado" },
+      { metric: "Redução de operações manuais", value: "Eliminação de cálculos manuais" },
+      { metric: "Automação de processos", value: "100%" },
+    ],
+    tags: ["Automação", "Chatbot", "Integração WhatsApp", "Desenvolvimento Web"],
+    link: "https://wa.me/SEULINKAQUI",
+  },
   // {
   //   id: 2,
   //   title: "Identidade Visual Moderna",
@@ -66,21 +66,22 @@ const caseStudies: CaseStudy[] = [
   //   tags: ["Branding", "Design Gráfico", "Web Design"],
   //   link: "#",
   // },
-  // {
-  //   id: 4,
-  //   title: "De inexistente a digital: criamos o primeiro canal online da 1UmPrint",
-  //   client: "1Um Print Comunicação",
-  //   category: "Comunicação Visual",
-  //   description: "Site moderno com navegação responsiva, formulário inteligente de orçamento e infraestrutura otimizada para SEO e performance.",
-  //   image: "/imgs/cases/case-4.jpg",
-  //   results: [
-  //     { metric: "Presença Digital", value: "100%" },
-  //     { metric: "Mobile First", value: "✓" },
-  //     { metric: "Conversão", value: "Otimizada" },
-  //   ],
-  //   tags: ["Web Design", "SEO", "Formulário Inteligente"],
-  //   link: "#",
-  // },
+  {
+    id: 4,
+    title: "De inexistente a digital: criamos o primeiro canal online da 1UmPrint",
+    client: "1Um Print Comunicação",
+    category: "Comunicação Visual",
+    description: "Criamos o primeiro site da empresa, estruturado do zero com foco em conversão. O projeto inclui design responsivo, identidade sólida, páginas otimizadas e um formulário inteligente que acelera o atendimento ao permitir que o cliente informe produto, quantidade e dados pessoais já no primeiro contato.",
+    image: "/imgs/cases/case-4.jpg",
+    video: "imgs/cases/videos/case-4-preview.mp4",
+    results: [
+      { metric: "Presença Digital", value: "100%" },
+      { metric: "Formulário inteligente", value: "Redução de etapas no atendimento" },
+      { metric: "Conversão", value: "Otimizada" },
+    ],
+    tags: ["Web Design", "SEO", "Otimização", "Formulário Inteligente"],
+    link: "https://umprintcomunicação.com.br/",
+  },
   // {
   //   id: 5,
   //   title: "Portal Corporativo Integrado",
@@ -96,21 +97,22 @@ const caseStudies: CaseStudy[] = [
   //   tags: ["Portal", "Sistema Web", "Integração"],
   //   link: "#",
   // },
-  // {
-  //   id: 6,
-  //   title: "Campanha Digital Integrada",
-  //   client: "AK Produções",
-  //   category: "Entretenimento",
-  //   description: "Estratégia completa de marketing digital com landing pages otimizadas e gestão de tráfego pago.",
-  //   image: "/imgs/cases/case-6.jpg",
-  //   results: [
-  //     { metric: "ROI da campanha", value: "340%" },
-  //     { metric: "Leads gerados", value: "2.8k" },
-  //     { metric: "Custo por lead", value: "-65%" },
-  //   ],
-  //   tags: ["Marketing Digital", "Landing Page", "Tráfego Pago"],
-  //   link: "#",
-  // },
+  {
+    id: 6,
+    title: "Transforme Sua Produção com Som Profissional de Cinema",
+    client: "AK Produções",
+    category: "Produção de Áudio",
+    description: "Especialistas em som para narrativas      audiovisuais com +20 anos de experiência. Dublagem,   legendagem, mixagem e produção sonora para cinema, TV e streaming.",
+    image: "/imgs/cases/case-6.jpg",
+    video: "imgs/cases/videos/case-6-preview.mp4",
+    results: [
+      { metric: "Anos de experiência", value: "20+" },
+      { metric: "Clientes premium", value: "Netflix, HBO, BBC" },
+      { metric: "Serviços oferecidos", value: "6" }
+    ],
+    tags: ["Dublagem", "Mixagem de Áudio", "Legendagem", "Produção Sonora"],
+    link: "https://royalblue-eel-104842.hostingersite.com/"
+  },
 ];
 
 const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
