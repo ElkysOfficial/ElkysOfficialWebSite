@@ -242,15 +242,15 @@ const Testimonials = () => {
             <div className="text-sm text-muted-foreground">Taxa de Satisfação</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-primary mb-2">50+</div>
+            <div className="text-3xl font-bold text-primary mb-2">20+</div>
             <div className="text-sm text-muted-foreground">Projetos Entregues</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-primary mb-2">25+</div>
+            <div className="text-3xl font-bold text-primary mb-2">20+</div>
             <div className="text-sm text-muted-foreground">Clientes Ativos</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-primary mb-2">5+</div>
+            <div className="text-3xl font-bold text-primary mb-2">2+</div>
             <div className="text-sm text-muted-foreground">Anos de Experiência</div>
           </div>
         </div>

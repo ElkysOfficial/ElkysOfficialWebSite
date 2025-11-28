@@ -21,10 +21,10 @@ const About = () => {
   ];
 
   const stats = [
-    { number: '50+', label: 'Projetos Entregues' },
-    { number: '25+', label: 'Clientes Ativos' },
+    { number: '20+', label: 'Projetos Entregues' },
+    { number: '20+', label: 'Clientes Ativos' },
     { number: '98%', label: 'Taxa de Satisfação' },
-    { number: '3+', label: 'Anos de Mercado' }
+    { number: '2+', label: 'Anos de Mercado' }
   ];
 
   return (

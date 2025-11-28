@@ -73,7 +73,7 @@ const Hero = () => {
               style={{ animationDelay: "0.4s" }}
             >
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-accent">50+</div>
+                <div className="text-2xl sm:text-3xl font-bold text-accent">20+</div>
                 <div className="text-xs sm:text-sm text-gray-300">Projetos entregues</div>
               </div>
               <div className="text-center">
@@ -81,7 +81,7 @@ const Hero = () => {
                 <div className="text-xs sm:text-sm text-gray-300">Satisfação do cliente</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-accent">5+</div>
+                <div className="text-2xl sm:text-3xl font-bold text-accent">2+</div>
                 <div className="text-xs sm:text-sm text-gray-300">Anos de experiência</div>
               </div>
             </div>
