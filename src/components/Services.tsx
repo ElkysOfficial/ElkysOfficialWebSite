@@ -70,7 +70,7 @@ const Services = () => {
         {/* Services Grid */}
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
           {services.map((service, index) => (
-            <Card key={index} className="relative overflow-hidden shadow-elegant hover:shadow-glow transition-all group">
+            <Card key={index} className="relative overflow-hidden shadow-elegant hover:shadow-glow transition-all group flex flex-col h-full">
               <CardHeader>
                 <div className="flex items-center space-x-4">
                   <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}>
@@ -81,11 +81,11 @@ const Services = () => {
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex flex-col flex-grow">
                 <p className="text-muted-foreground leading-relaxed">
                   {service.description}
                 </p>
-                <ul className="space-y-2">
+                <ul className="space-y-2 flex-grow">
                   {service.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
@@ -95,7 +95,7 @@ const Services = () => {
                 </ul>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                  className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all mt-auto"
                   aria-label={`Saiba mais sobre ${service.title}`}
                 >
                   Saiba mais
