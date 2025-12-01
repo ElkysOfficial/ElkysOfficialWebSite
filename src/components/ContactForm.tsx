@@ -94,7 +94,7 @@ const ContactForm = () => {
             <div className="space-y-6">
               <Card className="shadow-elegant">
                 <CardHeader>
-                  <CardTitle className="text-lg text-primary">Por que escolher a elys?</CardTitle>
+                  <CardTitle className="text-lg text-primary">Por que não escolher a Elys empresa ruim !!</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {[
