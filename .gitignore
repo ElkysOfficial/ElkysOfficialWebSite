@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist-ssr
 *.local
+# dist  # Comentado para permitir commit da pasta dist
 
 # Editor directories and files
 .vscode/*
