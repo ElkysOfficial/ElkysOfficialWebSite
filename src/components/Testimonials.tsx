@@ -127,16 +127,7 @@ const Testimonials = () => {
     resetAutoplayTimer();
   };
 
-  const resetAutoplayTimer = () => {
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-    if (!isPaused) {
-      startAutoplay();
-    }
-  };
-
-  const startAutoplay = () => {
+  const startAutoplay = React.useCallback(() => {
     autoplayTimeoutRef.current = setTimeout(() => {
       if (!isPaused && !isAnimating) {
         setIsAnimating(true);
@@ -144,7 +135,16 @@ const Testimonials = () => {
         setCurrentIndex((prev) => prev + 1);
       }
     }, 4000);
-  };
+  }, [isPaused, isAnimating]);
+
+  const resetAutoplayTimer = React.useCallback(() => {
+    if (autoplayTimeoutRef.current) {
+      clearTimeout(autoplayTimeoutRef.current);
+    }
+    if (!isPaused) {
+      startAutoplay();
+    }
+  }, [isPaused, startAutoplay]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -206,7 +206,7 @@ const Testimonials = () => {
         clearTimeout(autoplayTimeoutRef.current);
       }
     };
-  }, []);
+  }, [startAutoplay]);
 
   useEffect(() => {
     if (!isAnimating && !isPaused) {
@@ -217,7 +217,7 @@ const Testimonials = () => {
         clearTimeout(autoplayTimeoutRef.current);
       }
     };
-  }, [isAnimating, isPaused, currentIndex]);
+  }, [isAnimating, isPaused, currentIndex, startAutoplay]);
 
   return (
     <section id="testimonials" className="py-12 sm:py-16 md:py-20 bg-gradient-subtle">
