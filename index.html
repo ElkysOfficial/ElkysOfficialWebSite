@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
-    <title>Elys - Construímos software que transforma a maneira que você faz negócio</title>
+    <title>Teste - Construímos software que transforma a maneira que você faz negócio</title>
     <meta
       name="description"
       content="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável."
@@ -86,10 +86,7 @@
           "availableLanguage": ["pt-BR"],
           "areaServed": "BR"
         },
-        "sameAs": [
-          "https://linkedin.com/company/elys",
-          "https://instagram.com/elys"
-        ],
+        "sameAs": ["https://linkedin.com/company/elys", "https://instagram.com/elys"],
         "aggregateRating": {
           "@type": "AggregateRating",
           "ratingValue": "4.9",
@@ -117,17 +114,17 @@
     </script>
     <script>
       // Apply system theme early to avoid flashes on first paint
-      (function () {
-        const root = document.documentElement;
-        const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const apply = (isDark) => {
-          root.classList.toggle("dark", isDark);
-          root.style.colorScheme = isDark ? "dark" : "light";
-        };
+      ;(function () {
+        const root = document.documentElement
+        const media = window.matchMedia("(prefers-color-scheme: dark)")
+        const apply = isDark => {
+          root.classList.toggle("dark", isDark)
+          root.style.colorScheme = isDark ? "dark" : "light"
+        }
 
-        apply(media.matches);
-        media.addEventListener("change", (event) => apply(event.matches));
-      })();
+        apply(media.matches)
+        media.addEventListener("change", event => apply(event.matches))
+      })()
     </script>
   </head>
   <body>
