@@ -1,0 +1,42 @@
+name: Bundle Size Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and analyze
+        run: npm run build
+
+      - name: Upload bundle stats
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-stats
+          path: dist/stats.html
+          retention-days: 30
+
+      - name: Check bundle size
+        run: |
+          echo "📦 Checking bundle sizes..."
+          du -sh dist/assets/*.js | sort -hr
+          TOTAL_SIZE=$(du -sh dist | cut -f1)
+          echo "Total bundle size: $TOTAL_SIZE"

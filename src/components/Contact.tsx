@@ -46,8 +46,8 @@ const Contact = () => {
             Entre em <span className="text-primary">contato</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Estamos prontos para ajudar sua empresa a crescer. Entre em contato e vamos conversar sobre seu próximo
-            projeto.
+            Estamos prontos para ajudar sua empresa a crescer. Entre em contato e vamos conversar
+            sobre seu próximo projeto.
           </p>
         </div>
 
@@ -73,7 +73,9 @@ const Contact = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Siga-nos nas redes sociais</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Siga-nos nas redes sociais
+              </h3>
               <div className="flex space-x-4">
                 {socialLinks.map((social) => (
                   <a
@@ -105,7 +107,9 @@ const Contact = () => {
                       <div>Sábado: 8h às 12h</div>
                       <div>Domingo: Fechado</div>
                     </div>
-                    <p className="text-xs text-primary mt-2 font-medium">Atendimento de emergência disponível 24/7</p>
+                    <p className="text-xs text-primary mt-2 font-medium">
+                      Atendimento de emergência disponível 24/7
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -114,7 +118,8 @@ const Contact = () => {
               <CardContent className="p-6 text-center space-y-4">
                 <p className="text-xl font-bold">Precisa de ajuda urgente?</p>
                 <p className="opacity-90">
-                  Nossa equipe está disponível para atendimento de emergência 24 horas por dia, 7 dias por semana.
+                  Nossa equipe está disponível para atendimento de emergência 24 horas por dia, 7
+                  dias por semana.
                 </p>
                 <div className="pt-2">
                   <a

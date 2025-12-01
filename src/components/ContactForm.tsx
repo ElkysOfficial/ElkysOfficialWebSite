@@ -58,7 +58,11 @@ const ContactForm = () => {
 
       await Promise.all([
         emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams),
-        emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID, templateParams),
+        emailjs.send(
+          EMAILJS_CONFIG.SERVICE_ID,
+          EMAILJS_CONFIG.AUTO_REPLY_TEMPLATE_ID,
+          templateParams
+        ),
       ]);
 
       toast({
@@ -134,14 +138,30 @@ const ContactForm = () => {
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium text-foreground mb-2"
+                        >
                           Nome completo *
                         </label>
-                        <Input id="name" type="text" placeholder="Seu nome" className="w-full" {...register("name")} />
-                        {errors.name && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.name.message}</p>}
+                        <Input
+                          id="name"
+                          type="text"
+                          placeholder="Seu nome"
+                          className="w-full"
+                          {...register("name")}
+                        />
+                        {errors.name && (
+                          <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                            {errors.name.message}
+                          </p>
+                        )}
                       </div>
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-medium text-foreground mb-2"
+                        >
                           E-mail *
                         </label>
                         <Input
@@ -151,12 +171,19 @@ const ContactForm = () => {
                           className="w-full"
                           {...register("email")}
                         />
-                        {errors.email && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.email.message}</p>}
+                        {errors.email && (
+                          <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                            {errors.email.message}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div>
-                      <label htmlFor="company" className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="company"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         Empresa
                       </label>
                       <Input
@@ -166,11 +193,18 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("company")}
                       />
-                      {errors.company && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.company.message}</p>}
+                      {errors.company && (
+                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                          {errors.company.message}
+                        </p>
+                      )}
                     </div>
 
                     <div>
-                      <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
+                      <label
+                        htmlFor="message"
+                        className="block text-sm font-medium text-foreground mb-2"
+                      >
                         Mensagem *
                       </label>
                       <Textarea
@@ -180,10 +214,20 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("message")}
                       />
-                      {errors.message && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.message.message}</p>}
+                      {errors.message && (
+                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">
+                          {errors.message.message}
+                        </p>
+                      )}
                     </div>
 
-                    <Button type="submit" disabled={isSubmitting} variant="gradient" size="lg" className="w-full">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      variant="gradient"
+                      size="lg"
+                      className="w-full"
+                    >
                       {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
@@ -199,11 +243,17 @@ const ContactForm = () => {
 
                     <p className="text-xs text-muted-foreground text-center">
                       Ao enviar este formulário, você concorda com nossos{" "}
-                      <Link to="/terms-of-service" className="text-primary hover:underline font-medium">
+                      <Link
+                        to="/terms-of-service"
+                        className="text-primary hover:underline font-medium"
+                      >
                         Termos de Uso
                       </Link>{" "}
                       e{" "}
-                      <Link to="/privacy-policy" className="text-primary hover:underline font-medium">
+                      <Link
+                        to="/privacy-policy"
+                        className="text-primary hover:underline font-medium"
+                      >
                         Política de Privacidade
                       </Link>
                       .

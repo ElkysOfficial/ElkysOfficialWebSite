@@ -107,8 +107,8 @@ const Testimonials = () => {
     };
 
     updateItemWidth();
-    window.addEventListener('resize', updateItemWidth);
-    return () => window.removeEventListener('resize', updateItemWidth);
+    window.addEventListener("resize", updateItemWidth);
+    return () => window.removeEventListener("resize", updateItemWidth);
   }, []);
 
   const handleNext = () => {
@@ -228,7 +228,8 @@ const Testimonials = () => {
             O que nossos <span className="text-primary">clientes dizem</span>
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
-            A satisfação dos nossos clientes é nossa maior conquista. Veja alguns depoimentos de quem já transformou seu negócio conosco.
+            A satisfação dos nossos clientes é nossa maior conquista. Veja alguns depoimentos de
+            quem já transformou seu negócio conosco.
           </p>
         </div>
 
@@ -240,7 +241,14 @@ const Testimonials = () => {
             className="hidden sm:flex rounded-full hover:bg-[#0000002f] transition-all p-1.5 sm:p-2 z-10"
             aria-label="Anterior"
           >
-            <img src={ArrowLeft} alt="Voltar" width={32} height={32} loading="lazy" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+            <img
+              src={ArrowLeft}
+              alt="Voltar"
+              width={32}
+              height={32}
+              loading="lazy"
+              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
+            />
           </button>
 
           <div
@@ -273,7 +281,10 @@ const Testimonials = () => {
 
                     <div className="flex space-x-1">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-accent text-accent" />
+                        <Star
+                          key={i}
+                          className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-accent text-accent"
+                        />
                       ))}
                     </div>
 
@@ -291,7 +302,9 @@ const Testimonials = () => {
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-foreground text-xs sm:text-sm truncate">{testimonial.name}</div>
+                        <div className="font-semibold text-foreground text-xs sm:text-sm truncate">
+                          {testimonial.name}
+                        </div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
                           {testimonial.role} • {testimonial.company}
                         </div>
@@ -318,9 +331,7 @@ const Testimonials = () => {
                 >
                   <span
                     className={`h-2 rounded-full transition-all ${
-                      currentIndex % totalItems === index
-                        ? 'w-8 bg-primary'
-                        : 'w-2 bg-primary/30'
+                      currentIndex % totalItems === index ? "w-8 bg-primary" : "w-2 bg-primary/30"
                     }`}
                   />
                 </button>
@@ -334,26 +345,41 @@ const Testimonials = () => {
             className="hidden sm:flex rounded-full hover:bg-[#0000002f] transition-all p-1.5 sm:p-2 z-10"
             aria-label="Próximo"
           >
-            <img src={ArrowRight} alt="Avançar" width={32} height={32} loading="lazy" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+            <img
+              src={ArrowRight}
+              alt="Avançar"
+              width={32}
+              height={32}
+              loading="lazy"
+              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
+            />
           </button>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center mt-12 md:mt-16">
           <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">98%</div>
+            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
+              98%
+            </div>
             <div className="text-xs sm:text-sm text-muted-foreground">Taxa de Satisfação</div>
           </div>
           <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">20+</div>
+            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
+              20+
+            </div>
             <div className="text-xs sm:text-sm text-muted-foreground">Projetos Entregues</div>
           </div>
           <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">20+</div>
+            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
+              20+
+            </div>
             <div className="text-xs sm:text-sm text-muted-foreground">Clientes Ativos</div>
           </div>
           <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">2+</div>
+            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
+              2+
+            </div>
             <div className="text-xs sm:text-sm text-muted-foreground">Anos de Experiência</div>
           </div>
         </div>

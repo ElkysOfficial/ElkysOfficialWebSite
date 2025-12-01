@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 const ClientsCarousel = () => {
   const [logos, setLogos] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch('/imgs/logo/logos.json')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/imgs/logo/logos.json")
+      .then((res) => res.json())
+      .then((data) => {
         const logoPaths = data.logos.map((filename: string) => `/imgs/logo/${filename}`);
         setLogos(logoPaths);
       })
-      .catch(error => {
-        console.error('Error loading logos:', error);
+      .catch((error) => {
+        console.error("Error loading logos:", error);
         setLogos([
-          '/imgs/logo/1UmPrintComunicação.svg',
-          '/imgs/logo/AKProducoes.svg',
-          '/imgs/logo/Antônio Oliveira Advogados.webp',
-          '/imgs/logo/Dps Celulares.webp',
-          '/imgs/logo/God of Baber.webp',
-          '/imgs/logo/Hapvida.webp',
-          '/imgs/logo/Logo Inline White.webp',
-          '/imgs/logo/plansCoop.webp'
+          "/imgs/logo/1UmPrintComunicação.svg",
+          "/imgs/logo/AKProducoes.svg",
+          "/imgs/logo/Antônio Oliveira Advogados.webp",
+          "/imgs/logo/Dps Celulares.webp",
+          "/imgs/logo/God of Baber.webp",
+          "/imgs/logo/Hapvida.webp",
+          "/imgs/logo/Logo Inline White.webp",
+          "/imgs/logo/plansCoop.webp",
         ]);
       });
   }, []);
@@ -56,9 +56,9 @@ const ClientsCarousel = () => {
                   loading="lazy"
                   className="clients-logo-grayscale"
                   style={{
-                    width: 'auto',
-                    height: 'clamp(50px, 10vw, 80px)',
-                    maxWidth: 'clamp(100px, 20vw, 160px)'
+                    width: "auto",
+                    height: "clamp(50px, 10vw, 80px)",
+                    maxWidth: "clamp(100px, 20vw, 160px)",
                   }}
                 />
               </div>

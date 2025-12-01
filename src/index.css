@@ -1,4 +1,4 @@
-@import './Fonts.css';
+@import "./Fonts.css";
 
 @tailwind base;
 @tailwind components;
@@ -139,23 +139,23 @@ All colors MUST be HSL.
   .bg-gradient-primary {
     background: var(--gradient-primary);
   }
-  
+
   .bg-gradient-hero {
     background: var(--gradient-hero);
   }
-  
+
   .bg-gradient-subtle {
     background: var(--gradient-subtle);
   }
-  
+
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }
-  
+
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
-  
+
   .transition-smooth {
     transition: var(--transition-smooth);
   }
@@ -195,7 +195,8 @@ All colors MUST be HSL.
   }
 
   @keyframes diamond-rotate {
-    0%, 100% {
+    0%,
+    100% {
       transform: translate(-50%, -50%) rotate(0deg);
     }
     50% {
@@ -209,7 +210,8 @@ All colors MUST be HSL.
   }
 
   @keyframes card-pulse {
-    0%, 100% {
+    0%,
+    100% {
       transform: scale(1);
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(255, 255, 255, 0.1);
@@ -232,7 +234,8 @@ All colors MUST be HSL.
   }
 
   @keyframes feature-float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
     }
     50% {
@@ -259,7 +262,7 @@ All colors MUST be HSL.
   }
 
   .btn-primary-animate::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -290,7 +293,7 @@ All colors MUST be HSL.
   }
 
   .btn-secondary-animate::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -328,7 +331,8 @@ All colors MUST be HSL.
   }
 
   @keyframes btn-breathe {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
     }
     50% {
@@ -341,7 +345,9 @@ All colors MUST be HSL.
   /* Logo grayscale filter */
   .clients-logo-grayscale {
     filter: grayscale(100%) opacity(0.6);
-    transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     object-fit: contain;
   }
 
@@ -410,5 +416,5 @@ All colors MUST be HSL.
 }
 
 * {
-    font-family: 'Poppins';
+  font-family: "Poppins";
 }

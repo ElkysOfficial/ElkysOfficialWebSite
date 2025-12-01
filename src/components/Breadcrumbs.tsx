@@ -23,9 +23,7 @@ const Breadcrumbs = () => {
   };
 
   // Build breadcrumb items
-  const breadcrumbItems: BreadcrumbItem[] = [
-    { label: "Início", href: "/" },
-  ];
+  const breadcrumbItems: BreadcrumbItem[] = [{ label: "Início", href: "/" }];
 
   let currentPath = "";
   pathnames.forEach((path) => {
@@ -51,9 +49,7 @@ const Breadcrumbs = () => {
   return (
     <>
       <Helmet>
-        <script type="application/ld+json">
-          {JSON.stringify(breadcrumbSchema)}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       <nav aria-label="Breadcrumb" className="bg-muted/30 border-b border-border">
@@ -65,14 +61,9 @@ const Breadcrumbs = () => {
 
               return (
                 <li key={item.href} className="flex items-center">
-                  {index > 0 && (
-                    <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground" />
-                  )}
+                  {index > 0 && <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground" />}
                   {isLast ? (
-                    <span
-                      className="text-foreground font-medium"
-                      aria-current="page"
-                    >
+                    <span className="text-foreground font-medium" aria-current="page">
                       {item.label}
                     </span>
                   ) : (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import backgroundPattern from '../../public/imgs/icons/hexagonal.webp';
+import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 
 /**
@@ -44,7 +44,8 @@ const caseStudies: CaseStudy[] = [
     title: "Como transformamos um site de advocacia em uma vitrine de autoridade",
     client: "Dr. Antônio",
     category: "Jurídico",
-    description: "Redesenhamos do zero um site institucional com foco em clareza, design responsivo e estrutura que transmite autoridade e confiança.",
+    description:
+      "Redesenhamos do zero um site institucional com foco em clareza, design responsivo e estrutura que transmite autoridade e confiança.",
     image: "/imgs/cases/case-3.webp",
     video: "imgs/cases/videos/case-3-preview.mp4",
     results: [
@@ -60,7 +61,8 @@ const caseStudies: CaseStudy[] = [
     title: "Chatbot de Cotação de Planos",
     client: "Planscoop",
     category: "Saúde",
-    description: "Desenvolvemos um chatbot automatizado para cotação de planos de saúde, capaz de coletar dados, consultar tabelas, gerar valores e encaminhar o cliente diretamente para atendimento no WhatsApp. O sistema recebeu melhorias adicionais, incluindo módulos de tabelas, suporte, treinamento, cadastro e consulta de premiação.",
+    description:
+      "Desenvolvemos um chatbot automatizado para cotação de planos de saúde, capaz de coletar dados, consultar tabelas, gerar valores e encaminhar o cliente diretamente para atendimento no WhatsApp. O sistema recebeu melhorias adicionais, incluindo módulos de tabelas, suporte, treinamento, cadastro e consulta de premiação.",
     image: "/imgs/cases/case-1.jpg",
     results: [
       { metric: "Tempo de resposta mais rápido", value: "Processo 100% automatizado" },
@@ -90,7 +92,8 @@ const caseStudies: CaseStudy[] = [
     title: "De inexistente a digital: criamos o primeiro canal online da 1UmPrint",
     client: "1Um Print Comunicação",
     category: "Comunicação Visual",
-    description: "Criamos o primeiro site da empresa, estruturado do zero com foco em conversão. O projeto inclui design responsivo, identidade sólida, páginas otimizadas e um formulário inteligente que acelera o atendimento ao permitir que o cliente informe produto, quantidade e dados pessoais já no primeiro contato.",
+    description:
+      "Criamos o primeiro site da empresa, estruturado do zero com foco em conversão. O projeto inclui design responsivo, identidade sólida, páginas otimizadas e um formulário inteligente que acelera o atendimento ao permitir que o cliente informe produto, quantidade e dados pessoais já no primeiro contato.",
     image: "/imgs/cases/case-4.jpg",
     video: "imgs/cases/videos/case-4-preview.mp4",
     results: [
@@ -121,16 +124,17 @@ const caseStudies: CaseStudy[] = [
     title: "Transforme Sua Produção com Som Profissional de Cinema",
     client: "AK Produções",
     category: "Produção de Áudio",
-    description: "Especialistas em som para narrativas      audiovisuais com +20 anos de experiência. Dublagem,   legendagem, mixagem e produção sonora para cinema, TV e streaming.",
+    description:
+      "Especialistas em som para narrativas      audiovisuais com +20 anos de experiência. Dublagem,   legendagem, mixagem e produção sonora para cinema, TV e streaming.",
     image: "/imgs/cases/case-6.jpg",
     video: "imgs/cases/videos/case-6-preview.mp4",
     results: [
       { metric: "Anos de experiência", value: "20+" },
       { metric: "Clientes premium", value: "Netflix, HBO, BBC" },
-      { metric: "Serviços oferecidos", value: "6" }
+      { metric: "Serviços oferecidos", value: "6" },
     ],
     tags: ["Dublagem", "Mixagem de Áudio", "Legendagem", "Produção Sonora"],
-    link: "https://royalblue-eel-104842.hostingersite.com/"
+    link: "https://royalblue-eel-104842.hostingersite.com/",
   },
 ];
 
@@ -205,11 +209,11 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
             onClick={(e) => e.stopPropagation()}
             aria-label={`Ver case completo: ${caseStudy.title}`}
           >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 shadow-2xl shadow-purple-900/20 dark:shadow-black/40 ring-2 ring-white/50 dark:ring-slate-800 hover:scale-110 transition-transform">
-            <ArrowRight className="h-6 w-6 text-primary transition-transform group-hover:translate-x-1" />
-          </div>
-        </a>
-      )}
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 shadow-2xl shadow-purple-900/20 dark:shadow-black/40 ring-2 ring-white/50 dark:ring-slate-800 hover:scale-110 transition-transform">
+              <ArrowRight className="h-6 w-6 text-primary transition-transform group-hover:translate-x-1" />
+            </div>
+          </a>
+        )}
       </div>
 
       {/* Container de conteúdo - flex-grow garante preenchimento de espaço */}
@@ -239,7 +243,9 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
               <p className="mb-1 sm:mb-1.5 text-base sm:text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent transition-transform group-hover/stat:scale-110 duration-300 line-clamp-2">
                 {result.value}
               </p>
-              <p className="text-[9px] sm:text-[10px] md:text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium line-clamp-2">{result.metric}</p>
+              <p className="text-[9px] sm:text-[10px] md:text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium line-clamp-2">
+                {result.metric}
+              </p>
             </div>
           ))}
         </div>
@@ -297,16 +303,11 @@ export const CaseStudies = () => {
   const [filter, setFilter] = useState<string>("all");
 
   // Extrai categorias únicas dos cases
-  const categories = [
-    "all",
-    ...Array.from(new Set(caseStudies.map((c) => c.category))),
-  ];
+  const categories = ["all", ...Array.from(new Set(caseStudies.map((c) => c.category)))];
 
   // Filtra cases baseado na categoria selecionada
   const filteredCases =
-    filter === "all"
-      ? caseStudies
-      : caseStudies.filter((c) => c.category === filter);
+    filter === "all" ? caseStudies : caseStudies.filter((c) => c.category === filter);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
@@ -315,8 +316,14 @@ export const CaseStudies = () => {
         {/* Esferas decorativas de fundo com animação float */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-primary/60 to-purple-400/40 rounded-full blur-3xl animate-float"></div>
-          <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-violet-400/40 to-indigo-300/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-purple-300/30 to-primary/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+          <div
+            className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-violet-400/40 to-indigo-300/40 rounded-full blur-3xl animate-float"
+            style={{ animationDelay: "1s" }}
+          ></div>
+          <div
+            className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-purple-300/30 to-primary/40 rounded-full blur-3xl animate-float"
+            style={{ animationDelay: "2s" }}
+          ></div>
         </div>
         {/* Padrão hexagonal rotacionando */}
         <img
@@ -349,29 +356,50 @@ export const CaseStudies = () => {
                 Portfólio
               </span>
             </div>
-            <h1 className="mb-6 md:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight text-slate-900 dark:text-white animate-fade-in leading-[1.1]" style={{ animationDelay: '0.1s' }}>
-              Nossos Cases de{' '}
+            <h1
+              className="mb-6 md:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold tracking-tight text-slate-900 dark:text-white animate-fade-in leading-[1.1]"
+              style={{ animationDelay: "0.1s" }}
+            >
+              Nossos Cases de{" "}
               <span className="bg-gradient-to-r from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
                 Sucesso
               </span>
             </h1>
-            <p className="mx-auto max-w-2xl text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed text-slate-600 animate-slide-up font-light" style={{ animationDelay: '0.2s' }}>
+            <p
+              className="mx-auto max-w-2xl text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed text-slate-600 animate-slide-up font-light"
+              style={{ animationDelay: "0.2s" }}
+            >
               Descubra como transformamos desafios em resultados excepcionais para nossos clientes
             </p>
 
             {/* Mini estatísticas com animação de hover */}
-            <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div
+              className="mt-8 md:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 animate-fade-in"
+              style={{ animationDelay: "0.3s" }}
+            >
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">50+</div>
-                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Projetos</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  50+
+                </div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">
+                  Projetos
+                </div>
               </div>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">98%</div>
-                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Satisfação</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  98%
+                </div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">
+                  Satisfação
+                </div>
               </div>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">6+</div>
-                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">Setores</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  6+
+                </div>
+                <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-slate-500 font-medium group-hover:text-primary transition-colors">
+                  Setores
+                </div>
               </div>
             </div>
           </div>
@@ -385,7 +413,9 @@ export const CaseStudies = () => {
       <section className="relative bg-white dark:bg-slate-950 px-4 py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center gap-7">
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Filtrar por setor</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+              Filtrar por setor
+            </p>
             <div className="flex flex-wrap justify-center gap-3">
               {categories.map((category, index) => (
                 <button
@@ -413,7 +443,10 @@ export const CaseStudies = () => {
         {/* Elementos sutis de fundo decorativo */}
         <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
           <div className="absolute left-1/4 top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/20 to-violet-200/20 dark:from-primary/15 dark:to-purple-500/15 blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-purple-200/20 to-indigo-200/20 dark:from-purple-500/15 dark:to-indigo-500/15 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+          <div
+            className="absolute bottom-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-purple-200/20 to-indigo-200/20 dark:from-purple-500/15 dark:to-indigo-500/15 blur-3xl animate-float"
+            style={{ animationDelay: "2s" }}
+          />
         </div>
 
         <div className="container relative z-10 mx-auto">
@@ -422,7 +455,7 @@ export const CaseStudies = () => {
             <div className="mb-4 inline-block">
               <span className="inline-flex items-center gap-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-7 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-md shadow-primary/10 dark:shadow-black/40">
                 <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-primary to-violet-600 animate-pulse shadow-sm"></span>
-                {filteredCases.length} {filteredCases.length === 1 ? 'Projeto' : 'Projetos'}
+                {filteredCases.length} {filteredCases.length === 1 ? "Projeto" : "Projetos"}
               </span>
             </div>
           </div>
@@ -444,16 +477,22 @@ export const CaseStudies = () => {
           {filteredCases.length === 0 && (
             <div className="py-32 text-center">
               <div className="mx-auto mb-6 inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-100">
-                <svg className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="h-12 w-12 text-slate-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <p className="text-xl font-semibold text-slate-900 mb-2">
-                Nenhum case encontrado
-              </p>
-              <p className="text-slate-600">
-                Tente selecionar outro setor
-              </p>
+              <p className="text-xl font-semibold text-slate-900 mb-2">Nenhum case encontrado</p>
+              <p className="text-slate-600">Tente selecionar outro setor</p>
             </div>
           )}
         </div>

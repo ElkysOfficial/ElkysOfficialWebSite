@@ -11,7 +11,13 @@ const Footer = () => {
     { label: "Contato", href: "#contact" },
   ];
 
-  const services = ["Desenvolvimento Web", "Aplicações Mobile", "Automação RPA", "Integrações", "Consultoria"];
+  const services = [
+    "Desenvolvimento Web",
+    "Aplicações Mobile",
+    "Automação RPA",
+    "Integrações",
+    "Consultoria",
+  ];
 
   const legal = [
     { label: "Política de Privacidade", href: "/privacy-policy" },
@@ -37,8 +43,8 @@ const Footer = () => {
               />
             </div>
             <p className="text-sm opacity-80 leading-relaxed">
-              Construímos software que transforma a maneira que você faz negócio. Especialistas em desenvolvimento sob
-              demanda para PMEs.
+              Construímos software que transforma a maneira que você faz negócio. Especialistas em
+              desenvolvimento sob demanda para PMEs.
             </p>
             <div className="flex space-x-3">
               <a
@@ -67,7 +73,10 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <a className="text-sm opacity-80 hover:text-primary hover:opacity-100 transition-all" href={link.href}>
+                  <a
+                    className="text-sm opacity-80 hover:text-primary hover:opacity-100 transition-all"
+                    href={link.href}
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -103,7 +112,9 @@ const Footer = () => {
 
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm opacity-70 text-center md:text-left">© 2024 elys. Todos os direitos reservados.</div>
+            <div className="text-sm opacity-70 text-center md:text-left">
+              © 2024 elys. Todos os direitos reservados.
+            </div>
 
             <div className="flex flex-wrap justify-center gap-4">
               {legal.map((item) => (

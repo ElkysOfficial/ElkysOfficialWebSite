@@ -57,17 +57,20 @@ const Hero = () => {
             {/* Headline e subtítulo */}
             <div className="space-y-3 sm:space-y-4">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in">
-                Construímos software que <span className="text-accent">transforma</span> a maneira que você
-                faz negócio
+                Construímos software que <span className="text-accent">transforma</span> a maneira
+                que você faz negócio
               </h1>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed animate-slide-up">
-                Desenvolvemos soluções sob demanda para PMEs, com entregas ágeis, código limpo e arquitetura
-                escalável que cresce com seu negócio.
+                Desenvolvemos soluções sob demanda para PMEs, com entregas ágeis, código limpo e
+                arquitetura escalável que cresce com seu negócio.
               </p>
             </div>
 
             {/* Botões CTA: coluna em mobile, linha em desktop */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
+            <div
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up"
+              style={{ animationDelay: "0.2s" }}
+            >
               <Button
                 size="lg"
                 variant="accent"
@@ -96,21 +99,30 @@ const Hero = () => {
             >
               <div className="text-center p-2 sm:p-0">
                 <div className="text-xl sm:text-2xl md:text-3xl font-bold text-accent">20+</div>
-                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">Projetos entregues</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">
+                  Projetos entregues
+                </div>
               </div>
               <div className="text-center p-2 sm:p-0">
                 <div className="text-xl sm:text-2xl md:text-3xl font-bold text-accent">98%</div>
-                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">Satisfação do cliente</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">
+                  Satisfação do cliente
+                </div>
               </div>
               <div className="text-center p-2 sm:p-0 col-span-2 sm:col-span-1">
                 <div className="text-xl sm:text-2xl md:text-3xl font-bold text-accent">2+</div>
-                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">Anos de experiência</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 mt-1">
+                  Anos de experiência
+                </div>
               </div>
             </div>
           </div>
 
           {/* Coluna direita: Feature cards - oculto em mobile e tablet */}
-          <div className="relative animate-fade-in hidden lg:block" style={{ animationDelay: "0.6s" }}>
+          <div
+            className="relative animate-fade-in hidden lg:block"
+            style={{ animationDelay: "0.6s" }}
+          >
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20">
               <div className="space-y-4 sm:space-y-6">
                 {/* Feature 1: Clean Code */}
@@ -129,7 +141,9 @@ const Hero = () => {
                   <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold text-sm sm:text-base">Entregas Ágeis</p>
-                    <p className="text-gray-300 text-xs sm:text-sm">Metodologia ágil e entregas rápidas</p>
+                    <p className="text-gray-300 text-xs sm:text-sm">
+                      Metodologia ágil e entregas rápidas
+                    </p>
                   </div>
                 </div>
                 {/* Feature 3: Suporte Contínuo */}
@@ -139,7 +153,9 @@ const Hero = () => {
                 >
                   <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-accent flex-shrink-0" />
                   <div>
-                    <p className="text-white font-semibold text-sm sm:text-base">Suporte Contínuo</p>
+                    <p className="text-white font-semibold text-sm sm:text-base">
+                      Suporte Contínuo
+                    </p>
                     <p className="text-gray-300 text-xs sm:text-sm">Acompanhamento pós-entrega</p>
                   </div>
                 </div>

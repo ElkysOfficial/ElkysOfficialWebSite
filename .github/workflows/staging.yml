@@ -1,15 +1,12 @@
-name: Deploy to Production
+name: Deploy to Staging
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
-    inputs:
-      confirm:
-        description: 'Deploy to production? (yes/no)'
-        required: true
-        default: 'no'
+      - develop
+      - staging
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   build-and-deploy:
@@ -39,35 +36,37 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Deploy to Hostinger via FTP
+      - name: Comment PR with staging URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Build completo! Preview estará disponível em staging após merge.'
+            })
+
+      - name: Deploy to Staging (Hostinger)
+        if: github.event_name == 'push'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          username: ${{ secrets.FTP_USERNAME_STAGING }}
+          password: ${{ secrets.FTP_PASSWORD_STAGING }}
           port: 21
           local-dir: ./dist/
-          server-dir: ./public_html/
+          server-dir: ./public_html/staging/
           dangerous-clean-slate: false
 
-      - name: Send success notification
-        if: success()
+      - name: Send staging success notification
+        if: success() && github.event_name == 'push'
         uses: tsickert/discord-webhook@v6.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           content: |
-            ✅ **Deploy em Produção Concluído!**
+            🔵 **Deploy em Staging Concluído!**
             🚀 Commit: `${{ github.event.head_commit.message }}`
             👤 Por: ${{ github.actor }}
-            🌐 Site: https://elys.com.br
-
-      - name: Send failure notification
-        if: failure()
-        uses: tsickert/discord-webhook@v6.0.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          content: |
-            ❌ **Deploy em Produção Falhou!**
-            🔴 Commit: `${{ github.event.head_commit.message }}`
-            👤 Por: ${{ github.actor }}
-            🔗 Ver logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            🌐 Preview: https://staging.elys.com.br

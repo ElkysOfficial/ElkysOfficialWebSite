@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 # dist  # Comentado para permitir commit da pasta dist
+stats.html
+.lighthouseci
 
 # Editor directories and files
 .vscode/*

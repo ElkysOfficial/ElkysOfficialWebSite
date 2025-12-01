@@ -10,10 +10,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
+    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
   return (
@@ -35,9 +32,7 @@ const NotFound = () => {
 
           {/* 404 Number */}
           <div className="relative">
-            <h1 className="text-9xl md:text-[12rem] font-bold text-primary/10 select-none">
-              404
-            </h1>
+            <h1 className="text-9xl md:text-[12rem] font-bold text-primary/10 select-none">404</h1>
             <div className="absolute inset-0 flex items-center justify-center">
               <Search className="h-16 w-16 md:h-24 md:w-24 text-primary/30" />
             </div>

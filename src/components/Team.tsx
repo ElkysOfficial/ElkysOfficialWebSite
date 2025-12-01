@@ -134,7 +134,9 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
           <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-foreground/60 dark:text-slate-400 transition-colors duration-500 group-hover:text-primary">
             {member.role}
           </p>
-          <p className="text-sm leading-relaxed text-foreground/70 dark:text-slate-300 flex-grow">{member.bio}</p>
+          <p className="text-sm leading-relaxed text-foreground/70 dark:text-slate-300 flex-grow">
+            {member.bio}
+          </p>
         </div>
 
         <div className="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-primary via-violet-500 to-purple-500 transition-all duration-500 group-hover:w-full" />
@@ -152,7 +154,10 @@ export const Team = () => {
       <div className="container mx-auto px-4">
         <div className="mx-auto mb-12 md:mb-16 lg:mb-20 max-w-3xl text-center">
           <h2 className="mb-4 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground dark:text-white animate-fade-in leading-tight">
-            Nossa <span className="bg-gradient-to-r from-primary via-violet-500 to-purple-500 bg-clip-text text-transparent">Equipe</span>
+            Nossa{" "}
+            <span className="bg-gradient-to-r from-primary via-violet-500 to-purple-500 bg-clip-text text-transparent">
+              Equipe
+            </span>
           </h2>
           <p
             className="text-base sm:text-lg md:text-xl text-foreground/70 dark:text-slate-300 leading-relaxed animate-slide-up"
@@ -164,7 +169,11 @@ export const Team = () => {
 
         <div className="mx-auto grid max-w-7xl gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8 md:mb-12">
           {displayedMembers.map((member, index) => (
-            <div key={member.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div
+              key={member.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <TeamMemberCard member={member} />
             </div>
           ))}
@@ -186,7 +195,12 @@ export const Team = () => {
                 stroke="currentColor"
                 aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
           </div>

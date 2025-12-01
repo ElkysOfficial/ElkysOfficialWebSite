@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
 
 interface SEOProps {
   title?: string;
@@ -6,17 +6,17 @@ interface SEOProps {
   canonical?: string;
   ogImage?: string;
   ogType?: string;
-  twitterCard?: 'summary' | 'summary_large_image';
+  twitterCard?: "summary" | "summary_large_image";
   jsonLd?: object;
 }
 
 const SEO = ({
-  title = 'Elys - Construímos software que transforma a maneira que você faz negócio',
-  description = 'Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.',
-  canonical = 'https://elys.com.br/',
-  ogImage = 'https://elys.com.br/og-image.jpg',
-  ogType = 'website',
-  twitterCard = 'summary_large_image',
+  title = "Elys - Construímos software que transforma a maneira que você faz negócio",
+  description = "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
+  canonical = "https://elys.com.br/",
+  ogImage = "https://elys.com.br/og-image.jpg",
+  ogType = "website",
+  twitterCard = "summary_large_image",
   jsonLd,
 }: SEOProps) => {
   return (
@@ -46,15 +46,11 @@ const SEO = ({
       <meta name="twitter:url" content={canonical} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage.replace('og-image.jpg', 'twitter-card.jpg')} />
+      <meta name="twitter:image" content={ogImage.replace("og-image.jpg", "twitter-card.jpg")} />
       <meta name="twitter:image:alt" content={title} />
 
       {/* JSON-LD Structured Data */}
-      {jsonLd && (
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLd)}
-        </script>
-      )}
+      {jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}
     </Helmet>
   );
 };

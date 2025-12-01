@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Cookie, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Cookie, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -9,7 +9,7 @@ const CookieConsent = () => {
 
   useEffect(() => {
     // Check if user has already given consent
-    const hasConsent = localStorage.getItem('cookie-consent');
+    const hasConsent = localStorage.getItem("cookie-consent");
 
     // Show banner only if user hasn't given consent yet
     if (!hasConsent) {
@@ -23,14 +23,14 @@ const CookieConsent = () => {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'accepted');
-    localStorage.setItem('cookie-consent-date', new Date().toISOString());
+    localStorage.setItem("cookie-consent", "accepted");
+    localStorage.setItem("cookie-consent-date", new Date().toISOString());
     closeBanner();
   };
 
   const handleDecline = () => {
-    localStorage.setItem('cookie-consent', 'declined');
-    localStorage.setItem('cookie-consent-date', new Date().toISOString());
+    localStorage.setItem("cookie-consent", "declined");
+    localStorage.setItem("cookie-consent-date", new Date().toISOString());
     closeBanner();
   };
 
@@ -46,7 +46,7 @@ const CookieConsent = () => {
   return (
     <div
       className={`fixed bottom-0 left-0 right-0 z-50 p-4 transition-all duration-300 ${
-        isClosing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'
+        isClosing ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
       role="dialog"
       aria-label="Banner de consentimento de cookies"
@@ -68,21 +68,17 @@ const CookieConsent = () => {
                 🍪 Nós usamos cookies
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Utilizamos cookies para melhorar sua experiência, analisar o tráfego do site e personalizar conteúdo.
-                Ao clicar em "Aceitar", você concorda com o uso de cookies conforme nossa{' '}
-                <Link
-                  to="/cookie-policy"
-                  className="text-primary hover:underline font-medium"
-                >
+                Utilizamos cookies para melhorar sua experiência, analisar o tráfego do site e
+                personalizar conteúdo. Ao clicar em "Aceitar", você concorda com o uso de cookies
+                conforme nossa{" "}
+                <Link to="/cookie-policy" className="text-primary hover:underline font-medium">
                   Política de Cookies
-                </Link>{' '}
-                e{' '}
-                <Link
-                  to="/privacy-policy"
-                  className="text-primary hover:underline font-medium"
-                >
+                </Link>{" "}
+                e{" "}
+                <Link to="/privacy-policy" className="text-primary hover:underline font-medium">
                   Política de Privacidade
-                </Link>.
+                </Link>
+                .
               </p>
             </div>
 
