@@ -3,12 +3,28 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 
+/**
+ * Componente Hero - Seção principal da homepage
+ *
+ * Features:
+ * - Headline com proposta de valor
+ * - CTAs para WhatsApp e página de cases
+ * - Estatísticas de destaque (projetos, satisfação, experiência)
+ * - Cards de features (visível apenas em desktop)
+ * - Background animado com esferas e padrão hexagonal
+ *
+ * Performance:
+ * - Imagem de fundo com loading="eager" e fetchPriority="high" (acima da dobra)
+ * - will-change-transform para otimização de GPU
+ * - Animações desabilitadas em mobile (<768px) via CSS
+ */
 const Hero = () => {
   return (
     <section
       id="hero"
       className="min-h-screen flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
     >
+      {/* Esferas decorativas de fundo com animação float */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl animate-float will-change-transform" />
         <div
@@ -21,6 +37,7 @@ const Hero = () => {
         />
       </div>
 
+      {/* Padrão hexagonal rotacionando - carregamento prioritário */}
       <img
         src={backgroundPattern}
         alt="Background"
@@ -33,8 +50,11 @@ const Hero = () => {
       />
 
       <div className="container mx-auto px-4 py-16 sm:py-20 relative z-10">
+        {/* Grid: 1 col mobile, 2 cols desktop (>1024px) */}
         <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
+          {/* Coluna esquerda: Conteúdo principal */}
           <div className="text-white space-y-6 sm:space-y-8">
+            {/* Headline e subtítulo */}
             <div className="space-y-3 sm:space-y-4">
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight animate-fade-in">
                 Construímos software que <span className="text-accent">transforma</span> a maneira que você
@@ -46,6 +66,7 @@ const Hero = () => {
               </p>
             </div>
 
+            {/* Botões CTA: coluna em mobile, linha em desktop */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-slide-up" style={{ animationDelay: "0.2s" }}>
               <Button
                 size="lg"
@@ -68,6 +89,7 @@ const Hero = () => {
               </Link>
             </div>
 
+            {/* Estatísticas: grid 2 colunas mobile, flex horizontal desktop */}
             <div
               className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:gap-6 md:gap-8 pt-4 sm:pt-6 md:pt-8 animate-fade-in"
               style={{ animationDelay: "0.4s" }}
@@ -87,9 +109,11 @@ const Hero = () => {
             </div>
           </div>
 
+          {/* Coluna direita: Feature cards - oculto em mobile e tablet */}
           <div className="relative animate-fade-in hidden lg:block" style={{ animationDelay: "0.6s" }}>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/20">
               <div className="space-y-4 sm:space-y-6">
+                {/* Feature 1: Clean Code */}
                 <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border border-transparent hover-lift animate-card-pulse">
                   <Code2 className="h-6 w-6 sm:h-8 sm:w-8 text-accent flex-shrink-0" />
                   <div>
@@ -97,6 +121,7 @@ const Hero = () => {
                     <p className="text-gray-300 text-xs sm:text-sm">Código limpo e documentado</p>
                   </div>
                 </div>
+                {/* Feature 2: Entregas Ágeis */}
                 <div
                   className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border border-transparent hover-lift animate-card-pulse"
                   style={{ animationDelay: "1s" }}
@@ -107,6 +132,7 @@ const Hero = () => {
                     <p className="text-gray-300 text-xs sm:text-sm">Metodologia ágil e entregas rápidas</p>
                   </div>
                 </div>
+                {/* Feature 3: Suporte Contínuo */}
                 <div
                   className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg border border-transparent hover-lift animate-card-pulse"
                   style={{ animationDelay: "2s" }}

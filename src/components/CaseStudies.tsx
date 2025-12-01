@@ -4,6 +4,19 @@ import { Link } from "react-router-dom";
 import backgroundPattern from '../../public/imgs/icons/hexagonal.webp';
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 
+/**
+ * Interface que define a estrutura de um case de sucesso
+ * @property {number} id - Identificador único do case
+ * @property {string} title - Título do case (máx 3 linhas com line-clamp)
+ * @property {string} client - Nome do cliente
+ * @property {string} category - Categoria do case (usado no filtro)
+ * @property {string} description - Descrição detalhada (máx 4 linhas com line-clamp)
+ * @property {string} image - Caminho da imagem principal
+ * @property {string} video - Caminho do vídeo de preview (opcional, exibido no hover)
+ * @property {Array} results - Array com 3 métricas de resultado (grid fixo 3 colunas)
+ * @property {Array<string>} tags - Tags do projeto
+ * @property {string} link - URL externa do case completo (opcional)
+ */
 interface CaseStudy {
   id: number;
   title: string;
@@ -20,6 +33,11 @@ interface CaseStudy {
   link?: string;
 }
 
+/**
+ * Array com todos os cases de sucesso
+ * NOTA: Sempre manter 3 resultados por case para grid uniforme
+ * NOTA: Cases comentados podem ser descomentados quando necessário
+ */
 const caseStudies: CaseStudy[] = [
   {
     id: 3,
@@ -116,22 +134,36 @@ const caseStudies: CaseStudy[] = [
   },
 ];
 
+/**
+ * Componente Card individual de case
+ *
+ * Layout com altura uniforme usando flexbox:
+ * - Imagem com altura fixa (240px/280px/320px)
+ * - Conteúdo com flex-grow para preencher espaço
+ * - Elementos com line-clamp para truncar textos longos
+ * - CTA sempre posicionado no final com mt-auto
+ *
+ * Features:
+ * - Vídeo de preview no hover (se disponível)
+ * - Animações suaves de hover
+ * - Layout responsivo mobile-first
+ */
 const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
   const [imageError, setImageError] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
   return (
     <article
-      className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-100/60 dark:border-slate-800/80 shadow-elegant transition-all duration-700 hover:shadow-glow hover:-translate-y-3"
+      className="group relative flex flex-col overflow-hidden rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-100/60 dark:border-slate-800/80 shadow-elegant transition-all duration-700 hover:shadow-glow hover:-translate-y-3 h-full"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Gradient Border Effect - Harmonic */}
+      {/* Efeito de borda gradiente no hover */}
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-400/25 via-purple-300/15 to-indigo-400/25 opacity-0 transition-opacity duration-700 group-hover:opacity-100 -z-10"></div>
 
-      {/* Image Container */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        {/* Video on Hover */}
+      {/* Container de imagem com altura fixa para uniformidade */}
+      <div className="relative w-full h-[240px] sm:h-[280px] md:h-[320px] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex-shrink-0">
+        {/* Vídeo exibido ao passar mouse (se disponível) */}
         {caseStudy.video && isHovering && (
           <video
             src={caseStudy.video}
@@ -152,10 +184,10 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
           onError={() => setImageError(true)}
         />
 
-        {/* Overlay Gradient */}
+        {/* Overlay escuro no hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"></div>
 
-        {/* Category Badge - Refined Colors */}
+        {/* Badge de categoria */}
         <div className="absolute left-6 top-6 z-10">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/95 dark:bg-slate-900/90 px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-100 shadow-lg shadow-purple-900/10 dark:shadow-black/40 backdrop-blur-md transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-primary group-hover:via-violet-600 group-hover:to-purple-600 group-hover:text-white group-hover:shadow-xl group-hover:shadow-primary/30">
             <span className="h-2 w-2 rounded-full bg-gradient-to-r from-primary to-violet-600 group-hover:from-white group-hover:to-white shadow-sm"></span>
@@ -163,7 +195,7 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
           </span>
         </div>
 
-        {/* Hover Indicator - Harmonic */}
+        {/* Botão flutuante de ver case (aparece no hover) */}
         {caseStudy.link && (
           <a
             href={caseStudy.link}
@@ -180,78 +212,97 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
       )}
       </div>
 
-      {/* Content */}
-      <div className="p-8 lg:p-10">
-        {/* Client Name - Refined */}
-        <div className="mb-4 flex items-center gap-3">
+      {/* Container de conteúdo - flex-grow garante preenchimento de espaço */}
+      <div className="flex flex-col flex-grow p-6 sm:p-8 lg:p-10">
+        {/* Nome do cliente com linha decorativa */}
+        <div className="mb-3 sm:mb-4 flex items-center gap-3">
           <div className="h-1.5 w-10 rounded-full bg-gradient-to-r from-primary via-violet-600 to-purple-600 shadow-sm"></div>
-          <p className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent">
             {caseStudy.client}
           </p>
         </div>
 
-        {/* Title - Harmonic Hover */}
-        <h2 className="mb-5 text-2xl font-bold leading-tight text-slate-900 dark:text-white transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-primary group-hover:via-violet-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent lg:text-3xl">
+        {/* Título - line-clamp-3 trunca em 3 linhas, min-h garante altura uniforme */}
+        <h2 className="mb-4 sm:mb-5 text-xl sm:text-2xl lg:text-2xl xl:text-3xl font-bold leading-tight text-slate-900 dark:text-white transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-primary group-hover:via-violet-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent line-clamp-3 min-h-[4.5rem] sm:min-h-[5rem]">
           {caseStudy.title}
         </h2>
 
-        {/* Description */}
-        <p className="mb-8 leading-relaxed text-slate-600 dark:text-slate-300">
+        {/* Descrição - line-clamp-4 trunca em 4 linhas, min-h garante altura uniforme */}
+        <p className="mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base text-slate-600 dark:text-slate-300 line-clamp-4 min-h-[5.5rem] sm:min-h-[6rem]">
           {caseStudy.description}
         </p>
 
-        {/* Results Grid - Soft Colors */}
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 dark:from-slate-900/60 dark:to-slate-800/60 p-4 sm:p-5 md:p-6 shadow-sm">
+        {/* Grid de resultados - SEMPRE 3 colunas (grid-cols-3) */}
+        <div className="mb-6 sm:mb-8 grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 dark:from-slate-900/60 dark:to-slate-800/60 p-3 sm:p-4 md:p-5 shadow-sm">
           {caseStudy.results.map((result, index) => (
-            <div key={index} className="text-center group/stat p-2 sm:p-3">
-              <p className="mb-1.5 sm:mb-2 text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent transition-transform group-hover/stat:scale-110 duration-300">
+            <div key={index} className="text-center group/stat p-1 sm:p-2">
+              <p className="mb-1 sm:mb-1.5 text-base sm:text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent transition-transform group-hover/stat:scale-110 duration-300 line-clamp-2">
                 {result.value}
               </p>
-              <p className="text-[10px] sm:text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium">{result.metric}</p>
+              <p className="text-[9px] sm:text-[10px] md:text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium line-clamp-2">{result.metric}</p>
             </div>
           ))}
         </div>
 
-        {/* Tags - Comfortable Colors */}
-        <div className="mb-6 sm:mb-8 flex flex-wrap gap-1.5 sm:gap-2 md:gap-2.5">
+        {/* Container de tags com altura mínima para uniformidade */}
+        <div className="mb-6 sm:mb-8 flex flex-wrap gap-1.5 sm:gap-2 min-h-[2.5rem] sm:min-h-[3rem] content-start">
           {caseStudy.tags.map((tag, index) => (
             <span
               key={index}
-              className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-2.5 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs font-semibold text-slate-600 dark:text-slate-200 transition-all duration-500 hover:border-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-violet-500/10 hover:text-primary hover:shadow-sm"
+              className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs font-semibold text-slate-600 dark:text-slate-200 transition-all duration-500 hover:border-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-violet-500/10 hover:text-primary hover:shadow-sm h-fit"
             >
               {tag}
             </span>
           ))}
         </div>
 
-        {/* CTA Link - Elegant */}
+        {/* Espaçador flexível que empurra o CTA para o final */}
+        <div className="flex-grow"></div>
+
+        {/* Link CTA - mt-auto garante que fique sempre no final do card */}
         {caseStudy.link && (
           <a
             href={caseStudy.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="group/link inline-flex items-center gap-3 font-bold bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent transition-all hover:gap-5"
+            className="group/link inline-flex items-center gap-3 font-bold bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent transition-all hover:gap-5 text-sm sm:text-base mt-auto"
           >
             Ver case completo
-            <ArrowRight className="h-5 w-5 text-primary transition-all group-hover/link:translate-x-2 group-hover/link:text-violet-600" />
+            <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-primary transition-all group-hover/link:translate-x-2 group-hover/link:text-violet-600" />
           </a>
         )}
       </div>
 
-      {/* Bottom Accent Line - Harmonic Gradient */}
+      {/* Linha de acento inferior (anima no hover) */}
       <div className="absolute bottom-0 left-0 h-1.5 w-0 bg-gradient-to-r from-primary via-violet-600 to-purple-600 transition-all duration-700 group-hover:w-full shadow-lg shadow-primary/30"></div>
     </article>
   );
 };
 
+/**
+ * Componente principal da página de Cases
+ *
+ * Features:
+ * - Filtro por categoria dinâmico
+ * - Grid responsivo (1 col mobile, 2 cols desktop)
+ * - Hero section com breadcrumb e estatísticas
+ * - CTA section ao final
+ *
+ * Layout:
+ * - Hero: 60-75vh com padrão de fundo animado
+ * - Filtros: Botões pill com categoria "all" e categorias únicas
+ * - Grid: gap-10 em md, gap-14 em lg para respiração visual
+ */
 export const CaseStudies = () => {
   const [filter, setFilter] = useState<string>("all");
 
+  // Extrai categorias únicas dos cases
   const categories = [
     "all",
     ...Array.from(new Set(caseStudies.map((c) => c.category))),
   ];
 
+  // Filtra cases baseado na categoria selecionada
   const filteredCases =
     filter === "all"
       ? caseStudies
@@ -261,12 +312,13 @@ export const CaseStudies = () => {
     <div className="min-h-screen bg-gradient-to-b from-slate-50/50 via-white to-slate-50/30 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Hero Section */}
       <section className="relative min-h-[60vh] sm:min-h-[70vh] md:min-h-[75vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-50/80 via-white to-purple-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 pb-16 md:pb-24 pt-20 md:pt-32 lg:pt-40">
-        {/* Background Pattern - Subtle & Harmonious */}
+        {/* Esferas decorativas de fundo com animação float */}
         <div className="absolute inset-0 opacity-[0.04]">
           <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-primary/60 to-purple-400/40 rounded-full blur-3xl animate-float"></div>
           <div className="absolute top-40 right-20 w-48 h-48 bg-gradient-to-br from-violet-400/40 to-indigo-300/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
           <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-br from-purple-300/30 to-primary/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
         </div>
+        {/* Padrão hexagonal rotacionando */}
         <img
           src={backgroundPattern}
           alt="Background"
@@ -277,7 +329,7 @@ export const CaseStudies = () => {
         />
 
         <div className="container relative z-10 mx-auto">
-          {/* Breadcrumb - Refined */}
+          {/* Breadcrumb de navegação */}
           <div className="mb-12 animate-fade-in">
             <Link
               to="/"
@@ -289,7 +341,7 @@ export const CaseStudies = () => {
             </Link>
           </div>
 
-          {/* Title - Enhanced Typography */}
+          {/* Título e subtítulo da página */}
           <div className="mx-auto max-w-5xl text-center">
             <div className="mb-4 inline-block animate-fade-in">
               <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/8 to-violet-500/8 px-5 py-2.5 text-sm font-semibold text-primary shadow-sm border border-primary/10">
@@ -307,7 +359,7 @@ export const CaseStudies = () => {
               Descubra como transformamos desafios em resultados excepcionais para nossos clientes
             </p>
 
-            {/* Stats Mini - Harmonic Colors */}
+            {/* Mini estatísticas com animação de hover */}
             <div className="mt-8 md:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <div className="group text-center transition-transform hover:scale-105 duration-300">
                 <div className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent">50+</div>
@@ -325,11 +377,11 @@ export const CaseStudies = () => {
           </div>
         </div>
 
-        {/* Bottom Fade */}
+        {/* Fade de transição para próxima seção */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent dark:from-slate-950"></div>
       </section>
 
-      {/* Filter Section - Natural and Seamless */}
+      {/* Seção de filtros por categoria */}
       <section className="relative bg-white dark:bg-slate-950 px-4 py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center gap-7">
@@ -356,16 +408,16 @@ export const CaseStudies = () => {
         </div>
       </section>
 
-      {/* Cases Grid - Clean White Background */}
+      {/* Grid de cases */}
       <section className="relative overflow-hidden bg-white dark:bg-slate-950 px-4 py-32">
-        {/* Subtle Background Elements */}
+        {/* Elementos sutis de fundo decorativo */}
         <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
           <div className="absolute left-1/4 top-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-primary/20 to-violet-200/20 dark:from-primary/15 dark:to-purple-500/15 blur-3xl animate-float" />
           <div className="absolute bottom-1/4 right-1/4 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-purple-200/20 to-indigo-200/20 dark:from-purple-500/15 dark:to-indigo-500/15 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
         </div>
 
         <div className="container relative z-10 mx-auto">
-          {/* Section Header */}
+          {/* Badge com contador de projetos */}
           <div className="mb-16 text-center">
             <div className="mb-4 inline-block">
               <span className="inline-flex items-center gap-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-7 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-md shadow-primary/10 dark:shadow-black/40">
@@ -375,7 +427,7 @@ export const CaseStudies = () => {
             </div>
           </div>
 
-          {/* Grid */}
+          {/* Grid responsivo: 1 coluna mobile, 2 colunas desktop */}
           <div className="grid gap-10 md:grid-cols-2 lg:gap-14">
             {filteredCases.map((caseStudy, index) => (
               <div
@@ -388,7 +440,7 @@ export const CaseStudies = () => {
             ))}
           </div>
 
-          {/* Empty State */}
+          {/* Estado vazio quando nenhum case é encontrado */}
           {filteredCases.length === 0 && (
             <div className="py-32 text-center">
               <div className="mx-auto mb-6 inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-100">
@@ -407,7 +459,7 @@ export const CaseStudies = () => {
         </div>
       </section>
 
-      {/* CTA Section - Minimal */}
+      {/* Seção CTA final */}
       <section className="relative overflow-hidden bg-white dark:bg-slate-950 px-4 py-24">
         <div className="container relative mx-auto">
           <div className="mx-auto max-w-3xl text-center">

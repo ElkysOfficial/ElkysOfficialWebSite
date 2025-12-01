@@ -2,7 +2,24 @@ import { Code, Cog, Network, Wrench, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+/**
+ * Componente Services - Seção de serviços oferecidos
+ *
+ * Layout:
+ * - Grid responsivo: 1 col mobile, 2 cols desktop
+ * - Cards com altura uniforme usando flex-grow
+ * - Cada card contém ícone, título, descrição e lista de features
+ *
+ * Features:
+ * - 4 serviços principais com gradientes personalizados
+ * - Animação de hover nos cards e ícones
+ * - Botão "Saiba mais" com mínimo 44px (acessibilidade)
+ */
 const Services = () => {
+  /**
+   * Array de serviços
+   * Cada serviço deve ter: icon, title, description, features (array), gradient
+   */
   const services = [
     {
       icon: Code,
@@ -57,7 +74,7 @@ const Services = () => {
   return (
     <section id="services" className="py-12 sm:py-16 md:py-20 bg-background">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {/* Cabeçalho da seção */}
         <div className="text-center mb-10 sm:mb-12 md:mb-16">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 md:mb-4">
             Nossos <span className="text-primary">Serviços</span>
@@ -67,7 +84,7 @@ const Services = () => {
           </p>
         </div>
 
-        {/* Services Grid */}
+        {/* Grid de serviços: 1 col mobile, 2 cols desktop */}
         <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-12">
           {services.map((service, index) => (
             <Card key={index} className="relative overflow-hidden shadow-elegant hover:shadow-glow transition-all group flex flex-col h-full">

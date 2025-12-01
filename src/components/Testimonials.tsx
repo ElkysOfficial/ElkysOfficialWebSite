@@ -4,7 +4,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import ArrowLeft from "../../public/imgs/images/chevron-compact-left.svg";
 import ArrowRight from "../../public/imgs/images/chevron-compact-right.svg";
 
+/**
+ * Componente Testimonials - Carrossel de depoimentos de clientes
+ *
+ * Features:
+ * - Carrossel infinito com loop seamless
+ * - Suporte a touch/swipe em dispositivos móveis
+ * - Autoplay com pausa ao interagir
+ * - Largura de cards dinâmica baseada no viewport
+ * - Setas de navegação (ocultas em mobile)
+ * - Indicadores de posição (dots) para mobile
+ *
+ * Controles:
+ * - Setas: navegação manual (desktop)
+ * - Swipe: deslize left/right (mobile)
+ * - Dots: navegação direta por posição (mobile)
+ * - Autoplay: avança automaticamente a cada 5s
+ *
+ * Performance:
+ * - Largura responsiva: 280px (mobile), 300px (tablet), 320px (desktop)
+ * - Loop infinito com duplicação de array para evitar gaps
+ */
 const Testimonials = () => {
+  /** Array de depoimentos - adicionar novos depoimentos aqui */
   const testimonialsData = [
     {
       name: "Carlos Silva",
@@ -53,29 +75,34 @@ const Testimonials = () => {
     },
   ];
 
-  const [itemWidth, setItemWidth] = useState(320);
+  // Estados do carrossel
+  const [itemWidth, setItemWidth] = useState(320); // Largura dinâmica dos cards
   const totalItems = testimonialsData.length;
-  const extendedTestimonials = [...testimonialsData, ...testimonialsData];
+  const extendedTestimonials = [...testimonialsData, ...testimonialsData]; // Array duplicado para loop infinito
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(false); // Pausa do autoplay
+
+  // Estados para controle de touch/swipe
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
+  // Refs para controle de timeouts e referência do DOM
   const animationTimeoutRef = useRef(null);
   const autoplayTimeoutRef = useRef(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Atualiza largura dos cards baseado no viewport
   useEffect(() => {
     const updateItemWidth = () => {
       if (window.innerWidth < 640) {
-        setItemWidth(280);
+        setItemWidth(280); // Mobile
       } else if (window.innerWidth < 768) {
-        setItemWidth(300);
+        setItemWidth(300); // Tablet
       } else {
-        setItemWidth(320);
+        setItemWidth(320); // Desktop
       }
     };
 
