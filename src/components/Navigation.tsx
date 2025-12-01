@@ -131,15 +131,15 @@ const Navigation = () => {
 
         {isMenuOpen && (
           <div
-            className={`md:hidden py-4 border-t transition-colors duration-300 ${isDarkTheme ? "border-slate-800 bg-slate-900/95" : "border-slate-200 bg-white/95"}`}
+            className={`md:hidden py-4 border-t transition-colors duration-300 max-h-[calc(100vh-4rem)] overflow-y-auto ${isDarkTheme ? "border-slate-800 bg-slate-900/95" : "border-slate-200 bg-white/95"}`}
           >
-            <div className="flex flex-col space-y-3">
+            <div className="flex flex-col space-y-2">
               {navItems.map((item) =>
                 item.isRoute ? (
                   <Link
                     key={item.label}
                     to={item.href}
-                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-2 py-1`}
+                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 min-h-[44px] flex items-center`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
@@ -149,7 +149,7 @@ const Navigation = () => {
                     key={item.label}
                     href={item.href}
                     onClick={item.label === "Início" ? handleHomeClick : () => setIsMenuOpen(false)}
-                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-2 py-1`}
+                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 min-h-[44px] flex items-center`}
                   >
                     {item.label}
                   </a>
@@ -157,7 +157,7 @@ const Navigation = () => {
               )}
               <Button
                 variant="gradient"
-                className="mt-3 sm:mt-4"
+                className="mt-4 w-full min-h-[48px] text-base"
                 onClick={() => {
                   window.open("https://wa.me/5531997382935", "_blank");
                   setIsMenuOpen(false);

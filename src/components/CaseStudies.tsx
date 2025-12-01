@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import backgroundPattern from '../../public/imgs/icons/hexagonal.webp';
+import { ResponsiveImage } from "@/components/ui/responsive-image";
 
 interface CaseStudy {
   id: number;
@@ -142,30 +143,14 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
           />
         )}
 
-        {!imageError ? (
-          <img
-            src={caseStudy.image}
-            srcSet={caseStudy.image.endsWith('.webp') ? `${caseStudy.image.replace('.webp', '-640w.webp')} 640w, ${caseStudy.image.replace('.webp', '-1024w.webp')} 1024w, ${caseStudy.image.replace('.webp', '-1920w.webp')} 1920w` : undefined}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px"
-            alt={caseStudy.title}
-            width={1920}
-            height={1200}
-            loading="lazy"
-            className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/15 dark:to-violet-500/10">
-            <div className="text-center">
-              <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-lg shadow-primary/15 dark:shadow-black/40">
-                <span className="text-4xl font-bold text-primary">{caseStudy.client.charAt(0)}</span>
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Imagem em breve
-              </p>
-            </div>
-          </div>
-        )}
+        <ResponsiveImage
+          src={caseStudy.image}
+          alt={caseStudy.title}
+          className="h-full w-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1024px) 50vw, 800px"
+          loading="lazy"
+          onError={() => setImageError(true)}
+        />
 
         {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"></div>
@@ -216,23 +201,23 @@ const CaseCard = ({ caseStudy }: { caseStudy: CaseStudy }) => {
         </p>
 
         {/* Results Grid - Soft Colors */}
-        <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 dark:from-slate-900/60 dark:to-slate-800/60 p-4 sm:p-6 shadow-sm">
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-slate-50/80 to-purple-50/30 dark:from-slate-900/60 dark:to-slate-800/60 p-4 sm:p-5 md:p-6 shadow-sm">
           {caseStudy.results.map((result, index) => (
-            <div key={index} className="text-center group/stat">
-              <p className="mb-2 text-2xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent lg:text-3xl transition-transform group-hover/stat:scale-110 duration-300">
+            <div key={index} className="text-center group/stat p-2 sm:p-3">
+              <p className="mb-1.5 sm:mb-2 text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-br from-primary via-violet-600 to-purple-600 bg-clip-text text-transparent transition-transform group-hover/stat:scale-110 duration-300">
                 {result.value}
               </p>
-              <p className="text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium">{result.metric}</p>
+              <p className="text-[10px] sm:text-xs leading-tight text-slate-500 dark:text-slate-400 font-medium">{result.metric}</p>
             </div>
           ))}
         </div>
 
         {/* Tags - Comfortable Colors */}
-        <div className="mb-8 flex flex-wrap gap-2.5">
+        <div className="mb-6 sm:mb-8 flex flex-wrap gap-1.5 sm:gap-2 md:gap-2.5">
           {caseStudy.tags.map((tag, index) => (
             <span
               key={index}
-              className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-200 transition-all duration-500 hover:border-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-violet-500/10 hover:text-primary hover:shadow-sm"
+              className="rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-2.5 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-[10px] sm:text-xs font-semibold text-slate-600 dark:text-slate-200 transition-all duration-500 hover:border-primary hover:bg-gradient-to-r hover:from-primary/10 hover:to-violet-500/10 hover:text-primary hover:shadow-sm"
             >
               {tag}
             </span>

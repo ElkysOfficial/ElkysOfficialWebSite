@@ -55,51 +55,51 @@ const Services = () => {
   ];
 
   return (
-    <section id="services" className="py-20 bg-background">
+    <section id="services" className="py-12 sm:py-16 md:py-20 bg-background">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3 md:mb-4">
             Nossos <span className="text-primary">Serviços</span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
             Oferecemos soluções completas em tecnologia, desde o desenvolvimento até a consultoria especializada, sempre focados no crescimento do seu negócio.
           </p>
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8 md:mb-12">
           {services.map((service, index) => (
             <Card key={index} className="relative overflow-hidden shadow-elegant hover:shadow-glow transition-all group flex flex-col h-full">
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                    <service.icon className="h-6 w-6 text-white" />
+              <CardHeader className="pb-3 sm:pb-4 md:pb-6">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
+                    <service.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl text-foreground group-hover:text-primary transition-colors">
+                  <CardTitle className="text-base sm:text-lg md:text-xl text-foreground group-hover:text-primary transition-colors">
                     {service.title}
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 flex flex-col flex-grow">
-                <p className="text-muted-foreground leading-relaxed">
+              <CardContent className="space-y-3 sm:space-y-4 flex flex-col flex-grow pt-0">
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
                   {service.description}
                 </p>
-                <ul className="space-y-2 flex-grow">
+                <ul className="space-y-1.5 sm:space-y-2 flex-grow">
                   {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    <li key={featureIndex} className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></div>
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all mt-auto"
+                  className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-all mt-auto text-xs sm:text-sm min-h-[44px]"
                   aria-label={`Saiba mais sobre ${service.title}`}
                 >
                   Saiba mais
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               </CardContent>
             </Card>
@@ -108,17 +108,17 @@ const Services = () => {
 
         {/* Call to Action */}
         <div className="text-center">
-          <div className="bg-gradient-primary rounded-2xl p-8 text-white">
-            <p className="text-2xl font-bold mb-4">
+          <div className="bg-gradient-primary rounded-xl sm:rounded-2xl p-6 sm:p-8 text-white">
+            <p className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4">
               Pronto para transformar seu negócio?
             </p>
-            <p className="text-lg mb-6 opacity-90">
+            <p className="text-sm sm:text-base md:text-lg mb-4 sm:mb-6 opacity-90 max-w-2xl mx-auto">
               Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com tecnologia.
             </p>
             <Button
               size="lg"
               variant="accent"
-              className="btn-primary-animate btn-breathe"
+              className="btn-primary-animate btn-breathe w-full sm:w-auto text-sm sm:text-base min-h-[44px]"
               onClick={() => {
                 const contactForm = document.getElementById('contact-form');
                 contactForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -126,7 +126,7 @@ const Services = () => {
               aria-label="Solicitar orçamento - ir para formulário de contato"
             >
               Solicitar Orçamento
-              <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 btn-arrow-animate" />
             </Button>
           </div>
         </div>

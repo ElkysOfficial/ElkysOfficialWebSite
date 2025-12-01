@@ -10,7 +10,8 @@
     "build:dev": "vite build --mode development && node scripts/generate-sitemap.cjs && node scripts/copy-htaccess.cjs",
     "preview": "vite preview",
     "update-logos": "node scripts/update-logos.cjs",
-    "generate-sitemap": "node scripts/generate-sitemap.cjs"
+    "generate-sitemap": "node scripts/generate-sitemap.cjs",
+    "generate-images": "node scripts/generate-responsive-images.cjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
