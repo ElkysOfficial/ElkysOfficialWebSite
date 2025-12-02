@@ -37,14 +37,16 @@ const Hero = () => {
         />
       </div>
 
-      {/* Padrão hexagonal rotacionando - carregamento prioritário */}
+      {/* Padrão hexagonal rotacionando - carregamento prioritário com decode async */}
       <img
         src={backgroundPattern}
-        alt="Background"
+        alt=""
+        role="presentation"
         width={1000}
         height={1000}
         loading="eager"
-        fetchPriority="high"
+        fetchpriority="high"
+        decoding="async"
         className="absolute inset-0 object-cover opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] top-[500px] sm:top-[700px] left-[50px] sm:left-[100px] w-[600px] sm:w-[1000px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
         style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
       />
