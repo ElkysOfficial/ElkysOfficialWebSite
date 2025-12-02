@@ -43,34 +43,15 @@ jobs:
           TOTAL_SIZE=$(du -sh dist | cut -f1)
           echo "total_size=$TOTAL_SIZE" >> $GITHUB_OUTPUT
 
-          echo "### Bundle Analysis" > bundle-report.txt
-          echo "**Total Size:** $TOTAL_SIZE" >> bundle-report.txt
-          echo "" >> bundle-report.txt
-          echo "**Largest Files:**" >> bundle-report.txt
-          du -h dist/assets/*.js 2>/dev/null | sort -hr | head -5 >> bundle-report.txt || echo "No JS files found" >> bundle-report.txt
+          # Count files
+          JS_COUNT=$(find dist/assets -name "*.js" 2>/dev/null | wc -l)
+          CSS_COUNT=$(find dist/assets -name "*.css" 2>/dev/null | wc -l)
+          echo "js_count=$JS_COUNT" >> $GITHUB_OUTPUT
+          echo "css_count=$CSS_COUNT" >> $GITHUB_OUTPUT
 
-      - name: Run Lighthouse CI
-        id: lighthouse
-        run: |
-          npx lhci autorun --upload.target=temporary-public-storage || echo "Lighthouse failed"
-
-          if [ -f .lighthouseci/manifest.json ]; then
-            PERF_SCORE=$(cat .lighthouseci/*.json | jq -r '.categories.performance.score * 100' | head -1)
-            ACCESSIBILITY_SCORE=$(cat .lighthouseci/*.json | jq -r '.categories.accessibility.score * 100' | head -1)
-            BEST_PRACTICES_SCORE=$(cat .lighthouseci/*.json | jq -r '.categories["best-practices"].score * 100' | head -1)
-            SEO_SCORE=$(cat .lighthouseci/*.json | jq -r '.categories.seo.score * 100' | head -1)
-
-            echo "perf_score=$PERF_SCORE" >> $GITHUB_OUTPUT
-            echo "accessibility_score=$ACCESSIBILITY_SCORE" >> $GITHUB_OUTPUT
-            echo "best_practices_score=$BEST_PRACTICES_SCORE" >> $GITHUB_OUTPUT
-            echo "seo_score=$SEO_SCORE" >> $GITHUB_OUTPUT
-          else
-            echo "perf_score=N/A" >> $GITHUB_OUTPUT
-            echo "accessibility_score=N/A" >> $GITHUB_OUTPUT
-            echo "best_practices_score=N/A" >> $GITHUB_OUTPUT
-            echo "seo_score=N/A" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
+          # Get largest JS file
+          LARGEST_JS=$(du -h dist/assets/*.js 2>/dev/null | sort -hr | head -1 | awk '{print $1}' || echo "N/A")
+          echo "largest_js=$LARGEST_JS" >> $GITHUB_OUTPUT
 
       - name: Upload bundle stats
         uses: actions/upload-artifact@v4
@@ -79,34 +60,23 @@ jobs:
           path: dist/
           retention-days: 30
 
-      - name: Upload Lighthouse results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: staging-lighthouse-results
-          path: .lighthouseci/
-          retention-days: 30
-
       - name: Comment PR with staging URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const bundleSize = '${{ steps.bundle.outputs.total_size }}';
-            const perfScore = '${{ steps.lighthouse.outputs.perf_score }}';
-            const a11yScore = '${{ steps.lighthouse.outputs.accessibility_score }}';
-            const bpScore = '${{ steps.lighthouse.outputs.best_practices_score }}';
-            const seoScore = '${{ steps.lighthouse.outputs.seo_score }}';
+            const jsCount = '${{ steps.bundle.outputs.js_count }}';
+            const cssCount = '${{ steps.bundle.outputs.css_count }}';
+            const largestJs = '${{ steps.bundle.outputs.largest_js }}';
 
             const comment = `✅ **Build completo! Preview estará disponível em staging após merge.**
 
-            📦 **Bundle Size:** ${bundleSize}
-
-            🔍 **Lighthouse Scores:**
-            ⚡ Performance: ${perfScore}%
-            ♿ Accessibility: ${a11yScore}%
-            ✅ Best Practices: ${bpScore}%
-            🔎 SEO: ${seoScore}%`;
+            📦 **Bundle Info:**
+            • Tamanho Total: ${bundleSize}
+            • Arquivos JS: ${jsCount}
+            • Arquivos CSS: ${cssCount}
+            • Maior JS: ${largestJs}`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -124,7 +94,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD_STAGING }}
           port: 21
           local-dir: ./dist/
-          server-dir: /staging/
+          server-dir: /public_html/
           dangerous-clean-slate: false
 
       - name: Send staging success notification
@@ -138,10 +108,8 @@ jobs:
             👤 Por: ${{ github.actor }}
             🌐 Preview: https://staging.elys.com.br
 
-            📦 **Bundle Size:** ${{ steps.bundle.outputs.total_size }}
-
-            🔍 **Lighthouse Scores:**
-            ⚡ Performance: ${{ steps.lighthouse.outputs.perf_score }}%
-            ♿ Accessibility: ${{ steps.lighthouse.outputs.accessibility_score }}%
-            ✅ Best Practices: ${{ steps.lighthouse.outputs.best_practices_score }}%
-            🔎 SEO: ${{ steps.lighthouse.outputs.seo_score }}%
+            📦 **Bundle Info:**
+            • Tamanho Total: ${{ steps.bundle.outputs.total_size }}
+            • Arquivos JS: ${{ steps.bundle.outputs.js_count }}
+            • Arquivos CSS: ${{ steps.bundle.outputs.css_count }}
+            • Maior JS: ${{ steps.bundle.outputs.largest_js }}
