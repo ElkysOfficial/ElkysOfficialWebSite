@@ -57,7 +57,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD_STAGING }}
           port: 21
           local-dir: ./dist/
-          server-dir: ./public_html/staging/
+          server-dir: ./staging/
           dangerous-clean-slate: false
 
       - name: Send staging success notification
