@@ -95,15 +95,6 @@ const Testimonials = () => {
       quote:
         "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
     },
-    {
-      name: "Jose Pedro",
-      role: "Owner",
-      company: "Advogado Jose Pedro",
-      image: "/imgs/testimonials/helielSouza.png",
-      rating: 5,
-      quote:
-        "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
-    },
   ];
 
   // Estados do carrossel
