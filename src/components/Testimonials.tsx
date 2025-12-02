@@ -10,68 +10,90 @@ import ArrowRight from "../../public/imgs/images/chevron-compact-right.svg";
  * Features:
  * - Carrossel infinito com loop seamless
  * - Suporte a touch/swipe em dispositivos móveis
- * - Autoplay com pausa ao interagir
+ * - Autoplay inteligente com pausa ao interagir
+ * - Retomada automática após 2s de inatividade
  * - Largura de cards dinâmica baseada no viewport
  * - Setas de navegação (ocultas em mobile)
  * - Indicadores de posição (dots) para mobile
+ * - Imagens otimizadas com srcset responsivo
  *
  * Controles:
- * - Setas: navegação manual (desktop)
- * - Swipe: deslize left/right (mobile)
- * - Dots: navegação direta por posição (mobile)
- * - Autoplay: avança automaticamente a cada 5s
+ * - Setas: navegação manual (desktop) - pausa e retoma após 2s
+ * - Swipe: deslize left/right (mobile) - pausa e retoma após 2s
+ * - Dots: navegação direta por posição (mobile) - pausa e retoma após 2s
+ * - Hover: pausa ao passar mouse, retoma após 2s ao sair
+ * - Autoplay: avança automaticamente a cada 6s (lento e fluido)
  *
  * Performance:
  * - Largura responsiva: 280px (mobile), 300px (tablet), 320px (desktop)
  * - Loop infinito com duplicação de array para evitar gaps
+ * - Imagens com lazy loading e múltiplos tamanhos (40w, 48w, 80w, 96w)
  */
 const Testimonials = () => {
   /** Array de depoimentos - adicionar novos depoimentos aqui */
   const testimonialsData = [
     {
-      name: "Carlos Silva",
+      name: "Guilherme Trindade Duarte",
       role: "CEO",
-      company: "TechFlow Solutions",
-      image: "/api/placeholder/64/64",
+      company: "Aquele Bar",
+      image: "/imgs/testimonials/guilhermeTrindade.png",
       rating: 5,
       quote:
-        "A Elys transformou nossa operação completamente. O sistema que desenvolveram automatizou 80% dos nossos processos manuais, resultando em uma economia de 40% no tempo de operação.",
+        "Serviço de consultoria e extração de informações realizado com excelente profissionalismo. A entrega ocorreu antes do prazo e os dados vieram precisos, bem estruturados e fáceis de analisar.",
     },
     {
-      name: "Ana Costa",
-      role: "Diretora de TI",
-      company: "InnovaCorp",
-      image: "/api/placeholder/64/64",
+      name: "Lucas Alves",
+      role: "Profissional Autônomo",
+      company: "",
+      image: "/imgs/testimonials/lucasAlves.png",
       rating: 5,
       quote:
-        "Profissionalismo excepcional e entrega no prazo. A equipe da Elys entendeu perfeitamente nossas necessidades e entregou uma solução que superou nossas expectativas.",
+        "Muito satisfeito com o serviço de consultoria e extração de dados. Todo o processo foi profissional, ágil e entregue antes do prazo, com resultados organizados que facilitaram minha análise.",
     },
     {
-      name: "Roberto Oliveira",
+      name: "Ramiro Silva",
       role: "Fundador",
-      company: "StartupXYZ",
-      image: "/api/placeholder/64/64",
+      company: "1UmPrintComunicação",
+      image: "/imgs/testimonials/ramiroSilva.png",
       rating: 5,
       quote:
-        "Como startup, precisávamos de um parceiro que entendesse nossas limitações orçamentárias sem comprometer a qualidade. A Elys foi exatamente isso - qualidade premium com custo justo.",
+        "Desenvolvimento do site superou minhas expectativas. Layout moderno, funcional, responsivo e entregue em tempo recorde, com total entendimento da necessidade do cliente e experiência intuitiva.",
     },
     {
-      name: "Marina Santos",
-      role: "Gerente de Operações",
-      company: "LogisticaPro",
-      image: "/api/placeholder/64/64",
+      name: "João Pedro Monteiro",
+      role: "Profissional Autônomo",
+      company: "",
+      image: "/imgs/testimonials/joaoMonteiro.png",
       rating: 5,
       quote:
-        "O suporte pós-entrega é impressionante. Qualquer dúvida ou ajuste necessário é resolvido rapidamente. É como ter uma equipe de TI interna dedicada.",
+        "Empresa de primeira categoria em tecnologia. Acompanham desde a ideia até a entrega, com produtos fáceis de usar, alta qualidade, responsabilidade com prazos e foco total na experiência do cliente.",
     },
     {
-      name: "Felipe Rocha",
-      role: "CTO",
-      company: "FinanceFlow",
+      name: "Alexandre Silva",
+      role: "Owner",
+      company: "AK Produções",
       image: "/api/placeholder/64/64",
       rating: 5,
       quote:
-        "A arquitetura do sistema é sólida e escalável. Conseguimos crescer 300% no último ano sem problemas de performance. Código limpo e bem documentado.",
+        "A criação do site para nossa dubladora e gravadora ficou impecável. Design moderno, rápido e profissional, com ótima estrutura para apresentar nossos trabalhos e identidade artística. Excelente execução.",
+    },
+    {
+      name: "Antonio Oliveira",
+      role: "Advogado",
+      company: "Escritório Antonio Oliveira",
+      image: "/imgs/testimonials/antonioOliveira.webp",
+      rating: 5,
+      quote:
+        "Site institucional moderno, claro e muito profissional. A entrega foi precisa, ágil e alinhada exatamente ao que eu precisava para meu escritório.",
+    },
+    {
+      name: "Heliel Souza",
+      role: "Owner",
+      company: "PlansCoop",
+      image: "/imgs/testimonials/helielSouza.png",
+      rating: 5,
+      quote:
+        "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
     },
   ];
 
@@ -92,6 +114,7 @@ const Testimonials = () => {
   // Refs para controle de timeouts e referência do DOM
   const animationTimeoutRef = useRef(null);
   const autoplayTimeoutRef = useRef(null);
+  const resumeAutoplayTimeoutRef = useRef(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Atualiza largura dos cards baseado no viewport
@@ -116,7 +139,18 @@ const Testimonials = () => {
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev + 1);
-    resetAutoplayTimer();
+    setIsPaused(true);
+
+    // Cancela qualquer autoplay agendado
+    if (autoplayTimeoutRef.current) {
+      clearTimeout(autoplayTimeoutRef.current);
+    }
+    if (resumeAutoplayTimeoutRef.current) {
+      clearTimeout(resumeAutoplayTimeoutRef.current);
+    }
+
+    // Agenda retomada do autoplay após 2s
+    resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
   const handlePrev = () => {
@@ -124,7 +158,18 @@ const Testimonials = () => {
     setIsAnimating(true);
     setTransitionEnabled(true);
     setCurrentIndex((prev) => prev - 1);
-    resetAutoplayTimer();
+    setIsPaused(true);
+
+    // Cancela qualquer autoplay agendado
+    if (autoplayTimeoutRef.current) {
+      clearTimeout(autoplayTimeoutRef.current);
+    }
+    if (resumeAutoplayTimeoutRef.current) {
+      clearTimeout(resumeAutoplayTimeoutRef.current);
+    }
+
+    // Agenda retomada do autoplay após 2s
+    resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
   const startAutoplay = React.useCallback(() => {
@@ -134,21 +179,27 @@ const Testimonials = () => {
         setTransitionEnabled(true);
         setCurrentIndex((prev) => prev + 1);
       }
-    }, 4000);
+    }, 6000); // Aumentado para 6s para transição mais lenta e fluida
   }, [isPaused, isAnimating]);
 
   const resetAutoplayTimer = React.useCallback(() => {
     if (autoplayTimeoutRef.current) {
       clearTimeout(autoplayTimeoutRef.current);
     }
-    if (!isPaused) {
-      startAutoplay();
-    }
-  }, [isPaused, startAutoplay]);
+    startAutoplay();
+  }, [startAutoplay]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
     setIsPaused(true);
+
+    // Cancela qualquer autoplay agendado
+    if (autoplayTimeoutRef.current) {
+      clearTimeout(autoplayTimeoutRef.current);
+    }
+    if (resumeAutoplayTimeoutRef.current) {
+      clearTimeout(resumeAutoplayTimeoutRef.current);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -171,7 +222,14 @@ const Testimonials = () => {
 
     setTouchStart(0);
     setTouchEnd(0);
-    setIsPaused(false);
+
+    // Limpa timeout anterior se existir
+    if (resumeAutoplayTimeoutRef.current) {
+      clearTimeout(resumeAutoplayTimeoutRef.current);
+    }
+
+    // Retoma autoplay após 2 segundos de inatividade
+    resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
   useEffect(() => {
@@ -205,6 +263,9 @@ const Testimonials = () => {
       if (autoplayTimeoutRef.current) {
         clearTimeout(autoplayTimeoutRef.current);
       }
+      if (resumeAutoplayTimeoutRef.current) {
+        clearTimeout(resumeAutoplayTimeoutRef.current);
+      }
     };
   }, [startAutoplay]);
 
@@ -215,6 +276,9 @@ const Testimonials = () => {
     return () => {
       if (autoplayTimeoutRef.current) {
         clearTimeout(autoplayTimeoutRef.current);
+      }
+      if (resumeAutoplayTimeoutRef.current) {
+        clearTimeout(resumeAutoplayTimeoutRef.current);
       }
     };
   }, [isAnimating, isPaused, currentIndex, startAutoplay]);
@@ -254,8 +318,24 @@ const Testimonials = () => {
           <div
             ref={carouselRef}
             className="relative mb-8 sm:mb-10 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px]"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+            onMouseEnter={() => {
+              // Cancela qualquer autoplay agendado
+              if (autoplayTimeoutRef.current) {
+                clearTimeout(autoplayTimeoutRef.current);
+              }
+              if (resumeAutoplayTimeoutRef.current) {
+                clearTimeout(resumeAutoplayTimeoutRef.current);
+              }
+              setIsPaused(true);
+            }}
+            onMouseLeave={() => {
+              // Cancela qualquer timeout de retomada anterior
+              if (resumeAutoplayTimeoutRef.current) {
+                clearTimeout(resumeAutoplayTimeoutRef.current);
+              }
+              // Agenda retomada do autoplay após 2s
+              resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
+            }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -293,14 +373,32 @@ const Testimonials = () => {
                     </p>
 
                     <div className="flex items-center space-x-2 sm:space-x-3 pt-3 sm:pt-4 border-t border-border">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-semibold text-xs sm:text-sm">
-                          {testimonial.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </span>
-                      </div>
+                      {testimonial.image ? (
+                        <img
+                          src={testimonial.image}
+                          alt={testimonial.name}
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
+                          loading="lazy"
+                          width={48}
+                          height={48}
+                          srcSet={`
+                            ${testimonial.image}?w=40&h=40&q=80 40w,
+                            ${testimonial.image}?w=48&h=48&q=80 48w,
+                            ${testimonial.image}?w=80&h=80&q=80 80w,
+                            ${testimonial.image}?w=96&h=96&q=80 96w
+                          `}
+                          sizes="(max-width: 640px) 40px, 48px"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-semibold text-xs sm:text-sm">
+                            {testimonial.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </span>
+                        </div>
+                      )}
                       <div className="min-w-0">
                         <div className="font-semibold text-foreground text-xs sm:text-sm truncate">
                           {testimonial.name}
@@ -316,7 +414,7 @@ const Testimonials = () => {
             </div>
 
             {/* Mobile Navigation Indicators */}
-            <div className="flex sm:hidden justify-center gap-2 mt-6">
+            <div className="flex sm:hidden justify-center items-center gap-1.5 mt-4 px-4">
               {testimonialsData.map((_, index) => (
                 <button
                   key={index}
@@ -324,14 +422,27 @@ const Testimonials = () => {
                     setIsAnimating(true);
                     setTransitionEnabled(true);
                     setCurrentIndex(index);
-                    resetAutoplayTimer();
+                    setIsPaused(true);
+
+                    // Cancela qualquer autoplay agendado
+                    if (autoplayTimeoutRef.current) {
+                      clearTimeout(autoplayTimeoutRef.current);
+                    }
+                    if (resumeAutoplayTimeoutRef.current) {
+                      clearTimeout(resumeAutoplayTimeoutRef.current);
+                    }
+
+                    // Agenda retomada do autoplay após 2s
+                    resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
                   }}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2"
+                  className="p-1.5 transition-all duration-300 ease-in-out"
                   aria-label={`Ir para depoimento ${index + 1}`}
                 >
                   <span
-                    className={`h-2 rounded-full transition-all ${
-                      currentIndex % totalItems === index ? "w-8 bg-primary" : "w-2 bg-primary/30"
+                    className={`block rounded-full transition-all duration-300 ease-in-out ${
+                      currentIndex % totalItems === index
+                        ? "w-6 h-2 bg-primary scale-110"
+                        : "w-2 h-2 bg-primary/30 hover:bg-primary/50 hover:scale-125"
                     }`}
                   />
                 </button>
