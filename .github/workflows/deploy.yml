@@ -47,7 +47,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           local-dir: ./dist/
-          server-dir: /public_html/
+          server-dir: /domains/elkys.com.br/public_html/
           dangerous-clean-slate: false
           exclude: |
             **/.git*
