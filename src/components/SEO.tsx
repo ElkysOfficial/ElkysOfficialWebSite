@@ -10,7 +10,7 @@ interface SEOProps {
   jsonLd?: object;
 }
 
-const SEO = ({
+export default function SEO({
   title = "Elkys - Construímos software que transforma a maneira que você faz negócio",
   description = "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
   canonical = "https://elkys.com.br/",
@@ -18,7 +18,7 @@ const SEO = ({
   ogType = "website",
   twitterCard = "summary_large_image",
   jsonLd,
-}: SEOProps) => {
+}: SEOProps) {
   return (
     <Helmet>
       {/* Primary Meta Tags */}
@@ -53,6 +53,4 @@ const SEO = ({
       {jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}
     </Helmet>
   );
-};
-
-export default SEO;
+}
