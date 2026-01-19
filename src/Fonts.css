@@ -1,12 +1,3 @@
-/* Light - 300 (for subtle text) */
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
 /* Regular - 400 (primary body text) */
 @font-face {
   font-family: "Poppins";
@@ -40,14 +31,5 @@
   src: url("/fonts/Poppins-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
-}
-
-/* Italic - 400 (for emphasis, optional) */
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Italic.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
   font-display: swap;
 }

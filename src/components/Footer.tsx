@@ -34,8 +34,8 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img
-                src="/imgs/icons/lettering_elys.webp"
-                alt="elys"
+                src="/imgs/icons/lettering_elkys.webp"
+                alt="elkys"
                 width={80}
                 height={40}
                 loading="lazy"
@@ -48,7 +48,7 @@ const Footer = () => {
             </p>
             <div className="flex space-x-3">
               <a
-                href="https://linkedin.com/company/elys"
+                href="https://linkedin.com/company/elkys"
                 className="w-8 h-8 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
                 aria-label="Visite nosso perfil no LinkedIn"
                 target="_blank"
@@ -57,7 +57,7 @@ const Footer = () => {
                 <Linkedin className="h-4 w-4" />
               </a>
               <a
-                href="https://github.com/elys"
+                href="https://github.com/elkys"
                 className="w-8 h-8 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
                 aria-label="Visite nosso perfil no Github"
                 target="_blank"
@@ -104,7 +104,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm opacity-80">contato@elystech.com.br</span>
+                <span className="text-sm opacity-80">contato@elkys.com.br</span>
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ const Footer = () => {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm opacity-70 text-center md:text-left">
-              © 2024 elys. Todos os direitos reservados.
+              © 2024 elkys. Todos os direitos reservados.
             </div>
 
             <div className="flex flex-wrap justify-center gap-4">

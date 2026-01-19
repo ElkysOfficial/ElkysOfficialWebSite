@@ -4,7 +4,7 @@ import { Home, Search, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.webp";
+import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
 
 const NotFound = () => {
   const location = useLocation();
@@ -23,7 +23,7 @@ const NotFound = () => {
           <div className="flex justify-center mb-8">
             <img
               src={letteringPurple}
-              alt="Elys"
+              alt="Elkys"
               width={120}
               height={60}
               className="h-12 w-auto opacity-50"
@@ -76,11 +76,6 @@ const NotFound = () => {
               <Link to="/#services">
                 <Button variant="ghost" size="sm">
                   Serviços
-                </Button>
-              </Link>
-              <Link to="/cases">
-                <Button variant="ghost" size="sm">
-                  Cases de Sucesso
                 </Button>
               </Link>
               <Link to="/#contact">

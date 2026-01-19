@@ -16,7 +16,6 @@ const Breadcrumbs = () => {
 
   // Map paths to readable names
   const pathMap: Record<string, string> = {
-    cases: "Cases de Sucesso",
     "terms-of-service": "Termos de Uso",
     "privacy-policy": "Política de Privacidade",
     "cookie-policy": "Política de Cookies",
@@ -42,7 +41,7 @@ const Breadcrumbs = () => {
       "@type": "ListItem",
       position: index + 1,
       name: item.label,
-      item: `https://elys.com.br${item.href}`,
+      item: `https://elkys.com.br${item.href}`,
     })),
   };
 

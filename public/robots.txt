@@ -1,5 +1,5 @@
-# Elys - Robots.txt
-# https://elys.com.br/robots.txt
+# Elkys - Robots.txt
+# https://elkys.com.br/robots.txt
 
 User-agent: Googlebot
 Allow: /
@@ -21,7 +21,7 @@ Allow: /
 # Disallow: /private/
 
 # Sitemaps
-Sitemap: https://elys.com.br/sitemap.xml
+Sitemap: https://elkys.com.br/sitemap.xml
 
 # Crawl-delay (optional, helps prevent overload)
 Crawl-delay: 1

@@ -3,8 +3,8 @@ import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import letteringPurple from "../../public/imgs/icons/lettering_elys_purple.webp";
-import letteringWhite from "../../public/imgs/icons/lettering_elys.webp";
+import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
+import letteringWhite from "../../public/imgs/icons/lettering_elkys.webp";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,7 +47,6 @@ const Navigation = () => {
     { label: "Início", href: isHomePage ? "#hero" : "/#hero", isRoute: false },
     { label: "Sobre", href: isHomePage ? "#about" : "/#about", isRoute: false },
     { label: "Serviços", href: isHomePage ? "#services" : "/#services", isRoute: false },
-    { label: "Cases", href: "/cases", isRoute: true },
     { label: "Contato", href: isHomePage ? "#contact" : "/#contact", isRoute: false },
   ];
 
@@ -84,7 +83,7 @@ const Navigation = () => {
           <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-2">
             <img
               src={useWhiteLogo ? letteringWhite : letteringPurple}
-              alt="elys"
+              alt="elkys"
               width={64}
               height={32}
               className="w-16 transition-all duration-500"

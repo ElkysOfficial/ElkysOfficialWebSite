@@ -1,4 +1,4 @@
-# Apache Configuration - Security Headers for Elys Website
+# Apache Configuration - Security Headers for Elkys Website
 # Use this file if hosting on Apache server
 
 <IfModule mod_headers.c>

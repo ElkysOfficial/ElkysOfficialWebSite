@@ -11,10 +11,10 @@ interface SEOProps {
 }
 
 const SEO = ({
-  title = "Elys - Construímos software que transforma a maneira que você faz negócio",
+  title = "Elkys - Construímos software que transforma a maneira que você faz negócio",
   description = "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
-  canonical = "https://elys.com.br/",
-  ogImage = "https://elys.com.br/og-image.jpg",
+  canonical = "https://elkys.com.br/",
+  ogImage = "https://elkys.com.br/og-image.jpg",
   ogType = "website",
   twitterCard = "summary_large_image",
   jsonLd,
@@ -39,7 +39,7 @@ const SEO = ({
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={title} />
       <meta property="og:locale" content="pt_BR" />
-      <meta property="og:site_name" content="Elys" />
+      <meta property="og:site_name" content="Elkys" />
 
       {/* Twitter */}
       <meta name="twitter:card" content={twitterCard} />

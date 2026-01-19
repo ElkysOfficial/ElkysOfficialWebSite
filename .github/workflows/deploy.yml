@@ -63,7 +63,7 @@ jobs:
             ✅ **Deploy em Produção Concluído!**
             🚀 Commit: `${{ github.event.head_commit.message }}`
             👤 Por: ${{ github.actor }}
-            🌐 Site: https://elys.com.br
+            🌐 Site: https://elkys.com.br
 
       - name: Send failure notification
         if: failure()

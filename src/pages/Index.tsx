@@ -4,7 +4,6 @@ import About from "@/components/About";
 import Services from "@/components/Services";
 import Testimonials from "@/components/Testimonials";
 import ClientsCarousel from "@/components/ClientsCarousel";
-import { Team } from "@/components/Team";
 import ContactForm from "@/components/ContactForm";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -14,14 +13,14 @@ const Index = () => {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": "https://elys.com.br/#webpage",
-    url: "https://elys.com.br/",
-    name: "Elys - Desenvolvimento de Software sob Demanda",
+    "@id": "https://elkys.com.br/#webpage",
+    url: "https://elkys.com.br/",
+    name: "Elkys - Desenvolvimento de Software sob Demanda",
     isPartOf: {
-      "@id": "https://elys.com.br/#website",
+      "@id": "https://elkys.com.br/#website",
     },
     about: {
-      "@id": "https://elys.com.br/#organization",
+      "@id": "https://elkys.com.br/#organization",
     },
     description:
       "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
@@ -31,9 +30,9 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="Elys - Construímos software que transforma a maneira que você faz negócio"
+        title="Elkys - Construímos software que transforma a maneira que você faz negócio"
         description="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável."
-        canonical="https://elys.com.br/"
+        canonical="https://elkys.com.br/"
         jsonLd={jsonLd}
       />
       <div className="min-h-screen">
@@ -44,7 +43,6 @@ const Index = () => {
           <Services />
           <ClientsCarousel />
           <Testimonials />
-          <Team />
           <ContactForm />
           <Contact />
         </main>

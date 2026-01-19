@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = 'https://elys.com.br';
+const BASE_URL = 'https://elkys.com.br';
 const DIST_DIR = path.join(__dirname, '../dist');
 const PUBLIC_DIR = path.join(__dirname, '../public');
 
@@ -11,11 +11,6 @@ const routes = [
     path: '/',
     changefreq: 'weekly',
     priority: 1.0,
-  },
-  {
-    path: '/cases',
-    changefreq: 'monthly',
-    priority: 0.8,
   },
   {
     path: '/terms-of-service',

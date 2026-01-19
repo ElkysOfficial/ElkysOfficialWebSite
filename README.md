@@ -1,6 +1,6 @@
-# Elys - Website Oficial
+# Elkys - Website Oficial
 
-Website institucional da Elys, especialista em desenvolvimento de software sob demanda para PMEs.
+Website institucional da Elkys, especialista em desenvolvimento de software sob demanda para PMEs.
 
 ## 🚀 Quick Start
 
@@ -32,14 +32,18 @@ O servidor de desenvolvimento estará disponível em `http://localhost:8080`
 O projeto possui múltiplas configurações de build otimizadas:
 
 ### `npm run build`
+
 Build padrão para produção usando esbuild (rápido e otimizado):
+
 - Minificação básica de JavaScript e CSS
 - Gera sourcemaps desabilitados
 - Code splitting automático
 - Ideal para builds rápidos de desenvolvimento/testes
 
 ### `npm run build:min`
+
 Build minificado avançado usando Terser:
+
 - **Minificação agressiva de JavaScript**: Terser com 2 passes
 - **Remove logs**: console.log, console.info, console.debug, console.trace
 - **Remove debuggers**: Todos os statements de debug
@@ -49,22 +53,25 @@ Build minificado avançado usando Terser:
 - Ideal para produção e deploy final
 
 ### `npm run build:dev`
+
 Build de desenvolvimento:
+
 - Modo development ativo
 - Inclui ferramentas de debug
 - Ideal para testar builds localmente
 
 **Comparação de tamanhos:**
 
-| Arquivo | Build Normal | Build Minificado | Economia |
-|---------|-------------|------------------|----------|
-| index.html | 5.88 kB (gzip: 1.74 kB) | 4.91 kB (gzip: 1.45 kB) | ~17% |
-| JavaScript | 529 kB (gzip: 139 kB) | 505 kB (gzip: 132 kB) | ~5% |
-| **Total** | **535 kB** (gzip: **141 kB**) | **510 kB** (gzip: **133 kB**) | **~4.7% menor** |
+| Arquivo    | Build Normal                  | Build Minificado              | Economia        |
+| ---------- | ----------------------------- | ----------------------------- | --------------- |
+| index.html | 5.88 kB (gzip: 1.74 kB)       | 4.91 kB (gzip: 1.45 kB)       | ~17%            |
+| JavaScript | 529 kB (gzip: 139 kB)         | 505 kB (gzip: 132 kB)         | ~5%             |
+| **Total**  | **535 kB** (gzip: **141 kB**) | **510 kB** (gzip: **133 kB**) | **~4.7% menor** |
 
-*Nota: CSS permanece igual em ambos os builds*
+_Nota: CSS permanece igual em ambos os builds_
 
 Todos os builds incluem automaticamente:
+
 - Geração do sitemap.xml
 - Cópia do arquivo .htaccess para dist/
 
@@ -108,6 +115,7 @@ O projeto está configurado para deploy na Hostinger. Os builds incluem automati
 ### Processo de Deploy
 
 1. Execute o build minificado:
+
    ```bash
    npm run build:min
    ```
@@ -139,4 +147,4 @@ VITE_EMAILJS_PUBLIC_KEY=your_public_key
 
 ## 📄 Licença
 
-© 2024 Elys. Todos os direitos reservados.
+© 2024 Elkys. Todos os direitos reservados.

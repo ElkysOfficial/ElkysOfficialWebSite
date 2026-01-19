@@ -1,5 +1,5 @@
 # ====================================
-# ELYS - Configurações de Redirecionamento
+# ELKYS - Configurações de Redirecionamento
 # ====================================
 
 # Ativar Rewrite Engine
@@ -9,17 +9,17 @@ RewriteEngine On
 # 1. REDIRECIONAMENTO DE DOMÍNIOS INCORRETOS
 # ====================================
 
-# Redireciona Elysb.com.br para Elys.com.br
-RewriteCond %{HTTP_HOST} ^(www\.)?elysb\.com\.br$ [NC]
-RewriteRule ^(.*)$ https://elys.com.br/$1 [R=301,L]
+# Redireciona Elkysb.com.br para Elkys.com.br
+RewriteCond %{HTTP_HOST} ^(www\.)?elkysb\.com\.br$ [NC]
+RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
 
 # Força www para não-www (opcional - descomente se preferir)
-# RewriteCond %{HTTP_HOST} ^www\.elys\.com\.br$ [NC]
-# RewriteRule ^(.*)$ https://elys.com.br/$1 [R=301,L]
+# RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
+# RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
 
 # Ou força não-www para www (opcional - descomente se preferir)
-# RewriteCond %{HTTP_HOST} ^elys\.com\.br$ [NC]
-# RewriteRule ^(.*)$ https://www.elys.com.br/$1 [R=301,L]
+# RewriteCond %{HTTP_HOST} ^elkys\.com\.br$ [NC]
+# RewriteRule ^(.*)$ https://www.elkys.com.br/$1 [R=301,L]
 
 # ====================================
 # 2. FORÇAR HTTPS

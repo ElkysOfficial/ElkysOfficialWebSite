@@ -35,7 +35,7 @@ const About = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Sobre a <span className="text-primary">Elys</span>
+            Sobre a <span className="text-primary">Elkys</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Somos especialistas em desenvolvimento de software sob demanda, com foco em pequenas e
@@ -48,8 +48,8 @@ const About = () => {
           <div className="space-y-6">
             <h3 className="text-2xl font-bold text-foreground">Nossa História</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Fundada com a missão de democratizar o acesso à tecnologia de qualidade, a Elys nasceu
-              da percepção de que muitas PMEs enfrentam desafios para encontrar soluções
+              Fundada com a missão de democratizar o acesso à tecnologia de qualidade, a Elkys
+              nasceu da percepção de que muitas PMEs enfrentam desafios para encontrar soluções
               tecnológicas que realmente atendam às suas necessidades específicas. Ao longo dos
               anos, evoluímos para entregar sistemas robustos, seguros e alinhados aos objetivos de
               cada cliente.

@@ -33,7 +33,7 @@ const ClientsCarousel = () => {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10 md:mb-12">
           <h2 className="text-xl sm:text-2xl md:text-2xl font-bold text-foreground mb-3 sm:mb-4">
-            Empresas que confiam na <span className="text-primary">Elys</span>
+            Empresas que confiam na <span className="text-primary">Elkys</span>
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground">
             Parceiros de sucesso em diversos segmentos
@@ -50,7 +50,7 @@ const ClientsCarousel = () => {
               >
                 <img
                   src={logo}
-                  alt={`Logo do cliente parceiro da Elys`}
+                  alt={`Logo do cliente parceiro da Elkys`}
                   width={120}
                   height={60}
                   loading="lazy"

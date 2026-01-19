@@ -98,7 +98,7 @@ const ContactForm = () => {
             <div className="space-y-6">
               <Card className="shadow-elegant">
                 <CardHeader>
-                  <CardTitle className="text-lg text-primary">Por que escolher a elys?</CardTitle>
+                  <CardTitle className="text-lg text-primary">Por que escolher a elkys?</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {[
@@ -119,7 +119,7 @@ const ContactForm = () => {
               <div className="bg-gradient-primary rounded-xl p-6 text-white">
                 <p className="font-bold mb-4">Resposta rápida garantida</p>
                 <p className="text-sm opacity-90 mb-4">
-                  Nossa equipe responde em até 2 horas durante horário comercial.
+                  Respondemos em até 2 horas durante horário comercial.
                 </p>
                 <div className="text-xs opacity-75">
                   Seg-Sex: 8h às 18h

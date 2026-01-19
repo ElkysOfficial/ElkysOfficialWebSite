@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Elys Design System - Professional tech company palette
+/* elkys Design System - Professional tech company palette
 All colors MUST be HSL.
 */
 
@@ -19,7 +19,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Elys Purple Brand Colors - Based on brand identity */
+    /* elkys Purple Brand Colors - Based on brand identity */
     --primary: 261 75% 45%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 261 70% 60%;
@@ -46,32 +46,11 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(220 14% 96%));
-    --gradient-secondary: linear-gradient(135deg, #fdfdfd, #e4e4e4);
-
     /* Shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.2);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.15);
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -112,15 +91,6 @@ All colors MUST be HSL.
 
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
-
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 261 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 27%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 261 70% 55%;
   }
 }
 
@@ -155,39 +125,6 @@ All colors MUST be HSL.
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
-
-  .transition-smooth {
-    transition: var(--transition-smooth);
-  }
-
-  /* Carousel Animations */
-  .animate-slide-right {
-    animation: slide-right 20s linear infinite;
-  }
-
-  .animate-slide-left {
-    animation: slide-left 20s linear infinite;
-  }
-
-  @keyframes slide-right {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(50%);
-    }
-  }
-
-  @keyframes slide-left {
-    0% {
-      transform: translateX(100%);
-    }
-    100% {
-      transform: translateX(-80%);
-    }
-  }
-
-  /* Hero Animations */
 
   /* Diamond rotation */
   .animate-diamond-rotate {
@@ -228,21 +165,6 @@ All colors MUST be HSL.
     }
   }
 
-  /* Feature float animation */
-  .animate-feature-float {
-    animation: feature-float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  }
-
-  @keyframes feature-float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-4px);
-    }
-  }
-
   /* Hover lift effect */
   .hover-lift {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -277,12 +199,12 @@ All colors MUST be HSL.
   }
 
   .btn-primary-animate:hover {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px);
     box-shadow: 0 12px 24px rgba(251, 146, 60, 0.3);
   }
 
   .btn-primary-animate:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0);
   }
 
   /* Secondary button */
@@ -308,11 +230,11 @@ All colors MUST be HSL.
   }
 
   .btn-secondary-animate:hover {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px);
   }
 
   .btn-secondary-animate:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0);
   }
 
   /* Arrow icon animation */

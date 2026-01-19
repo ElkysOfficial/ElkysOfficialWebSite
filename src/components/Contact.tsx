@@ -12,7 +12,7 @@ const Contact = () => {
     {
       icon: Mail,
       title: "E-mail",
-      value: "contato@elystech.com.br",
+      value: "contato@elkys.com.br",
       subtitle: "Resposta em até 1h",
     },
   ];
@@ -21,19 +21,19 @@ const Contact = () => {
     {
       icon: Linkedin,
       name: "LinkedIn",
-      url: "https://linkedin.com/company/elys",
+      url: "https://linkedin.com/company/elkys",
       color: "hover:text-blue-600 dark:hover:text-blue-400",
     },
     {
       icon: Github,
       name: "GitHub",
-      url: "https://github.com/elys",
+      url: "https://github.com/elkys",
       color: "hover:text-foreground dark:hover:text-primary",
     },
     {
       icon: Instagram,
       name: "Instagram",
-      url: "https://instagram.com/elys_.oficial",
+      url: "https://instagram.com/elkys_.oficial",
       color: "hover:text-red-600 dark:hover:text-red-400",
     },
   ];
@@ -118,8 +118,7 @@ const Contact = () => {
               <CardContent className="p-6 text-center space-y-4">
                 <p className="text-xl font-bold">Precisa de ajuda urgente?</p>
                 <p className="opacity-90">
-                  Nossa equipe está disponível para atendimento de emergência 24 horas por dia, 7
-                  dias por semana.
+                  Atendimento de emergência disponível 24 horas por dia, 7 dias por semana.
                 </p>
                 <div className="pt-2">
                   <a
