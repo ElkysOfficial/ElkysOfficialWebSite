@@ -1,80 +1,273 @@
+/**
+ * @fileoverview ELKYS Design System - Sistema de Design Principal
+ * @description Este arquivo contém todas as variáveis CSS, tokens de design,
+ * e utilitários customizados que formam a base visual da marca ELKYS.
+ *
+ * ESTRUTURA DO ARQUIVO:
+ * 1. Importações (Fonts.css)
+ * 2. Tailwind Directives
+ * 3. Design Tokens (@layer base)
+ *    - Cores (Light & Dark mode)
+ *    - Tipografia
+ *    - Espaçamento
+ *    - Layout
+ *    - Border Radius
+ *    - Opacidade
+ *    - Motion/Animações
+ *    - Ícones
+ * 4. Utility Classes (@layer utilities)
+ *    - Gradientes
+ *    - Sombras
+ *    - Animações customizadas
+ *    - Efeitos de hover
+ *    - Carrossel de clientes
+ *    - Otimizações de performance
+ *    - Acessibilidade (prefers-reduced-motion)
+ *
+ * @author ELKYS Team
+ * @version 2.0.0
+ * @see https://elkys.com.br
+ */
+
+/* ============================================================================
+   IMPORTAÇÕES
+   ============================================================================ */
 @import "./Fonts.css";
 
+/* ============================================================================
+   TAILWIND CSS DIRECTIVES
+   ============================================================================ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* elkys Design System - Professional tech company palette
-All colors MUST be HSL.
-*/
+/* ============================================================================
+   DESIGN TOKENS - ELKYS Brand
+   Paleta profissional de empresa de tecnologia
+   IMPORTANTE: Todas as cores devem estar em formato HSL
+   ============================================================================ */
 
 @layer base {
+  /**
+   * LIGHT MODE (Padrão)
+   * Tema claro com cores vibrantes da marca ELKYS
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ----------------------------------------
+       CORES BASE
+       ---------------------------------------- */
+    --background: 0 0% 100%; /* Branco puro */
+    --foreground: 222.2 84% 4.9%; /* Quase preto para texto */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* Cards em branco */
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* elkys Purple Brand Colors - Based on brand identity */
-    --primary: 261 75% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 261 70% 60%;
-    --primary-dark: 261 90% 35%;
+    /* ----------------------------------------
+       CORES DA MARCA ELKYS
+       Roxo como cor primária da identidade visual
+       ---------------------------------------- */
+    --primary: 261 75% 45%; /* Roxo ELKYS principal */
+    --primary-foreground: 0 0% 100%; /* Texto branco sobre roxo */
+    --primary-light: 261 70% 60%; /* Roxo mais claro (hover) */
+    --primary-dark: 261 90% 35%; /* Roxo mais escuro */
 
-    --secondary: 227 53% 39%;
+    --secondary: 227 53% 39%; /* Azul secundário */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%; /* Cinza muito claro */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Texto cinza médio */
 
-    /* Orange Accent Color - from brand (WCAG AA compliant: 4.52:1) */
-    --accent: 25 100% 42%;
+    /* ----------------------------------------
+       COR DE DESTAQUE (ACCENT)
+       Laranja da marca - Verificado WCAG AA (4.52:1)
+       ---------------------------------------- */
+    --accent: 25 100% 42%; /* Laranja vibrante */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    /* ----------------------------------------
+       CORES DE FEEDBACK
+       ---------------------------------------- */
+    --destructive: 0 84.2% 60.2%; /* Vermelho para erros */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
+    /* ----------------------------------------
+       BORDAS E INPUTS
+       ---------------------------------------- */
+    --border: 214.3 31.8% 91.4%; /* Cinza claro para bordas */
     --input: 214.3 31.8% 91.4%;
-    --ring: 259 83% 48%;
+    --ring: 259 83% 48%; /* Anel de foco roxo */
 
-    /* Gradients */
+    /* ----------------------------------------
+       GRADIENTES
+       Usados em Hero, botões e destaques
+       ---------------------------------------- */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(220 14% 96%));
-    /* Shadows */
+
+    /* ----------------------------------------
+       SOMBRAS
+       Efeitos de elevação e profundidade
+       ---------------------------------------- */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.2);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.15);
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
     --radius: 0.5rem;
+
+    /* ========================================
+       TYPOGRAPHY SCALE (base 16px)
+       ======================================== */
+    --font-size-xs: 0.75rem; /* 12px - captions, labels */
+    --font-size-sm: 0.875rem; /* 14px - small text, metadata */
+    --font-size-base: 1rem; /* 16px - body text */
+    --font-size-lg: 1.125rem; /* 18px - lead paragraphs */
+    --font-size-xl: 1.25rem; /* 20px - H4, card titles */
+    --font-size-2xl: 1.5rem; /* 24px - H3 */
+    --font-size-3xl: 2rem; /* 32px - H2 */
+    --font-size-4xl: 2.5rem; /* 40px - H1 mobile */
+    --font-size-5xl: 3rem; /* 48px - H1 desktop */
+
+    /* Line Heights */
+    --line-height-tight: 1.2; /* headings */
+    --line-height-snug: 1.4; /* subheadings, captions */
+    --line-height-normal: 1.6; /* body text */
+    --line-height-relaxed: 1.75; /* long-form content */
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Letter Spacing */
+    --letter-spacing-tight: -0.02em; /* large headings */
+    --letter-spacing-normal: 0; /* body */
+    --letter-spacing-wide: 0.02em; /* buttons, labels */
+
+    /* ========================================
+       SPACING SCALE (base 4px)
+       ======================================== */
+    --space-1: 0.25rem; /* 4px */
+    --space-2: 0.5rem; /* 8px */
+    --space-3: 0.75rem; /* 12px */
+    --space-4: 1rem; /* 16px */
+    --space-5: 1.25rem; /* 20px */
+    --space-6: 1.5rem; /* 24px */
+    --space-8: 2rem; /* 32px */
+    --space-10: 2.5rem; /* 40px */
+    --space-12: 3rem; /* 48px */
+    --space-16: 4rem; /* 64px */
+    --space-20: 5rem; /* 80px */
+    --space-24: 6rem; /* 96px */
+
+    /* Section Spacing */
+    --section-padding-y: var(--space-16); /* 64px mobile */
+    --section-padding-y-lg: var(--space-20); /* 80px tablet */
+    --section-padding-y-xl: var(--space-24); /* 96px desktop */
+    --section-header-mb: var(--space-12); /* 48px */
+    --section-header-mb-lg: var(--space-16); /* 64px */
+
+    /* Component Spacing */
+    --card-padding-sm: var(--space-4); /* 16px */
+    --card-padding-md: var(--space-6); /* 24px */
+    --card-padding-lg: var(--space-8); /* 32px */
+    --stack-gap-tight: var(--space-4); /* 16px */
+    --stack-gap-normal: var(--space-6); /* 24px */
+    --stack-gap-loose: var(--space-8); /* 32px */
+    --grid-gap: var(--space-6); /* 24px default */
+    --grid-gap-lg: var(--space-8); /* 32px large */
+
+    /* ========================================
+       LAYOUT
+       ======================================== */
+    --container-max: 1400px;
+    --container-padding: var(--space-4);
+    --container-padding-sm: var(--space-6);
+    --container-padding-lg: var(--space-8);
+
+    /* ========================================
+       BORDER RADIUS
+       ======================================== */
+    --radius-sm: 0.25rem; /* 4px - badges, small elements */
+    --radius-md: 0.5rem; /* 8px - buttons, inputs */
+    --radius-lg: 0.75rem; /* 12px - cards */
+    --radius-xl: 1rem; /* 16px - section boxes */
+    --radius-2xl: 1.5rem; /* 24px - hero elements */
+    --radius-full: 9999px; /* pills, avatars */
+
+    /* ========================================
+       OPACITY TOKENS
+       ======================================== */
+    --opacity-muted: 0.6;
+    --opacity-subtle: 0.7;
+    --opacity-soft: 0.8;
+    --opacity-visible: 0.9;
+
+    /* ========================================
+       MOTION TOKENS
+       ======================================== */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    --duration-slower: 800ms;
+
+    --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ========================================
+       ICON SIZES
+       ======================================== */
+    --icon-xs: 0.875rem; /* 14px - inline with text */
+    --icon-sm: 1rem; /* 16px - buttons */
+    --icon-md: 1.25rem; /* 20px - default */
+    --icon-lg: 1.5rem; /* 24px - feature icons */
+    --icon-xl: 2rem; /* 32px - hero icons */
   }
 
+  /**
+   * DARK MODE
+   * Tema escuro com cores ajustadas para melhor contraste
+   * Cores mais claras para garantir legibilidade
+   */
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    /* ----------------------------------------
+       CORES BASE - DARK MODE
+       ---------------------------------------- */
+    --background: 222 47% 11%; /* Azul escuro profundo */
+    --foreground: 210 40% 98%; /* Branco levemente azulado */
 
-    --card: 224 47% 15%;
+    --card: 224 47% 15%; /* Cards um pouco mais claros */
     --card-foreground: 210 40% 98%;
 
     --popover: 224 47% 15%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 261 70% 58%;
+    /* ----------------------------------------
+       CORES DA MARCA - AJUSTADAS PARA DARK
+       Tons mais claros para contrastar com fundo escuro
+       ---------------------------------------- */
+    --primary: 261 70% 58%; /* Roxo mais claro */
     --primary-foreground: 0 0% 100%;
     --primary-light: 261 70% 65%;
     --primary-dark: 261 90% 40%;
 
-    --secondary: 227 53% 45%;
+    --secondary: 227 53% 45%; /* Azul mais claro */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 25% 27%;
-    --muted-foreground: 217 10% 65%;
+    --muted: 215 25% 27%; /* Cinza escuro */
+    --muted-foreground: 217 10% 65%; /* Texto cinza claro */
 
-    /* Orange Accent Color - Dark mode (WCAG AAA compliant: 7.5:1) */
+    /* ----------------------------------------
+       ACCENT - DARK MODE
+       Laranja mais brilhante - WCAG AAA (7.5:1)
+       ---------------------------------------- */
     --accent: 25 100% 58%;
     --accent-foreground: 0 0% 100%;
 
@@ -85,48 +278,81 @@ All colors MUST be HSL.
     --input: 215 25% 27%;
     --ring: 261 70% 55%;
 
+    /* ----------------------------------------
+       GRADIENTES - DARK MODE
+       ---------------------------------------- */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
     --gradient-hero: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(215 25% 18%));
 
+    /* ----------------------------------------
+       SOMBRAS - DARK MODE
+       Mais intensas para visibilidade
+       ---------------------------------------- */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
   }
 }
 
+/* ============================================================================
+   ESTILOS BASE GLOBAIS
+   Aplicados a todos os elementos da página
+   ============================================================================ */
 @layer base {
+  /** Reset de bordas - usa a variável de cor definida no tema */
   * {
     @apply border-border;
   }
 
+  /** Estilos do body - fundo e texto baseados no tema ativo */
   body {
     @apply bg-background text-foreground;
     scroll-behavior: smooth;
   }
 }
 
+/* ============================================================================
+   UTILITY CLASSES - Classes Utilitárias Customizadas
+   ============================================================================ */
 @layer utilities {
+  /* ----------------------------------------
+     GRADIENTES
+     Classes para aplicar gradientes da marca
+     ---------------------------------------- */
+  /** Gradiente primário roxo - usado em botões e destaques */
   .bg-gradient-primary {
     background: var(--gradient-primary);
   }
 
+  /** Gradiente hero - usado na seção principal (azul → roxo) */
   .bg-gradient-hero {
     background: var(--gradient-hero);
   }
 
+  /** Gradiente sutil - usado em backgrounds de seção */
   .bg-gradient-subtle {
     background: var(--gradient-subtle);
   }
 
+  /* ----------------------------------------
+     SOMBRAS
+     Efeitos de elevação customizados
+     ---------------------------------------- */
+  /** Sombra elegante - leve elevação com tom roxo */
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }
 
+  /** Sombra brilho - efeito glow para destaque */
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
 
-  /* Diamond rotation */
+  /* ----------------------------------------
+     ANIMAÇÃO: DIAMOND ROTATE
+     Rotação sutil do diamante decorativo no Hero
+     Duração: 8s | Easing: ease-out
+     ---------------------------------------- */
   .animate-diamond-rotate {
     animation: diamond-rotate 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -141,7 +367,11 @@ All colors MUST be HSL.
     }
   }
 
-  /* Card pulse animation - Accelerated */
+  /* ----------------------------------------
+     ANIMAÇÃO: CARD PULSE
+     Pulsação sutil dos cards flutuantes no Hero
+     Duração: 3s | Destaque na borda laranja
+     ---------------------------------------- */
   .animate-card-pulse {
     animation: card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -156,7 +386,7 @@ All colors MUST be HSL.
     33.33% {
       transform: scale(1.03);
       background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(251, 146, 60, 0.4);
+      border-color: rgba(251, 146, 60, 0.4); /* Laranja accent */
     }
     66.66% {
       transform: scale(1);
@@ -165,7 +395,10 @@ All colors MUST be HSL.
     }
   }
 
-  /* Hover lift effect */
+  /* ----------------------------------------
+     EFEITO: HOVER LIFT
+     Elevação sutil no hover para cards e elementos interativos
+     ---------------------------------------- */
   .hover-lift {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -174,15 +407,24 @@ All colors MUST be HSL.
     transform: translateY(-2px);
   }
 
-  /* Button Animations */
+  /* ----------------------------------------
+     ANIMAÇÕES DE BOTÕES
+     Efeitos interativos para CTAs
+     ---------------------------------------- */
 
-  /* Primary button */
+  /**
+   * BOTÃO PRIMÁRIO ANIMADO
+   * - Efeito shine (brilho passando) no hover
+   * - Elevação com sombra laranja
+   * - Retorno suave no click
+   */
   .btn-primary-animate {
     position: relative;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Efeito shine - linha de luz passando */
   .btn-primary-animate::before {
     content: "";
     position: absolute;
@@ -200,14 +442,18 @@ All colors MUST be HSL.
 
   .btn-primary-animate:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(251, 146, 60, 0.3);
+    box-shadow: 0 12px 24px rgba(251, 146, 60, 0.3); /* Sombra laranja */
   }
 
   .btn-primary-animate:active {
     transform: translateY(0);
   }
 
-  /* Secondary button */
+  /**
+   * BOTÃO SECUNDÁRIO ANIMADO
+   * - Efeito shine mais sutil
+   * - Apenas elevação, sem sombra colorida
+   */
   .btn-secondary-animate {
     position: relative;
     overflow: hidden;
@@ -237,7 +483,10 @@ All colors MUST be HSL.
     transform: translateY(0);
   }
 
-  /* Arrow icon animation */
+  /**
+   * ANIMAÇÃO DE SETA
+   * Move a seta para direita no hover do botão pai
+   */
   .btn-arrow-animate {
     display: inline-block;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -247,7 +496,11 @@ All colors MUST be HSL.
     transform: translateX(4px);
   }
 
-  /* Button breathing effect */
+  /**
+   * EFEITO BREATHING (RESPIRAÇÃO)
+   * Pulsação sutil da sombra para atrair atenção
+   * Usado no CTA principal do Hero
+   */
   .btn-breathe {
     animation: btn-breathe 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
@@ -262,9 +515,16 @@ All colors MUST be HSL.
     }
   }
 
-  /* Clients Carousel */
+  /* ----------------------------------------
+     CARROSSEL DE CLIENTES
+     Exibição contínua de logos de parceiros
+     ---------------------------------------- */
 
-  /* Logo grayscale filter */
+  /**
+   * FILTRO GRAYSCALE PARA LOGOS
+   * - Estado padrão: preto e branco + transparência
+   * - Hover: cores originais + escala aumentada
+   */
   .clients-logo-grayscale {
     filter: grayscale(100%) opacity(0.6);
     transition:
@@ -278,10 +538,15 @@ All colors MUST be HSL.
     transform: scale(1.1);
   }
 
-  /* Infinite scroll animation */
+  /**
+   * ANIMAÇÃO DE SCROLL INFINITO
+   * - Movimento contínuo da esquerda para direita
+   * - Pausa no hover para permitir leitura
+   * - Duração: 60s (mais lento = mais elegante)
+   */
   .clients-carousel-track {
     animation: clients-scroll 60s linear infinite;
-    will-change: transform;
+    will-change: transform; /* Otimização de performance */
   }
 
   .clients-carousel-track:hover {
@@ -293,34 +558,48 @@ All colors MUST be HSL.
       transform: translateX(0);
     }
     to {
+      /* Move 1/3 da largura (logos são triplicados) */
       transform: translateX(calc(-100% / 3));
     }
   }
 
-  /* Performance optimizations for mobile */
+  /* ----------------------------------------
+     OTIMIZAÇÕES DE PERFORMANCE - MOBILE
+     Reduz complexidade de animações em dispositivos móveis
+     para economizar bateria e melhorar performance
+     ---------------------------------------- */
   @media (max-width: 768px) {
+    /* Animações mais rápidas = menor uso de CPU */
     .animate-float,
     .animate-diamond-rotate {
       animation-duration: 6s;
     }
 
+    /* Desativa efeito breathing (sombra pulsante) */
     .btn-breathe {
       animation: none;
     }
 
+    /* Desativa pulsação de cards */
     .animate-card-pulse {
       animation: none;
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(255, 255, 255, 0.1);
     }
 
+    /* Carrossel mais rápido em mobile */
     .clients-carousel-track {
       animation-duration: 40s;
     }
   }
 
-  /* Reduce motion for users who prefer it */
+  /* ----------------------------------------
+     ACESSIBILIDADE - PREFERS-REDUCED-MOTION
+     Respeita preferência do usuário por menos movimento
+     Importante para usuários com sensibilidade a animações
+     ---------------------------------------- */
   @media (prefers-reduced-motion: reduce) {
+    /* Remove todas as animações */
     .animate-float,
     .animate-diamond-rotate,
     .animate-card-pulse,
@@ -329,6 +608,7 @@ All colors MUST be HSL.
       animation: none !important;
     }
 
+    /* Remove transições de TODOS os elementos */
     * {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
@@ -337,6 +617,11 @@ All colors MUST be HSL.
   }
 }
 
+/* ============================================================================
+   FONTE GLOBAL
+   Poppins como fonte principal da marca ELKYS
+   Importada via Fonts.css
+   ============================================================================ */
 * {
   font-family: "Poppins";
 }

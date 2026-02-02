@@ -39,23 +39,26 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-20 bg-gradient-subtle">
+    <section id="contact" className="py-16 md:py-20 lg:py-24 bg-gradient-subtle">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Entre em <span className="text-primary">contato</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Estamos prontos para ajudar sua empresa a crescer. Entre em contato e vamos conversar
             sobre seu próximo projeto.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-start">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-start">
           <div className="space-y-8">
             <div className="space-y-6">
               {contactInfo.map((info) => (
-                <Card key={info.title} className="shadow-elegant hover:shadow-glow transition-all">
+                <Card
+                  key={info.title}
+                  className="shadow-elegant hover:shadow-glow transition-all duration-300"
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
@@ -83,7 +86,7 @@ const Contact = () => {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-12 h-12 bg-card border border-border rounded-lg flex items-center justify-center transition-all hover:shadow-md ${social.color}`}
+                    className={`w-12 h-12 min-h-[44px] min-w-[44px] bg-card border border-border rounded-lg flex items-center justify-center transition-all duration-150 hover:shadow-md ${social.color}`}
                     aria-label={`Visite nosso perfil no ${social.name}`}
                   >
                     <social.icon className="h-5 w-5" />
@@ -94,10 +97,10 @@ const Contact = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="shadow-elegant">
+            <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -116,14 +119,14 @@ const Contact = () => {
             </Card>
             <Card className="shadow-elegant bg-gradient-primary text-white">
               <CardContent className="p-6 text-center space-y-4">
-                <p className="text-xl font-bold">Precisa de ajuda urgente?</p>
+                <p className="text-lg md:text-xl font-bold">Precisa de ajuda urgente?</p>
                 <p className="opacity-90">
                   Atendimento de emergência disponível 24 horas por dia, 7 dias por semana.
                 </p>
                 <div className="pt-2">
                   <a
                     href="tel:+5531999738235"
-                    className="inline-flex items-center space-x-2 bg-white dark:bg-card text-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all"
+                    className="inline-flex items-center space-x-2 bg-white dark:bg-card text-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-150 min-h-[44px]"
                     aria-label="Ligar agora para atendimento de emergência"
                   >
                     <Phone className="h-4 w-4" />

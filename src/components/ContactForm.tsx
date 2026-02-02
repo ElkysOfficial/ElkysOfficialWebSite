@@ -82,21 +82,21 @@ const ContactForm = () => {
   };
 
   return (
-    <section id="contact-form" className="py-20 bg-background">
+    <section id="contact-form" className="py-16 md:py-20 lg:py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
               Vamos conversar sobre seu <span className="text-primary">projeto</span>
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
               Conte-nos sobre seus desafios e descubra como podemos ajudar sua empresa a crescer.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="space-y-6">
-              <Card className="shadow-elegant">
+              <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="text-lg text-primary">Por que escolher a elkys?</CardTitle>
                 </CardHeader>
@@ -130,9 +130,9 @@ const ContactForm = () => {
             </div>
 
             <div className="lg:col-span-2">
-              <Card className="shadow-elegant">
+              <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
                 <CardHeader>
-                  <CardTitle>Solicitar Orçamento</CardTitle>
+                  <CardTitle className="text-xl">Solicitar Orçamento</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -152,9 +152,7 @@ const ContactForm = () => {
                           {...register("name")}
                         />
                         {errors.name && (
-                          <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-                            {errors.name.message}
-                          </p>
+                          <p className="text-destructive text-xs mt-1">{errors.name.message}</p>
                         )}
                       </div>
                       <div>
@@ -172,9 +170,7 @@ const ContactForm = () => {
                           {...register("email")}
                         />
                         {errors.email && (
-                          <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-                            {errors.email.message}
-                          </p>
+                          <p className="text-destructive text-xs mt-1">{errors.email.message}</p>
                         )}
                       </div>
                     </div>
@@ -194,9 +190,7 @@ const ContactForm = () => {
                         {...register("company")}
                       />
                       {errors.company && (
-                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-                          {errors.company.message}
-                        </p>
+                        <p className="text-destructive text-xs mt-1">{errors.company.message}</p>
                       )}
                     </div>
 
@@ -215,9 +209,7 @@ const ContactForm = () => {
                         {...register("message")}
                       />
                       {errors.message && (
-                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">
-                          {errors.message.message}
-                        </p>
+                        <p className="text-destructive text-xs mt-1">{errors.message.message}</p>
                       )}
                     </div>
 
@@ -226,7 +218,7 @@ const ContactForm = () => {
                       disabled={isSubmitting}
                       variant="gradient"
                       size="lg"
-                      className="w-full"
+                      className="w-full min-h-[44px]"
                     >
                       {isSubmitting ? (
                         <>

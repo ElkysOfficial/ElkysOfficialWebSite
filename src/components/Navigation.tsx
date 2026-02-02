@@ -53,7 +53,13 @@ const Navigation = () => {
   const isHeroVisible = isHomePage && scrollY <= 900;
   const useTransparent = isHeroVisible || isDarkTheme;
   const hasScrolled = scrollY > 0;
-  const useWhiteLogo = useTransparent || isDarkTheme;
+
+  /**
+   * Lógica da logo:
+   * - Logo branca: quando o fundo é escuro (hero visível OU tema escuro)
+   * - Logo roxa: quando o fundo é claro (tema claro + após scroll OU páginas secundárias)
+   */
+  const useWhiteLogo = isDarkTheme || (isHomePage && !hasScrolled && isHeroVisible);
 
   const linkClass =
     useTransparent && !hasScrolled
@@ -90,13 +96,13 @@ const Navigation = () => {
             />
           </Link>
 
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 xl:space-x-8">
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navItems.map((item) =>
               item.isRoute ? (
                 <Link
                   key={item.label}
                   to={item.href}
-                  className={`${linkClass} transition-colors duration-300 font-medium`}
+                  className={`${linkClass} transition-colors duration-150 font-medium`}
                 >
                   {item.label}
                 </Link>
@@ -105,7 +111,7 @@ const Navigation = () => {
                   key={item.label}
                   href={item.href}
                   onClick={item.label === "Início" ? handleHomeClick : undefined}
-                  className={`${linkClass} transition-colors duration-300 font-medium`}
+                  className={`${linkClass} transition-colors duration-150 font-medium`}
                 >
                   {item.label}
                 </a>
@@ -121,7 +127,7 @@ const Navigation = () => {
           </div>
 
           <button
-            className={`md:hidden p-2 transition-colors duration-300 ${useTransparent && !hasScrolled ? "text-white" : isDarkTheme ? "text-slate-200" : "text-foreground"}`}
+            className={`md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors duration-150 ${useTransparent && !hasScrolled ? "text-white" : isDarkTheme ? "text-slate-200" : "text-foreground"}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
             aria-expanded={isMenuOpen}
@@ -132,7 +138,7 @@ const Navigation = () => {
 
         {isMenuOpen && (
           <div
-            className={`md:hidden py-4 border-t transition-colors duration-300 max-h-[calc(100vh-4rem)] overflow-y-auto ${isDarkTheme ? "border-slate-800 bg-slate-900/95" : "border-slate-200 bg-white/95"}`}
+            className={`md:hidden py-4 border-t transition-colors duration-150 max-h-[calc(100vh-4rem)] overflow-y-auto ${isDarkTheme ? "border-slate-800 bg-slate-900/95" : "border-border bg-white/95"}`}
           >
             <div className="flex flex-col space-y-2">
               {navItems.map((item) =>
@@ -140,7 +146,7 @@ const Navigation = () => {
                   <Link
                     key={item.label}
                     to={item.href}
-                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 min-h-[44px] flex items-center`}
+                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-150 font-medium px-4 py-3 rounded-lg hover:bg-muted min-h-[44px] flex items-center`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
@@ -150,7 +156,7 @@ const Navigation = () => {
                     key={item.label}
                     href={item.href}
                     onClick={item.label === "Início" ? handleHomeClick : () => setIsMenuOpen(false)}
-                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-300 font-medium px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 min-h-[44px] flex items-center`}
+                    className={`${isDarkTheme ? "text-slate-200 hover:text-primary" : "text-foreground hover:text-primary"} transition-colors duration-150 font-medium px-4 py-3 rounded-lg hover:bg-muted min-h-[44px] flex items-center`}
                   >
                     {item.label}
                   </a>
@@ -158,7 +164,7 @@ const Navigation = () => {
               )}
               <Button
                 variant="gradient"
-                className="mt-4 w-full min-h-[48px] text-base"
+                className="mt-4 w-full"
                 onClick={() => {
                   window.open("https://wa.me/5531997382935", "_blank");
                   setIsMenuOpen(false);

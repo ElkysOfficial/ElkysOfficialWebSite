@@ -30,23 +30,23 @@ const About = () => {
   ];
 
   return (
-    <section id="about" className="py-20 bg-gradient-subtle">
+    <section id="about" className="py-16 md:py-20 lg:py-24 bg-gradient-subtle">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Sobre a <span className="text-primary">Elkys</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Somos especialistas em desenvolvimento de software sob demanda, com foco em pequenas e
             médias empresas que buscam crescer através da tecnologia.
           </p>
         </div>
 
         {/* Company Story */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center mb-16 md:mb-20">
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-foreground">Nossa História</h3>
+            <h3 className="text-xl md:text-2xl font-semibold text-foreground">Nossa História</h3>
             <p className="text-muted-foreground leading-relaxed">
               Fundada com a missão de democratizar o acesso à tecnologia de qualidade, a Elkys
               nasceu da percepção de que muitas PMEs enfrentam desafios para encontrar soluções
@@ -66,19 +66,17 @@ const About = () => {
           </div>
 
           <div className="flex justify-center lg:justify-end w-full">
-            <div className="grid grid-cols-2 gap-4 sm:gap-5 md:gap-6 w-full max-w-sm sm:max-w-md lg:max-w-xl">
+            <div className="grid grid-cols-2 gap-6 w-full max-w-md lg:max-w-xl">
               {stats.map((stat, index) => (
                 <Card
                   key={index}
-                  className="text-center p-4 sm:p-5 md:p-6 shadow-elegant hover:shadow-glow transition-all border-border bg-card"
+                  className="text-center p-6 shadow-elegant hover:shadow-glow transition-all duration-300 border-border bg-card"
                 >
-                  <CardContent className="p-0 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px]">
-                    <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-1 sm:mb-2">
+                  <CardContent className="p-0 flex flex-col items-center justify-center min-h-[100px]">
+                    <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                       {stat.number}
                     </div>
-                    <div className="text-xs sm:text-sm md:text-base text-muted-foreground leading-tight px-2">
-                      {stat.label}
-                    </div>
+                    <div className="text-sm text-muted-foreground leading-tight">{stat.label}</div>
                   </CardContent>
                 </Card>
               ))}
@@ -87,17 +85,17 @@ const About = () => {
         </div>
 
         {/* Mission, Vision, Values */}
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {values.map((value, index) => (
             <Card
               key={index}
-              className="text-center p-8 shadow-elegant hover:shadow-glow transition-all group"
+              className="text-center p-6 md:p-8 shadow-elegant hover:shadow-glow transition-all duration-300 group"
             >
               <CardContent className="p-0 space-y-4">
-                <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <value.icon className="h-8 w-8 text-white" />
                 </div>
-                <p className="text-xl font-bold text-foreground">{value.title}</p>
+                <p className="text-lg md:text-xl font-semibold text-foreground">{value.title}</p>
                 <p className="text-muted-foreground leading-relaxed">{value.description}</p>
               </CardContent>
             </Card>

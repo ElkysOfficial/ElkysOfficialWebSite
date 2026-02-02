@@ -284,25 +284,25 @@ const Testimonials = () => {
   }, [isAnimating, isPaused, currentIndex, startAutoplay]);
 
   return (
-    <section id="testimonials" className="py-12 sm:py-16 md:py-20 bg-gradient-subtle">
+    <section id="testimonials" className="py-16 md:py-20 lg:py-24 bg-gradient-subtle">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-12 sm:mb-14 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
             O que nossos <span className="text-primary">clientes dizem</span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4">
+          <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             A satisfação dos nossos clientes é nossa maior conquista. Veja alguns depoimentos de
             quem já transformou seu negócio conosco.
           </p>
         </div>
 
         {/* Carousel */}
-        <div className="relative flex gap-2 sm:gap-4 md:gap-6 justify-center items-center">
+        <div className="relative flex gap-4 md:gap-6 justify-center items-center">
           <button
             onClick={handlePrev}
             disabled={isAnimating}
-            className="hidden sm:flex rounded-full hover:bg-[#0000002f] transition-all p-1.5 sm:p-2 z-10"
+            className="hidden sm:flex rounded-full hover:bg-muted transition-all duration-150 p-2 z-10 min-h-[44px] min-w-[44px] items-center justify-center"
             aria-label="Anterior"
           >
             <img
@@ -311,13 +311,13 @@ const Testimonials = () => {
               width={32}
               height={32}
               loading="lazy"
-              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
+              className="w-8 h-8 md:w-10 md:h-10"
             />
           </button>
 
           <div
             ref={carouselRef}
-            className="relative mb-8 sm:mb-10 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px]"
+            className="relative mb-8 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px]"
             onMouseEnter={() => {
               // Cancela qualquer autoplay agendado
               if (autoplayTimeoutRef.current) {
@@ -341,9 +341,9 @@ const Testimonials = () => {
             onTouchEnd={handleTouchEnd}
           >
             <div
-              className="flex gap-3 sm:gap-4 md:gap-6 lg:gap-8"
+              className="flex gap-4 md:gap-6"
               style={{
-                transform: `translateX(-${currentIndex * (itemWidth + (window.innerWidth < 640 ? 12 : window.innerWidth < 768 ? 16 : 32))}px)`,
+                transform: `translateX(-${currentIndex * (itemWidth + (window.innerWidth < 640 ? 16 : window.innerWidth < 768 ? 16 : 24))}px)`,
                 transition: transitionEnabled ? "transform 0.5s ease" : "none",
                 willChange: "transform",
               }}
@@ -351,33 +351,30 @@ const Testimonials = () => {
               {extendedTestimonials.map((testimonial, index) => (
                 <Card
                   key={index}
-                  className="shadow-elegant hover:shadow-glow transition-all group flex-shrink-0"
+                  className="shadow-elegant hover:shadow-glow transition-all duration-300 group flex-shrink-0"
                   style={{ width: `${itemWidth}px` }}
                 >
-                  <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
-                    <div className="text-primary opacity-50">
-                      <Quote className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" />
+                  <CardContent className="p-5 md:p-6 space-y-4">
+                    <div className="text-primary/50">
+                      <Quote className="h-7 md:h-8 w-7 md:w-8" />
                     </div>
 
                     <div className="flex space-x-1">
                       {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-accent text-accent"
-                        />
+                        <Star key={i} className="h-4 w-4 fill-accent text-accent" />
                       ))}
                     </div>
 
-                    <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm min-h-[80px] sm:min-h-[100px]">
+                    <p className="text-muted-foreground leading-relaxed text-sm min-h-[100px]">
                       "{testimonial.quote}"
                     </p>
 
-                    <div className="flex items-center space-x-2 sm:space-x-3 pt-3 sm:pt-4 border-t border-border">
+                    <div className="flex items-center space-x-3 pt-4 border-t border-border">
                       {testimonial.image ? (
                         <img
                           src={testimonial.image}
                           alt={testimonial.name}
-                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
+                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                           loading="lazy"
                           width={48}
                           height={48}
@@ -387,11 +384,11 @@ const Testimonials = () => {
                             ${testimonial.image}?w=80&h=80&q=80 80w,
                             ${testimonial.image}?w=96&h=96&q=80 96w
                           `}
-                          sizes="(max-width: 640px) 40px, 48px"
+                          sizes="48px"
                         />
                       ) : (
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-semibold text-xs sm:text-sm">
+                        <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-semibold text-sm">
                             {testimonial.name
                               .split(" ")
                               .map((n) => n[0])
@@ -400,11 +397,12 @@ const Testimonials = () => {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="font-semibold text-foreground text-xs sm:text-sm truncate">
+                        <div className="font-semibold text-foreground text-sm truncate">
                           {testimonial.name}
                         </div>
-                        <div className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                          {testimonial.role} • {testimonial.company}
+                        <div className="text-xs text-muted-foreground truncate">
+                          {testimonial.role}
+                          {testimonial.company && ` • ${testimonial.company}`}
                         </div>
                       </div>
                     </div>
@@ -453,7 +451,7 @@ const Testimonials = () => {
           <button
             onClick={handleNext}
             disabled={isAnimating}
-            className="hidden sm:flex rounded-full hover:bg-[#0000002f] transition-all p-1.5 sm:p-2 z-10"
+            className="hidden sm:flex rounded-full hover:bg-muted transition-all duration-150 p-2 z-10 min-h-[44px] min-w-[44px] items-center justify-center"
             aria-label="Próximo"
           >
             <img
@@ -462,37 +460,9 @@ const Testimonials = () => {
               width={32}
               height={32}
               loading="lazy"
-              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
+              className="w-8 h-8 md:w-10 md:h-10"
             />
           </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 text-center mt-12 md:mt-16">
-          <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
-              98%
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">Taxa de Satisfação</div>
-          </div>
-          <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
-              20+
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">Projetos Entregues</div>
-          </div>
-          <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
-              20+
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">Clientes Ativos</div>
-          </div>
-          <div className="p-4">
-            <div className="text-2xl sm:text-3xl md:text-3xl font-bold text-primary mb-1 sm:mb-2">
-              2+
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">Anos de Experiência</div>
-          </div>
         </div>
       </div>
     </section>
