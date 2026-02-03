@@ -1,17 +1,24 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 
 const TermsOfService = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = "Termos de Uso | Elkys - Condições de Serviço";
-  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <>
+      <Helmet>
+        <title>Termos de Uso | Elkys - Condições de Serviço</title>
+        <meta name="description" content="Termos de Uso do website Elkys. Conheça as condições de uso, direitos, obrigações e políticas aplicáveis aos nossos serviços de desenvolvimento de software." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://elkys.com.br/terms-of-service" />
+        <meta property="og:title" content="Termos de Uso | Elkys" />
+        <meta property="og:description" content="Termos de Uso do website Elkys. Conheça as condições de uso e políticas aplicáveis aos nossos serviços." />
+        <meta property="og:url" content="https://elkys.com.br/terms-of-service" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <Navigation />
       <Breadcrumbs />
 
       <main id="main-content" className="container mx-auto px-4 py-24 max-w-4xl">
@@ -288,8 +295,9 @@ const TermsOfService = () => {
         </article>
       </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 };
 

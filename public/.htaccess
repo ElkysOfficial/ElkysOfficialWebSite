@@ -13,13 +13,9 @@ RewriteEngine On
 RewriteCond %{HTTP_HOST} ^(www\.)?elkysb\.com\.br$ [NC]
 RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
 
-# Força www para não-www (opcional - descomente se preferir)
-# RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
-# RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
-
-# Ou força não-www para www (opcional - descomente se preferir)
-# RewriteCond %{HTTP_HOST} ^elkys\.com\.br$ [NC]
-# RewriteRule ^(.*)$ https://www.elkys.com.br/$1 [R=301,L]
+# Força www para não-www (evita conteúdo duplicado)
+RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
+RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
 
 # ====================================
 # 2. FORÇAR HTTPS
@@ -51,8 +47,8 @@ Options -Indexes
   Deny from all
 </FilesMatch>
 
-# Bloquear acesso a arquivos específicos
-<FilesMatch "\.(env|log|sql|md|json|yml|yaml)$">
+# Bloquear acesso a arquivos sensíveis (exceto JSON público como manifest.json)
+<FilesMatch "\.(env|log|sql|yml|yaml)$">
   Order allow,deny
   Deny from all
 </FilesMatch>

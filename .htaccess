@@ -58,6 +58,10 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Force www to non-www (avoid duplicate content)
+  RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
+  RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
+
   # Force HTTPS
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

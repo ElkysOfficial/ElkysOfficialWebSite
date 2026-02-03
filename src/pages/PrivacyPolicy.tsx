@@ -1,17 +1,24 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 
 const PrivacyPolicy = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    document.title = "Politica de Privacidade | Elkys - Protecao de Dados LGPD";
-  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <>
+      <Helmet>
+        <title>Política de Privacidade | Elkys - Proteção de Dados LGPD</title>
+        <meta name="description" content="Política de Privacidade da Elkys em conformidade com a LGPD. Saiba como coletamos, usamos e protegemos seus dados pessoais." />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://elkys.com.br/privacy-policy" />
+        <meta property="og:title" content="Política de Privacidade | Elkys" />
+        <meta property="og:description" content="Política de Privacidade da Elkys em conformidade com a LGPD. Saiba como protegemos seus dados pessoais." />
+        <meta property="og:url" content="https://elkys.com.br/privacy-policy" />
+        <meta property="og:type" content="website" />
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        <Navigation />
       <Breadcrumbs />
 
       <main id="main-content" className="container mx-auto px-4 py-24 max-w-4xl">
@@ -364,8 +371,9 @@ const PrivacyPolicy = () => {
         </article>
       </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 };
 
