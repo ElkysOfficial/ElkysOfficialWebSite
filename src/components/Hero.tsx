@@ -75,18 +75,14 @@ const Hero = () => {
                 size="lg"
                 variant="accent"
                 className="btn-primary-animate w-full sm:w-auto min-h-[44px]"
-                onClick={() => window.open("https://wa.me/5531997382935", "_blank")}
+                onClick={() => window.open("https://wa.me/553197382935", "_blank")}
                 aria-label="Fale com um especialista no WhatsApp"
               >
                 Fale com um especialista
                 <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
               </Button>
               <Link to="/cases" className="w-full sm:w-auto">
-                <Button
-                  size="lg"
-                  variant="hero_outline"
-                  className="btn-secondary-animate w-full"
-                >
+                <Button size="lg" variant="hero_outline" className="btn-secondary-animate w-full">
                   Ver nossos cases
                 </Button>
               </Link>

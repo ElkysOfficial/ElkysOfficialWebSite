@@ -120,7 +120,7 @@ const Navigation = () => {
             )}
             <Button
               variant="gradient"
-              onClick={() => window.open("https://wa.me/5531997382935", "_blank")}
+              onClick={() => window.open("https://wa.me/553197382935", "_blank")}
               aria-label="Fale conosco pelo WhatsApp"
             >
               Fale Conosco
@@ -167,7 +167,7 @@ const Navigation = () => {
                 variant="gradient"
                 className="mt-4 w-full"
                 onClick={() => {
-                  window.open("https://wa.me/5531997382935", "_blank");
+                  window.open("https://wa.me/553197382935", "_blank");
                   setIsMenuOpen(false);
                 }}
                 aria-label="Fale conosco pelo WhatsApp"

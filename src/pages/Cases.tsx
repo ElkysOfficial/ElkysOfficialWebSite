@@ -447,7 +447,7 @@ const Cases = () => {
                     size="lg"
                     variant="accent"
                     className="btn-primary-animate w-full md:w-auto min-h-[44px] shrink-0"
-                    onClick={() => window.open("https://wa.me/5531997382935", "_blank")}
+                    onClick={() => window.open("https://wa.me/553197382935", "_blank")}
                     aria-label="Iniciar conversa no WhatsApp"
                   >
                     Fale conosco

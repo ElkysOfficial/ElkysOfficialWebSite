@@ -122,7 +122,7 @@ Adiciona animação shimmer a qualquer variant:
   variant="animated"
   size="lg"
   className="w-full sm:w-auto"
-  onClick={() => window.open("https://wa.me/5531997382935", "_blank")}
+  onClick={() => window.open("https://wa.me/553197382935", "_blank")}
 >
   Fale com um especialista
   <ArrowRight className="ml-2 h-4 w-4 btn-arrow-animate" />
