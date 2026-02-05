@@ -62,7 +62,7 @@ const Footer = () => {
             <div className="flex space-x-3">
               <a
                 href="https://linkedin.com/company/elkys"
-                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors duration-150"
+                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
                 aria-label="Visite nosso perfil no LinkedIn"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -71,7 +71,7 @@ const Footer = () => {
               </a>
               <a
                 href="https://github.com/elkys"
-                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors duration-150"
+                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
                 aria-label="Visite nosso perfil no Github"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -112,11 +112,11 @@ const Footer = () => {
             <p className="font-semibold mb-4">Contato</p>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-primary" />
+                <Phone className="h-4 w-4 text-accent" />
                 <span className="text-sm text-muted-foreground">+55 (31) 9 9973-8235</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-primary" />
+                <Mail className="h-4 w-4 text-accent" />
                 <span className="text-sm text-muted-foreground">contato@elkys.com.br</span>
               </div>
             </div>
@@ -126,7 +126,7 @@ const Footer = () => {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground text-center md:text-left">
-              © 2024 elkys. Todos os direitos reservados.
+              © 2025 elkys. Todos os direitos reservados.
             </div>
 
             <div className="flex flex-wrap justify-center gap-4">

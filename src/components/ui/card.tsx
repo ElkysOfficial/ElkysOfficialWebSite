@@ -2,12 +2,21 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Card Component
+ *
+ * Container base para cards do Design System ELKYS.
+ * Usa o sistema de sombras centralizado (shadow-card → shadow-card-hover).
+ *
+ * NÃO adicione classes de sombra explícitas (shadow-elegant, shadow-glow)
+ * diretamente nos cards - use as classes padrão do sistema.
+ */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300",
+        "rounded-lg border border-border bg-card text-card-foreground shadow-card transition-all duration-200 hover:shadow-card-hover",
         className
       )}
       {...props}

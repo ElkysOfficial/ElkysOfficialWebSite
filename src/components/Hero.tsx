@@ -74,7 +74,7 @@ const Hero = () => {
               <Button
                 size="lg"
                 variant="accent"
-                className="btn-primary-animate btn-breathe border-white text-white hover:text-white w-full sm:w-auto min-h-[44px]"
+                className="btn-primary-animate w-full sm:w-auto min-h-[44px]"
                 onClick={() => window.open("https://wa.me/5531997382935", "_blank")}
                 aria-label="Fale com um especialista no WhatsApp"
               >
@@ -84,8 +84,8 @@ const Hero = () => {
               <Link to="/cases" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="btn-secondary-animate bg-white border-white text-primary hover:text-primary hover:bg-white/90 w-full min-h-[44px]"
+                  variant="hero_outline"
+                  className="btn-secondary-animate w-full"
                 >
                   Ver nossos cases
                 </Button>
@@ -122,7 +122,7 @@ const Hero = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <div className="space-y-6">
                 {/* Feature 1: Clean Code */}
-                <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse">
+                <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse">
                   <Code2 className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Clean Code</p>
@@ -131,7 +131,7 @@ const Hero = () => {
                 </div>
                 {/* Feature 2: Entregas Ágeis */}
                 <div
-                  className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse"
+                  className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse"
                   style={{ animationDelay: "1s" }}
                 >
                   <Zap className="h-8 w-8 text-accent flex-shrink-0" />
@@ -142,7 +142,7 @@ const Hero = () => {
                 </div>
                 {/* Feature 3: Suporte Contínuo */}
                 <div
-                  className="flex items-center space-x-4 p-4 rounded-lg border border-transparent hover-lift animate-card-pulse"
+                  className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse"
                   style={{ animationDelay: "2s" }}
                 >
                   <Shield className="h-8 w-8 text-accent flex-shrink-0" />

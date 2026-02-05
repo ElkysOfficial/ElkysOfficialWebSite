@@ -42,7 +42,7 @@ const ClientsCarousel = () => {
 
         {/* Carrossel */}
         <div className="relative w-full overflow-hidden">
-          <div className="clients-carousel-track flex items-center gap-8 md:gap-12">
+          <div className="animate-clients-scroll clients-carousel-track flex items-center gap-8 md:gap-12">
             {duplicatedLogos.map((logo, index) => (
               <div
                 key={index}

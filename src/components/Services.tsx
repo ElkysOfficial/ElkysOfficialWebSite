@@ -45,7 +45,7 @@ const Services = () => {
         "Fluxos de trabalho digitais",
         "Bots e assistentes virtuais",
       ],
-      gradient: "from-accent to-orange-400",
+      gradient: "from-accent to-accent-light",
     },
     {
       icon: Network,
@@ -92,7 +92,7 @@ const Services = () => {
           {services.map((service, index) => (
             <Card
               key={index}
-              className="relative overflow-hidden shadow-elegant hover:shadow-glow transition-all duration-300 group flex flex-col h-full"
+              className="relative overflow-hidden group flex flex-col h-full"
             >
               <CardHeader className="pb-4 md:pb-6">
                 <div className="flex items-center space-x-4">
@@ -133,28 +133,31 @@ const Services = () => {
         </div>
 
         {/* Call to Action */}
-        <div className="text-center">
-          <div className="bg-gradient-primary rounded-xl p-6 md:p-8 text-white">
-            <p className="text-xl md:text-2xl font-bold mb-4">
-              Pronto para transformar seu negócio?
-            </p>
-            <p className="text-base md:text-lg mb-6 opacity-90 max-w-2xl mx-auto">
-              Entre em contato conosco e descubra como podemos ajudar sua empresa a crescer com
-              tecnologia.
-            </p>
-            <Button
-              size="lg"
-              variant="accent"
-              className="btn-primary-animate btn-breathe w-full sm:w-auto min-h-[44px]"
-              onClick={() => {
-                const contactForm = document.getElementById("contact-form");
-                contactForm?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              aria-label="Solicitar orçamento - ir para formulário de contato"
-            >
-              Solicitar Orçamento
-              <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
-            </Button>
+        <div className="mt-8 md:mt-12">
+          <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left text-white max-w-xl">
+                <p className="text-xl md:text-2xl font-semibold">
+                  Tecnologia que trabalha pelo seu negócio
+                </p>
+                <p className="text-sm md:text-base mt-2 opacity-90">
+                  Simplificamos o dia a dia da sua empresa com soluções práticas e fáceis de usar.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                variant="accent"
+                className="btn-primary-animate w-full md:w-auto min-h-[44px] shrink-0"
+                onClick={() => {
+                  const contactForm = document.getElementById("contact-form");
+                  contactForm?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                aria-label="Solicitar orçamento - ir para formulário de contato"
+              >
+                Solicitar orçamento
+                <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

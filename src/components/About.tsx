@@ -70,10 +70,10 @@ const About = () => {
               {stats.map((stat, index) => (
                 <Card
                   key={index}
-                  className="text-center p-6 shadow-elegant hover:shadow-glow transition-all duration-300 border-border bg-card"
+                  className="text-center p-6"
                 >
                   <CardContent className="p-0 flex flex-col items-center justify-center min-h-[100px]">
-                    <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
+                    <div className="text-3xl md:text-4xl font-bold text-accent mb-2">
                       {stat.number}
                     </div>
                     <div className="text-sm text-muted-foreground leading-tight">{stat.label}</div>
@@ -89,7 +89,7 @@ const About = () => {
           {values.map((value, index) => (
             <Card
               key={index}
-              className="text-center p-6 md:p-8 shadow-elegant hover:shadow-glow transition-all duration-300 group"
+              className="text-center p-6 md:p-8 group"
             >
               <CardContent className="p-0 space-y-4">
                 <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">

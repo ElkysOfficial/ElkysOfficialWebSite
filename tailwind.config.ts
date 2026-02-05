@@ -23,6 +23,7 @@ export default {
     extend: {
       colors: {
         border: "hsl(var(--border))",
+        "border-muted": "hsl(var(--border-muted))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -32,14 +33,25 @@ export default {
           foreground: "hsl(var(--primary-foreground))",
           light: "hsl(var(--primary-light))",
           dark: "hsl(var(--primary-dark))",
+          soft: "hsl(var(--primary-soft))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          light: "hsl(var(--secondary-light))",
+          dark: "hsl(var(--secondary-dark))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -48,6 +60,8 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          light: "hsl(var(--accent-light))",
+          soft: "hsl(var(--accent-soft))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -58,45 +72,125 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      /**
+       * TIPOGRAFIA
+       * Mapeamento dos tokens CSS para classes Tailwind
+       */
+      fontSize: {
+        xs: "var(--font-size-xs)", // 12px
+        sm: "var(--font-size-sm)", // 14px
+        base: "var(--font-size-base)", // 16px
+        lg: "var(--font-size-lg)", // 18px
+        xl: "var(--font-size-xl)", // 20px
+        "2xl": "var(--font-size-2xl)", // 24px
+        "3xl": "var(--font-size-3xl)", // 32px
+        "4xl": "var(--font-size-4xl)", // 40px
+        "5xl": "var(--font-size-5xl)", // 48px
+      },
+      lineHeight: {
+        tight: "var(--line-height-tight)", // 1.2
+        snug: "var(--line-height-snug)", // 1.4
+        normal: "var(--line-height-normal)", // 1.6
+        relaxed: "var(--line-height-relaxed)", // 1.75
+      },
+      letterSpacing: {
+        tighter: "var(--letter-spacing-tight)", // -0.02em
+        normal: "var(--letter-spacing-normal)", // 0
+        wide: "var(--letter-spacing-wide)", // 0.02em
+      },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xs: "var(--radius-xs)",
+        sm: "var(--radius-sm)",
+        DEFAULT: "var(--radius-md)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
+        "3xl": "var(--radius-3xl)",
+        full: "var(--radius-full)",
+      },
+      boxShadow: {
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow-md)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        primary: "var(--shadow-primary)",
+        "primary-lg": "var(--shadow-primary-lg)",
+        elegant: "var(--shadow-elegant)",
+        glow: "var(--shadow-glow)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
       },
       keyframes: {
+        /**
+         * ANIMAÇÕES DE ENTRADA
+         * Usadas para elementos que aparecem na tela
+         */
         "fade-in": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(20px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "slide-up": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(30px)",
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+
+        /**
+         * ANIMAÇÕES DECORATIVAS
+         * Usadas em elementos de background e destaque
+         */
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "diamond-rotate": {
+          "0%, 100%": { transform: "translate(-50%, -50%) rotate(0deg)" },
+          "50%": { transform: "translate(-50%, -50%) rotate(8deg)" },
+        },
+
+        /**
+         * ANIMAÇÕES DE INTERAÇÃO
+         * Usadas em cards e elementos interativos
+         */
+        "card-pulse": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            background: "rgba(255, 255, 255, 0.1)",
+            borderColor: "rgba(255, 255, 255, 0.1)",
           },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)",
+          "33.33%": {
+            transform: "scale(1.03)",
+            background: "rgba(255, 255, 255, 0.15)",
+            borderColor: "hsl(var(--accent) / 0.5)",
+          },
+          "66.66%": {
+            transform: "scale(1)",
+            background: "rgba(255, 255, 255, 0.1)",
+            borderColor: "rgba(255, 255, 255, 0.1)",
           },
         },
-        float: {
-          "0%, 100%": {
-            transform: "translateY(0px)",
-          },
-          "50%": {
-            transform: "translateY(-10px)",
-          },
+
+        /**
+         * ANIMAÇÃO DE CARROSSEL
+         * Scroll infinito horizontal para logos de clientes
+         */
+        "clients-scroll": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(calc(-100% / 3))" },
         },
       },
       animation: {
+        // Entrada
         "fade-in": "fade-in 0.6s ease-out",
         "slide-up": "slide-up 0.8s ease-out",
+        // Decorativas
         float: "float 3s ease-in-out infinite",
+        "diamond-rotate": "diamond-rotate 5s ease-in-out infinite",
+        // Interação
+        "card-pulse": "card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        // Carrossel
+        "clients-scroll": "clients-scroll 60s linear infinite",
       },
     },
   },

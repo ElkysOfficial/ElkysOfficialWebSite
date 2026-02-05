@@ -147,4 +147,4 @@ VITE_EMAILJS_PUBLIC_KEY=your_public_key
 
 ## 📄 Licença
 
-© 2024 Elkys. Todos os direitos reservados.
+© 2025 Elkys. Todos os direitos reservados.

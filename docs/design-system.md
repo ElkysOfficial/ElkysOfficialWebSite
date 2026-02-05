@@ -554,5 +554,5 @@ Dúvidas sobre o design system? Entre em contato com a equipe de desenvolvimento
 
 ---
 
-**Última atualização**: Dezembro 2024
+**Última atualização**: Dezembro 2025
 **Mantido por**: Equipe elkys

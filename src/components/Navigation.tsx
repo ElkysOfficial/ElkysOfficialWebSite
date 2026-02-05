@@ -47,6 +47,7 @@ const Navigation = () => {
     { label: "Início", href: isHomePage ? "#hero" : "/#hero", isRoute: false },
     { label: "Sobre", href: isHomePage ? "#about" : "/#about", isRoute: false },
     { label: "Serviços", href: isHomePage ? "#services" : "/#services", isRoute: false },
+    { label: "Cases", href: "/cases", isRoute: true },
     { label: "Contato", href: isHomePage ? "#contact" : "/#contact", isRoute: false },
   ];
 

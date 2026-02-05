@@ -9,6 +9,7 @@ import CookieConsent from "@/components/CookieConsent";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
+const Cases = lazy(() => import("./pages/Cases"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
@@ -36,6 +37,7 @@ const App = () => (
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/cases" element={<Cases />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
