@@ -514,8 +514,9 @@
      OTIMIZAÇÕES DE PERFORMANCE - MOBILE
      Reduz complexidade de animações em dispositivos móveis
      para economizar bateria e melhorar performance
+     Breakpoint: abaixo de md (768px)
      ---------------------------------------- */
-  @media (max-width: 768px) {
+  @media (max-width: 767px) {
     /* Animações mais rápidas = menor uso de CPU */
     .animate-float {
       animation-duration: 6s;

@@ -9,12 +9,43 @@ export default {
   ],
   prefix: "",
   theme: {
+    /**
+     * BREAKPOINTS - Sistema de Responsividade
+     *
+     * Mobile-first: estilos base = mobile, prefixos = telas maiores
+     *
+     * ┌─────────┬─────────┬──────────────────────────────────────────┐
+     * │ Prefixo │ Min-W   │ Dispositivos                             │
+     * ├─────────┼─────────┼──────────────────────────────────────────┤
+     * │ (base)  │ 0px     │ Smartphones portrait (iPhone SE, etc.)   │
+     * │ xs      │ 475px   │ Smartphones landscape / phones grandes   │
+     * │ sm      │ 640px   │ Tablets pequenos / phones XL landscape   │
+     * │ md      │ 768px   │ Tablets portrait (iPad Mini, iPad)       │
+     * │ lg      │ 1024px  │ Tablets landscape / laptops pequenos     │
+     * │ xl      │ 1280px  │ Laptops / desktops                      │
+     * │ 2xl     │ 1536px  │ Desktops grandes / monitores             │
+     * └─────────┴─────────┴──────────────────────────────────────────┘
+     *
+     * Uso no JSX: className="text-sm xs:text-base md:text-lg xl:text-xl"
+     */
+    screens: {
+      xs: "475px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     container: {
       center: true,
       padding: {
-        DEFAULT: "1rem",
-        sm: "1.5rem",
-        lg: "2rem",
+        DEFAULT: "1rem",    // 16px - mobile
+        xs: "1.25rem",      // 20px - phones grandes
+        sm: "1.5rem",       // 24px - tablets pequenos
+        md: "2rem",         // 32px - tablets
+        lg: "2rem",         // 32px - laptops
+        xl: "2.5rem",       // 40px - desktops
+        "2xl": "3rem",      // 48px - desktops grandes
       },
       screens: {
         "2xl": "1400px",

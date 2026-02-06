@@ -15,6 +15,7 @@ const Navigation = () => {
   const { resolvedTheme } = useTheme();
 
   const isHomePage = location.pathname === "/";
+  const hasHeroSection = isHomePage || location.pathname === "/cases";
   const isDarkTheme = mounted && resolvedTheme === "dark";
 
   useEffect(() => setMounted(true), []);
@@ -51,7 +52,7 @@ const Navigation = () => {
     { label: "Contato", href: isHomePage ? "#contact" : "/#contact", isRoute: false },
   ];
 
-  const isHeroVisible = isHomePage && scrollY <= 900;
+  const isHeroVisible = hasHeroSection && scrollY <= 900;
   const useTransparent = isHeroVisible || isDarkTheme;
   const hasScrolled = scrollY > 0;
 
@@ -60,7 +61,7 @@ const Navigation = () => {
    * - Logo branca: quando o fundo é escuro (hero visível OU tema escuro)
    * - Logo roxa: quando o fundo é claro (tema claro + após scroll OU páginas secundárias)
    */
-  const useWhiteLogo = isDarkTheme || (isHomePage && !hasScrolled && isHeroVisible);
+  const useWhiteLogo = isDarkTheme || (hasHeroSection && !hasScrolled && isHeroVisible);
 
   const linkClass =
     useTransparent && !hasScrolled

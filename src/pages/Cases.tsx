@@ -344,17 +344,19 @@ const Cases = () => {
             </div>
 
             {/* Hexagonal pattern - same as homepage */}
-            <img
-              src={backgroundPattern}
-              alt=""
-              aria-hidden="true"
-              width={1000}
-              height={1000}
-              loading="eager"
-              fetchPriority="high"
-              className="absolute inset-0 object-cover opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] top-[300px] sm:top-[400px] left-[50px] sm:left-[100px] w-[600px] sm:w-[1000px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
-              style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
-            />
+            <div className="absolute -bottom-[400px] xs:-bottom-[500px] sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[600px] left-[30px] xs:left-[50px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[190px] scale-[1.75] xs:scale-[1.6] sm:scale-[1.25] md:scale-[1.6] lg:scale-[2] xl:scale-[0.8] 2xl:scale-[0.8] origin-bottom-left sm:origin-top-left">
+              <img
+                src={backgroundPattern}
+                alt=""
+                aria-hidden="true"
+                width={1200}
+                height={1200}
+                loading="eager"
+                fetchPriority="high"
+                className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
+                style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
+              />
+            </div>
 
             <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24 relative z-10">
               <div className="max-w-3xl">
