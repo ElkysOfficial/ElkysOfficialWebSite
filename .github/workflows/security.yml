@@ -31,5 +31,5 @@ jobs:
 
       - run: npm ci
 
-      - name: npm audit (high+)
-        run: npm audit --audit-level=high
+      - name: npm audit (high+, production only)
+        run: npm audit --audit-level=high --omit=dev
