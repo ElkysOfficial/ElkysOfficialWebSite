@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { ArrowRight, ExternalLink, Play, Globe, Cog, FileText, Building2 } from "lucide-react";
+import { ArrowRight, ExternalLink, Play, Globe, Cog, FileText, Building2 } from "@/assets/icons";
 import { Button, Card, CardContent } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -434,8 +434,14 @@ const Cases = () => {
           {/* CTA Section */}
           <section className="py-12 md:py-16">
             <div className="container mx-auto px-4">
-              <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10 hex-card-container">
+                <img
+                  src={backgroundPattern}
+                  alt=""
+                  aria-hidden="true"
+                  className="hex-card-bg -right-10 -bottom-10 w-40 h-40 md:w-48 md:h-48 opacity-[0.08] animate-hex-spin will-change-transform"
+                />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
                   <div className="text-center md:text-left text-white max-w-xl">
                     <p className="text-xl md:text-2xl font-semibold">
                       Seu projeto pode ser o próximo

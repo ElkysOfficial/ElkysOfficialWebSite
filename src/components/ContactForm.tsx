@@ -1,4 +1,4 @@
-import { Send, CheckCircle } from "lucide-react";
+import { Send, CheckCircle } from "@/assets/icons";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,6 +7,7 @@ import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle } fro
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { EMAILJS_CONFIG } from "@/config/emailjs";
+import hexagonalBg from "../../public/imgs/icons/hexagonal.webp";
 
 const contactFormSchema = z.object({
   name: z
@@ -108,15 +109,23 @@ const ContactForm = () => {
                 </CardContent>
               </Card>
 
-              <div className="bg-gradient-primary rounded-xl p-6 text-white">
-                <p className="font-bold mb-4">Compromisso de resposta</p>
-                <p className="text-sm opacity-90 mb-4">
-                  Toda solicitação é respondida em até 2 horas úteis pela equipe técnica.
-                </p>
-                <div className="text-xs opacity-75">
-                  Seg-Sex: 8h às 18h
-                  <br />
-                  Sáb: 8h às 12h
+              <div className="bg-gradient-primary rounded-xl p-6 text-white hex-card-container">
+                <img
+                  src={hexagonalBg}
+                  alt=""
+                  aria-hidden="true"
+                  className="hex-card-bg -right-6 -bottom-6 w-28 h-28 opacity-[0.08] animate-hex-spin will-change-transform"
+                />
+                <div className="relative z-10">
+                  <p className="font-bold mb-4">Compromisso de resposta</p>
+                  <p className="text-sm opacity-90 mb-4">
+                    Toda solicitação é respondida em até 2 horas úteis pela equipe técnica.
+                  </p>
+                  <div className="text-xs opacity-75">
+                    Seg-Sex: 8h às 18h
+                    <br />
+                    Sáb: 8h às 12h
+                  </div>
                 </div>
               </div>
             </div>

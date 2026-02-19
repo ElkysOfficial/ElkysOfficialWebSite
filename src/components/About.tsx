@@ -1,4 +1,4 @@
-import { Target, Eye, Heart, TrendingUp } from "lucide-react";
+import { Target, Eye, Heart, TrendingUp } from "@/assets/icons";
 import { Card, CardContent } from "@/design-system";
 
 const About = () => {

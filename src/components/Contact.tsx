@@ -1,5 +1,6 @@
-import { Phone, Mail, Linkedin, Github, Clock, Instagram } from "lucide-react";
-import { Card, CardContent } from "@/design-system";
+import { Phone, Mail, Linkedin, Github, Clock, Instagram } from "@/assets/icons";
+import { Card, CardContent, Button } from "@/design-system";
+import hexagonalBg from "../../public/imgs/icons/hexagonal.webp";
 
 const Contact = () => {
   const contactInfo = [
@@ -115,22 +116,30 @@ const Contact = () => {
                 </div>
               </CardContent>
             </Card>
-            <Card className="shadow-elegant bg-gradient-primary text-white">
-              <CardContent className="p-6 text-center space-y-4">
+            <Card className="shadow-elegant bg-gradient-primary text-white hex-card-container">
+              <img
+                src={hexagonalBg}
+                alt=""
+                aria-hidden="true"
+                className="hex-card-bg -right-8 -bottom-8 w-36 h-36 opacity-[0.08] animate-hex-spin will-change-transform"
+              />
+              <CardContent className="p-6 text-center space-y-4 relative z-10">
                 <p className="text-lg md:text-xl font-bold">Suporte Prioritário</p>
                 <p className="opacity-90">
                   Para clientes com projetos em produção, canal de suporte técnico com atendimento
                   estendido.
                 </p>
                 <div className="pt-2">
-                  <a
-                    href="tel:+5531999738235"
-                    className="inline-flex items-center space-x-2 bg-white dark:bg-card text-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-150 min-h-[44px]"
+                  <Button
+                    variant="accent"
+                    size="default"
+                    className="min-h-[44px]"
+                    onClick={() => (window.location.href = "tel:+5531999738235")}
                     aria-label="Falar com suporte técnico prioritário"
                   >
-                    <Phone className="h-4 w-4" />
-                    <span>Falar com Suporte</span>
-                  </a>
+                    <Phone className="h-4 w-4 mr-2" />
+                    Falar com Suporte
+                  </Button>
                 </div>
               </CardContent>
             </Card>

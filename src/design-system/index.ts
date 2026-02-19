@@ -23,6 +23,9 @@ export { Input } from "./components/Input";
 export { Textarea } from "./components/Textarea";
 export { Toaster } from "./components/Toast";
 
+export { HexRating } from "./components/HexRating";
+export type { HexRatingProps } from "./components/HexRating";
+
 // --- Primitives ---
 export { Container } from "./primitives/Container";
 export type { ContainerProps } from "./primitives/Container";

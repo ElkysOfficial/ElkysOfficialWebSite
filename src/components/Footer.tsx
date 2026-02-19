@@ -1,4 +1,4 @@
-import { ArrowUp, Mail, Phone, Linkedin, Github } from "lucide-react";
+import { ArrowUp, Mail, Phone, Linkedin, Github } from "@/assets/icons";
 import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";

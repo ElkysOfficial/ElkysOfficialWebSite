@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import svgr from "vite-plugin-svgr";
 import path from "path";
 import { createHtmlPlugin } from "vite-plugin-html";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -15,6 +16,25 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      svgr({
+        svgrOptions: {
+          plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
+          svgoConfig: {
+            plugins: [
+              { name: "removeViewBox", active: false },
+              { name: "removeDimensions", active: true },
+              {
+                name: "prefixIds",
+                params: { prefixClassNames: false },
+              },
+            ],
+          },
+          replaceAttrValues: {
+            "#000": "currentColor",
+            "#000000": "currentColor",
+          },
+        },
+      }),
       isMinified &&
         createHtmlPlugin({
           minify: {

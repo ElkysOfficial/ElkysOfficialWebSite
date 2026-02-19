@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote } from "@/assets/icons";
 import { Card, CardContent } from "@/design-system";
 import ArrowLeft from "../../public/imgs/images/chevron-compact-left.svg";
 import ArrowRight from "../../public/imgs/images/chevron-compact-right.svg";
@@ -317,7 +317,7 @@ const Testimonials = () => {
 
           <div
             ref={carouselRef}
-            className="relative mb-8 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px]"
+            className="relative mb-8 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px] py-2"
             onMouseEnter={() => {
               // Cancela qualquer autoplay agendado
               if (autoplayTimeoutRef.current) {

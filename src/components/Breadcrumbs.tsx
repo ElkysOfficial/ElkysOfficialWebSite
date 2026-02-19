@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home } from "@/assets/icons";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 

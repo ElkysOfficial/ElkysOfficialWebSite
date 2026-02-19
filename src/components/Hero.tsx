@@ -1,4 +1,4 @@
-import { ArrowRight, Code2, Zap, Shield } from "lucide-react";
+import { ArrowRight, Code2, Zap, Shield } from "@/assets/icons";
 import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";

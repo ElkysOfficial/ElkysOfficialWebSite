@@ -39,13 +39,13 @@ export default {
     container: {
       center: true,
       padding: {
-        DEFAULT: "1rem",    // 16px - mobile
-        xs: "1.25rem",      // 20px - phones grandes
-        sm: "1.5rem",       // 24px - tablets pequenos
-        md: "2rem",         // 32px - tablets
-        lg: "2rem",         // 32px - laptops
-        xl: "2.5rem",       // 40px - desktops
-        "2xl": "3rem",      // 48px - desktops grandes
+        DEFAULT: "1rem", // 16px - mobile
+        xs: "1.25rem", // 20px - phones grandes
+        sm: "1.5rem", // 24px - tablets pequenos
+        md: "2rem", // 32px - tablets
+        lg: "2rem", // 32px - laptops
+        xl: "2.5rem", // 40px - desktops
+        "2xl": "3rem", // 48px - desktops grandes
       },
       screens: {
         "2xl": "1400px",
@@ -179,6 +179,10 @@ export default {
           "0%, 100%": { transform: "translate(-50%, -50%) rotate(0deg)" },
           "50%": { transform: "translate(-50%, -50%) rotate(8deg)" },
         },
+        "hex-spin": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
 
         /**
          * ANIMAÇÕES DE INTERAÇÃO
@@ -218,6 +222,7 @@ export default {
         // Decorativas
         float: "float 3s ease-in-out infinite",
         "diamond-rotate": "diamond-rotate 5s ease-in-out infinite",
+        "hex-spin": "hex-spin 20s ease-in-out infinite",
         // Interação
         "card-pulse": "card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         // Carrossel

@@ -1,5 +1,6 @@
-import { Code, Cog, Network, Wrench, ArrowRight } from "lucide-react";
+import { Code, Cog, Network, Wrench, ArrowRight } from "@/assets/icons";
 import { Card, CardContent, CardHeader, CardTitle, Button } from "@/design-system";
+import hexagonalBg from "../../public/imgs/icons/hexagonal.webp";
 
 /**
  * Componente Services - Seção de serviços oferecidos
@@ -132,8 +133,14 @@ const Services = () => {
 
         {/* Call to Action */}
         <div className="mt-8 md:mt-12">
-          <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10 hex-card-container">
+            <img
+              src={hexagonalBg}
+              alt=""
+              aria-hidden="true"
+              className="hex-card-bg -right-10 -bottom-10 w-40 h-40 md:w-48 md:h-48 opacity-[0.08] animate-hex-spin will-change-transform"
+            />
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
               <div className="text-center md:text-left text-white max-w-xl">
                 <p className="text-xl md:text-2xl font-semibold">
                   Seu próximo projeto merece engenharia de verdade

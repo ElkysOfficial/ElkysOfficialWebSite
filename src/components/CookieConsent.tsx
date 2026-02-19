@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Cookie, X } from "lucide-react";
+import { Cookie, X } from "@/assets/icons";
 import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 

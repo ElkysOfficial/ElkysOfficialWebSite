@@ -1,7 +1,7 @@
 # Elkys Design System v3.1
 
 > **Sistema de Design autoral da Elkys Software House**
-> Design system interno, zero dependencias de UI kits prontos (sem shadcn/ui, sem Radix UI).
+> Design system interno.
 > Tailwind CSS puro + SCSS estruturado + componentes React internos.
 
 ---

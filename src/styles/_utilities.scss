@@ -127,6 +127,21 @@
   }
 }
 
+// --- Hexagonal Decorativo em Cards ---
+.hex-card-container {
+  position: relative;
+  overflow: hidden;
+
+  .hex-card-bg {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  &:hover .hex-card-bg {
+    animation-play-state: paused;
+  }
+}
+
 // --- Performance Mobile ---
 @media (max-width: 767px) {
   .animate-float {
@@ -153,7 +168,8 @@
   .animate-float,
   .animate-diamond-rotate,
   .animate-card-pulse,
-  .animate-clients-scroll {
+  .animate-clients-scroll,
+  .animate-hex-spin {
     animation: none !important;
   }
 
