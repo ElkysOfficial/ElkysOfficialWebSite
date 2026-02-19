@@ -1,0 +1,14 @@
+/**
+ * ELKYS Base Styles
+ * Reset mínimo + tipografia base.
+ */
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-family: "Poppins", system-ui, sans-serif;
+  scroll-behavior: smooth;
+}

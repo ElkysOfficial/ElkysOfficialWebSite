@@ -15,7 +15,7 @@ const Index = () => {
     "@type": "WebPage",
     "@id": "https://elkys.com.br/#webpage",
     url: "https://elkys.com.br/",
-    name: "Elkys - Desenvolvimento de Software sob Demanda",
+    name: "Elkys - Software Sob Medida para Empresas em Crescimento",
     isPartOf: {
       "@id": "https://elkys.com.br/#website",
     },
@@ -23,15 +23,15 @@ const Index = () => {
       "@id": "https://elkys.com.br/#organization",
     },
     description:
-      "Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
+      "Engenharia de software sob demanda para empresas em crescimento. Arquitetura escalável, código limpo e gestão transparente do projeto.",
     inLanguage: "pt-BR",
   };
 
   return (
     <>
       <SEO
-        title="Elkys - Construímos software que transforma a maneira que você faz negócio"
-        description="Especialistas em desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável."
+        title="ELKYS | Software Sob Medida para Empresas em Crescimento"
+        description="Engenharia de software sob demanda para empresas em crescimento. Arquitetura escalável, código limpo e gestão transparente do projeto."
         canonical="https://elkys.com.br/"
         jsonLd={jsonLd}
       />

@@ -1,0 +1,46 @@
+/**
+ * @fileoverview ELKYS Design System - Entry Point
+ * @description Importa todos os módulos SCSS e registra com Tailwind layers.
+ *
+ * ESTRUTURA:
+ * 1. Sass modules
+ * 2. Fonts
+ * 3. Tailwind Directives
+ * 4. Tokens (@layer base)
+ * 5. Base styles (@layer base)
+ * 6. Component classes (@layer components)
+ * 7. Utility classes (@layer utilities)
+ *
+ * @author ELKYS Team
+ * @version 3.1.0
+ */
+
+@use "sass:meta";
+
+// === Fonts ===
+@import "../Fonts.css";
+
+// === Tailwind ===
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// === Tokens (CSS Variables) - @layer base ===
+@layer base {
+  @include meta.load-css("tokens");
+}
+
+// === Base Styles - @layer base ===
+@layer base {
+  @include meta.load-css("base");
+}
+
+// === Component Classes - @layer components ===
+@layer components {
+  @include meta.load-css("components");
+}
+
+// === Utility Classes - @layer utilities ===
+@layer utilities {
+  @include meta.load-css("utilities");
+}

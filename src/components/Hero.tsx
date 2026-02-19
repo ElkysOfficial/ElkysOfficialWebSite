@@ -1,5 +1,5 @@
 import { ArrowRight, Code2, Zap, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 
@@ -46,7 +46,7 @@ const Hero = () => {
           width={1200}
           height={1200}
           loading="eager"
-          fetchPriority="high"
+          {...{ fetchpriority: "high" }}
           className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
           style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
         />
@@ -60,12 +60,12 @@ const Hero = () => {
             {/* Headline e subtítulo */}
             <div className="space-y-4">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
-                Construímos software que <span className="text-accent">transforma</span> a maneira
-                que você faz negócio
+                Software sob medida para empresas querem
+                <span className="text-accent"> crescer</span> além das soluções prontas
               </h1>
               <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up">
-                Desenvolvemos soluções sob demanda para PMEs, com entregas ágeis, código limpo e
-                arquitetura escalável que cresce com seu negócio.
+                Projetamos e entregamos sistemas que acompanham a evolução do seu negócio, com
+                arquitetura escalável, código limpo e gestão transparente do projeto.
               </p>
             </div>
 
@@ -98,17 +98,15 @@ const Hero = () => {
             >
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Projetos entregues</div>
+                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Projetos em produção</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">
-                  Satisfação do cliente
-                </div>
+                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Retenção de clientes</div>
               </div>
               <div className="text-center col-span-2 sm:col-span-1">
                 <div className="text-2xl md:text-3xl font-bold text-accent">2+</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Anos de experiência</div>
+                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Anos de operação</div>
               </div>
             </div>
           </div>
@@ -136,7 +134,7 @@ const Hero = () => {
                   <Zap className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Entregas Ágeis</p>
-                    <p className="text-gray-300 text-sm">Metodologia ágil e entregas rápidas</p>
+                    <p className="text-gray-300 text-sm">Gestão transparente do projeto</p>
                   </div>
                 </div>
                 {/* Feature 3: Suporte Contínuo */}
@@ -147,7 +145,7 @@ const Hero = () => {
                   <Shield className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Suporte Contínuo</p>
-                    <p className="text-gray-300 text-sm">Acompanhamento pós-entrega</p>
+                    <p className="text-gray-300 text-sm">Suporte pós-entrega</p>
                   </div>
                 </div>
               </div>

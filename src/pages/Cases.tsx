@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { ArrowRight, ExternalLink, Play, Globe, Cog, FileText, Building2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, Card, CardContent } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -38,7 +37,7 @@ const projects: Project[] = [
     name: "Sonnar",
     type: "SaaS",
     description:
-      "Software inteligente de busca de vagas que monitora oportunidades 24/7 conforme o perfil do usuário. Otimiza candidaturas com currículo compatível com ATS, analisa compatibilidade com vagas e recomenda cursos para evolução profissional.",
+      "Produto SaaS próprio de busca inteligente de vagas. Monitora oportunidades 24/7, otimiza currículos para ATS, analisa compatibilidade com vagas e recomenda capacitações para evolução profissional.",
     url: "https://sonnarjobs.com.br",
     posterImage: "/imgs/cases/sonnar-poster.webp",
     previewVideo: "/videos/cases/sonnar-preview.mp4",
@@ -49,7 +48,7 @@ const projects: Project[] = [
     name: "Elkut",
     type: "SaaS",
     description:
-      "Software proprietário de otimização de corte para indústrias. Algoritmos inteligentes que maximizam o aproveitamento de chapas e reduzem desperdícios em até 30%.",
+      "Produto SaaS próprio para otimização de corte industrial. Algoritmos proprietários que maximizam o aproveitamento de chapas e reduzem desperdícios em até 30%, impactando diretamente o custo operacional.",
     url: "https://elkut.com.br",
     posterImage: "/imgs/cases/elkut-poster.webp",
     previewVideo: "/videos/cases/elkut-preview.mp4",
@@ -60,7 +59,7 @@ const projects: Project[] = [
     name: "1Um Print Comunicação",
     type: "Landing Page",
     description:
-      "Landing page de alta conversão para empresa de personalizados. Design estratégico que destaca o portfólio e transforma visitantes em clientes.",
+      "Landing page para empresa de personalizados com foco em conversão. Estrutura estratégica que destaca o portfólio, facilita o contato comercial e gera demanda qualificada.",
     url: "https://1umprintcomunicacao.com.br",
     posterImage: "/imgs/cases/1umprint-poster.webp",
     previewVideo: "/videos/cases/1umprint-preview.mp4",
@@ -71,7 +70,7 @@ const projects: Project[] = [
     name: "AK Produções",
     type: "Site Institucional",
     description:
-      "Presença digital completa para gravadora, dubladora e produtora. Site que transmite profissionalismo e facilita a captação de novos projetos no mercado audiovisual.",
+      "Site institucional para gravadora, dubladora e produtora audiovisual. Estrutura que comunica profissionalismo, apresenta o portfólio de trabalhos e facilita a captação de novos projetos.",
     url: "https://akproducoes.com.br",
     posterImage: "/imgs/cases/akproducoes-poster.webp",
     previewVideo: "/videos/cases/akproducoes-preview.mp4",
@@ -82,7 +81,7 @@ const projects: Project[] = [
     name: "José Pedro Advogados",
     type: "Site Institucional",
     description:
-      "Site institucional elegante para escritório de advocacia. Design que inspira confiança e credibilidade, facilitando o primeiro contato com potenciais clientes.",
+      "Site institucional para escritório de advocacia. Estrutura clara e profissional que reforça credibilidade, apresenta áreas de atuação e facilita o primeiro contato com potenciais clientes.",
     url: "https://josepedroadv.com.br",
     posterImage: "/imgs/cases/josepedroadv-poster.webp",
     previewVideo: "/videos/cases/josepedroadv-preview.mp4",
@@ -93,7 +92,7 @@ const projects: Project[] = [
     name: "Mapeamento Nacional de Cartórios",
     type: "Automação",
     description:
-      "Automação robusta que extraiu e organizou dados de todos os cartórios do Brasil. Um trabalho que levaria meses foi concluído em poucas horas com precisão total.",
+      "Automação de extração e organização de dados de todos os cartórios do Brasil. Processo que levaria meses foi concluído em horas, com precisão total e dados estruturados para análise.",
     posterImage: "/imgs/cases/cartorios-poster.webp",
     client: "Lucas Alves",
   },
@@ -304,7 +303,7 @@ const Cases = () => {
     url: "https://elkys.com.br/cases",
     name: "Cases de Sucesso - ELKYS",
     description:
-      "Conheça os projetos desenvolvidos pela ELKYS: sistemas SaaS, sites institucionais, landing pages e automações que transformaram negócios.",
+      "Conheça os projetos desenvolvidos pela ELKYS: produtos SaaS próprios, sites institucionais, landing pages e automações em produção.",
     isPartOf: {
       "@id": "https://elkys.com.br/#website",
     },
@@ -317,8 +316,8 @@ const Cases = () => {
   return (
     <>
       <SEO
-        title="Cases de Sucesso - ELKYS | Projetos que Transformam Negócios"
-        description="Conheça os projetos desenvolvidos pela ELKYS: sistemas SaaS, sites institucionais, landing pages e automações. Resultados reais para empresas reais."
+        title="Portfólio - ELKYS | Projetos e Produtos em Produção"
+        description="Conheça os projetos e produtos desenvolvidos pela ELKYS: sistemas SaaS próprios, sites institucionais, landing pages e automações. Entregas reais em operação."
         canonical="https://elkys.com.br/cases"
         jsonLd={jsonLd}
       />
@@ -352,7 +351,7 @@ const Cases = () => {
                 width={1200}
                 height={1200}
                 loading="eager"
-                fetchPriority="high"
+                {...{ fetchpriority: "high" }}
                 className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
                 style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
               />
@@ -363,12 +362,12 @@ const Cases = () => {
                 <div className="text-white space-y-6 md:space-y-8">
                   <div className="space-y-4">
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
-                      Projetos que <span className="text-accent">Transformam</span> Negócios
+                      Projetos e Soluções que{" "}
+                      <span className="text-accent">Impulsionam Negócios</span>
                     </h1>
                     <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up">
-                      Cada projeto nasce de uma parceria próxima com o cliente. Entendemos o
-                      desafio, desenhamos a solução e entregamos resultados que fazem diferença no
-                      dia a dia.
+                      Soluções digitais personalizadas para empresas que já superaram ferramentas
+                      genéricas e precisam de tecnologia alinhada à sua realidade operacional.
                     </p>
                   </div>
 
@@ -380,7 +379,7 @@ const Cases = () => {
                     <div className="text-center">
                       <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
                       <div className="text-xs md:text-sm text-gray-300/80 mt-1">
-                        Projetos entregues
+                        Projetos em produção
                       </div>
                     </div>
                     <div className="text-center">
@@ -392,7 +391,7 @@ const Cases = () => {
                     <div className="text-center">
                       <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
                       <div className="text-xs md:text-sm text-gray-300/80 mt-1">
-                        Clientes satisfeitos
+                        Retenção de clientes
                       </div>
                     </div>
                   </div>
@@ -409,8 +408,8 @@ const Cases = () => {
                   Projetos em <span className="text-primary">Destaque</span>
                 </h2>
                 <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Soluções completas que otimizam processos e geram valor real para os negócios dos
-                  nossos clientes.
+                  Nossa atuação vai do entendimento do problema à evolução contínua da solução,
+                  garantindo que a tecnologia acompanhe o crescimento do negócio.
                 </p>
               </div>
 
@@ -439,10 +438,10 @@ const Cases = () => {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="text-center md:text-left text-white max-w-xl">
                     <p className="text-xl md:text-2xl font-semibold">
-                      Quer resultados assim para o seu negócio?
+                      Seu projeto pode ser o próximo
                     </p>
                     <p className="text-sm md:text-base mt-2 opacity-90">
-                      Vamos conversar sobre como podemos ajudar sua empresa a crescer.
+                      Converse com nossa equipe técnica sobre os desafios do seu negócio.
                     </p>
                   </div>
                   <Button
@@ -452,7 +451,7 @@ const Cases = () => {
                     onClick={() => window.open("https://wa.me/553197382935", "_blank")}
                     aria-label="Iniciar conversa no WhatsApp"
                   >
-                    Fale conosco
+                    Iniciar conversa
                     <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
                   </Button>
                 </div>

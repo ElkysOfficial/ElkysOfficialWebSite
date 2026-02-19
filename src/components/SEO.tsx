@@ -55,8 +55,8 @@ const SEO_DEFAULTS = {
  * ```
  */
 export default function SEO({
-  title = "ELKYS | Desenvolvimento de Software Sob Demanda para PMEs",
-  description = "ELKYS - Especialistas em desenvolvimento de software sob demanda. Criamos aplicações web, mobile, automação RPA e integrações para PMEs.",
+  title = "ELKYS | Software Sob Medida para Empresas em Crescimento",
+  description = "ELKYS - Engenharia de software sob demanda. Desenvolvemos aplicações web, mobile, automações e integrações com processo, qualidade e previsibilidade.",
   canonical = "https://elkys.com.br/",
   ogImage = "https://elkys.com.br/og-image.jpg",
   ogType = "website",

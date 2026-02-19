@@ -1,6 +1,5 @@
 import { Code, Cog, Network, Wrench, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, Button } from "@/design-system";
 
 /**
  * Componente Services - Seção de serviços oferecidos
@@ -25,51 +24,53 @@ const Services = () => {
       icon: Code,
       title: "Desenvolvimento Sob Demanda",
       description:
-        "Criamos software personalizado que atende exatamente às necessidades do seu negócio.",
+        "Projetamos e desenvolvemos aplicações sob medida, com arquitetura definida para performance, segurança e manutenibilidade a longo prazo.",
       features: [
-        "Aplicações web e mobile",
-        "Sistemas de gestão empresarial",
-        "E-commerce e marketplaces",
-        "Dashboards e relatórios",
+        "Aplicações web e mobile com arquitetura escalável",
+        "Sistemas de gestão e operações empresariais",
+        "Plataformas de e-commerce e marketplaces",
+        "Dashboards analíticos e relatórios executivos",
       ],
-      gradient: "from-primary to-primary-light",
+      gradient: "from-accent to-accent-light",
     },
     {
       icon: Cog,
       title: "Automação e RPA",
       description:
-        "Automatizamos processos repetitivos para aumentar eficiência e reduzir custos operacionais.",
+        "Eliminamos gargalos operacionais com automações que reduzem custo, erro humano e tempo de execução em processos críticos.",
       features: [
-        "Automação de processos",
-        "Integração de sistemas",
-        "Fluxos de trabalho digitais",
-        "Bots e assistentes virtuais",
+        "Automação de processos de negócio (BPA)",
+        "Integração entre sistemas legados e modernos",
+        "Fluxos de trabalho automatizados com monitoramento",
+        "Bots e assistentes para atendimento e operações",
       ],
       gradient: "from-accent to-accent-light",
     },
     {
       icon: Network,
       title: "Integrações de Sistemas",
-      description: "Conectamos seus sistemas existentes para uma operação mais fluida e integrada.",
+      description:
+        "Conectamos sistemas, APIs e plataformas para criar um ecossistema operacional unificado e confiável.",
       features: [
-        "APIs e microserviços",
-        "Integração com ERPs",
-        "Sincronização de dados",
-        "Middlewares personalizados",
+        "APIs RESTful e microserviços",
+        "Integração com ERPs, CRMs e plataformas fiscais",
+        "Sincronização de dados em tempo real",
+        "Middlewares customizados com alta disponibilidade",
       ],
-      gradient: "from-primary-dark to-primary",
+      gradient: "from-accent to-accent-light",
     },
     {
       icon: Wrench,
-      title: "Consultoria e CI/CD",
-      description: "Oferecemos consultoria especializada em arquitetura de software e DevOps.",
+      title: "Consultoria Técnica e DevOps",
+      description:
+        "Avaliamos sua infraestrutura e processos de desenvolvimento para identificar riscos, gargalos e oportunidades de melhoria técnica.",
       features: [
-        "Arquitetura de software",
-        "Code review e auditoria",
-        "Implementação de CI/CD",
-        "Otimização de performance",
+        "Auditoria de arquitetura e código-fonte",
+        "Implementação de pipelines CI/CD",
+        "Code review e práticas de qualidade",
+        "Otimização de performance e custos de infraestrutura",
       ],
-      gradient: "from-purple-600 to-primary-light",
+      gradient: "from-accent to-accent-light",
     },
   ];
 
@@ -79,21 +80,18 @@ const Services = () => {
         {/* Cabeçalho da seção */}
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            Nossos <span className="text-primary">Serviços</span>
+            Capacidades <span className="text-primary">Técnicas</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Oferecemos soluções completas em tecnologia, desde o desenvolvimento até a consultoria
-            especializada, sempre focados no crescimento do seu negócio.
+            Do diagnóstico à entrega em produção, cobrimos todo o ciclo de desenvolvimento com
+            engenharia rigorosa, gestão transparente e compromisso com resultados mensuráveis.
           </p>
         </div>
 
         {/* Grid de serviços: 1 col mobile, 2 cols desktop */}
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12">
           {services.map((service, index) => (
-            <Card
-              key={index}
-              className="relative overflow-hidden group flex flex-col h-full"
-            >
+            <Card key={index} className="relative overflow-hidden group flex flex-col h-full">
               <CardHeader className="pb-4 md:pb-6">
                 <div className="flex items-center space-x-4">
                   <div
@@ -138,10 +136,11 @@ const Services = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left text-white max-w-xl">
                 <p className="text-xl md:text-2xl font-semibold">
-                  Tecnologia que trabalha pelo seu negócio
+                  Seu próximo projeto merece engenharia de verdade
                 </p>
                 <p className="text-sm md:text-base mt-2 opacity-90">
-                  Simplificamos o dia a dia da sua empresa com soluções práticas e fáceis de usar.
+                  Da arquitetura à entrega em produção, com processo, transparência e compromisso
+                  técnico.
                 </p>
               </div>
               <Button
@@ -152,9 +151,9 @@ const Services = () => {
                   const contactForm = document.getElementById("contact-form");
                   contactForm?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-                aria-label="Solicitar orçamento - ir para formulário de contato"
+                aria-label="Agendar diagnóstico técnico - ir para formulário de contato"
               >
-                Solicitar orçamento
+                Agendar diagnóstico técnico
                 <ArrowRight className="ml-2 h-5 w-5 btn-arrow-animate" />
               </Button>
             </div>

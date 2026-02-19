@@ -3,11 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import emailjs from "@emailjs/browser";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle } from "@/design-system";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { EMAILJS_CONFIG } from "@/config/emailjs";
 
@@ -32,8 +29,6 @@ const contactFormSchema = z.object({
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
 const ContactForm = () => {
-  const { toast } = useToast();
-
   const {
     register,
     handleSubmit,
@@ -65,18 +60,15 @@ const ContactForm = () => {
         ),
       ]);
 
-      toast({
-        title: "✅ Mensagem enviada com sucesso!",
-        description: "Respondemos em até 2 horas. Verifique seu email!",
+      toast.success("Solicitação registrada com sucesso!", {
+        description: "Nossa equipe técnica retornará em até 2 horas úteis.",
       });
 
       reset();
     } catch (error) {
       console.error("EmailJS Error:", error);
-      toast({
-        title: "❌ Erro ao enviar mensagem",
+      toast.error("Erro ao enviar mensagem", {
         description: "Por favor, tente novamente ou entre em contato via WhatsApp.",
-        variant: "destructive",
       });
     }
   };
@@ -87,10 +79,10 @@ const ContactForm = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Vamos conversar sobre seu <span className="text-primary">projeto</span>
+              Inicie seu projeto com <span className="text-primary">previsibilidade</span>
             </h2>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-              Conte-nos sobre seus desafios e descubra como podemos ajudar sua empresa a crescer.
+              Descreva seu desafio técnico e receba um diagnóstico preliminar sem compromisso.
             </p>
           </div>
 
@@ -98,15 +90,15 @@ const ContactForm = () => {
             <div className="space-y-6">
               <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="text-lg text-primary">Por que escolher a elkys?</CardTitle>
+                  <CardTitle className="text-lg text-primary">O que você pode esperar</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {[
-                    "Consulta inicial gratuita",
-                    "Proposta em até 48h",
-                    "Desenvolvimento ágil",
-                    "Suporte contínuo",
-                    "Código limpo e documentado",
+                    "Diagnóstico técnico sem compromisso",
+                    "Proposta detalhada em até 48h úteis",
+                    "Entregas semanais com visibilidade total",
+                    "Código versionado, testado e documentado",
+                    "Suporte pós-entrega",
                   ].map((text) => (
                     <div key={text} className="flex items-center space-x-3">
                       <CheckCircle className="h-5 w-5 text-accent" />
@@ -117,9 +109,9 @@ const ContactForm = () => {
               </Card>
 
               <div className="bg-gradient-primary rounded-xl p-6 text-white">
-                <p className="font-bold mb-4">Resposta rápida garantida</p>
+                <p className="font-bold mb-4">Compromisso de resposta</p>
                 <p className="text-sm opacity-90 mb-4">
-                  Respondemos em até 2 horas durante horário comercial.
+                  Toda solicitação é respondida em até 2 horas úteis pela equipe técnica.
                 </p>
                 <div className="text-xs opacity-75">
                   Seg-Sex: 8h às 18h
@@ -132,7 +124,7 @@ const ContactForm = () => {
             <div className="lg:col-span-2">
               <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="text-xl">Solicitar Orçamento</CardTitle>
+                  <CardTitle className="text-xl">Solicitar Diagnóstico</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -203,7 +195,7 @@ const ContactForm = () => {
                       </label>
                       <Textarea
                         id="message"
-                        placeholder="Conte-nos sobre seu projeto, desafios e objetivos..."
+                        placeholder="Descreva brevemente o contexto, os desafios técnicos e os objetivos do projeto..."
                         rows={5}
                         className="w-full"
                         {...register("message")}
@@ -227,7 +219,7 @@ const ContactForm = () => {
                         </>
                       ) : (
                         <>
-                          Enviar mensagem
+                          Enviar solicitação
                           <Send className="ml-2 h-4 w-4" />
                         </>
                       )}

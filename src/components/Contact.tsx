@@ -1,5 +1,5 @@
 import { Phone, Mail, Linkedin, Github, Clock, Instagram } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/design-system";
 
 const Contact = () => {
   const contactInfo = [
@@ -7,13 +7,13 @@ const Contact = () => {
       icon: Phone,
       title: "Telefone",
       value: "+55 (31) 9 9973-8235",
-      subtitle: "Seg - Sex: 8h às 18h",
+      subtitle: "Seg-Sex: 8h-18h | Sáb: 8h-12h",
     },
     {
       icon: Mail,
       title: "E-mail",
       value: "contato@elkys.com.br",
-      subtitle: "Resposta em até 1h",
+      subtitle: "Resposta: até 2h úteis",
     },
   ];
 
@@ -43,11 +43,11 @@ const Contact = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            Entre em <span className="text-primary">contato</span>
+            Canais de <span className="text-primary">Atendimento</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Estamos prontos para ajudar sua empresa a crescer. Entre em contato e vamos conversar
-            sobre seu próximo projeto.
+            Fale diretamente com nossa equipe técnica. Sem intermediários, sem filas, atendimento
+            direto com quem entende do seu projeto.
           </p>
         </div>
 
@@ -61,7 +61,7 @@ const Contact = () => {
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-r from-accent to-accent-light rounded-lg flex items-center justify-center flex-shrink-0">
                         <info.icon className="h-6 w-6 text-white" />
                       </div>
                       <div>
@@ -76,9 +76,7 @@ const Contact = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Siga-nos nas redes sociais
-              </h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Acompanhe a Elkys</h3>
               <div className="flex space-x-4">
                 {socialLinks.map((social) => (
                   <a
@@ -100,7 +98,7 @@ const Contact = () => {
             <Card className="shadow-elegant hover:shadow-glow transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-r from-accent to-accent-light rounded-lg flex items-center justify-center flex-shrink-0">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -119,18 +117,19 @@ const Contact = () => {
             </Card>
             <Card className="shadow-elegant bg-gradient-primary text-white">
               <CardContent className="p-6 text-center space-y-4">
-                <p className="text-lg md:text-xl font-bold">Precisa de ajuda urgente?</p>
+                <p className="text-lg md:text-xl font-bold">Suporte Prioritário</p>
                 <p className="opacity-90">
-                  Atendimento de emergência disponível 24 horas por dia, 7 dias por semana.
+                  Para clientes com projetos em produção, canal de suporte técnico com atendimento
+                  estendido.
                 </p>
                 <div className="pt-2">
                   <a
                     href="tel:+5531999738235"
                     className="inline-flex items-center space-x-2 bg-white dark:bg-card text-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-150 min-h-[44px]"
-                    aria-label="Ligar agora para atendimento de emergência"
+                    aria-label="Falar com suporte técnico prioritário"
                   >
                     <Phone className="h-4 w-4" />
-                    <span>Ligar Agora</span>
+                    <span>Falar com Suporte</span>
                   </a>
                 </div>
               </CardContent>

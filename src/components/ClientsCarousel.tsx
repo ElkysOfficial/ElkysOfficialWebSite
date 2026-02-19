@@ -36,7 +36,7 @@ const ClientsCarousel = () => {
             Empresas que confiam na <span className="text-primary">Elkys</span>
           </h2>
           <p className="text-sm md:text-base text-muted-foreground">
-            Parceiros de sucesso em diversos segmentos
+            Confiança construída com entregas consistentes
           </p>
         </div>
 

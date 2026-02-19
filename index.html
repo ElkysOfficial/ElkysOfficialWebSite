@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
-    <title>ELKYS | Desenvolvimento de Software Sob Demanda para PMEs</title>
-    <meta name="title" content="ELKYS | Desenvolvimento de Software Sob Demanda para PMEs" />
+    <title>ELKYS | Software Sob Medida para Empresas em Crescimento</title>
+    <meta name="title" content="ELKYS | Software Sob Medida para Empresas em Crescimento" />
     <meta
       name="description"
-      content="ELKYS - Especialistas em desenvolvimento de software sob demanda. Criamos aplicações web, mobile, automação RPA e integrações para PMEs em Belo Horizonte e todo Brasil."
+      content="ELKYS - Engenharia de software sob demanda. Desenvolvemos aplicações web, mobile, automações e integrações com processo, qualidade e previsibilidade para empresas em crescimento."
     />
-    <meta name="keywords" content="ELKYS, desenvolvimento de software, software sob demanda, PME, aplicações web, mobile, RPA, automação, Belo Horizonte, Brasil" />
+    <meta name="keywords" content="ELKYS, software sob medida, engenharia de software, software sob demanda, aplicações web, mobile, RPA, automação, integrações, Belo Horizonte, Brasil" />
     <meta name="author" content="ELKYS" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow" />
@@ -20,30 +20,30 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://elkys.com.br/" />
-    <meta property="og:title" content="ELKYS | Desenvolvimento de Software Sob Demanda" />
+    <meta property="og:title" content="ELKYS | Software Sob Medida para Empresas em Crescimento" />
     <meta
       property="og:description"
-      content="ELKYS - Especialistas em desenvolvimento de software sob demanda. Aplicações web, mobile, automação RPA e integrações para PMEs."
+      content="ELKYS - Engenharia de software sob demanda. Aplicações web, mobile, automações e integrações com processo e previsibilidade."
     />
     <meta property="og:image" content="https://elkys.com.br/og-image.jpg" />
     <meta property="og:image:secure_url" content="https://elkys.com.br/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="ELKYS - Desenvolvimento de Software Sob Demanda para PMEs" />
+    <meta property="og:image:alt" content="ELKYS - Software Sob Medida para Empresas em Crescimento" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="ELKYS" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://elkys.com.br/" />
-    <meta name="twitter:title" content="ELKYS | Desenvolvimento de Software Sob Demanda" />
+    <meta name="twitter:title" content="ELKYS | Software Sob Medida para Empresas em Crescimento" />
     <meta
       name="twitter:description"
-      content="ELKYS - Especialistas em desenvolvimento de software sob demanda. Aplicações web, mobile, automação RPA e integrações para PMEs."
+      content="ELKYS - Engenharia de software sob demanda. Aplicações web, mobile, automações e integrações com processo e previsibilidade."
     />
     <meta name="twitter:image" content="https://elkys.com.br/twitter-card.jpg" />
-    <meta name="twitter:image:alt" content="ELKYS - Desenvolvimento de Software Sob Demanda para PMEs" />
+    <meta name="twitter:image:alt" content="ELKYS - Software Sob Medida para Empresas em Crescimento" />
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
@@ -80,7 +80,7 @@
         "name": "ELKYS",
         "legalName": "ELKYS Software",
         "alternateName": ["Elkys", "ELKYS Software", "Elkys Desenvolvimento"],
-        "description": "ELKYS - Desenvolvimento de software sob demanda para PMEs. Entregas ágeis, código limpo e arquitetura escalável.",
+        "description": "ELKYS - Engenharia de software sob demanda para empresas em crescimento. Arquitetura escalável, código limpo e gestão transparente.",
         "url": "https://elkys.com.br",
         "logo": {
           "@type": "ImageObject",
@@ -90,8 +90,8 @@
         },
         "image": "https://elkys.com.br/og-image.jpg",
         "foundingDate": "2022",
-        "slogan": "Construímos software que transforma a maneira que você faz negócio",
-        "knowsAbout": ["Desenvolvimento de Software", "Aplicações Web", "Aplicações Mobile", "Automação RPA", "Integrações de Sistemas"],
+        "slogan": "Software sob medida para empresas que cresceram além das soluções prontas",
+        "knowsAbout": ["Engenharia de Software", "Aplicações Web", "Aplicações Mobile", "Automação RPA", "Integrações de Sistemas", "Consultoria Técnica", "DevOps"],
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Belo Horizonte",
@@ -129,8 +129,8 @@
         "@id": "https://elkys.com.br/#website",
         "url": "https://elkys.com.br",
         "name": "ELKYS",
-        "alternateName": "ELKYS - Desenvolvimento de Software",
-        "description": "ELKYS - Software sob demanda para PMEs. Aplicações web, mobile, automação e integrações.",
+        "alternateName": "ELKYS - Engenharia de Software Sob Demanda",
+        "description": "ELKYS - Software sob medida para empresas em crescimento. Aplicações web, mobile, automação e integrações.",
         "publisher": {
           "@id": "https://elkys.com.br/#organization"
         },
@@ -177,17 +177,27 @@
       }
     </script>
     <script>
-      // Apply system theme early to avoid flashes on first paint
+      // Apply theme early to avoid FOUC — must match next-themes logic
       (function () {
-        const root = document.documentElement;
-        const media = window.matchMedia("(prefers-color-scheme: dark)");
-        const apply = (isDark) => {
-          root.classList.toggle("dark", isDark);
-          root.style.colorScheme = isDark ? "dark" : "light";
-        };
-
-        apply(media.matches);
-        media.addEventListener("change", (event) => apply(event.matches));
+        var d = document.documentElement;
+        var e;
+        try { e = localStorage.getItem("theme"); } catch (t) {}
+        if (e === "dark") {
+          d.classList.add("dark");
+          d.style.colorScheme = "dark";
+        } else if (e === "light") {
+          d.classList.remove("dark");
+          d.style.colorScheme = "light";
+        } else {
+          // "system" or no stored value → use OS preference
+          var m = window.matchMedia("(prefers-color-scheme: dark)");
+          if (m.matches) {
+            d.classList.add("dark");
+            d.style.colorScheme = "dark";
+          } else {
+            d.style.colorScheme = "light";
+          }
+        }
       })();
     </script>
     <!-- Google tag (gtag.js) -->

@@ -26,7 +26,17 @@ RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
 # ====================================
-# 3. SPA (Single Page Application) - React Router
+# 3. REMOVER TRAILING SLASH (evita conteúdo duplicado)
+# ====================================
+
+# Redireciona /path/ para /path (exceto raiz /)
+# Resolve: "Página alternativa com tag canônica adequada" no Search Console
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} (.+)/$
+RewriteRule ^ %1 [R=301,L]
+
+# ====================================
+# 4. SPA (Single Page Application) - React Router
 # ====================================
 
 # Todas as rotas que não são arquivos reais vão para index.html
@@ -35,7 +45,7 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
 
 # ====================================
-# 4. SEGURANÇA
+# 5. SEGURANÇA
 # ====================================
 
 # Prevenir listagem de diretórios
@@ -54,7 +64,7 @@ Options -Indexes
 </FilesMatch>
 
 # ====================================
-# 5. CACHE E PERFORMANCE
+# 6. CACHE E PERFORMANCE
 # ====================================
 
 # Ativar compressão Gzip
@@ -87,7 +97,7 @@ Options -Indexes
 </IfModule>
 
 # ====================================
-# 6. HEADERS DE SEGURANÇA
+# 7. HEADERS DE SEGURANÇA
 # ====================================
 
 <IfModule mod_headers.c>
@@ -108,7 +118,7 @@ Options -Indexes
 </IfModule>
 
 # ====================================
-# 7. PÁGINAS DE ERRO PERSONALIZADAS
+# 8. PÁGINAS DE ERRO PERSONALIZADAS
 # ====================================
 
 # ErrorDocument 404 /index.html

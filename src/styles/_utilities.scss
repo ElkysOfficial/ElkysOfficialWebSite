@@ -1,0 +1,165 @@
+/**
+ * ELKYS Utility Classes
+ * Gradientes, sombras, animações, carousel, acessibilidade.
+ */
+
+// --- Gradientes ---
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-hero {
+  background: var(--gradient-hero);
+}
+
+.bg-gradient-subtle {
+  background: var(--gradient-subtle);
+}
+
+// --- Sombras ---
+.shadow-elegant {
+  box-shadow: var(--shadow-elegant);
+}
+
+.shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+// --- Hover Lift ---
+.hover-lift {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// --- Botão Primário Animado ---
+.btn-primary-animate {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px hsl(var(--accent) / 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// --- Botão Secundário Animado ---
+.btn-secondary-animate {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// --- Animação de Seta ---
+.btn-arrow-animate {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary-animate:hover .btn-arrow-animate {
+  transform: translateX(4px);
+}
+
+// --- Carrossel de Clientes ---
+.clients-logo-grayscale {
+  filter: grayscale(100%) opacity(0.6);
+  transition:
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: contain;
+}
+
+.clients-logo-wrapper:hover .clients-logo-grayscale {
+  filter: grayscale(0%) opacity(1);
+  transform: scale(1.1);
+}
+
+.clients-carousel-track {
+  will-change: transform;
+
+  &:hover {
+    animation-play-state: paused;
+  }
+}
+
+// --- Performance Mobile ---
+@media (max-width: 767px) {
+  .animate-float {
+    animation-duration: 6s;
+  }
+
+  .animate-diamond-rotate {
+    animation-duration: 4s;
+  }
+
+  .animate-card-pulse {
+    animation: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .animate-clients-scroll {
+    animation-duration: 40s;
+  }
+}
+
+// --- Acessibilidade ---
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-diamond-rotate,
+  .animate-card-pulse,
+  .animate-clients-scroll {
+    animation: none !important;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

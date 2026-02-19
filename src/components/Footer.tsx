@@ -2,7 +2,7 @@ import { ArrowUp, Mail, Phone, Linkedin, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/design-system";
 
 const Footer = () => {
   const [mounted, setMounted] = useState(false);
@@ -21,11 +21,11 @@ const Footer = () => {
   ];
 
   const services = [
-    "Desenvolvimento Web",
-    "Aplicações Mobile",
-    "Automação RPA",
-    "Integrações",
-    "Consultoria",
+    "Desenvolvimento Sob Demanda",
+    "Automação e RPA",
+    "Integrações de Sistemas",
+    "Consultoria e DevOps",
+    "Suporte Técnico",
   ];
 
   const legal = [
@@ -56,8 +56,8 @@ const Footer = () => {
               />
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Construímos software que transforma a maneira que você faz negócio. Especialistas em
-              desenvolvimento sob demanda para PMEs.
+              Engenharia de software sob demanda com processo, qualidade e previsibilidade. Parceiro
+              técnico para empresas que exigem confiabilidade.
             </p>
             <div className="flex space-x-3">
               <a

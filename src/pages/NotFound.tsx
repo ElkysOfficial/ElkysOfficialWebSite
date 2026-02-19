@@ -1,7 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Home, Search, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
@@ -69,9 +69,7 @@ const NotFound = () => {
 
           {/* Quick Links */}
           <div className="pt-8 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-4">
-              Ou explore nossos principais serviços:
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">Navegue pelo site:</p>
             <div className="flex flex-wrap gap-3 justify-center">
               <Link to="/#services">
                 <Button variant="ghost" size="sm">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Star, Quote } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/design-system";
 import ArrowLeft from "../../public/imgs/images/chevron-compact-left.svg";
 import ArrowRight from "../../public/imgs/images/chevron-compact-right.svg";
 
@@ -70,7 +70,7 @@ const Testimonials = () => {
     },
     {
       name: "Alexandre Silva",
-      role: "Owner",
+      role: "Proprietário",
       company: "AK Produções",
       image: "/api/placeholder/64/64",
       rating: 5,
@@ -88,7 +88,7 @@ const Testimonials = () => {
     },
     {
       name: "Heliel Souza",
-      role: "Owner",
+      role: "Proprietário",
       company: "PlansCoop",
       image: "/imgs/testimonials/helielSouza.png",
       rating: 5,
@@ -289,11 +289,11 @@ const Testimonials = () => {
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            O que nossos <span className="text-primary">clientes dizem</span>
+            Resultados que nossos <span className="text-primary">clientes confirmam</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            A satisfação dos nossos clientes é nossa maior conquista. Veja alguns depoimentos de
-            quem já transformou seu negócio conosco.
+            Cada projeto entregue reforça nossa reputação. Veja o que dizem os profissionais e
+            empresas que confiaram na Elkys para suas demandas técnicas.
           </p>
         </div>
 

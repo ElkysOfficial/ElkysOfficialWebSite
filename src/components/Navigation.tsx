@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/design-system";
 import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
 import letteringWhite from "../../public/imgs/icons/lettering_elkys.webp";
 

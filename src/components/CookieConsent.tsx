@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Cookie, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 
 const CookieConsent = () => {
@@ -65,12 +65,11 @@ const CookieConsent = () => {
             {/* Content */}
             <div className="flex-1 space-y-2">
               <h3 className="text-base md:text-lg font-semibold text-foreground">
-                🍪 Nós usamos cookies
+                Política de Cookies
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Utilizamos cookies para melhorar sua experiência, analisar o tráfego do site e
-                personalizar conteúdo. Ao clicar em "Aceitar", você concorda com o uso de cookies
-                conforme nossa{" "}
+                Este site utiliza cookies para análise de tráfego e melhoria da experiência de
+                navegação. Ao continuar, você concorda com o uso de cookies conforme nossa{" "}
                 <Link to="/cookie-policy" className="text-primary hover:underline font-medium">
                   Política de Cookies
                 </Link>{" "}
