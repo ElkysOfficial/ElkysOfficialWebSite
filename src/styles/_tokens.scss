@@ -2,6 +2,7 @@
  * ELKYS Design Tokens
  * Todas as variáveis CSS do design system.
  * HSL format sem wrapper hsl() nas vars.
+ * Prefixo --elk- para namespace proprietário.
  */
 
 // ============================================================================
@@ -9,45 +10,45 @@
 // ============================================================================
 :root {
   // --- Cores Base ---
-  --background: 0 0% 100%;
-  --foreground: 224 47% 11%;
+  --elk-background: 0 0% 100%;
+  --elk-foreground: 224 47% 11%;
 
-  --card: 0 0% 100%;
-  --card-foreground: 224 47% 11%;
+  --elk-card: 0 0% 100%;
+  --elk-card-foreground: 224 47% 11%;
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 47% 11%;
+  --elk-popover: 0 0% 100%;
+  --elk-popover-foreground: 224 47% 11%;
 
   // --- Cores Oficiais da Marca ELKYS ---
-  --primary: 261 54% 33%;
-  --primary-foreground: 0 0% 100%;
-  --primary-light: 261 58% 45%;
-  --primary-dark: 261 60% 25%;
-  --primary-soft: 261 40% 95%;
+  --elk-primary: 261 54% 33%;
+  --elk-primary-foreground: 0 0% 100%;
+  --elk-primary-light: 261 58% 45%;
+  --elk-primary-dark: 261 60% 25%;
+  --elk-primary-soft: 261 40% 95%;
 
-  --secondary: 223 48% 27%;
-  --secondary-foreground: 0 0% 100%;
-  --secondary-light: 223 52% 38%;
-  --secondary-dark: 223 55% 20%;
+  --elk-secondary: 223 48% 27%;
+  --elk-secondary-foreground: 0 0% 100%;
+  --elk-secondary-light: 223 52% 38%;
+  --elk-secondary-dark: 223 55% 20%;
 
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 13% 46%;
+  --elk-muted: 220 14% 96%;
+  --elk-muted-foreground: 220 13% 46%;
 
   // --- Accent (Ciano) - WCAG AA ---
-  --accent: 180 75% 32%;
-  --accent-foreground: 0 0% 100%;
-  --accent-light: 180 70% 42%;
-  --accent-soft: 180 50% 95%;
+  --elk-accent: 180 75% 32%;
+  --elk-accent-foreground: 0 0% 100%;
+  --elk-accent-light: 180 70% 42%;
+  --elk-accent-soft: 180 50% 95%;
 
   // --- Semânticas ---
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
+  --elk-destructive: 0 72% 51%;
+  --elk-destructive-foreground: 0 0% 100%;
 
-  --success: 142 71% 35%;
-  --success-foreground: 0 0% 100%;
+  --elk-success: 142 71% 35%;
+  --elk-success-foreground: 0 0% 100%;
 
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 0%;
+  --elk-warning: 38 92% 50%;
+  --elk-warning-foreground: 0 0% 0%;
 
   // --- Neutras ---
   --neutral-50: 220 14% 98%;
@@ -62,16 +63,16 @@
   --neutral-900: 224 47% 11%;
 
   // --- Bordas e Inputs ---
-  --border: 220 13% 91%;
-  --border-muted: 220 13% 95%;
-  --input: 220 13% 91%;
-  --ring: 261 54% 33%;
+  --elk-border: 220 13% 91%;
+  --elk-border-muted: 220 13% 95%;
+  --elk-input: 220 13% 91%;
+  --elk-ring: 261 54% 33%;
 
   // --- Gradientes ---
-  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
-  --gradient-hero: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
-  --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--neutral-100)));
-  --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
+  --gradient-primary: linear-gradient(135deg, hsl(var(--elk-primary)), hsl(var(--elk-primary-light)));
+  --gradient-hero: linear-gradient(135deg, hsl(var(--elk-secondary)), hsl(var(--elk-primary)));
+  --gradient-subtle: linear-gradient(180deg, hsl(var(--elk-background)), hsl(var(--neutral-100)));
+  --gradient-accent: linear-gradient(135deg, hsl(var(--elk-accent)), hsl(var(--elk-accent-light)));
 
   // --- Sombras ---
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -79,15 +80,15 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
-  --shadow-primary: 0 4px 14px -3px hsl(var(--primary) / 0.25);
-  --shadow-primary-lg: 0 10px 25px -5px hsl(var(--primary) / 0.2);
+  --shadow-primary: 0 4px 14px -3px hsl(var(--elk-primary) / 0.25);
+  --shadow-primary-lg: 0 10px 25px -5px hsl(var(--elk-primary) / 0.2);
 
   --shadow-elegant: var(--shadow-primary);
-  --shadow-glow: 0 0 30px hsl(var(--primary) / 0.12);
+  --shadow-glow: 0 0 30px hsl(var(--elk-primary) / 0.12);
   --shadow-card: var(--shadow-sm);
   --shadow-card-hover: var(--shadow-md);
 
-  --radius: 0.5rem;
+  --elk-radius: 0.5rem;
 
   // --- Tipografia ---
   --font-size-xs: 0.75rem;
@@ -130,45 +131,45 @@
 // ============================================================================
 .dark {
   // --- Cores Base ---
-  --background: 224 47% 9%;
-  --foreground: 220 14% 96%;
+  --elk-background: 224 47% 9%;
+  --elk-foreground: 220 14% 96%;
 
-  --card: 224 42% 12%;
-  --card-foreground: 220 14% 96%;
+  --elk-card: 224 42% 12%;
+  --elk-card-foreground: 220 14% 96%;
 
-  --popover: 224 42% 14%;
-  --popover-foreground: 220 14% 96%;
+  --elk-popover: 224 42% 14%;
+  --elk-popover-foreground: 220 14% 96%;
 
   // --- Cores da Marca ---
-  --primary: 261 65% 55%;
-  --primary-foreground: 0 0% 100%;
-  --primary-light: 261 60% 65%;
-  --primary-dark: 261 54% 33%;
-  --primary-soft: 261 40% 18%;
+  --elk-primary: 261 65% 55%;
+  --elk-primary-foreground: 0 0% 100%;
+  --elk-primary-light: 261 60% 65%;
+  --elk-primary-dark: 261 54% 33%;
+  --elk-primary-soft: 261 40% 18%;
 
-  --secondary: 223 55% 42%;
-  --secondary-foreground: 0 0% 100%;
-  --secondary-light: 223 50% 52%;
-  --secondary-dark: 223 48% 27%;
+  --elk-secondary: 223 55% 42%;
+  --elk-secondary-foreground: 0 0% 100%;
+  --elk-secondary-light: 223 50% 52%;
+  --elk-secondary-dark: 223 48% 27%;
 
-  --muted: 224 30% 18%;
-  --muted-foreground: 220 10% 60%;
+  --elk-muted: 224 30% 18%;
+  --elk-muted-foreground: 220 10% 60%;
 
   // --- Accent ---
-  --accent: 180 70% 45%;
-  --accent-foreground: 0 0% 100%;
-  --accent-light: 180 65% 55%;
-  --accent-soft: 180 40% 18%;
+  --elk-accent: 180 70% 45%;
+  --elk-accent-foreground: 0 0% 100%;
+  --elk-accent-light: 180 65% 55%;
+  --elk-accent-soft: 180 40% 18%;
 
   // --- Semânticas ---
-  --destructive: 0 72% 55%;
-  --destructive-foreground: 0 0% 100%;
+  --elk-destructive: 0 72% 55%;
+  --elk-destructive-foreground: 0 0% 100%;
 
-  --success: 142 65% 42%;
-  --success-foreground: 0 0% 100%;
+  --elk-success: 142 65% 42%;
+  --elk-success-foreground: 0 0% 100%;
 
-  --warning: 38 88% 55%;
-  --warning-foreground: 0 0% 0%;
+  --elk-warning: 38 88% 55%;
+  --elk-warning-foreground: 0 0% 0%;
 
   // --- Neutras ---
   --neutral-50: 224 30% 18%;
@@ -183,16 +184,16 @@
   --neutral-900: 220 14% 96%;
 
   // --- Bordas e Inputs ---
-  --border: 224 25% 20%;
-  --border-muted: 224 25% 16%;
-  --input: 224 25% 20%;
-  --ring: 261 65% 55%;
+  --elk-border: 224 25% 20%;
+  --elk-border-muted: 224 25% 16%;
+  --elk-input: 224 25% 20%;
+  --elk-ring: 261 65% 55%;
 
   // --- Gradientes ---
-  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
-  --gradient-hero: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
-  --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(224 35% 14%));
-  --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
+  --gradient-primary: linear-gradient(135deg, hsl(var(--elk-primary)), hsl(var(--elk-primary-light)));
+  --gradient-hero: linear-gradient(135deg, hsl(var(--elk-secondary)), hsl(var(--elk-primary)));
+  --gradient-subtle: linear-gradient(180deg, hsl(var(--elk-background)), hsl(224 35% 14%));
+  --gradient-accent: linear-gradient(135deg, hsl(var(--elk-accent)), hsl(var(--elk-accent-light)));
 
   // --- Sombras ---
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
@@ -200,11 +201,11 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.2);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.35), 0 8px 10px -6px rgb(0 0 0 / 0.25);
 
-  --shadow-primary: 0 4px 14px -3px hsl(var(--primary) / 0.35);
-  --shadow-primary-lg: 0 10px 25px -5px hsl(var(--primary) / 0.3);
+  --shadow-primary: 0 4px 14px -3px hsl(var(--elk-primary) / 0.35);
+  --shadow-primary-lg: 0 10px 25px -5px hsl(var(--elk-primary) / 0.3);
 
   --shadow-elegant: var(--shadow-primary);
-  --shadow-glow: 0 0 30px hsl(var(--primary) / 0.18);
+  --shadow-glow: 0 0 30px hsl(var(--elk-primary) / 0.18);
   --shadow-card: var(--shadow-sm);
   --shadow-card-hover: var(--shadow-md);
 }

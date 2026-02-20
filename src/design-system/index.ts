@@ -26,6 +26,9 @@ export { Toaster } from "./components/Toast";
 export { HexRating } from "./components/HexRating";
 export type { HexRatingProps } from "./components/HexRating";
 
+export { HexPattern } from "./components/HexPattern";
+export type { HexPatternProps } from "./components/HexPattern";
+
 // --- Primitives ---
 export { Container } from "./primitives/Container";
 export type { ContainerProps } from "./primitives/Container";

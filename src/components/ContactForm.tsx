@@ -3,11 +3,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import emailjs from "@emailjs/browser";
-import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle } from "@/design-system";
+import {
+  Button,
+  Input,
+  Textarea,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  HexPattern,
+} from "@/design-system";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { EMAILJS_CONFIG } from "@/config/emailjs";
-import hexagonalBg from "../../public/imgs/icons/hexagonal.webp";
 
 const contactFormSchema = z.object({
   name: z
@@ -110,12 +118,7 @@ const ContactForm = () => {
               </Card>
 
               <div className="bg-gradient-primary rounded-xl p-6 text-white hex-card-container">
-                <img
-                  src={hexagonalBg}
-                  alt=""
-                  aria-hidden="true"
-                  className="hex-card-bg -right-6 -bottom-6 w-28 h-28 opacity-[0.08] animate-hex-spin will-change-transform"
-                />
+                <HexPattern variant="card" />
                 <div className="relative z-10">
                   <p className="font-bold mb-4">Compromisso de resposta</p>
                   <p className="text-sm opacity-90 mb-4">

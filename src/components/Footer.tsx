@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@/design-system";
+import { services as serviceData } from "@/data/services";
 
 const Footer = () => {
   const [mounted, setMounted] = useState(false);
@@ -20,12 +21,9 @@ const Footer = () => {
     { label: "Contato", href: "#contact" },
   ];
 
-  const services = [
-    "Desenvolvimento Sob Demanda",
-    "Automação e RPA",
-    "Integrações de Sistemas",
-    "Consultoria e DevOps",
-    "Suporte Técnico",
+  const footerServices = [
+    ...serviceData.map((s) => ({ label: s.title, href: `/servicos/${s.slug}` })),
+    { label: "Suporte Técnico", href: null },
   ];
 
   const legal = [
@@ -100,9 +98,18 @@ const Footer = () => {
           <div>
             <p className="font-semibold mb-4">Serviços</p>
             <ul className="space-y-2">
-              {services.map((service) => (
-                <li key={service}>
-                  <span className="text-sm text-muted-foreground">{service}</span>
+              {footerServices.map((service) => (
+                <li key={service.label}>
+                  {service.href ? (
+                    <Link
+                      to={service.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
+                    >
+                      {service.label}
+                    </Link>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">{service.label}</span>
+                  )}
                 </li>
               ))}
             </ul>

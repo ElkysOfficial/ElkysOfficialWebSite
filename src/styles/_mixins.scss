@@ -4,10 +4,10 @@
  */
 
 /// Focus ring padrão (focus-visible)
-@mixin focus-ring($color: var(--ring), $offset: 2px, $width: 2px) {
+@mixin focus-ring($color: var(--elk-ring), $offset: 2px, $width: 2px) {
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 #{$offset} hsl(var(--background)), 0 0 0 calc(#{$offset} + #{$width}) hsl(#{$color});
+    box-shadow: 0 0 0 #{$offset} hsl(var(--elk-background)), 0 0 0 calc(#{$offset} + #{$width}) hsl(#{$color});
   }
 }
 

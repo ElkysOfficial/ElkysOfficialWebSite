@@ -1,10 +1,10 @@
-# Elkys Design System v3.2
+# Elkys Design System v3.3
 
 > **Elkys Software House** | Internal Design System Specification
 > Authorial system — zero third-party UI kits
 > Stack: Tailwind CSS + SCSS Tokens + React Components + SVGR Icons
 
-**Last updated:** 19/02/2026 14:32
+**Last updated:** 20/02/2026 02:07
 **Maintainer:** Elkys Engineering Team
 **Status:** Production
 
@@ -58,7 +58,7 @@
 src/
 ├── assets/
 │   └── icons/                 # Proprietary SVGR icon system
-│       ├── svg/               # Raw SVG files (35 icons)
+│       ├── svg/               # Raw SVG files (36 icons)
 │       ├── create-icon.tsx    # Icon wrapper with a11y defaults
 │       ├── index.ts           # Tree-shakeable barrel exports
 │       └── LICENSE            # Lucide ISC attribution
@@ -74,6 +74,8 @@ src/
 │   ├── components/
 │   │   ├── Button.tsx         # CVA variants (10 variants, 4 sizes)
 │   │   ├── Card.tsx           # Card + subcomponents (Header, Title, Content, Footer)
+│   │   ├── HexPattern.tsx     # Hexagonal decorative pattern (4 variants)
+│   │   ├── HexRating.tsx      # Hexagonal rating system (testimonials)
 │   │   ├── Input.tsx          # Input field (44px min-height)
 │   │   ├── Textarea.tsx       # Textarea field (120px min-height)
 │   │   └── Toast.tsx          # Wrapper over Sonner (theme-aware)
@@ -472,9 +474,9 @@ svgr({
 });
 ```
 
-### Available Icons (35)
+### Available Icons (36)
 
-`ArrowLeft` `ArrowRight` `ArrowUp` `Building2` `CheckCircle` `ChevronRight` `Clock` `Code` `Code2` `Cog` `Cookie` `ExternalLink` `Eye` `FileText` `Github` `Globe` `Heart` `Home` `Instagram` `Linkedin` `Mail` `Menu` `Network` `Phone` `Play` `Quote` `Search` `Send` `Shield` `Star` `Target` `TrendingUp` `Wrench` `X` `Zap`
+`ArrowLeft` `ArrowRight` `ArrowUp` `Building2` `CheckCircle` `ChevronRight` `Clock` `Code` `Code2` `Cog` `Cookie` `ExternalLink` `Eye` `FileText` `Github` `Globe` `Heart` `Hexagon` `Home` `Instagram` `Linkedin` `Mail` `Menu` `Network` `Phone` `Play` `Quote` `Search` `Send` `Shield` `Star` `Target` `TrendingUp` `Wrench` `X` `Zap`
 
 ---
 
@@ -560,6 +562,32 @@ toast.error("Error sending", { description: "Please try again." });
 ```
 
 The `<Toaster />` component must be mounted once in `App.tsx`.
+
+### 11.6 HexPattern
+
+**File:** `src/design-system/components/HexPattern.tsx`
+
+Standardized rotating hexagonal background decoration. See [Section 17](#17-hexagonal-identity-system) for full documentation.
+
+| Variant  | Usage                     |
+| -------- | ------------------------- |
+| `banner` | CTA full-width boxes      |
+| `card`   | Small gradient cards      |
+| `subtle` | Neutral-bg info cards     |
+| `inline` | Buttons with hover effect |
+
+### 11.7 HexRating
+
+**File:** `src/design-system/components/HexRating.tsx`
+
+Proprietary hexagonal rating system (testimonials). Renders filled/half/empty hexagons with semantic trust labels. No numeric values displayed.
+
+| Prop     | Type     | Default | Description             |
+| -------- | -------- | ------- | ----------------------- |
+| `rating` | `number` | —       | Rating value (0 to max) |
+| `max`    | `number` | `5`     | Maximum scale           |
+| `label`  | `string` | auto    | Trust label override    |
+| `size`   | `number` | `16`    | Hexagon size in px      |
 
 ---
 
@@ -739,25 +767,70 @@ Brand shape: rounded hexagon (`hexagonal.webp`). Used as **micro-accents only**,
 - Type badges
 - Full card borders
 
-### Rotating Hexagonal Decoration
+### HexPattern Component
 
-Purple gradient boxes (`bg-gradient-primary`) feature a subtle rotating hexagonal background:
+**File:** `src/design-system/components/HexPattern.tsx`
+
+Standardized React component for all rotating hexagonal decorations. Centralizes the `hexagonal.webp` import, accessibility attributes, and animation classes.
 
 ```tsx
+import { HexPattern } from "@/design-system";
+
+// CTA banners (full-width gradient boxes)
 <div className="bg-gradient-primary hex-card-container">
-  <img
-    src={hexagonalBg}
-    alt=""
-    aria-hidden="true"
-    className="hex-card-bg opacity-[0.08] animate-hex-spin will-change-transform"
-  />
+  <HexPattern variant="banner" />
   <div className="relative z-10">...</div>
 </div>
+
+// Smaller gradient cards (Contact, ContactForm)
+<Card className="bg-gradient-primary hex-card-container">
+  <HexPattern variant="card" />
+  <CardContent className="relative z-10">...</CardContent>
+</Card>
+
+// Neutral background cards (benefits, info)
+<Card className="hex-card-container">
+  <HexPattern variant="subtle" />
+  <CardContent className="relative z-10">...</CardContent>
+</Card>
+
+// Inline elements with hover interaction (buttons)
+<Link className="relative overflow-hidden group">
+  <HexPattern variant="inline" />
+  <span className="relative z-10">...</span>
+</Link>
 ```
 
+#### Variants
+
+| Variant  | Size (mobile / desktop)     | Opacity L/D      | Offset               | Context                           |
+| -------- | --------------------------- | ---------------- | -------------------- | --------------------------------- |
+| `banner` | w-48 h-48 / md:w-60 md:h-60 | 0.25 / 0.10      | -right-10 -bottom-10 | CTA full-width gradient boxes     |
+| `card`   | w-44 h-44 / md:w-48 md:h-48 | 0.25 / 0.10      | -right-10 -bottom-10 | Small gradient cards              |
+| `subtle` | w-32 h-32 / md:w-36 md:h-36 | 0.06 / 0.08      | -right-8 -bottom-8   | Neutral-bg cards (benefits, info) |
+| `inline` | w-20 h-20                   | 0.10/0.15 → 0.25 | -right-4 -bottom-4   | Buttons with hover interaction    |
+
+#### Props
+
+```typescript
+interface HexPatternProps {
+  variant?: "banner" | "card" | "subtle" | "inline"; // default: "banner"
+  className?: string; // Override via cn() merge
+}
+```
+
+#### Container Requirements
+
+- **banner / card / subtle:** Parent must have `hex-card-container` class (provides `position: relative`, `overflow: hidden`, hover pause)
+- **inline:** Parent must have `position: relative` + `overflow: hidden` (typically set inline)
+
+#### Technical Details
+
 - Animation: `hex-spin` — 20s ease-in-out infinite
-- Pauses on hover via CSS `animation-play-state: paused`
+- Pauses on hover via CSS `animation-play-state: paused` (`.hex-card-container`)
 - Respects `prefers-reduced-motion`
+- GPU-optimized: `will-change-transform`
+- Accessibility: `alt=""` + `aria-hidden="true"` built-in
 
 ---
 
@@ -840,6 +913,23 @@ Purple gradient boxes (`bg-gradient-primary`) feature a subtle rotating hexagona
 
 ## 20. Changelog
 
+### v3.3 (20/02/2026)
+
+- **HexPattern component:** New `HexPattern` design system component with 4 semantic variants (`banner`, `card`, `subtle`, `inline`)
+- Centralized `hexagonal.webp` import — single source of truth for all decorative hex patterns
+- Migrated 6 inline `<img>` occurrences across 5 files to `<HexPattern />`
+- Standardized hex pattern sizes, opacities, and offsets across all pages
+- Added `subtle` variant for neutral-bg cards (benefits section in ServiceDetail)
+- **Service detail pages:** Created dedicated pages for each of 4 services (`/servicos/:slug`)
+- Created `src/data/services.ts` — centralized service data with slugs, details, benefits, technologies
+- Navigation dropdown: professional "Serviços" dropdown with service icons (desktop hover + mobile expandable)
+- Hexagonal bullet points in service feature lists (replaced round dots)
+- Hexagonal inline pattern on "Saiba mais" buttons with hover interaction
+- Footer service links now point to dedicated service pages
+- **OG images:** Regenerated `og-image.jpg` and `twitter-card.jpg` with professional brand design (Sharp + SVG)
+- **SEO:** Updated meta tags, Schema.org structured data, site name "Elkys"
+- Added `Hexagon` to SVGR icon system (36 icons total)
+
 ### v3.2 (19/02/2026)
 
 - **Icon system migration:** Removed `lucide-react` dependency, replaced with proprietary SVGR icon system (`src/assets/icons/`)
@@ -871,5 +961,5 @@ Purple gradient boxes (`bg-gradient-primary`) feature a subtle rotating hexagona
 
 ---
 
-> **Elkys Design System v3.2** — Authorial DS, zero third-party UI kits
-> Last updated: 19/02/2026 14:32
+> **Elkys Design System v3.3** — Authorial DS, zero third-party UI kits
+> Last updated: 20/02/2026 02:07

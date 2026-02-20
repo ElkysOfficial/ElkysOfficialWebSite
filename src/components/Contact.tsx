@@ -1,6 +1,5 @@
 import { Phone, Mail, Linkedin, Github, Clock, Instagram } from "@/assets/icons";
-import { Card, CardContent, Button } from "@/design-system";
-import hexagonalBg from "../../public/imgs/icons/hexagonal.webp";
+import { Card, CardContent, Button, HexPattern } from "@/design-system";
 
 const Contact = () => {
   const contactInfo = [
@@ -117,12 +116,7 @@ const Contact = () => {
               </CardContent>
             </Card>
             <Card className="shadow-elegant bg-gradient-primary text-white hex-card-container">
-              <img
-                src={hexagonalBg}
-                alt=""
-                aria-hidden="true"
-                className="hex-card-bg -right-8 -bottom-8 w-36 h-36 opacity-[0.08] animate-hex-spin will-change-transform"
-              />
+              <HexPattern variant="card" />
               <CardContent className="p-6 text-center space-y-4 relative z-10">
                 <p className="text-lg md:text-xl font-bold">Suporte Prioritário</p>
                 <p className="opacity-90">
