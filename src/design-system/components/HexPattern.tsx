@@ -1,4 +1,4 @@
-import { cn } from "../utils/cn";
+import { cn } from "@/design-system/utils/cn";
 import hexagonalBg from "../../../public/imgs/icons/hexagonal.webp";
 
 export interface HexPatternProps {

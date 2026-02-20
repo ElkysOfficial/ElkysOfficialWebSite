@@ -80,7 +80,7 @@ const ServiceDetail = () => {
               <div className="max-w-3xl">
                 {/* Breadcrumb */}
                 <nav aria-label="Breadcrumb" className="mb-6 animate-fade-in">
-                  <ol className="flex items-center gap-2 text-sm text-gray-300/80">
+                  <ol className="flex items-center gap-2 text-sm text-white/60">
                     <li>
                       <Link to="/" className="hover:text-white transition-colors">
                         Início
@@ -107,7 +107,7 @@ const ServiceDetail = () => {
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
                       {service.title}
                     </h1>
-                    <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up">
+                    <p className="text-base md:text-lg text-white/80 leading-relaxed animate-slide-up">
                       {service.description}
                     </p>
                   </div>
@@ -218,7 +218,7 @@ const ServiceDetail = () => {
           </section>
 
           {/* CTA Section */}
-          <section className="py-12 md:py-16">
+          <section className="py-16 md:py-20 lg:py-24">
             <div className="container mx-auto px-4">
               <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10 hex-card-container">
                 <HexPattern variant="banner" />

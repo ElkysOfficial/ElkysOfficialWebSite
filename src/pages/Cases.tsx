@@ -194,7 +194,7 @@ const ProjectCard = ({ project, featured = false }: ProjectCardProps) => {
       onBlur={handleClickOutside}
     >
       {/* Media Container */}
-      <div className="relative aspect-video overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+      <div className="relative aspect-video overflow-hidden bg-muted">
         {/* Poster Image - always rendered */}
         <img
           src={project.posterImage}
@@ -224,7 +224,7 @@ const ProjectCard = ({ project, featured = false }: ProjectCardProps) => {
         {/* Play indicator for videos - ciano */}
         {project.previewVideo && !isHovered && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-white/90 dark:bg-slate-900/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+            <div className="w-12 h-12 rounded-full bg-background/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
               <Play className="w-5 h-5 text-accent ml-0.5" />
             </div>
           </div>
@@ -246,7 +246,7 @@ const ProjectCard = ({ project, featured = false }: ProjectCardProps) => {
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-slate-900/90 shadow-md hover:bg-white dark:hover:bg-slate-800 transition-colors duration-150"
+            className="absolute top-3 right-3 p-2 rounded-lg bg-background/90 shadow-md hover:bg-background transition-colors duration-150"
             aria-label={`Visitar ${project.name}`}
           >
             <ExternalLink className="w-4 h-4 text-foreground" />
@@ -365,7 +365,7 @@ const Cases = () => {
                       Projetos e Soluções que{" "}
                       <span className="text-accent">Impulsionam Negócios</span>
                     </h1>
-                    <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up">
+                    <p className="text-base md:text-lg text-white/80 leading-relaxed animate-slide-up">
                       Soluções digitais personalizadas para empresas que já superaram ferramentas
                       genéricas e precisam de tecnologia alinhada à sua realidade operacional.
                     </p>
@@ -378,19 +378,17 @@ const Cases = () => {
                   >
                     <div className="text-center">
                       <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
-                      <div className="text-xs md:text-sm text-gray-300/80 mt-1">
+                      <div className="text-xs md:text-sm text-white/60 mt-1">
                         Projetos em produção
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl md:text-3xl font-bold text-accent">4</div>
-                      <div className="text-xs md:text-sm text-gray-300/80 mt-1">
-                        Tipos de solução
-                      </div>
+                      <div className="text-xs md:text-sm text-white/60 mt-1">Tipos de solução</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
-                      <div className="text-xs md:text-sm text-gray-300/80 mt-1">
+                      <div className="text-xs md:text-sm text-white/60 mt-1">
                         Retenção de clientes
                       </div>
                     </div>
@@ -432,7 +430,7 @@ const Cases = () => {
           </section>
 
           {/* CTA Section */}
-          <section className="py-12 md:py-16">
+          <section className="py-16 md:py-20 lg:py-24">
             <div className="container mx-auto px-4">
               <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10 hex-card-container">
                 <HexPattern variant="banner" />
@@ -449,7 +447,7 @@ const Cases = () => {
                     size="lg"
                     variant="accent"
                     className="btn-primary-animate w-full md:w-auto min-h-[44px] shrink-0"
-                    onClick={() => window.open("https://wa.me/553197382935", "_blank")}
+                    onClick={() => window.open("https://wa.me/553199738235", "_blank")}
                     aria-label="Iniciar conversa no WhatsApp"
                   >
                     Iniciar conversa

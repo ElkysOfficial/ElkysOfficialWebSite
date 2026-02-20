@@ -7,16 +7,16 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const gapMap: Record<number, string> = {
-  2: "space-y-2",
-  3: "space-y-3",
-  4: "space-y-4",
-  6: "space-y-6",
-  8: "space-y-8",
+  2: "gap-2",
+  3: "gap-3",
+  4: "gap-4",
+  6: "gap-6",
+  8: "gap-8",
 };
 
 const Stack = React.forwardRef<HTMLDivElement, StackProps>(
   ({ className, gap = 4, ...props }, ref) => (
-    <div ref={ref} className={cn(gapMap[gap], className)} {...props} />
+    <div ref={ref} className={cn("flex flex-col", gapMap[gap], className)} {...props} />
   )
 );
 Stack.displayName = "Stack";

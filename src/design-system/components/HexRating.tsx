@@ -1,4 +1,4 @@
-import { cn } from "../utils/cn";
+import { cn } from "@/design-system/utils/cn";
 
 export interface HexRatingProps {
   /** Rating value from 0 to 5 (internal, never displayed as number) */

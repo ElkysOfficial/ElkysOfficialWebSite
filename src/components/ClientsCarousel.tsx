@@ -28,7 +28,7 @@ const ClientsCarousel = () => {
   const duplicatedLogos = [...logos, ...logos, ...logos];
 
   return (
-    <section className="py-12 md:py-16 bg-background border-y border-border overflow-hidden">
+    <section className="py-16 md:py-20 lg:py-24 bg-background border-y border-border overflow-hidden">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">

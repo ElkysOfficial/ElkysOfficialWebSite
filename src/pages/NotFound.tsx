@@ -1,7 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Home, Search, ArrowLeft } from "@/assets/icons";
-import { Button } from "@/design-system";
+import { Button, buttonVariants, cn } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
@@ -50,11 +50,15 @@ const NotFound = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
-            <Link to="/">
-              <Button size="lg" variant="gradient" className="w-full sm:w-auto">
-                <Home className="mr-2 h-5 w-5" />
-                Voltar para Home
-              </Button>
+            <Link
+              to="/"
+              className={cn(
+                buttonVariants({ size: "lg", variant: "gradient" }),
+                "w-full sm:w-auto"
+              )}
+            >
+              <Home className="mr-2 h-5 w-5" />
+              Voltar para Home
             </Link>
             <Button
               size="lg"
@@ -71,15 +75,14 @@ const NotFound = () => {
           <div className="pt-8 border-t border-border">
             <p className="text-sm text-muted-foreground mb-4">Navegue pelo site:</p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <Link to="/#services">
-                <Button variant="ghost" size="sm">
-                  Serviços
-                </Button>
+              <Link
+                to="/#services"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              >
+                Serviços
               </Link>
-              <Link to="/#contact">
-                <Button variant="ghost" size="sm">
-                  Contato
-                </Button>
+              <Link to="/#contact" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+                Contato
               </Link>
             </div>
           </div>

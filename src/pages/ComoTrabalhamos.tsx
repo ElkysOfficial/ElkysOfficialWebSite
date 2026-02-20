@@ -114,7 +114,7 @@ const ComoTrabalhamos = () => {
             <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24 relative z-10">
               <div className="max-w-3xl">
                 <nav aria-label="Breadcrumb" className="mb-6 animate-fade-in">
-                  <ol className="flex items-center gap-2 text-sm text-gray-300/80">
+                  <ol className="flex items-center gap-2 text-sm text-white/60">
                     <li>
                       <Link to="/" className="hover:text-white transition-colors">
                         Início
@@ -129,7 +129,7 @@ const ComoTrabalhamos = () => {
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
                     Hexa Design <span className="text-accent">System</span>
                   </h1>
-                  <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up max-w-2xl">
+                  <p className="text-base md:text-lg text-white/80 leading-relaxed animate-slide-up max-w-2xl">
                     Escopo definido antes do código. Validação a cada ciclo. Rastreabilidade de
                     ponta a ponta. É assim que reduzimos risco em projetos de software sob demanda.
                   </p>
@@ -144,10 +144,7 @@ const ComoTrabalhamos = () => {
               {/* Desktop: Hexagonal Wheel + Info (lg+) */}
               <div className="hidden lg:grid lg:grid-cols-2 gap-8 xl:gap-12 items-center">
                 <div className="flex justify-center">
-                  <div
-                    className="relative animate-hex-breathe will-change-transform"
-                    style={{ width: 520, height: 520 }}
-                  >
+                  <div className="relative" style={{ width: 520, height: 520 }}>
                     {/* Hexagonal background watermark */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <img
@@ -234,7 +231,7 @@ const ComoTrabalhamos = () => {
                             {step.title}
                           </span>
                           {step.duration && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                            <span className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">
                               <Clock className="h-2.5 w-2.5" />
                               {step.duration}
                             </span>
@@ -315,7 +312,7 @@ const ComoTrabalhamos = () => {
                       className="max-w-2xl w-full relative outline-none"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Card className="shadow-2xl">
+                      <Card className="shadow-xl">
                         <button
                           className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-lg"
                           onClick={closeModal}
@@ -414,7 +411,7 @@ const ComoTrabalhamos = () => {
                                 {step.number}ª Etapa
                               </span>
                               {step.duration && (
-                                <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                                <span className="text-xs text-muted-foreground flex items-center gap-0.5">
                                   <Clock className="h-3 w-3" />
                                   {step.duration}
                                 </span>
@@ -499,7 +496,7 @@ const ComoTrabalhamos = () => {
           </section>
 
           {/* CTA Section */}
-          <section className="py-12 md:py-16">
+          <section className="py-16 md:py-20 lg:py-24">
             <div className="container mx-auto px-4">
               <div className="bg-gradient-primary rounded-xl md:rounded-2xl p-6 md:p-10 hex-card-container">
                 <HexPattern variant="banner" />

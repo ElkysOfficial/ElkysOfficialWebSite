@@ -22,19 +22,19 @@ const Contact = () => {
       icon: Linkedin,
       name: "LinkedIn",
       url: "https://linkedin.com/company/elkys",
-      color: "hover:text-blue-600 dark:hover:text-blue-400",
+      color: "hover:text-primary",
     },
     {
       icon: Github,
       name: "GitHub",
       url: "https://github.com/elkys",
-      color: "hover:text-foreground dark:hover:text-primary",
+      color: "hover:text-foreground",
     },
     {
       icon: Instagram,
       name: "Instagram",
       url: "https://instagram.com/elkys_.oficial",
-      color: "hover:text-red-600 dark:hover:text-red-400",
+      color: "hover:text-primary",
     },
   ];
 

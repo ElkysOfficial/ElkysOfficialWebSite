@@ -36,7 +36,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-card text-card-foreground">
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 md:mb-12">
           <div className="space-y-4">
             <div className="flex items-center">
@@ -133,7 +133,7 @@ const Footer = () => {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground text-center md:text-left">
-              © 2025 elkys. Todos os direitos reservados.
+              © {new Date().getFullYear()} elkys. Todos os direitos reservados.
             </div>
 
             <div className="flex flex-wrap justify-center gap-4">

@@ -34,13 +34,13 @@ export const COMPANY = {
  */
 export const CONTACT = {
   /** Telefone para WhatsApp */
-  phone: "+55 (31) 9 9738-2935",
+  phone: "+55 (31) 9973-8235",
   /** Telefone formatado para links */
-  phoneLink: "553197382935",
+  phoneLink: "553199738235",
   /** E-mail principal */
   email: "contato@elkys.com.br",
   /** Link do WhatsApp */
-  whatsappUrl: "https://wa.me/553197382935",
+  whatsappUrl: "https://wa.me/553199738235",
 } as const;
 
 /**

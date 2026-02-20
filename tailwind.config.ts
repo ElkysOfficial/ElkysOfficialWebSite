@@ -183,10 +183,6 @@ export default {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
-        "hex-breathe": {
-          "0%, 100%": { transform: "rotate(-1deg) scale(1.05)" },
-          "50%": { transform: "rotate(1deg) scale(1.08)" },
-        },
 
         /**
          * ANIMAÇÕES DE INTERAÇÃO
@@ -227,7 +223,6 @@ export default {
         float: "float 3s ease-in-out infinite",
         "diamond-rotate": "diamond-rotate 5s ease-in-out infinite",
         "hex-spin": "hex-spin 20s ease-in-out infinite",
-        "hex-breathe": "hex-breathe 10s ease-in-out infinite",
         // Interação
         "card-pulse": "card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         // Carrossel

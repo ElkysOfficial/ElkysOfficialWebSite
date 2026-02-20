@@ -42,7 +42,8 @@ const Hero = () => {
       <div className="absolute -bottom-[400px] xs:-bottom-[500px] sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[700px] left-[30px] xs:left-[50px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[200px] scale-[1.75] xs:scale-[1.6] sm:scale-[1.25] md:scale-[1.6] lg:scale-200 xl:scale-100 2xl:scale-90 origin-bottom-left sm:origin-top-left">
         <img
           src={backgroundPattern}
-          alt="Background"
+          alt=""
+          aria-hidden="true"
           width={1200}
           height={1200}
           loading="eager"
@@ -60,10 +61,10 @@ const Hero = () => {
             {/* Headline e subtítulo */}
             <div className="space-y-4">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
-                Software sob medida para empresas querem
+                Software sob medida para empresas que querem
                 <span className="text-accent"> crescer</span> além das soluções prontas
               </h1>
-              <p className="text-base md:text-lg text-gray-200 leading-relaxed animate-slide-up">
+              <p className="text-base md:text-lg text-white/80 leading-relaxed animate-slide-up">
                 Projetamos e entregamos sistemas que acompanham a evolução do seu negócio, com
                 arquitetura escalável, código limpo e gestão transparente do projeto.
               </p>
@@ -78,7 +79,7 @@ const Hero = () => {
                 size="lg"
                 variant="accent"
                 className="btn-primary-animate w-full sm:w-auto min-h-[44px]"
-                onClick={() => window.open("https://wa.me/553197382935", "_blank")}
+                onClick={() => window.open("https://wa.me/553199738235", "_blank")}
                 aria-label="Fale com um especialista no WhatsApp"
               >
                 Fale com um especialista
@@ -98,15 +99,15 @@ const Hero = () => {
             >
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Projetos em produção</div>
+                <div className="text-xs md:text-sm text-white/60 mt-1">Projetos em produção</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Retenção de clientes</div>
+                <div className="text-xs md:text-sm text-white/60 mt-1">Retenção de clientes</div>
               </div>
               <div className="text-center col-span-2 sm:col-span-1">
                 <div className="text-2xl md:text-3xl font-bold text-accent">2+</div>
-                <div className="text-xs md:text-sm text-gray-300/80 mt-1">Anos de operação</div>
+                <div className="text-xs md:text-sm text-white/60 mt-1">Anos de operação</div>
               </div>
             </div>
           </div>
@@ -123,7 +124,7 @@ const Hero = () => {
                   <Code2 className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Clean Code</p>
-                    <p className="text-gray-300 text-sm">Código limpo e documentado</p>
+                    <p className="text-white/60 text-sm">Código limpo e documentado</p>
                   </div>
                 </div>
                 {/* Feature 2: Entregas Ágeis */}
@@ -134,7 +135,7 @@ const Hero = () => {
                   <Zap className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Entregas Ágeis</p>
-                    <p className="text-gray-300 text-sm">Gestão transparente do projeto</p>
+                    <p className="text-white/60 text-sm">Gestão transparente do projeto</p>
                   </div>
                 </div>
                 {/* Feature 3: Suporte Contínuo */}
@@ -145,7 +146,7 @@ const Hero = () => {
                   <Shield className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Suporte Contínuo</p>
-                    <p className="text-gray-300 text-sm">Suporte pós-entrega</p>
+                    <p className="text-white/60 text-sm">Suporte pós-entrega</p>
                   </div>
                 </div>
               </div>

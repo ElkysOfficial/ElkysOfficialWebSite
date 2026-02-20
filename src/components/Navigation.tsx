@@ -150,23 +150,17 @@ const Navigation = () => {
   const linkClass =
     useTransparent && !hasScrolled
       ? "text-white hover:text-accent"
-      : isDarkTheme
-        ? "text-slate-200 hover:text-primary"
-        : "text-foreground hover:text-primary";
+      : "text-foreground hover:text-primary";
 
   const navBg = hasScrolled
-    ? isDarkTheme
-      ? "bg-slate-900/95 shadow-md border-b border-slate-800"
-      : "bg-white/95 shadow-md border-b border-slate-100"
+    ? "bg-background/95 shadow-md border-b border-border"
     : useTransparent
       ? "bg-transparent"
-      : "bg-white/95 shadow-md border-b border-slate-100";
+      : "bg-background/95 shadow-md border-b border-border";
 
-  const dropdownBg = isDarkTheme ? "bg-slate-900 border-slate-700" : "bg-white border-slate-200";
+  const dropdownBg = "bg-popover border-border";
 
-  const dropdownItemClass = isDarkTheme
-    ? "text-slate-300 hover:text-white hover:bg-slate-800"
-    : "text-slate-600 hover:text-primary hover:bg-slate-50";
+  const dropdownItemClass = "text-muted-foreground hover:text-primary hover:bg-muted";
 
   if (!mounted) {
     return <nav className="fixed top-0 left-0 right-0 z-50 h-16" />;
@@ -174,7 +168,7 @@ const Navigation = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-all duration-500 ${navBg}`}
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md transition-all duration-300 ${navBg}`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -314,7 +308,7 @@ const Navigation = () => {
             )}
             <Button
               variant="gradient"
-              onClick={() => window.open("https://wa.me/553197382935", "_blank")}
+              onClick={() => window.open("https://wa.me/553199738235", "_blank")}
               aria-label="Fale conosco pelo WhatsApp"
             >
               Fale Conosco
@@ -322,7 +316,7 @@ const Navigation = () => {
           </div>
 
           <button
-            className={`md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors duration-150 ${useTransparent && !hasScrolled ? "text-white" : isDarkTheme ? "text-slate-200" : "text-foreground"}`}
+            className={`md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors duration-150 ${useTransparent && !hasScrolled ? "text-white" : "text-foreground"}`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
             aria-expanded={isMenuOpen}
@@ -343,17 +337,13 @@ const Navigation = () => {
           <div
             className={`absolute inset-0 transition-opacity duration-300 ${
               isMenuOpen ? "opacity-100" : "opacity-0"
-            } ${isDarkTheme ? "bg-slate-950/60" : "bg-black/20"}`}
+            } bg-foreground/20`}
             onClick={() => setIsMenuOpen(false)}
             aria-hidden="true"
           />
 
           {/* Menu panel */}
-          <div
-            className={`relative mx-3 mt-2 rounded-2xl shadow-xl border overflow-hidden ${
-              isDarkTheme ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
-            }`}
-          >
+          <div className="relative mx-3 mt-2 rounded-2xl shadow-xl border border-border overflow-hidden bg-popover">
             <div className="max-h-[calc(100vh-6rem)] overflow-y-auto p-4">
               {/* Nav links */}
               <nav className="space-y-1">
@@ -362,11 +352,7 @@ const Navigation = () => {
                     <div key={item.label}>
                       <button
                         onClick={() => setIsMobileAboutOpen(!isMobileAboutOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] transition-colors duration-150 ${
-                          isDarkTheme
-                            ? "text-white hover:bg-slate-800"
-                            : "text-foreground hover:bg-slate-50"
-                        }`}
+                        className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] transition-colors duration-150 text-foreground hover:bg-muted"
                       >
                         {item.label}
                         <Hexagon
@@ -384,13 +370,7 @@ const Navigation = () => {
                           isMobileAboutOpen ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div
-                          className={`ml-2 mr-2 mb-2 mt-1 rounded-xl border ${
-                            isDarkTheme
-                              ? "border-slate-800 bg-slate-800/50"
-                              : "border-slate-100 bg-slate-50/50"
-                          }`}
-                        >
+                        <div className="ml-2 mr-2 mb-2 mt-1 rounded-xl border border-border bg-muted/50">
                           <div className="p-1.5 space-y-0.5">
                             {aboutSubItems.map((sub) => {
                               const SubIcon = sub.icon;
@@ -398,11 +378,7 @@ const Navigation = () => {
                                 <Link
                                   key={sub.label}
                                   to={sub.href}
-                                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 ${
-                                    isDarkTheme
-                                      ? "text-slate-300 hover:text-white hover:bg-slate-700/50"
-                                      : "text-slate-600 hover:text-primary hover:bg-white"
-                                  }`}
+                                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 text-muted-foreground hover:text-primary hover:bg-background"
                                   onClick={() => setIsMenuOpen(false)}
                                 >
                                   <SubIcon className="h-4 w-4 flex-shrink-0" />
@@ -412,11 +388,7 @@ const Navigation = () => {
                                 <a
                                   key={sub.label}
                                   href={sub.href}
-                                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 ${
-                                    isDarkTheme
-                                      ? "text-slate-300 hover:text-white hover:bg-slate-700/50"
-                                      : "text-slate-600 hover:text-primary hover:bg-white"
-                                  }`}
+                                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 text-muted-foreground hover:text-primary hover:bg-background"
                                   onClick={() => setIsMenuOpen(false)}
                                 >
                                   <SubIcon className="h-4 w-4 flex-shrink-0" />
@@ -432,11 +404,7 @@ const Navigation = () => {
                     <div key={item.label}>
                       <button
                         onClick={() => setIsMobileServicesOpen(!isMobileServicesOpen)}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] transition-colors duration-150 ${
-                          isDarkTheme
-                            ? "text-white hover:bg-slate-800"
-                            : "text-foreground hover:bg-slate-50"
-                        }`}
+                        className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] transition-colors duration-150 text-foreground hover:bg-muted"
                       >
                         {item.label}
                         <Hexagon
@@ -454,13 +422,7 @@ const Navigation = () => {
                           isMobileServicesOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div
-                          className={`ml-2 mr-2 mb-2 mt-1 rounded-xl border ${
-                            isDarkTheme
-                              ? "border-slate-800 bg-slate-800/50"
-                              : "border-slate-100 bg-slate-50/50"
-                          }`}
-                        >
+                        <div className="ml-2 mr-2 mb-2 mt-1 rounded-xl border border-border bg-muted/50">
                           <div className="p-1.5 space-y-0.5">
                             {services.map((service) => {
                               const Icon = service.icon;
@@ -468,11 +430,7 @@ const Navigation = () => {
                                 <Link
                                   key={service.slug}
                                   to={`/servicos/${service.slug}`}
-                                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 ${
-                                    isDarkTheme
-                                      ? "text-slate-300 hover:text-white hover:bg-slate-700/50"
-                                      : "text-slate-600 hover:text-primary hover:bg-white"
-                                  }`}
+                                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg min-h-[44px] transition-colors duration-150 text-muted-foreground hover:text-primary hover:bg-background"
                                   onClick={() => setIsMenuOpen(false)}
                                 >
                                   <Icon className="h-4 w-4 flex-shrink-0" />
@@ -488,11 +446,7 @@ const Navigation = () => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      className={`block px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] flex items-center transition-colors duration-150 ${
-                        isDarkTheme
-                          ? "text-white hover:bg-slate-800"
-                          : "text-foreground hover:bg-slate-50"
-                      }`}
+                      className="flex px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] items-center transition-colors duration-150 text-foreground hover:bg-muted"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.label}
@@ -504,11 +458,7 @@ const Navigation = () => {
                       onClick={
                         item.label === "Início" ? handleHomeClick : () => setIsMenuOpen(false)
                       }
-                      className={`block px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] flex items-center transition-colors duration-150 ${
-                        isDarkTheme
-                          ? "text-white hover:bg-slate-800"
-                          : "text-foreground hover:bg-slate-50"
-                      }`}
+                      className="flex px-4 py-3.5 rounded-xl font-semibold text-base min-h-[48px] items-center transition-colors duration-150 text-foreground hover:bg-muted"
                     >
                       {item.label}
                     </a>
@@ -517,14 +467,14 @@ const Navigation = () => {
               </nav>
 
               {/* Divider */}
-              <div className={`my-4 mx-4 h-px ${isDarkTheme ? "bg-slate-800" : "bg-slate-100"}`} />
+              <div className="my-4 mx-4 h-px bg-border" />
 
               {/* CTA Button */}
               <Button
                 variant="gradient"
                 className="w-full min-h-[48px] text-base"
                 onClick={() => {
-                  window.open("https://wa.me/553197382935", "_blank");
+                  window.open("https://wa.me/553199738235", "_blank");
                   setIsMenuOpen(false);
                 }}
                 aria-label="Fale conosco pelo WhatsApp"

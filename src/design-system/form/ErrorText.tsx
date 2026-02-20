@@ -5,7 +5,12 @@ export type ErrorTextProps = React.HTMLAttributes<HTMLParagraphElement>;
 
 const ErrorText = React.forwardRef<HTMLParagraphElement, ErrorTextProps>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-destructive text-xs mt-1", className)} {...props} />
+    <p
+      ref={ref}
+      role="alert"
+      className={cn("text-destructive text-xs mt-1", className)}
+      {...props}
+    />
   )
 );
 ErrorText.displayName = "ErrorText";

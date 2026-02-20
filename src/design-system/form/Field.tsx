@@ -4,7 +4,7 @@ import { cn } from "@/design-system/utils/cn";
 export type FieldProps = React.HTMLAttributes<HTMLDivElement>;
 
 const Field = React.forwardRef<HTMLDivElement, FieldProps>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn(className)} {...props} />
+  <div ref={ref} className={cn("space-y-2", className)} {...props} />
 ));
 Field.displayName = "Field";
 

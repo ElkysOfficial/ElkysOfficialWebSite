@@ -26,7 +26,10 @@ const CookiePolicy = () => {
         <Navigation />
         <Breadcrumbs />
 
-        <main id="main-content" className="container mx-auto px-4 py-24 max-w-4xl">
+        <main
+          id="main-content"
+          className="container mx-auto px-4 py-16 md:py-20 lg:py-24 max-w-4xl"
+        >
           <header className="mb-12 border-b border-border pb-8">
             <p className="text-sm font-medium text-primary uppercase tracking-wider mb-2">
               Documento Legal
@@ -48,7 +51,7 @@ const CookiePolicy = () => {
             </div>
           </header>
 
-          <article className="prose prose-lg max-w-none">
+          <article className="max-w-none">
             <section className="mb-10">
               <h2 className="text-xl font-semibold mb-4 text-foreground border-l-4 border-primary pl-4">
                 1. Definicao de Cookies
