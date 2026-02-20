@@ -4,6 +4,7 @@ import { Button, Card, CardContent, HexPattern } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+import ServiceProcess from "@/components/ServiceProcess";
 import { getServiceBySlug } from "@/data/services";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 
@@ -170,6 +171,9 @@ const ServiceDetail = () => {
               </div>
             </div>
           </section>
+
+          {/* Service Process Section */}
+          <ServiceProcess serviceSlug={service.slug} />
 
           {/* Technologies Section */}
           <section className="py-16 md:py-20 lg:py-24 bg-background">

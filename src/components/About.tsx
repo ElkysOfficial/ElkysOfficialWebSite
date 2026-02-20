@@ -1,5 +1,7 @@
-import { Target, Eye, Heart, TrendingUp } from "@/assets/icons";
-import { Card, CardContent } from "@/design-system";
+import { Target, Eye, Heart, TrendingUp, ArrowRight } from "@/assets/icons";
+import { workPhilosophy } from "@/data/process";
+import { Link } from "react-router-dom";
+import { Card, CardContent, HexPattern } from "@/design-system";
 
 const About = () => {
   const values = [
@@ -87,19 +89,64 @@ const About = () => {
           </div>
         </div>
 
-        {/* Mission, Vision, Values */}
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+        {/* Values — horizontal compact */}
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-16 md:mb-20">
           {values.map((value, index) => (
-            <Card key={index} className="text-center p-6 md:p-8 group">
-              <CardContent className="p-0 space-y-4">
-                <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <value.icon className="h-8 w-8 text-white" />
+            <Card key={index} className="p-4 md:p-5">
+              <CardContent className="p-0 flex items-start gap-4">
+                <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <value.icon className="h-5 w-5 text-white" />
                 </div>
-                <p className="text-lg md:text-xl font-semibold text-foreground">{value.title}</p>
-                <p className="text-muted-foreground leading-relaxed">{value.description}</p>
+                <div className="space-y-1">
+                  <p className="text-sm md:text-base font-semibold text-foreground">
+                    {value.title}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {value.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* How We Work — grid 2 cols, icons left / text right */}
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
+          <div className="space-y-4">
+            {workPhilosophy.highlights.map((h, i) => {
+              const HighlightIcon = h.icon;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border"
+                >
+                  <HighlightIcon className="h-5 w-5 text-accent flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">{h.label}</span>
+                </div>
+              );
+            })}
+            <Link
+              to="/como-trabalhamos"
+              className="group relative inline-flex items-center justify-between gap-2 min-h-[44px] px-6 rounded-md overflow-hidden bg-muted text-muted-foreground hover:bg-gradient-primary hover:text-white transition-all duration-300"
+            >
+              <HexPattern variant="inline" />
+              <span className="relative z-10 text-sm font-medium">Ver processo completo</span>
+              <ArrowRight className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl md:text-2xl font-semibold text-foreground">
+              {workPhilosophy.heading}
+            </h3>
+            <p className="text-muted-foreground leading-relaxed">{workPhilosophy.paragraphs[0]}</p>
+            <div className="flex items-center space-x-2 text-primary">
+              <TrendingUp className="h-5 w-5" />
+              <span className="font-semibold">
+                Entendemos antes de propor. Entregamos antes de prometer.
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,5 +1,5 @@
 /**
- * ELKYS Design Tokens
+ * Elkys Design Tokens
  * Todas as variáveis CSS do design system.
  * HSL format sem wrapper hsl() nas vars.
  * Prefixo --elk- para namespace proprietário.
@@ -19,7 +19,7 @@
   --elk-popover: 0 0% 100%;
   --elk-popover-foreground: 224 47% 11%;
 
-  // --- Cores Oficiais da Marca ELKYS ---
+  // --- Cores Oficiais da Marca Elkys ---
   --elk-primary: 261 54% 33%;
   --elk-primary-foreground: 0 0% 100%;
   --elk-primary-light: 261 58% 45%;
@@ -114,6 +114,9 @@
   --letter-spacing-tight: -0.02em;
   --letter-spacing-normal: 0;
   --letter-spacing-wide: 0.02em;
+
+  // --- Hexagonal Identity ---
+  --hex-clip: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 
   // --- Border Radius ---
   --radius-xs: 0.125rem;

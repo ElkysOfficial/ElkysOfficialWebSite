@@ -1,5 +1,5 @@
 /**
- * ELKYS Icon System
+ * Elkys Icon System
  * SVG icons imported as React components via SVGR.
  * Original SVGs sourced from Lucide (ISC License — see LICENSE in this directory).
  */

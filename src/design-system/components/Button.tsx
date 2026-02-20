@@ -6,7 +6,7 @@ import { cn } from "@/design-system/utils/cn";
 /**
  * Button Variants
  *
- * Variantes padronizadas seguindo o Design System ELKYS:
+ * Variantes padronizadas seguindo o Design System Elkys:
  * - default: Roxo primário, ações principais
  * - accent: Ciano CTA, chamadas para ação destacadas
  * - secondary: Azul secundário, ações de suporte

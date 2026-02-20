@@ -1,5 +1,5 @@
 /**
- * ELKYS Design System
+ * Elkys Design System
  * Barrel export for all design system components.
  */
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Constantes globais da aplicação ELKYS
+ * @fileoverview Constantes globais da aplicação Elkys
  * @description Centraliza todas as constantes, configurações e dados estáticos
  * utilizados em toda a aplicação para facilitar manutenção e consistência.
  */
@@ -9,14 +9,14 @@
    ============================================================================ */
 
 /**
- * Dados da empresa ELKYS
+ * Dados da empresa Elkys
  * @description Informações de contato e identificação da marca
  */
 export const COMPANY = {
   /** Nome oficial da empresa */
-  name: "ELKYS",
+  name: "Elkys",
   /** Nome completo/legal */
-  legalName: "ELKYS Software",
+  legalName: "Elkys Software",
   /** Slogan principal */
   slogan: "Construímos software que transforma a maneira que você faz negócio",
   /** Ano de fundação */
@@ -74,10 +74,10 @@ export const SEO = {
   /** URL base do site */
   baseUrl: "https://elkys.com.br",
   /** Título padrão para SEO */
-  defaultTitle: "ELKYS | Desenvolvimento de Software Sob Demanda para PMEs",
+  defaultTitle: "Elkys | Desenvolvimento de Software Sob Demanda para PMEs",
   /** Descrição padrão */
   defaultDescription:
-    "ELKYS - Especialistas em desenvolvimento de software sob demanda. Criamos aplicações web, mobile, automação RPA e integrações para PMEs.",
+    "Elkys - Especialistas em desenvolvimento de software sob demanda. Criamos aplicações web, mobile, automação RPA e integrações para PMEs.",
   /** Imagem Open Graph */
   ogImage: "https://elkys.com.br/og-image.jpg",
   /** Imagem Twitter Card */
@@ -86,7 +86,7 @@ export const SEO = {
   locale: "pt_BR",
   /** Palavras-chave */
   keywords: [
-    "ELKYS",
+    "Elkys",
     "desenvolvimento de software",
     "software sob demanda",
     "PME",

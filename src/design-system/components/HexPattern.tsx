@@ -16,7 +16,7 @@ const variantStyles = {
   card: "hex-card-bg -right-10 -bottom-10 w-44 h-44 md:w-48 md:h-48 opacity-[0.25] dark:opacity-[0.10] animate-hex-spin will-change-transform",
   /** Cards com fundo neutro (benefits, info cards) */
   subtle:
-    "hex-card-bg -right-8 -bottom-8 w-32 h-32 md:w-36 md:h-36 opacity-[0.06] dark:opacity-[0.08] animate-hex-spin will-change-transform",
+    "hex-card-bg -right-8 -bottom-8 w-32 h-32 md:w-36 md:h-36 opacity-[0.06] dark:opacity-[0.18] animate-hex-spin will-change-transform",
   /** Elementos inline com interação (botão Saiba mais) */
   inline:
     "absolute -right-4 -bottom-4 w-20 h-20 opacity-[0.10] dark:opacity-[0.15] group-hover:opacity-[0.25] animate-hex-spin transition-opacity duration-300 pointer-events-none will-change-transform",

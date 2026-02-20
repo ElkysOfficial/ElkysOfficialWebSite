@@ -72,7 +72,7 @@ const Testimonials = () => {
       name: "Alexandre Silva",
       role: "Proprietário",
       company: "AK Produções",
-      image: "/api/placeholder/64/64",
+      image: "",
       rating: 5,
       quote:
         "A criação do site para nossa dubladora e gravadora ficou impecável. Design moderno, rápido e profissional, com ótima estrutura para apresentar nossos trabalhos e identidade artística. Excelente execução.",

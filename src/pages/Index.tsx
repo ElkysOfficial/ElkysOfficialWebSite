@@ -2,8 +2,8 @@ import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Services from "@/components/Services";
-import Testimonials from "@/components/Testimonials";
 import ClientsCarousel from "@/components/ClientsCarousel";
+import Testimonials from "@/components/Testimonials";
 import ContactForm from "@/components/ContactForm";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -30,8 +30,8 @@ const Index = () => {
   return (
     <>
       <SEO
-        title="ELKYS | Software Sob Medida para Empresas em Crescimento"
-        description="Engenharia de software sob demanda para empresas em crescimento. Arquitetura escalável, código limpo e gestão transparente do projeto."
+        title="Elkys | Soluções Inteligentes em Software & Automação B2B"
+        description="Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais em Belo Horizonte."
         canonical="https://elkys.com.br/"
         jsonLd={jsonLd}
       />

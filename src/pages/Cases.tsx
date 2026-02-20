@@ -7,7 +7,7 @@ import SEO from "@/components/SEO";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
 
 /**
- * Cases Page - Portfolio de Projetos ELKYS
+ * Cases Page - Portfolio de Projetos Elkys
  *
  * Features:
  * - Hero section matching homepage style
@@ -30,7 +30,7 @@ interface Project {
   featured?: boolean;
 }
 
-// Real ELKYS projects
+// Real Elkys projects
 const projects: Project[] = [
   {
     id: "sonnar",
@@ -301,9 +301,9 @@ const Cases = () => {
     "@type": "CollectionPage",
     "@id": "https://elkys.com.br/cases#webpage",
     url: "https://elkys.com.br/cases",
-    name: "Cases de Sucesso - ELKYS",
+    name: "Cases de Sucesso - Elkys",
     description:
-      "Conheça os projetos desenvolvidos pela ELKYS: produtos SaaS próprios, sites institucionais, landing pages e automações em produção.",
+      "Conheça os projetos desenvolvidos pela Elkys: produtos SaaS próprios, sites institucionais, landing pages e automações em produção.",
     isPartOf: {
       "@id": "https://elkys.com.br/#website",
     },
@@ -316,8 +316,8 @@ const Cases = () => {
   return (
     <>
       <SEO
-        title="Portfólio - ELKYS | Projetos e Produtos em Produção"
-        description="Conheça os projetos e produtos desenvolvidos pela ELKYS: sistemas SaaS próprios, sites institucionais, landing pages e automações. Entregas reais em operação."
+        title="Portfólio - Elkys | Projetos e Produtos em Produção"
+        description="Conheça os projetos e produtos desenvolvidos pela Elkys: sistemas SaaS próprios, sites institucionais, landing pages e automações. Entregas reais em operação."
         canonical="https://elkys.com.br/cases"
         jsonLd={jsonLd}
       />

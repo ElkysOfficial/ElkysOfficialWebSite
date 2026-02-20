@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/design-system/utils/cn";
 
 export interface SectionProps extends React.HTMLAttributes<HTMLElement> {
-  /** Background variant matching the ELKYS section pattern */
+  /** Background variant matching the Elkys section pattern */
   bg?: "background" | "muted" | "gradient-subtle" | "gradient-hero" | "card";
 }
 

@@ -27,9 +27,9 @@ interface SEOProps {
   jsonLd?: object;
 }
 
-/** Constantes de SEO da marca ELKYS */
+/** Constantes de SEO da marca Elkys */
 const SEO_DEFAULTS = {
-  siteName: "ELKYS",
+  siteName: "Elkys",
   locale: "pt_BR",
   baseUrl: "https://elkys.com.br",
 } as const;
@@ -48,15 +48,15 @@ const SEO_DEFAULTS = {
  * @example
  * ```tsx
  * <SEO
- *   title="ELKYS | Serviços"
+ *   title="Elkys | Serviços"
  *   description="Conheça nossos serviços de desenvolvimento"
  *   canonical="https://elkys.com.br/servicos"
  * />
  * ```
  */
 export default function SEO({
-  title = "ELKYS | Software Sob Medida para Empresas em Crescimento",
-  description = "ELKYS - Engenharia de software sob demanda. Desenvolvemos aplicações web, mobile, automações e integrações com processo, qualidade e previsibilidade.",
+  title = "Elkys | Soluções Inteligentes em Software & Automação B2B",
+  description = "Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais em Belo Horizonte.",
   canonical = "https://elkys.com.br/",
   ogImage = "https://elkys.com.br/og-image.jpg",
   ogType = "website",

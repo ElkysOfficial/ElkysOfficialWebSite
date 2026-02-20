@@ -1,5 +1,5 @@
 /**
- * ELKYS Utility Classes
+ * Elkys Utility Classes
  * Gradientes, sombras, animações, carousel, acessibilidade.
  */
 
@@ -169,7 +169,8 @@
   .animate-diamond-rotate,
   .animate-card-pulse,
   .animate-clients-scroll,
-  .animate-hex-spin {
+  .animate-hex-spin,
+  .animate-hex-breathe {
     animation: none !important;
   }
 
