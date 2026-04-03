@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { type IconProps, CheckCircle, Phone, Search, Users, Wrench, X, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
@@ -129,6 +129,7 @@ function MetricTile({
 
 export default function AdminTeam() {
   const { isSuperAdmin } = useAuth();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -511,6 +512,10 @@ export default function AdminTeam() {
                   <div className="flex items-center xl:justify-end">
                     <RowActionMenu
                       actions={[
+                        {
+                          label: "Editar",
+                          onClick: () => navigate(`/portal/admin/equipe/${member.id}/editar`),
+                        },
                         {
                           label: member.is_active ? "Desativar" : "Reativar",
                           onClick: () => void handleToggleActive(member),
