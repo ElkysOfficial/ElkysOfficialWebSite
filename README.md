@@ -2,153 +2,106 @@
   <img src="public/imgs/icons/lettering_elkys_purple.webp" alt="Elkys" width="160" />
 </p>
 
-<h1 align="center">Elkys — Site Oficial</h1>
+<h1 align="center">Elkys — Plataforma Institucional & Portal do Cliente</h1>
 
 <p align="center">
-  Site institucional e portfólio digital da <strong>Elkys Software House</strong>.<br />
-  Engenharia de software sob demanda para empresas que superaram soluções prontas.
+  Site institucional + plataforma B2B de gestão de clientes, projetos e financeiro da <strong>Elkys Software House</strong>.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white" alt="React 18.3" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-7.x-646CFF?logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Supabase-2.x-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/Licença-MIT-472680" alt="Licença MIT" />
 </p>
 
 ---
 
-## Sobre
+## Visão Geral
 
-Este repositório contém o código-fonte do site oficial da Elkys — um site institucional de alta performance, otimizado para SEO, acessível (WCAG AA) e construído com um design system 100% autoral. Nenhum kit de UI de terceiros (shadcn, Radix, MUI, Chakra) é utilizado; cada componente é desenvolvido internamente.
+Este repositório contém o código-fonte completo da Elkys: o site institucional público **e** a plataforma B2B interna com dois portais autenticados:
+
+- **Portal Admin** (`/portal/admin/*`) — painel interno para toda a equipe (admins, marketing, desenvolvedores, suporte)
+- **Portal Cliente** (`/portal/cliente/*`) — área exclusiva de cada cliente para acompanhar projetos, financeiro e suporte
+
+Ambos os portais são sustentados por **Supabase** (Postgres + Auth + Edge Functions + Storage) e utilizam um design system 100% autoral — sem shadcn, Radix, MUI ou Chakra.
 
 **Produção:** [elkys.com.br](https://elkys.com.br)
 
 ---
 
-## Stack Tecnológica
+## Stack
 
-### Core
+### Frontend
 
-| Tecnologia           | Versão | Finalidade                                                                     |
-| -------------------- | ------ | ------------------------------------------------------------------------------ |
-| **React**            | 18.3.x | Framework UI com arquitetura baseada em componentes                            |
-| **TypeScript**       | 5.x    | Tipagem estática em todo o codebase                                            |
-| **Vite**             | 7.x    | Build tool com compilador SWC para HMR rápido e builds de produção otimizados  |
-| **Tailwind CSS**     | 3.4.x  | Framework CSS utility-first com design tokens customizados                     |
-| **SCSS** (Dart Sass) | —      | Tokens de design, mixins e arquitetura em camadas via `@use`/`meta.load-css()` |
+| Tecnologia                | Versão | Finalidade                                       |
+| ------------------------- | ------ | ------------------------------------------------ |
+| **React**                 | 18.3.x | Framework UI                                     |
+| **TypeScript**            | 5.x    | Tipagem estática em todo o codebase              |
+| **Vite** + SWC            | 7.x    | Build tool com HMR ultra-rápido                  |
+| **Tailwind CSS**          | 3.4.x  | Utility-first CSS com design tokens customizados |
+| **SCSS** (Dart Sass)      | —      | Tokens, mixins e arquitetura em `@layer`         |
+| `react-router-dom`        | 6.x    | Roteamento SPA com lazy loading                  |
+| `@tanstack/react-query`   | 5.x    | Server state, cache e refetch                    |
+| `react-hook-form` + `zod` | —      | Formulários com validação tipada                 |
+| `next-themes`             | —      | Dark mode via estratégia `class`                 |
+| `sonner`                  | —      | Notificações toast                               |
+| `vite-plugin-svgr`        | —      | SVGs como componentes React (tree-shakeable)     |
 
-### Design System
+### Backend (Supabase)
 
-| Biblioteca                 | Finalidade                                                                 |
-| -------------------------- | -------------------------------------------------------------------------- |
-| `class-variance-authority` | Definição de variantes de componentes com type-safety (Button, Card, etc.) |
-| `clsx` + `tailwind-merge`  | Concatenação condicional de classes com resolução de conflitos do Tailwind |
-| `next-themes`              | Suporte a dark mode com estratégia `class` e detecção de preferência       |
-| `sonner`                   | Sistema de notificações toast leve                                         |
-| `vite-plugin-svgr`         | SVGs importados como componentes React (sistema de ícones tree-shakeable)  |
-
-### Formulários e Dados
-
-| Biblioteca            | Finalidade                                                     |
-| --------------------- | -------------------------------------------------------------- |
-| `react-hook-form`     | Gerenciamento performático de estado de formulários            |
-| `zod`                 | Validação baseada em schema com inferência de tipos TypeScript |
-| `@hookform/resolvers` | Ponte entre react-hook-form e schemas zod                      |
-| `@emailjs/browser`    | Envio de e-mail client-side (formulário de contato)            |
-
-### SEO e Roteamento
-
-| Biblioteca           | Finalidade                                                     |
-| -------------------- | -------------------------------------------------------------- |
-| `react-router-dom`   | Roteamento client-side com code splitting                      |
-| `react-helmet-async` | Meta tags dinâmicas, Open Graph e dados estruturados (JSON-LD) |
-
-### Build e Qualidade
-
-| Ferramenta                     | Finalidade                                             |
-| ------------------------------ | ------------------------------------------------------ |
-| `eslint` + `typescript-eslint` | Análise estática e garantia de qualidade do código     |
-| `prettier`                     | Formatação de código padronizada                       |
-| `husky` + `lint-staged`        | Hooks de pre-commit para lint e formatação automáticos |
-| `terser`                       | Minificação avançada de JavaScript (modo `build:min`)  |
-| `rollup-plugin-visualizer`     | Análise e visualização do tamanho do bundle            |
-| `sharp`                        | Processamento e otimização de imagens                  |
+| Componente                | Finalidade                                                     |
+| ------------------------- | -------------------------------------------------------------- |
+| **Postgres**              | Banco de dados relacional com RLS em todas as tabelas          |
+| **Supabase Auth**         | Autenticação (email/senha); Admin API para criação de usuários |
+| **Edge Functions** (Deno) | 12 funções serverless: CRUD de usuários, e-mails transacionais |
+| **Storage**               | Avatares de perfil, assets de e-mail                           |
+| **Cron** (pg_cron)        | Auto-marcação de cobranças em atraso, bloqueio de projetos     |
 
 ---
 
-## Arquitetura
+## Estrutura de Pastas
 
 ```
 src/
-├── assets/icons/          # Sistema de ícones SVGR proprietário (36 ícones)
-│   ├── svg/               # Arquivos SVG fonte
-│   ├── create-icon.tsx    # HOC de ícones com a11y padronizada
-│   └── index.ts           # Exports nomeados (tree-shakeable)
-├── styles/                # Tokens de design SCSS e utilitários
-│   ├── _tokens.scss       # Propriedades CSS customizadas (:root + .dark)
-│   ├── _base.scss         # Reset tipográfico e estilos base
-│   ├── _mixins.scss       # Mixins SCSS reutilizáveis
-│   ├── _components.scss   # Classes CSS semânticas
-│   └── _utilities.scss    # Gradientes, sombras, animações
-├── design-system/         # Biblioteca de componentes React autoral
-│   ├── components/        # Button, Card, Input, Textarea, Toast, HexPattern, HexRating
-│   ├── primitives/        # Container, Section, Stack, Grid
-│   ├── form/              # Label, Field, ErrorText
-│   └── utils/             # cn() — clsx + tailwind-merge
-├── data/                  # Dados centralizados (serviços)
-├── components/            # Componentes de negócio (Hero, Nav, Footer...)
-├── pages/                 # Componentes de página por rota
-├── config/                # Configurações de serviços (EmailJS)
-└── constants/             # Constantes da aplicação
+├── assets/icons/           # Sistema de ícones SVGR proprietário (65+ ícones)
+│   ├── svg/                # Arquivos SVG fonte
+│   ├── create-icon.tsx     # HOC de ícones com a11y padronizada
+│   └── index.ts            # Exports nomeados (tree-shakeable)
+├── styles/                 # Tokens de design SCSS
+│   ├── _tokens.scss        # Propriedades CSS customizadas (:root + .dark)
+│   ├── _base.scss          # Reset tipográfico e estilos base
+│   ├── _components.scss    # Classes CSS semânticas de componentes
+│   └── _utilities.scss     # Gradientes, sombras, animações
+├── design-system/          # Biblioteca de componentes React autoral
+│   ├── components/         # Button (CVA), Card, Input, Textarea, AlertDialog, HexAvatar...
+│   ├── primitives/         # Container, Section, Stack, Grid
+│   ├── form/               # Label, Field, ErrorText
+│   └── utils/              # cn() — clsx + tailwind-merge
+├── components/
+│   ├── portal/             # Layouts e guards: AdminLayout, ClientLayout, ProtectedRoute...
+│   └── ...                 # Componentes do site público (Hero, Nav, Footer...)
+├── contexts/
+│   └── AuthContext.tsx     # Sessão, roles, inatividade (30 min), 2-min warning
+├── pages/
+│   ├── portal/
+│   │   ├── admin/          # Overview, Clients, Projects, Finance, Team, Support...
+│   │   └── client/         # Overview, Projects, Finance, Support, Profile...
+│   └── ...                 # Páginas públicas
+├── lib/
+│   ├── portal.ts           # Type aliases e constantes de domínio
+│   ├── portal-data.ts      # Helpers de leitura de dados do portal
+│   ├── portal-access.ts    # Redirecionamento padrão por role
+│   ├── subscription-charges.ts  # Geração de parcelas de mensalidades
+│   ├── timeline.ts         # Helpers de eventos da timeline
+│   └── profile.ts          # CRUD de perfil + upload de avatar
+└── integrations/supabase/  # Cliente tipado + types gerados automaticamente
+supabase/
+├── functions/              # 12 Edge Functions Deno
+│   └── _shared/            # auth.ts, email-template.ts (compartilhados)
+└── migrations/             # 19 migrations SQL versionadas
 ```
-
-### Decisões Arquiteturais
-
-- **Tokens-first:** Todas as cores, espaçamentos, sombras e raios definidos como propriedades CSS customizadas em HSL — consumidos pelo Tailwind via `hsl(var(--token))`
-- **Zero bundle de ícones:** Ícones são SVGs individuais compilados em build time via SVGR, com tree-shaking completo
-- **Sistema de módulos SCSS:** Usa Dart Sass `@use`/`meta.load-css()` dentro de blocos `@layer` — zero warnings de `@import` depreciado
-- **Padrão CVA:** Variantes de componentes definidas com `class-variance-authority` para estilização tipada e composável
-- **Mobile-first responsivo:** Breakpoint customizado `xs: 475px` adicionado aos defaults do Tailwind
-
----
-
-## Práticas de Engenharia
-
-### Qualidade de Código
-
-- **TypeScript strict mode** em todo o codebase com path aliases (`@/*`)
-- **ESLint** com `typescript-eslint` e plugin React Hooks para análise estática
-- **Prettier** para formatação consistente (forçado via hooks de pre-commit)
-- **Husky + lint-staged** roda linting e formatação em cada commit automaticamente
-
-### Performance
-
-- **Code splitting** via React Router lazy loading — cada página é um chunk separado
-- **Estratégia de chunks manuais:** `react-vendor` e `form-vendor` extraídos para cache otimizado
-- **Otimização de imagens:** Formato WebP, `srcSet` responsivo, lazy loading abaixo do fold, `fetchpriority="high"` para assets do hero
-- **Otimização de fontes:** Poppins self-hosted (woff2, 4 pesos) com `font-display: swap`
-- **Animações GPU-optimized:** `will-change-transform` apenas em elementos animados, durações reduzidas no mobile, `prefers-reduced-motion` respeitado
-- **Dois modos de build:** `build` (esbuild, rápido) e `build:min` (Terser 2-pass, remoção de console, minificação agressiva)
-
-### Acessibilidade (WCAG AA)
-
-- Alvos de toque mínimos de 44x44px em todos os elementos interativos
-- Contraste de cores testado e verificado para todos os pares
-- `focus-visible` ring em todos os elementos focáveis
-- `prefers-reduced-motion` desabilita todas as animações
-- HTML semântico (`<nav>`, `<main>`, `<section>`, `<h1-h6>`)
-- Atributos ARIA em elementos interativos (`aria-label`, `aria-expanded`, `aria-current`)
-- Sistema de ícones: decorativo por padrão (`aria-hidden`), acessível quando prop `title` é fornecida
-
-### SEO
-
-- Meta tags renderizadas via `react-helmet-async`
-- Dados estruturados JSON-LD (Organization, BreadcrumbList, CollectionPage, Service)
-- `sitemap.xml` gerado automaticamente a cada build
-- URLs canônicas em todas as páginas
-- Meta tags Open Graph e redes sociais
 
 ---
 
@@ -156,108 +109,168 @@ src/
 
 ### Pré-requisitos
 
-- **Node.js** >= 18.16.1
-- **npm** >= 9.5.1
+- **Node.js** >= 18.16
+- **npm** >= 9.5
+- Projeto **Supabase** configurado (URL + chaves)
 
 ### Instalação
 
 ```bash
-# Clonar o repositório
-git clone https://github.com/elkys/WebSiteOficial.git
-
-# Entrar no diretório do projeto
-cd WebSiteOficial
-
-# Instalar dependências
+git clone https://github.com/elkys/client-hub-pro.git
+cd client-hub-pro
 npm install
-
-# Iniciar servidor de desenvolvimento
-npm run dev
 ```
-
-O servidor de desenvolvimento estará disponível em `http://localhost:8080`.
 
 ### Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto:
+Crie `.env` na raiz:
 
 ```env
-VITE_EMAILJS_SERVICE_ID=seu_service_id
-VITE_EMAILJS_TEMPLATE_ID=seu_template_id
-VITE_EMAILJS_PUBLIC_KEY=sua_public_key
-VITE_GA_ID=seu_google_analytics_id
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJ...
+```
+
+### Desenvolvimento
+
+```bash
+npm run dev     # Dev server em localhost:8080
 ```
 
 ---
 
 ## Scripts
 
-| Comando                    | Descrição                                                 |
-| -------------------------- | --------------------------------------------------------- |
-| `npm run dev`              | Servidor de desenvolvimento com HMR                       |
-| `npm run build`            | Build de produção (esbuild) + sitemap + .htaccess         |
-| `npm run build:min`        | Build com minificação Terser (remoção de console, 2-pass) |
-| `npm run build:dev`        | Build modo dev para testes locais                         |
-| `npm run preview`          | Preview do build de produção localmente                   |
-| `npm run format`           | Formatar todos os arquivos com Prettier                   |
-| `npm run format:check`     | Verificar formatação sem modificar arquivos               |
-| `npm run generate-sitemap` | Gerar `sitemap.xml` standalone                            |
+| Comando                | Descrição                                         |
+| ---------------------- | ------------------------------------------------- |
+| `npm run dev`          | Servidor de desenvolvimento com HMR               |
+| `npm run build`        | Build de produção (esbuild) + sitemap + .htaccess |
+| `npm run build:min`    | Build com Terser (remove console.\*, dead code)   |
+| `npm run build:dev`    | Build modo desenvolvimento                        |
+| `npm run format`       | Prettier — formata todos os arquivos `src/`       |
+| `npm run format:check` | Verifica formatação sem alterar arquivos          |
 
 ---
 
-## Modos de Build
+## Portais
 
-| Modo        | Minificador     | Remoção de Console | Caso de Uso              |
-| ----------- | --------------- | ------------------ | ------------------------ |
-| `build`     | esbuild         | Não                | Iteração rápida, staging |
-| `build:min` | Terser (2-pass) | Sim                | Deploy em produção       |
-| `build:dev` | Nenhum (dev)    | Não                | Builds de debug          |
+### Portal Admin (`/portal/admin`)
 
-Todos os builds geram automaticamente `sitemap.xml` e copiam `.htaccess` para `dist/`.
+Acesso restrito a membros da equipe. Navegação e funcionalidades por role:
+
+| Seção       | Rota                                        | Roles com Acesso              |
+| ----------- | ------------------------------------------- | ----------------------------- |
+| Visão Geral | `/portal/admin`                             | admin_super, admin            |
+| Clientes    | `/portal/admin/clientes`                    | admin_super, admin            |
+| Projetos    | `/portal/admin/projetos`                    | admin_super, admin            |
+| Financeiro  | `/portal/admin/financeiro`                  | admin_super, admin            |
+| Equipe      | `/portal/admin/equipe`                      | admin_super, admin            |
+| Suporte     | `/portal/admin/suporte`                     | admin_super, admin, support   |
+| Calendário  | `/portal/admin/calendario`                  | admin_super, admin, marketing |
+| Docs M&D    | `/portal/admin/documentos/marketing-design` | admin_super, admin, marketing |
+| Docs Dev    | `/portal/admin/documentos/desenvolvedor`    | admin_super, admin, developer |
+
+### Portal Cliente (`/portal/cliente`)
+
+| Seção       | Rota                         | Descrição                                      |
+| ----------- | ---------------------------- | ---------------------------------------------- |
+| Visão Geral | `/portal/cliente`            | Métricas resumidas, projetos ativos, cobranças |
+| Projetos    | `/portal/cliente/projetos`   | Lista e detalhe de projetos                    |
+| Financeiro  | `/portal/cliente/financeiro` | Extrato de cobranças e parcelas                |
+| Suporte     | `/portal/cliente/suporte`    | Abertura e acompanhamento de tickets           |
+| Perfil      | `/portal/cliente/perfil`     | Dados pessoais e foto de avatar                |
 
 ---
 
-## Deploy
+## Fluxo de Autenticação
 
-O projeto está configurado para deploy na **Hostinger** (hospedagem compartilhada via FTP).
-
-```bash
-# 1. Build para produção
-npm run build:min
-
-# 2. Upload da pasta dist/ para o servidor
-# O .htaccess cuida do roteamento client-side do React Router
+```
+Login → AuthProvider (carrega roles) → ProtectedRoute (role check)
+  → MustChangePasswordGuard (primeiro acesso?)
+    → PortalRoleGuard (acesso à rota específica)
+      → Página
 ```
 
+- Timeout de inatividade: **30 minutos** com aviso 2 minutos antes
+- Primeiro acesso: flag `must_change_password` força troca de senha antes de entrar no portal
+- Roles armazenadas na tabela `user_roles` (nunca em JWT claims diretos)
+
 ---
 
-## Páginas
+## Edge Functions
 
-| Rota                | Página                  | Descrição                                                         |
-| ------------------- | ----------------------- | ----------------------------------------------------------------- |
-| `/`                 | Homepage                | Hero, Sobre, Serviços, Clientes, Depoimentos, Formulário, Contato |
-| `/servicos/:slug`   | Detalhe do Serviço      | Página dedicada para cada serviço com overview, benefícios e CTA  |
-| `/cases`            | Portfólio               | Showcase de projetos com preview de vídeo e lazy loading          |
-| `/privacy-policy`   | Política de Privacidade | Política de privacidade conforme LGPD                             |
-| `/terms-of-service` | Termos de Uso           | Termos e condições de uso                                         |
-| `/cookie-policy`    | Política de Cookies     | Política de uso de cookies                                        |
-| `*`                 | 404                     | Página customizada de não encontrado                              |
+12 funções serverless Deno deployadas no Supabase:
+
+| Função                  | Trigger       | Finalidade                                            |
+| ----------------------- | ------------- | ----------------------------------------------------- |
+| `create-user`           | Admin         | Cria usuário via Auth Admin API                       |
+| `delete-user`           | Admin         | Remove usuário do Auth                                |
+| `update-user`           | Admin         | Sincroniza email/nome no Auth + `profiles`            |
+| `complete-first-access` | Cliente/Team  | Limpa flag `must_change_password`                     |
+| `send-client-welcome`   | Admin         | E-mail de boas-vindas ao cliente com senha temporária |
+| `send-team-welcome`     | Admin         | E-mail de boas-vindas ao membro da equipe             |
+| `send-password-reset`   | Admin         | E-mail de recuperação de senha                        |
+| `send-ticket-opened`    | Cliente       | Notifica equipe sobre novo ticket                     |
+| `send-ticket-updated`   | Admin         | Notifica cliente sobre atualização de ticket          |
+| `send-invoice-due`      | Cron (9h UTC) | Lembrete de vencimento para clientes                  |
+| `send-installment-paid` | Admin         | Confirmação de pagamento de parcela                   |
+| `send-document-added`   | Admin         | Notifica cliente sobre novo documento                 |
+
+---
+
+## Banco de Dados
+
+Principais tabelas (todas com RLS habilitado):
+
+| Tabela                  | Descrição                                          |
+| ----------------------- | -------------------------------------------------- |
+| `profiles`              | Dados de identidade de todos os usuários           |
+| `user_roles`            | Roles RBAC (app_role enum)                         |
+| `clients`               | Clientes cadastrados                               |
+| `team_members`          | Membros da equipe interna                          |
+| `projects`              | Projetos vinculados a clientes                     |
+| `project_contracts`     | Contratos por projeto                              |
+| `project_installments`  | Parcelas de contrato (entrada/entrega)             |
+| `project_subscriptions` | Mensalidades recorrentes                           |
+| `charges`               | Cobranças geradas (parcelas, mensalidades, manual) |
+| `documents`             | Documentos vinculados a clientes/projetos          |
+| `support_tickets`       | Tickets de suporte                                 |
+| `timeline_events`       | Histórico de eventos por projeto                   |
+
+Ver [`docs/DATABASE.md`](docs/DATABASE.md) para o schema completo com colunas, indexes e FKs.
 
 ---
 
 ## Documentação
 
-| Documento                                | Descrição                                                                              |
-| ---------------------------------------- | -------------------------------------------------------------------------------------- |
-| [`docs/elkys_design_system_*.md`](docs/) | Especificação completa do design system (cores, tipografia, componentes, tokens, a11y) |
+| Arquivo                                            | Conteúdo                                                 |
+| -------------------------------------------------- | -------------------------------------------------------- |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)     | Arquitetura técnica, roteamento, estado, data layer      |
+| [`docs/DATABASE.md`](docs/DATABASE.md)             | Schema completo: tabelas, colunas, enums, FKs, RLS       |
+| [`docs/EDGE-FUNCTIONS.md`](docs/EDGE-FUNCTIONS.md) | Todas as Edge Functions: payload, comportamento, secrets |
+| [`docs/PERMISSIONS.md`](docs/PERMISSIONS.md)       | Matriz RBAC completa por role e por tela                 |
+| [`docs/elkys_design_system_*.md`](docs/)           | Especificação completa do design system                  |
+
+---
+
+## Deploy
+
+O projeto é deployado na **Hostinger** (hospedagem compartilhada via FTP):
+
+```bash
+npm run build:min          # Build otimizado para produção
+# Upload da pasta dist/ via FTP
+# O .htaccess cuida do roteamento client-side do React Router
+```
+
+Edge Functions e banco de dados são gerenciados pelo Supabase Cloud.
 
 ---
 
 ## Licença
 
-Este projeto está licenciado sob a **Licença MIT** — veja o arquivo [LICENSE](LICENSE) para detalhes.
+Licença **MIT** — veja [LICENSE](LICENSE) para detalhes.
 
-Os arquivos SVG de ícones em `src/assets/icons/svg/` são derivados do [Lucide](https://lucide.dev) e licenciados sob a [Licença ISC](src/assets/icons/LICENSE).
+Ícones SVG em `src/assets/icons/svg/` são derivados do [Lucide](https://lucide.dev) sob [Licença ISC](src/assets/icons/LICENSE).
 
 ---
 

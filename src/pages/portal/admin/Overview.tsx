@@ -1,0 +1,1477 @@
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import { Shield, TrendingUp } from "@/assets/icons";
+import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import { Button, Card, CardContent, cn } from "@/design-system";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { formatBRL } from "@/lib/masks";
+import { isProjectOperationallyOpen } from "@/lib/portal";
+
+type DashboardClient = Pick<
+  Database["public"]["Tables"]["clients"]["Row"],
+  "id" | "is_active" | "client_since"
+>;
+type DashboardProject = Pick<
+  Database["public"]["Tables"]["projects"]["Row"],
+  | "id"
+  | "client_id"
+  | "status"
+  | "started_at"
+  | "delivered_at"
+  | "expected_delivery_date"
+  | "current_stage"
+>;
+type DashboardSubscription = Pick<
+  Database["public"]["Tables"]["project_subscriptions"]["Row"],
+  "id" | "client_id" | "amount" | "status"
+>;
+type DashboardCharge = Pick<
+  Database["public"]["Tables"]["charges"]["Row"],
+  | "id"
+  | "client_id"
+  | "amount"
+  | "due_date"
+  | "origin_type"
+  | "paid_at"
+  | "status"
+  | "is_historical"
+>;
+type DashboardExpense = Pick<
+  Database["public"]["Tables"]["expenses"]["Row"],
+  "id" | "amount" | "expense_date"
+>;
+type DashboardContract = Pick<
+  Database["public"]["Tables"]["project_contracts"]["Row"],
+  "id" | "project_id" | "total_amount" | "status" | "signed_at"
+>;
+type DashboardTicket = Pick<
+  Database["public"]["Tables"]["support_tickets"]["Row"],
+  "id" | "status" | "created_at"
+>;
+
+type ProjectBucket = "negociacao" | "em_andamento" | "concluido" | "pausado";
+type PeriodOption = 3 | 6 | 12;
+type Tone = "brand" | "success" | "warning" | "destructive" | "neutral";
+
+type MonthlyPoint = {
+  key: string;
+  label: string;
+  shortLabel: string;
+  cashIn: number;
+  cashOut: number;
+  net: number;
+  recurringRevenue: number;
+  projectRevenue: number;
+};
+
+type AgingBucket = { range: string; amount: number; count: number };
+
+type TooltipPayloadItem = {
+  color?: string;
+  dataKey?: string;
+  name?: string;
+  value?: number | string;
+};
+
+interface OverviewState {
+  hasAnyData: boolean;
+  activeClients: number;
+  previousActiveClients: number;
+  newClientsThisMonth: number;
+  openProjects: number;
+  previousOpenProjects: number;
+  overdueProjects: number;
+  completedThisMonth: number;
+  avgDeliveryDays: number | null;
+  recurringClients: number;
+  healthyRecurringClients: number;
+  nonRecurringClients: number;
+  overdueClients: number;
+  clientsAtRisk: number;
+  recurringBase: number;
+  currentMrr: number;
+  previousMrr: number;
+  currentProjectRevenue: number;
+  cashBalance: number;
+  previousCashBalance: number;
+  currentMonthNet: number;
+  pendingReceivables: number;
+  overdueReceivables: number;
+  forecastRevenue: number;
+  agingBuckets: AgingBucket[];
+  pipelineValue: number;
+  pipelineCount: number;
+  burnRate: number;
+  operationalMargin: number | null;
+  openTickets: number;
+  resolvedTicketsThisMonth: number;
+  monthlySeries: MonthlyPoint[];
+  projectStatusCounts: Record<ProjectBucket, number>;
+  averageRecurringRevenuePerClient: number;
+}
+
+const PERIOD_OPTIONS: PeriodOption[] = [3, 6, 12];
+const CHART_COLORS = {
+  brand: "hsl(var(--elk-primary))",
+  accent: "hsl(var(--elk-accent))",
+  success: "hsl(var(--elk-success))",
+  destructive: "hsl(var(--elk-destructive))",
+  warning: "hsl(var(--elk-warning))",
+  grid: "hsl(var(--elk-border))",
+  card: "hsl(var(--elk-card))",
+  muted: "hsl(var(--elk-muted-foreground))",
+};
+
+const initialState: OverviewState = {
+  hasAnyData: false,
+  activeClients: 0,
+  previousActiveClients: 0,
+  newClientsThisMonth: 0,
+  openProjects: 0,
+  previousOpenProjects: 0,
+  overdueProjects: 0,
+  completedThisMonth: 0,
+  avgDeliveryDays: null,
+  recurringClients: 0,
+  healthyRecurringClients: 0,
+  nonRecurringClients: 0,
+  overdueClients: 0,
+  clientsAtRisk: 0,
+  recurringBase: 0,
+  currentMrr: 0,
+  previousMrr: 0,
+  currentProjectRevenue: 0,
+  cashBalance: 0,
+  previousCashBalance: 0,
+  currentMonthNet: 0,
+  pendingReceivables: 0,
+  overdueReceivables: 0,
+  forecastRevenue: 0,
+  agingBuckets: [],
+  pipelineValue: 0,
+  pipelineCount: 0,
+  burnRate: 0,
+  operationalMargin: null,
+  openTickets: 0,
+  resolvedTicketsThisMonth: 0,
+  monthlySeries: [],
+  projectStatusCounts: {
+    negociacao: 0,
+    em_andamento: 0,
+    concluido: 0,
+    pausado: 0,
+  },
+  averageRecurringRevenuePerClient: 0,
+};
+
+function createMonthKey(year: number, monthIndex: number) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+}
+
+function parseDateValue(value?: string | null) {
+  if (!value) return null;
+  const parsed = new Date(value.length <= 10 ? `${value}T00:00:00` : value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function parseDateEndOfDay(value?: string | null) {
+  if (!value) return null;
+  const parsed = new Date(`${value}T23:59:59`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getRecentMonths(count: number) {
+  return Array.from({ length: count }, (_, rawIndex) => {
+    const reverseIndex = count - rawIndex - 1;
+    const date = new Date();
+    date.setDate(1);
+    date.setMonth(date.getMonth() - reverseIndex);
+
+    const monthLabel = new Intl.DateTimeFormat("pt-BR", { month: "short" })
+      .format(date)
+      .replace(".", "");
+    const shortYear = String(date.getFullYear()).slice(-2);
+
+    return {
+      key: createMonthKey(date.getFullYear(), date.getMonth()),
+      label: `${monthLabel}/${shortYear}`,
+      shortLabel: monthLabel,
+      start: new Date(date.getFullYear(), date.getMonth(), 1),
+      end: new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59),
+    };
+  });
+}
+
+function getMonthKeyFromDate(value?: string | null) {
+  const parsed = parseDateValue(value);
+  if (!parsed) return null;
+  return createMonthKey(parsed.getFullYear(), parsed.getMonth());
+}
+
+function getPercentChange(current: number, previous: number) {
+  if (previous === 0) {
+    if (current === 0) return 0;
+    return null;
+  }
+
+  return ((current - previous) / Math.abs(previous)) * 100;
+}
+
+function getSignedCurrency(value: number) {
+  const prefix = value > 0 ? "+" : value < 0 ? "-" : "";
+  return `${prefix}${formatBRL(Math.abs(value))}`;
+}
+
+function formatCompactCurrency(value: number) {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+
+  if (abs >= 1_000_000) {
+    const compact = abs >= 10_000_000 ? (abs / 1_000_000).toFixed(0) : (abs / 1_000_000).toFixed(1);
+    return `${sign}R$ ${compact.replace(".0", "")}M`;
+  }
+
+  if (abs >= 1_000) {
+    const compact = abs >= 10_000 ? (abs / 1_000).toFixed(0) : (abs / 1_000).toFixed(1);
+    return `${sign}R$ ${compact.replace(".0", "")}k`;
+  }
+
+  return `${sign}R$ ${Math.round(abs)}`;
+}
+
+function roundPercentage(value: number | null) {
+  if (value === null || Number.isNaN(value) || !Number.isFinite(value)) return null;
+  return Math.round(value * 10) / 10;
+}
+
+function getTrendTone(change: number | null): Tone {
+  if (change === null) return "neutral";
+  if (change > 0) return "success";
+  if (change < 0) return "destructive";
+  return "neutral";
+}
+
+const isProjectOpen = isProjectOperationallyOpen;
+
+function wasProjectOpenAt(project: DashboardProject, snapshotDate: Date) {
+  const startedAt = parseDateValue(project.started_at);
+  if (!startedAt || startedAt > snapshotDate) return false;
+  if (isProjectOpen(project)) return true;
+  if (project.status !== "concluido") return false;
+
+  const deliveredAt = parseDateEndOfDay(project.delivered_at);
+  return deliveredAt ? deliveredAt > snapshotDate : false;
+}
+
+function getCurrentMonthName() {
+  return new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date());
+}
+
+function TrendPill({ change, className }: { change: number | null; className?: string }) {
+  const rounded = roundPercentage(change);
+  const tone = getTrendTone(change);
+
+  const toneStyles: Record<Tone, string> = {
+    brand: "text-primary",
+    success: "text-success",
+    warning: "text-warning",
+    destructive: "text-destructive",
+    neutral: "text-muted-foreground",
+  };
+
+  const text =
+    rounded === null
+      ? "Sem base"
+      : rounded > 0
+        ? `↑ ${rounded}%`
+        : rounded < 0
+          ? `↓ ${Math.abs(rounded)}%`
+          : "0%";
+
+  return (
+    <span
+      className={cn("inline-flex items-center text-xs font-semibold", toneStyles[tone], className)}
+    >
+      {text}
+    </span>
+  );
+}
+
+function OverviewSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-44 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-44 animate-pulse rounded-2xl border border-border/70 bg-card/70"
+          />
+        ))}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="h-[480px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-8" />
+        <div className="h-[480px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-4" />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-12">
+        <div className="h-[380px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-5" />
+        <div className="h-[380px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-7" />
+      </div>
+    </div>
+  );
+}
+
+function ChartEmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex h-[220px] flex-col items-center justify-center rounded-2xl bg-muted/30 px-6 text-center">
+      <div className="mb-3 flex items-center gap-1 opacity-20">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        >
+          <path d="M9 2L14.2 5v6L9 14l-5.2-3V5z" />
+        </svg>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        >
+          <path d="M9 2L14.2 5v6L9 14l-5.2-3V5z" />
+        </svg>
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 18 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        >
+          <path d="M9 2L14.2 5v6L9 14l-5.2-3V5z" />
+        </svg>
+      </div>
+      <p className="text-[13px] font-semibold tracking-tight text-foreground">{title}</p>
+      <p className="mt-1.5 max-w-[260px] text-xs leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function DashboardTooltip({
+  active,
+  label,
+  payload,
+  formatter = formatBRL,
+}: {
+  active?: boolean;
+  label?: string;
+  payload?: TooltipPayloadItem[];
+  formatter?: (value: number) => string;
+}) {
+  if (!active || !payload?.length) return null;
+
+  return (
+    <div
+      className="min-w-[180px] rounded-xl border border-border/60 bg-card/98 px-3 py-2.5 shadow-xl backdrop-blur"
+      style={{ borderLeftWidth: 2, borderLeftColor: payload[0]?.color }}
+    >
+      {label ? (
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+          {label}
+        </p>
+      ) : null}
+
+      <div className="space-y-1.5">
+        {payload.map((item) => {
+          const numericValue = Number(item.value ?? 0);
+
+          return (
+            <div
+              key={`${item.dataKey}-${item.name}`}
+              className="flex items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-xs text-muted-foreground">{item.name}</span>
+              </div>
+              <span className="text-xs font-bold tabular-nums text-foreground">
+                {formatter(numericValue)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ExecutiveKpiCard({
+  label,
+  value,
+  subInfo,
+  tone = "brand",
+}: {
+  label: string;
+  value: string;
+  subInfo: string;
+  tone?: Tone;
+  change: number | null;
+}) {
+  const toneStyles: Record<Tone, string> = {
+    brand: "text-primary",
+    success: "text-success",
+    warning: "text-warning",
+    destructive: "text-destructive",
+    neutral: "text-foreground",
+  };
+
+  const toneBarStyles: Record<Tone, string> = {
+    brand: "bg-primary",
+    success: "bg-success",
+    warning: "bg-warning",
+    destructive: "bg-destructive",
+    neutral: "bg-border",
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-4 pl-5">
+      <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {label}
+      </p>
+      <p className={cn("mt-1 text-lg font-semibold tracking-tight", toneStyles[tone])}>{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{subInfo}</p>
+    </div>
+  );
+}
+
+function SurfaceStat({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: Tone;
+}) {
+  const toneStyles: Record<Tone, string> = {
+    brand: "text-primary",
+    success: "text-success",
+    warning: "text-warning",
+    destructive: "text-destructive",
+    neutral: "text-foreground",
+  };
+
+  const toneBarStyles: Record<Tone, string> = {
+    brand: "bg-primary",
+    success: "bg-success",
+    warning: "bg-warning",
+    destructive: "bg-destructive",
+    neutral: "bg-border",
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-4 pl-5">
+      <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {label}
+      </p>
+      <p className={cn("mt-2 text-lg font-semibold tracking-tight", toneStyles[tone])}>{value}</p>
+    </div>
+  );
+}
+
+function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
+  const hasValue = data.some((item) => item.cashIn > 0 || item.cashOut > 0);
+
+  if (!hasValue) {
+    return (
+      <ChartEmptyState
+        title="Sem movimentacao financeira no periodo"
+        description="Mantenha cobranças pagas e despesas registradas para visualizar entradas e saidas lado a lado."
+      />
+    );
+  }
+
+  return (
+    <div className="h-[240px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
+          barGap={4}
+          barSize={26}
+        >
+          <defs>
+            <linearGradient id="cf-cashIn" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.success} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="cf-cashOut" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.destructive} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.destructive} stopOpacity={0.4} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            width={64}
+            tickCount={4}
+            tickFormatter={(value) => formatCompactCurrency(Number(value))}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<DashboardTooltip />} />
+          <Bar
+            dataKey="cashIn"
+            name="Entradas pagas"
+            fill="url(#cf-cashIn)"
+            radius={[10, 10, 0, 0]}
+          />
+          <Bar dataKey="cashOut" name="Saidas" fill="url(#cf-cashOut)" radius={[10, 10, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
+  const hasValue = data.some((item) => item.net !== 0);
+
+  if (!hasValue) {
+    return (
+      <ChartEmptyState
+        title="Sem resultado consolidado no periodo"
+        description="Os meses selecionados ainda nao possuem entradas pagas ou despesas lancadas suficientes para comparar resultado."
+      />
+    );
+  }
+
+  return (
+    <div className="h-[220px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barSize={32}>
+          <defs>
+            <linearGradient id="res-pos" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.success} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="res-neg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.destructive} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.destructive} stopOpacity={0.4} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
+          <XAxis
+            dataKey="label"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            width={64}
+            tickCount={4}
+            tickFormatter={(value) => formatCompactCurrency(Number(value))}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<DashboardTooltip formatter={(value) => getSignedCurrency(value)} />} />
+          <ReferenceLine y={0} stroke={CHART_COLORS.grid} strokeOpacity={0.42} />
+          <Bar dataKey="net" name="Resultado" radius={[10, 10, 10, 10]}>
+            {data.map((item) => (
+              <Cell key={item.key} fill={item.net >= 0 ? "url(#res-pos)" : "url(#res-neg)"} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function ClientDistributionBarChart({
+  healthyRecurringClients,
+  nonRecurringClients,
+  overdueClients,
+}: {
+  healthyRecurringClients: number;
+  nonRecurringClients: number;
+  overdueClients: number;
+}) {
+  const data = [
+    {
+      name: "Com recorrencia",
+      value: healthyRecurringClients,
+      color: CHART_COLORS.success,
+      gradId: "cd-success",
+    },
+    {
+      name: "Sem recorrencia",
+      value: nonRecurringClients,
+      color: CHART_COLORS.brand,
+      gradId: "cd-brand",
+    },
+    {
+      name: "Em atraso",
+      value: overdueClients,
+      color: CHART_COLORS.destructive,
+      gradId: "cd-destr",
+    },
+  ];
+
+  const total = healthyRecurringClients + nonRecurringClients + overdueClients;
+
+  if (total === 0) {
+    return (
+      <ChartEmptyState
+        title="Base de clientes ainda sem distribuicao"
+        description="Quando houver clientes ativos, a proporcao entre recorrencia, risco e atraso aparece aqui."
+      />
+    );
+  }
+
+  return (
+    <div className="h-[200px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+          <defs>
+            <linearGradient id="cd-success" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.success} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="cd-brand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.brand} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.brand} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="cd-destr" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.destructive} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.destructive} stopOpacity={0.4} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
+          <XAxis
+            dataKey="name"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            allowDecimals={false}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+            width={28}
+          />
+          <Tooltip content={<DashboardTooltip formatter={(v) => `${v} cliente(s)`} />} />
+          <Bar dataKey="value" name="Clientes" radius={[12, 12, 0, 0]}>
+            {data.map((entry) => (
+              <Cell key={entry.name} fill={`url(#${entry.gradId})`} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, number> }) {
+  const total = Object.values(counts).reduce((sum, v) => sum + v, 0);
+
+  if (total === 0) {
+    return (
+      <ChartEmptyState
+        title="Sem carteira de projetos para distribuir"
+        description="Assim que houver projetos registrados, o painel destaca execucao, entregas e pausa operacional."
+      />
+    );
+  }
+
+  const data = [
+    {
+      name: "Em andamento",
+      value: counts.em_andamento,
+      color: CHART_COLORS.accent,
+      gradId: "ps-accent",
+    },
+    {
+      name: "Concluido",
+      value: counts.concluido,
+      color: CHART_COLORS.success,
+      gradId: "ps-success",
+    },
+    { name: "Pausado", value: counts.pausado, color: CHART_COLORS.warning, gradId: "ps-warning" },
+    { name: "Negociacao", value: counts.negociacao, color: CHART_COLORS.brand, gradId: "ps-brand" },
+  ];
+
+  return (
+    <div className="h-[180px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+          <defs>
+            <linearGradient id="ps-accent" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.accent} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="ps-success" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.success} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="ps-warning" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.warning} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.warning} stopOpacity={0.4} />
+            </linearGradient>
+            <linearGradient id="ps-brand" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={CHART_COLORS.brand} stopOpacity={1} />
+              <stop offset="100%" stopColor={CHART_COLORS.brand} stopOpacity={0.4} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
+          <XAxis
+            dataKey="name"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            allowDecimals={false}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+            width={28}
+          />
+          <Tooltip content={<DashboardTooltip formatter={(v) => `${v} projeto(s)`} />} />
+          <Bar dataKey="value" name="Projetos" radius={[12, 12, 0, 0]}>
+            {data.map((entry) => (
+              <Cell key={entry.name} fill={`url(#${entry.gradId})`} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export default function AdminOverview() {
+  const [summary, setSummary] = useState<OverviewState>(initialState);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDashboard = useCallback(
+    async (background = false) => {
+      if (!background || !hasLoaded) {
+        setLoading(true);
+        setError(null);
+      }
+
+      const [
+        clientsRes,
+        projectsRes,
+        chargesRes,
+        subscriptionsRes,
+        expensesRes,
+        contractsRes,
+        ticketsRes,
+      ] = await Promise.all([
+        supabase.from("clients").select("id, is_active, client_since"),
+        supabase
+          .from("projects")
+          .select(
+            "id, client_id, status, started_at, delivered_at, expected_delivery_date, current_stage"
+          ),
+        supabase
+          .from("charges")
+          .select("id, client_id, amount, due_date, origin_type, paid_at, status, is_historical"),
+        supabase.from("project_subscriptions").select("id, client_id, amount, status"),
+        supabase.from("expenses").select("id, amount, expense_date"),
+        supabase
+          .from("project_contracts")
+          .select("id, project_id, total_amount, status, signed_at"),
+        supabase.from("support_tickets").select("id, status, created_at"),
+      ]);
+
+      const hardError =
+        clientsRes.error ??
+        projectsRes.error ??
+        chargesRes.error ??
+        subscriptionsRes.error ??
+        expensesRes.error ??
+        contractsRes.error ??
+        ticketsRes.error;
+
+      if (hardError) {
+        if (!hasLoaded) {
+          setError(hardError.message);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const clients = (clientsRes.data as DashboardClient[] | null) ?? [];
+      const projects = (projectsRes.data as DashboardProject[] | null) ?? [];
+      const charges = (chargesRes.data as DashboardCharge[] | null) ?? [];
+      const subscriptions = (subscriptionsRes.data as DashboardSubscription[] | null) ?? [];
+      const expenses = (expensesRes.data as DashboardExpense[] | null) ?? [];
+      const contracts = (contractsRes.data as DashboardContract[] | null) ?? [];
+      const tickets = (ticketsRes.data as DashboardTicket[] | null) ?? [];
+
+      const hasAnyData =
+        clients.length > 0 ||
+        projects.length > 0 ||
+        charges.length > 0 ||
+        subscriptions.length > 0 ||
+        expenses.length > 0;
+
+      const now = new Date();
+      const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      const monthFrames = getRecentMonths(12);
+      const monthlyMap = new Map(
+        monthFrames.map((month) => [
+          month.key,
+          {
+            key: month.key,
+            label: month.label,
+            shortLabel: month.shortLabel,
+            cashIn: 0,
+            cashOut: 0,
+            net: 0,
+            recurringRevenue: 0,
+            projectRevenue: 0,
+          },
+        ])
+      );
+
+      const activeClients = clients.filter((client) => client.is_active);
+      const activeClientIds = new Set(activeClients.map((client) => client.id));
+      const previousActiveClients = activeClients.filter((client) => {
+        const clientSince = parseDateEndOfDay(client.client_since);
+        return clientSince ? clientSince <= endOfPreviousMonth : false;
+      }).length;
+
+      const recurringSubscriptions = subscriptions.filter((subscription) =>
+        ["agendada", "ativa"].includes(subscription.status)
+      );
+      const recurringBase = recurringSubscriptions.reduce(
+        (sum, subscription) => sum + Number(subscription.amount),
+        0
+      );
+      const recurringClientIds = new Set(
+        recurringSubscriptions
+          .filter((subscription) => activeClientIds.has(subscription.client_id))
+          .map((subscription) => subscription.client_id)
+      );
+
+      // Cash in: only operational (non-historical) paid charges, split by origin
+      charges
+        .filter((charge) => charge.status === "pago" && !charge.is_historical)
+        .forEach((charge) => {
+          const monthKey = getMonthKeyFromDate(charge.paid_at ?? charge.due_date);
+          if (!monthKey) return;
+          const point = monthlyMap.get(monthKey);
+          if (!point) return;
+          point.cashIn += Number(charge.amount);
+          if (charge.origin_type === "parcela_projeto") {
+            point.projectRevenue += Number(charge.amount);
+          }
+        });
+
+      expenses.forEach((expense) => {
+        const monthKey = getMonthKeyFromDate(expense.expense_date);
+        if (!monthKey) return;
+        const point = monthlyMap.get(monthKey);
+        if (!point) return;
+        point.cashOut += Number(expense.amount);
+      });
+
+      charges
+        .filter((charge) => charge.origin_type === "mensalidade" && charge.status !== "cancelado")
+        .forEach((charge) => {
+          const monthKey = getMonthKeyFromDate(charge.due_date);
+          if (!monthKey) return;
+          const point = monthlyMap.get(monthKey);
+          if (!point) return;
+          point.recurringRevenue += Number(charge.amount);
+        });
+
+      const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
+      const currentMonthPoint = monthlyMap.get(currentMonthKey);
+      if (currentMonthPoint && currentMonthPoint.recurringRevenue < recurringBase) {
+        currentMonthPoint.recurringRevenue = recurringBase;
+      }
+
+      const monthlySeries = monthFrames.map((frame) => {
+        const point = monthlyMap.get(frame.key) ?? {
+          key: frame.key,
+          label: frame.label,
+          shortLabel: frame.shortLabel,
+          cashIn: 0,
+          cashOut: 0,
+          net: 0,
+          recurringRevenue: 0,
+          projectRevenue: 0,
+        };
+
+        return {
+          ...point,
+          net: point.cashIn - point.cashOut,
+        };
+      });
+
+      const previousMonthPoint = monthlySeries[monthlySeries.length - 2];
+      const openProjects = projects.filter((project) => isProjectOpen(project)).length;
+      const previousOpenProjects = projects.filter((project) =>
+        wasProjectOpenAt(project, endOfPreviousMonth)
+      ).length;
+
+      const projectStatusCounts: Record<ProjectBucket, number> = {
+        negociacao: 0,
+        em_andamento: 0,
+        concluido: 0,
+        pausado: 0,
+      };
+
+      projects.forEach((project) => {
+        if (project.status === "cancelado") return;
+        // Usar status real do projeto (não o bucket operacional) para o gráfico
+        const bucket = project.status as ProjectBucket;
+        if (bucket in projectStatusCounts) {
+          projectStatusCounts[bucket] += 1;
+        }
+      });
+
+      // Overdue clients: trust the DB status field exclusively (no client-side date logic)
+      const overdueClientIds = new Set(
+        charges
+          .filter(
+            (charge) =>
+              activeClientIds.has(charge.client_id) &&
+              charge.status === "atrasado" &&
+              !charge.is_historical
+          )
+          .map((charge) => charge.client_id)
+      );
+
+      const clientsWithoutRecurringIds = new Set(
+        activeClients
+          .filter((client) => !recurringClientIds.has(client.id))
+          .map((client) => client.id)
+      );
+
+      const healthyRecurringClients = Array.from(recurringClientIds).filter(
+        (clientId) => !overdueClientIds.has(clientId)
+      ).length;
+      const nonRecurringClients = Array.from(clientsWithoutRecurringIds).filter(
+        (clientId) => !overdueClientIds.has(clientId)
+      ).length;
+      const clientsAtRisk = new Set([
+        ...Array.from(overdueClientIds),
+        ...Array.from(clientsWithoutRecurringIds),
+      ]).size;
+
+      // Cash balance: only operational (non-historical) paid charges
+      const cashBalance =
+        charges
+          .filter((charge) => charge.status === "pago" && !charge.is_historical)
+          .reduce((sum, charge) => sum + Number(charge.amount), 0) -
+        expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+      // "A receber" = pendente (já vencido) + agendada com vencimento este mês
+      const currentMonthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        .toISOString()
+        .slice(0, 10);
+      const pendingReceivables = charges
+        .filter(
+          (c) =>
+            !c.is_historical &&
+            (c.status === "pendente" ||
+              (c.status === "agendada" && c.due_date <= currentMonthEndStr))
+        )
+        .reduce((sum, c) => sum + Number(c.amount), 0);
+
+      const overdueReceivables = charges
+        .filter((c) => c.status === "atrasado" && !c.is_historical)
+        .reduce((sum, c) => sum + Number(c.amount), 0);
+
+      const currentMonthNet = monthlySeries[monthlySeries.length - 1]?.net ?? 0;
+      const previousCashBalance = cashBalance - currentMonthNet;
+      const currentMrr = monthlySeries[monthlySeries.length - 1]?.recurringRevenue ?? recurringBase;
+      const previousMrr = previousMonthPoint?.recurringRevenue ?? 0;
+      const currentProjectRevenue = monthlySeries[monthlySeries.length - 1]?.projectRevenue ?? 0;
+
+      // New clients this month
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const newClientsThisMonth = clients.filter((c) => {
+        const since = parseDateValue(c.client_since);
+        return since && since >= startOfMonth && c.is_active;
+      }).length;
+
+      // Overdue projects: em_andamento with expected_delivery_date in the past
+      const todayStr = now.toISOString().slice(0, 10);
+      const overdueProjects = projects.filter(
+        (p) =>
+          p.status === "em_andamento" &&
+          p.expected_delivery_date &&
+          p.expected_delivery_date < todayStr &&
+          !p.delivered_at
+      ).length;
+
+      // Completed this month
+      const completedThisMonth = projects.filter((p) => {
+        if (p.status !== "concluido") return false;
+        const delivered = parseDateValue(p.delivered_at);
+        return delivered && delivered >= startOfMonth;
+      }).length;
+
+      // Average delivery time (days) for completed projects
+      const deliveryDurations = projects
+        .filter((p) => p.status === "concluido" && p.started_at && p.delivered_at)
+        .map((p) => {
+          const start = parseDateValue(p.started_at)!;
+          const end = parseDateValue(p.delivered_at)!;
+          return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+        })
+        .filter((d) => d > 0);
+      const avgDeliveryDays =
+        deliveryDurations.length > 0
+          ? Math.round(deliveryDurations.reduce((a, b) => a + b, 0) / deliveryDurations.length)
+          : null;
+
+      // Aging analysis — only charges already past due (future pending are not yet receivable)
+      const agingCharges = charges.filter(
+        (c) =>
+          (c.status === "pendente" || c.status === "atrasado") &&
+          !c.is_historical &&
+          c.due_date &&
+          c.due_date <= todayStr
+      );
+      const agingBuckets: AgingBucket[] = [
+        { range: "0-30 dias", amount: 0, count: 0 },
+        { range: "30-60 dias", amount: 0, count: 0 },
+        { range: "60+ dias", amount: 0, count: 0 },
+      ];
+      agingCharges.forEach((c) => {
+        const dueDate = new Date(c.due_date + "T00:00:00");
+        const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+        const amount = Number(c.amount);
+        if (daysOverdue <= 30) {
+          agingBuckets[0].amount += amount;
+          agingBuckets[0].count += 1;
+        } else if (daysOverdue <= 60) {
+          agingBuckets[1].amount += amount;
+          agingBuckets[1].count += 1;
+        } else {
+          agingBuckets[2].amount += amount;
+          agingBuckets[2].count += 1;
+        }
+      });
+
+      // Forecast: only future agendada charges (due_date strictly after today)
+      const forecastRevenue = charges
+        .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
+        .reduce((sum, c) => sum + Number(c.amount), 0);
+
+      // Pipeline: contracts linked to projects in negociacao
+      const negociacaoProjectIds = new Set(
+        projects.filter((p) => p.status === "negociacao").map((p) => p.id)
+      );
+      const pipelineContracts = contracts.filter(
+        (c) => negociacaoProjectIds.has(c.project_id) && c.status !== "cancelado"
+      );
+      const pipelineValue = pipelineContracts.reduce((sum, c) => sum + Number(c.total_amount), 0);
+      const pipelineCount = negociacaoProjectIds.size;
+
+      // Burn rate: average monthly expenses over the last 6 months
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      const recentExpenses = expenses.filter((e) => {
+        const d = parseDateValue(e.expense_date);
+        return d && d >= sixMonthsAgo;
+      });
+      const recentMonthCount = Math.min(6, monthlySeries.filter((m) => m.cashOut > 0).length || 1);
+      const burnRate =
+        recentExpenses.reduce((sum, e) => sum + Number(e.amount), 0) /
+        Math.max(recentMonthCount, 1);
+
+      // Operational margin: (cashIn - cashOut) / cashIn for current period
+      const currentMonthCashIn = monthlySeries[monthlySeries.length - 1]?.cashIn ?? 0;
+      const operationalMargin =
+        currentMonthCashIn > 0
+          ? ((currentMonthCashIn - (monthlySeries[monthlySeries.length - 1]?.cashOut ?? 0)) /
+              currentMonthCashIn) *
+            100
+          : null;
+
+      // Support tickets
+      const openTickets = tickets.filter(
+        (t) => t.status === "aberto" || t.status === "em_andamento"
+      ).length;
+      const resolvedTicketsThisMonth = tickets.filter((t) => {
+        if (t.status !== "resolvido" && t.status !== "fechado") return false;
+        const created = parseDateValue(t.created_at);
+        return created && created >= startOfMonth;
+      }).length;
+
+      setSummary({
+        hasAnyData,
+        activeClients: activeClients.length,
+        previousActiveClients,
+        newClientsThisMonth,
+        openProjects,
+        previousOpenProjects,
+        overdueProjects,
+        completedThisMonth,
+        avgDeliveryDays,
+        recurringClients: recurringClientIds.size,
+        healthyRecurringClients,
+        nonRecurringClients,
+        overdueClients: overdueClientIds.size,
+        clientsAtRisk,
+        recurringBase,
+        currentMrr,
+        previousMrr,
+        currentProjectRevenue,
+        cashBalance,
+        previousCashBalance,
+        currentMonthNet,
+        pendingReceivables,
+        overdueReceivables,
+        forecastRevenue,
+        agingBuckets,
+        pipelineValue,
+        pipelineCount,
+        burnRate,
+        operationalMargin,
+        openTickets,
+        resolvedTicketsThisMonth,
+        monthlySeries,
+        projectStatusCounts,
+        averageRecurringRevenuePerClient:
+          recurringClientIds.size > 0 ? recurringBase / recurringClientIds.size : 0,
+      });
+
+      setHasLoaded(true);
+      setLoading(false);
+    },
+    [hasLoaded]
+  );
+
+  useEffect(() => {
+    const refreshDashboard = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      void loadDashboard(true);
+    };
+
+    void loadDashboard();
+
+    const interval = window.setInterval(refreshDashboard, 60000);
+    window.addEventListener("focus", refreshDashboard);
+    document.addEventListener("visibilitychange", refreshDashboard);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshDashboard);
+      document.removeEventListener("visibilitychange", refreshDashboard);
+    };
+  }, [loadDashboard]);
+
+  const periodSeries = useMemo(
+    () => summary.monthlySeries.slice(-selectedPeriod),
+    [selectedPeriod, summary.monthlySeries]
+  );
+
+  const periodReceived = useMemo(
+    () => periodSeries.reduce((sum, point) => sum + point.cashIn, 0),
+    [periodSeries]
+  );
+  const periodExpenses = useMemo(
+    () => periodSeries.reduce((sum, point) => sum + point.cashOut, 0),
+    [periodSeries]
+  );
+  const periodNet = useMemo(
+    () => periodSeries.reduce((sum, point) => sum + point.net, 0),
+    [periodSeries]
+  );
+
+  const mrrChange = useMemo(
+    () => getPercentChange(summary.currentMrr, summary.previousMrr),
+    [summary.currentMrr, summary.previousMrr]
+  );
+  const cashChange = useMemo(
+    () => getPercentChange(summary.cashBalance, summary.previousCashBalance),
+    [summary.cashBalance, summary.previousCashBalance]
+  );
+  const clientChange = useMemo(
+    () => getPercentChange(summary.activeClients, summary.previousActiveClients),
+    [summary.activeClients, summary.previousActiveClients]
+  );
+  const projectChange = useMemo(
+    () => getPercentChange(summary.openProjects, summary.previousOpenProjects),
+    [summary.openProjects, summary.previousOpenProjects]
+  );
+
+  const recurringRate = useMemo(() => {
+    if (summary.activeClients === 0) return 0;
+    return Math.round((summary.recurringClients / summary.activeClients) * 100);
+  }, [summary.activeClients, summary.recurringClients]);
+
+  const insightHeadline = useMemo(() => {
+    const roundedMrrChange = roundPercentage(mrrChange);
+
+    if (roundedMrrChange !== null && roundedMrrChange <= -5) {
+      return `MRR caiu ${Math.abs(roundedMrrChange)}% em ${getCurrentMonthName()}`;
+    }
+
+    if (roundedMrrChange !== null && roundedMrrChange >= 5) {
+      return `MRR subiu ${roundedMrrChange}% em ${getCurrentMonthName()}`;
+    }
+
+    if (summary.overdueReceivables > 0) {
+      return `${formatBRL(summary.overdueReceivables)} em cobranças atrasadas`;
+    }
+
+    if (summary.currentMonthNet < 0) {
+      return (
+        <>
+          Fluxo do mes em{" "}
+          <span className="text-destructive">{getSignedCurrency(summary.currentMonthNet)}</span>
+        </>
+      );
+    }
+
+    if (summary.clientsAtRisk > 0) {
+      return `${summary.clientsAtRisk} cliente(s) pedem atencao`;
+    }
+
+    return "Operacao estavel neste mes";
+  }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
+
+  const projectExecutionCount =
+    summary.projectStatusCounts.em_andamento + summary.projectStatusCounts.negociacao;
+
+  return (
+    <div className="space-y-4">
+      {loading && !hasLoaded ? (
+        <OverviewSkeleton />
+      ) : error ? (
+        <AdminEmptyState
+          icon={TrendingUp}
+          title="Nao foi possivel montar o painel"
+          description={`${error} Verifique a conexao com o Supabase e tente carregar novamente.`}
+          action={
+            <Button type="button" onClick={() => void loadDashboard()}>
+              Tentar novamente
+            </Button>
+          }
+        />
+      ) : !summary.hasAnyData ? (
+        <AdminEmptyState
+          icon={Shield}
+          title="Dashboard pronto para receber operacao"
+          description="Cadastre clientes, projetos, cobranças e despesas para transformar esta tela em um resumo executivo com leitura imediata."
+          action={
+            <Button type="button" onClick={() => void loadDashboard()}>
+              Atualizar painel
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          {/* Summary card */}
+          <Card className="overflow-hidden rounded-2xl border-border/80 bg-gradient-subtle">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+                    {insightHeadline}
+                  </h2>
+                </div>
+
+                <div className="inline-flex rounded-full border border-border/80 bg-background/80 p-1">
+                  {PERIOD_OPTIONS.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setSelectedPeriod(option)}
+                      className={cn(
+                        "rounded-full px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
+                        selectedPeriod === option
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {option}M
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:max-w-[520px]">
+                <SurfaceStat
+                  label="Saldo no periodo"
+                  value={getSignedCurrency(periodNet)}
+                  tone={periodNet >= 0 ? "success" : "destructive"}
+                />
+                <SurfaceStat
+                  label="Crescimento do MRR"
+                  value={
+                    roundPercentage(mrrChange) === null
+                      ? summary.currentMrr > 0
+                        ? "Novo"
+                        : "N/A"
+                      : `${roundPercentage(mrrChange)}%`
+                  }
+                  tone={
+                    mrrChange === null
+                      ? "neutral"
+                      : mrrChange > 0
+                        ? "success"
+                        : mrrChange < 0
+                          ? "destructive"
+                          : "neutral"
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* KPI cards — essentials only */}
+          <section className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+            <ExecutiveKpiCard
+              label="MRR"
+              value={formatBRL(summary.currentMrr)}
+              subInfo={`${summary.recurringClients} com recorrencia`}
+              tone="success"
+              change={mrrChange}
+            />
+
+            <ExecutiveKpiCard
+              label="Saldo operacional"
+              value={formatBRL(summary.cashBalance)}
+              subInfo={`Mes em ${getSignedCurrency(summary.currentMonthNet)}`}
+              tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
+              change={cashChange}
+            />
+
+            <ExecutiveKpiCard
+              label="Em atraso"
+              value={
+                summary.overdueReceivables > 0
+                  ? `${summary.overdueClients}x ${formatBRL(summary.overdueReceivables)}`
+                  : formatBRL(0)
+              }
+              subInfo={
+                summary.overdueClients > 0
+                  ? `${summary.overdueClients} cliente(s) com atraso`
+                  : "Nenhum atraso registrado"
+              }
+              tone={summary.overdueReceivables > 0 ? "destructive" : "neutral"}
+              change={null}
+            />
+
+            <ExecutiveKpiCard
+              label="Clientes ativos"
+              value={String(summary.activeClients)}
+              subInfo={`${summary.newClientsThisMonth} novo(s) | ${summary.clientsAtRisk} em risco`}
+              tone="brand"
+              change={clientChange}
+            />
+
+            <ExecutiveKpiCard
+              label="Projetos ativos"
+              value={String(summary.openProjects)}
+              subInfo={`${summary.overdueProjects} atrasado(s) | ${summary.projectStatusCounts.pausado} pausados`}
+              tone={summary.overdueProjects > 0 ? "warning" : "neutral"}
+              change={projectChange}
+            />
+
+            <ExecutiveKpiCard
+              label="Pipeline"
+              value={formatBRL(summary.pipelineValue)}
+              subInfo={`${summary.pipelineCount} em negociacao`}
+              tone="brand"
+              change={null}
+            />
+          </section>
+
+          {/* Cash flow + Result charts */}
+          <section className="grid gap-4 xl:grid-cols-12">
+            <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-8">
+              <CardContent className="space-y-4 p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Entradas e saidas por mes
+                </p>
+                <CashFlowGroupedBarChart data={periodSeries} />
+                <div className="grid gap-3 grid-cols-3">
+                  <SurfaceStat
+                    label="Total entradas"
+                    value={formatBRL(periodReceived)}
+                    tone="success"
+                  />
+                  <SurfaceStat
+                    label="Total saidas"
+                    value={formatBRL(periodExpenses)}
+                    tone={periodExpenses > 0 ? "destructive" : "neutral"}
+                  />
+                  <SurfaceStat
+                    label="Saldo acumulado"
+                    value={getSignedCurrency(periodNet)}
+                    tone={periodNet >= 0 ? "success" : "destructive"}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-4">
+              <CardContent className="space-y-4 p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  Resultado por mes
+                </p>
+                <ResultBarChart data={periodSeries} />
+                <SurfaceStat
+                  label="Saldo do mes"
+                  value={getSignedCurrency(summary.currentMonthNet)}
+                  tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
+                />
+              </CardContent>
+            </Card>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}

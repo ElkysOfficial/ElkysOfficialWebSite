@@ -84,7 +84,7 @@ const Contact = () => {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`w-12 h-12 min-h-[44px] min-w-[44px] bg-card border border-border rounded-lg flex items-center justify-center transition-all duration-150 hover:shadow-md ${social.color}`}
+                    className={`w-12 h-12 min-h-[44px] min-w-[44px] bg-card border border-border rounded-lg flex items-center justify-center text-muted-foreground transition-all duration-150 hover:shadow-md ${social.color}`}
                     aria-label={`Visite nosso perfil no ${social.name}`}
                   >
                     <social.icon className="h-5 w-5" />

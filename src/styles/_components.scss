@@ -3,33 +3,3 @@
  * Classes semânticas para padrões repetidos.
  * Cada classe mapeia exatamente para os Tailwind patterns existentes.
  */
-
-// Seção padrão (padding responsivo)
-.elkys-section {
-  @apply py-16 md:py-20 lg:py-24;
-}
-
-// Header de seção (título + subtítulo centralizados)
-.elkys-section-header {
-  @apply text-center mb-12 md:mb-16;
-}
-
-// Título de seção
-.elkys-section-title {
-  @apply text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4;
-}
-
-// Subtítulo de seção
-.elkys-section-subtitle {
-  @apply text-base md:text-lg text-muted-foreground leading-relaxed;
-}
-
-// Label de formulário
-.elkys-label {
-  @apply block text-sm font-medium text-foreground mb-2;
-}
-
-// Texto de erro de formulário
-.elkys-error {
-  @apply text-destructive text-xs mt-1;
-}

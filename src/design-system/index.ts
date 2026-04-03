@@ -23,11 +23,13 @@ export { Input } from "./components/Input";
 export { Textarea } from "./components/Textarea";
 export { Toaster } from "./components/Toast";
 
-export { HexRating } from "./components/HexRating";
-export type { HexRatingProps } from "./components/HexRating";
+export { AlertDialog } from "./components/AlertDialog";
 
 export { HexPattern } from "./components/HexPattern";
 export type { HexPatternProps } from "./components/HexPattern";
+
+export { HexAvatar } from "./components/HexAvatar";
+export type { HexAvatarProps } from "./components/HexAvatar";
 
 // --- Primitives ---
 export { Container } from "./primitives/Container";

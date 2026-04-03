@@ -1,4 +1,4 @@
-import { ArrowRight, Code2, Zap, Shield } from "@/assets/icons";
+import { ArrowRight, Code, Agile, Suporte } from "@/assets/icons";
 import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
@@ -121,7 +121,7 @@ const Hero = () => {
               <div className="space-y-6">
                 {/* Feature 1: Clean Code */}
                 <div className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse">
-                  <Code2 className="h-8 w-8 text-accent flex-shrink-0" />
+                  <Code className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Clean Code</p>
                     <p className="text-white/60 text-sm">Código limpo e documentado</p>
@@ -132,7 +132,7 @@ const Hero = () => {
                   className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse"
                   style={{ animationDelay: "1s" }}
                 >
-                  <Zap className="h-8 w-8 text-accent flex-shrink-0" />
+                  <Agile className="h-8 w-8 flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Entregas Ágeis</p>
                     <p className="text-white/60 text-sm">Gestão transparente do projeto</p>
@@ -143,7 +143,7 @@ const Hero = () => {
                   className="flex items-center space-x-4 p-4 rounded-lg border border-transparent animate-card-pulse"
                   style={{ animationDelay: "2s" }}
                 >
-                  <Shield className="h-8 w-8 text-accent flex-shrink-0" />
+                  <Suporte className="h-8 w-8 flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Suporte Contínuo</p>
                     <p className="text-white/60 text-sm">Suporte pós-entrega</p>

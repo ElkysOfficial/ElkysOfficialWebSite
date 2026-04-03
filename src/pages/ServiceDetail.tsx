@@ -72,7 +72,7 @@ const ServiceDetail = () => {
                 loading="eager"
                 {...{ fetchpriority: "high" }}
                 className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
-                style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
+                style={{ filter: "drop-shadow(0 0 40px hsl(var(--primary) / 0.3))" }}
               />
             </div>
 

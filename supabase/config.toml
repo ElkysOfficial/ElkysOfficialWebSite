@@ -1,0 +1,28 @@
+project_id = "njubtnsgtjcfmbnvjuqr"
+
+[functions.create-user]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = false
+
+[functions.send-team-welcome]
+verify_jwt = false
+
+[functions.send-client-welcome]
+verify_jwt = false
+
+[functions.send-document-added]
+verify_jwt = false
+
+[functions.update-user]
+verify_jwt = false
+
+[functions.complete-first-access]
+verify_jwt = false
+
+[functions.send-ticket-opened]
+verify_jwt = false
+
+[functions.send-ticket-updated]
+verify_jwt = false

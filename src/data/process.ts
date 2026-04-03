@@ -6,7 +6,8 @@ import {
   Target,
   Code,
   CheckCircle,
-  Shield,
+  Suporte,
+  SuporteFill,
   Eye,
   Zap,
   Clock,
@@ -57,7 +58,7 @@ export interface WorkPhilosophy {
 }
 
 // ============================================================================
-// ABOUT — FILOSOFIA DE TRABALHO
+// ABOUT - FILOSOFIA DE TRABALHO
 // ============================================================================
 
 export const workPhilosophy: WorkPhilosophy = {
@@ -69,12 +70,12 @@ export const workPhilosophy: WorkPhilosophy = {
     { icon: Search, label: "Diagnóstico antes de proposta" },
     { icon: Eye, label: "Visibilidade total do progresso" },
     { icon: CheckCircle, label: "Entregas quinzenais validadas" },
-    { icon: Shield, label: "Suporte pós-entrega" },
+    { icon: Suporte, label: "Suporte pós-entrega" },
   ],
 };
 
 // ============================================================================
-// HOME — ETAPAS RESUMIDAS (6 passos)
+// HOME - ETAPAS RESUMIDAS (6 passos)
 // ============================================================================
 
 export const homepageSummarySteps: ProcessStep[] = [
@@ -123,13 +124,13 @@ export const homepageSummarySteps: ProcessStep[] = [
     title: "Suporte e Evolução",
     description:
       "Monitoramento pós-lançamento, correções prioritárias e planejamento de evoluções contínuas.",
-    icon: Shield,
+    icon: Suporte,
     clientParticipation: false,
   },
 ];
 
 // ============================================================================
-// HOME — ETAPAS DETALHADAS (8 fases legado — mantido para compatibilidade)
+// HOME - ETAPAS DETALHADAS (8 fases legado - mantido para compatibilidade)
 // ============================================================================
 
 export const detailedProcessSteps: DetailedProcessStep[] = [
@@ -143,7 +144,7 @@ export const detailedProcessSteps: DetailedProcessStep[] = [
     duration: "1–3 dias",
     details: [
       "Cada projeto no HDS começa por entender o contexto real do cliente. Antes de falar de tecnologia, investigamos o modelo de negócio, os processos internos, as dores operacionais e o resultado que a solução precisa gerar.",
-      "O objetivo desta fase é garantir que a equipe técnica tenha domínio suficiente do cenário para propor a abordagem mais eficaz — eliminando retrabalho e decisões baseadas em suposições.",
+      "O objetivo desta fase é garantir que a equipe técnica tenha domínio suficiente do cenário para propor a abordagem mais eficaz - eliminando retrabalho e decisões baseadas em suposições.",
     ],
     deliverables: [
       "Briefing estruturado do projeto",
@@ -268,7 +269,7 @@ export const detailedProcessSteps: DetailedProcessStep[] = [
     title: "Evolução",
     description:
       "Suporte dedicado, monitoramento contínuo e planejamento de evoluções com a mesma disciplina.",
-    icon: Shield,
+    icon: Suporte,
     clientParticipation: false,
     duration: "Contínuo",
     details: [
@@ -285,7 +286,7 @@ export const detailedProcessSteps: DetailedProcessStep[] = [
 ];
 
 // ============================================================================
-// COMO TRABALHAMOS — 6 etapas CONSOLIDADAS (HDS)
+// COMO TRABALHAMOS - 6 etapas CONSOLIDADAS (HDS)
 // ============================================================================
 
 export const processSteps6: DetailedProcessStep[] = [
@@ -390,7 +391,7 @@ export const processSteps6: DetailedProcessStep[] = [
     title: "Evolução",
     description:
       "Suporte dedicado, monitoramento contínuo e planejamento de evoluções com a mesma disciplina.",
-    icon: Shield,
+    icon: SuporteFill,
     clientParticipation: false,
     duration: "Contínuo",
     details: [
@@ -407,7 +408,7 @@ export const processSteps6: DetailedProcessStep[] = [
 ];
 
 // ============================================================================
-// HOME — CARDS INFORMATIVOS (metodologia, cronograma, participação)
+// HOME - CARDS INFORMATIVOS (metodologia, cronograma, participação)
 // ============================================================================
 
 export const processInfoCards = [
@@ -436,7 +437,7 @@ export const processInfoCards = [
     ],
   },
   {
-    icon: Shield,
+    icon: SuporteFill,
     title: "Suporte pós-entrega",
     description:
       "O projeto não termina no deploy. Garantimos estabilidade operacional, capacitação e um caminho claro para evoluções futuras.",
@@ -450,7 +451,7 @@ export const processInfoCards = [
 ];
 
 // ============================================================================
-// SERVICE DETAIL — PROCESSOS POR SERVIÇO
+// SERVICE DETAIL - PROCESSOS POR SERVIÇO
 // ============================================================================
 
 export const serviceProcesses: ServiceProcess[] = [
@@ -496,7 +497,7 @@ export const serviceProcesses: ServiceProcess[] = [
         title: "Deploy e Suporte",
         description:
           "Implantação em produção com monitoramento ativo, treinamento e plano de suporte contínuo.",
-        icon: Shield,
+        icon: SuporteFill,
         clientParticipation: true,
         deliverables: ["Ambiente de produção", "Documentação técnica", "Plano de suporte"],
       },

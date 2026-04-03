@@ -25,6 +25,10 @@
   box-shadow: var(--shadow-glow);
 }
 
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 40px hsl(var(--elk-primary) / 0.3));
+}
+
 // --- Hover Lift ---
 .hover-lift {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -154,8 +158,8 @@
 
   .animate-card-pulse {
     animation: none;
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: hsl(0 0% 100% / 0.1);
+    border-color: hsl(0 0% 100% / 0.1);
   }
 
   .animate-clients-scroll {

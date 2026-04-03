@@ -1,0 +1,2465 @@
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+
+import { FileText, Search, TrendingUp } from "@/assets/icons";
+import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
+import ProjectTimelineFeed from "@/components/portal/ProjectTimelineFeed";
+import StatusBadge from "@/components/portal/StatusBadge";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Field,
+  Input,
+  Label,
+  Textarea,
+  buttonVariants,
+  cn,
+} from "@/design-system";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import {
+  CHARGE_STATUS_META,
+  DOCUMENT_TYPE_LABEL,
+  NEXT_STEP_OWNER_LABEL,
+  PROJECT_INSTALLMENT_STATUS_LABEL,
+  NEXT_STEP_STATUS_LABEL,
+  PROJECT_STAGE_OPTIONS,
+  PROJECT_STATUS_META,
+  formatPortalDate,
+  getClientDisplayName,
+  getProjectStageMeta,
+  getProjectStatusForStage,
+  getProjectSummary,
+  installmentStatusToChargeStatus,
+  syncProjectStatusWithStage,
+} from "@/lib/portal";
+import { getSubscriptionCoverageEnd, listSubscriptionDueDates } from "@/lib/subscription-charges";
+import {
+  loadChargesForProject,
+  loadContractsForProject,
+  loadDocumentsForProject,
+  loadInstallmentsForProject,
+  loadNextStepsForProject,
+  loadProjectById,
+  loadSubscriptionsForProject,
+  loadTimelineForProject,
+} from "@/lib/portal-data";
+import {
+  formatBRL,
+  formatDateInput,
+  maskCurrency,
+  maskDate,
+  parseFormDate,
+  sanitizeInteger,
+  unmaskCurrency,
+} from "@/lib/masks";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
+import { insertTimelineEvent, insertTimelineEvents } from "@/lib/timeline";
+
+type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
+type ProjectStatus = Database["public"]["Enums"]["project_status"];
+type NextStepStatus = Database["public"]["Enums"]["next_step_status"];
+type NextStepOwner = Database["public"]["Enums"]["next_step_owner"];
+type InstallmentStatus = Database["public"]["Enums"]["project_installment_status"];
+type DocumentType = Database["public"]["Enums"]["document_type"];
+type SubscriptionStatus = Database["public"]["Enums"]["subscription_status"];
+type ProjectTab = "detalhes" | "financeiro" | "documentos" | "timeline";
+
+type NextStepFormState = {
+  title: string;
+  description: string;
+  owner: NextStepOwner;
+  status: NextStepStatus;
+  due_date: string;
+  client_visible: boolean;
+};
+
+type InstallmentFormState = {
+  percentage: string;
+  due_date: string;
+  status: InstallmentStatus;
+};
+
+function getNextStepFormDefaults(
+  step?: Database["public"]["Tables"]["project_next_steps"]["Row"]
+): NextStepFormState {
+  return {
+    title: step?.title ?? "",
+    description: step?.description ?? "",
+    owner: step?.owner ?? "elkys",
+    status: step?.status ?? "pendente",
+    due_date: formatDateInput(step?.due_date ?? null),
+    client_visible: step?.client_visible ?? true,
+  };
+}
+
+function getInstallmentFormDefaults(
+  installment: Database["public"]["Tables"]["project_installments"]["Row"]
+): InstallmentFormState {
+  return {
+    percentage: String(installment.percentage),
+    due_date: formatDateInput(installment.effective_due_date ?? installment.expected_due_date),
+    status: installment.status,
+  };
+}
+
+const selectClass =
+  "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+
+const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus, string> = {
+  agendada: "Agendada",
+  ativa: "Ativa",
+  pausada: "Pausada",
+  encerrada: "Encerrada",
+};
+
+function getManagedSubscription(
+  subscriptions: Database["public"]["Tables"]["project_subscriptions"]["Row"][]
+) {
+  return (
+    subscriptions.find((subscription) =>
+      ["agendada", "ativa", "pausada"].includes(subscription.status)
+    ) ??
+    subscriptions[0] ??
+    null
+  );
+}
+
+function getNextStepTone(
+  status: NextStepStatus
+): "accent" | "success" | "warning" | "destructive" | "secondary" {
+  if (status === "concluido") return "success";
+  if (status === "em_andamento") return "accent";
+  if (status === "cancelado") return "secondary";
+  return "warning";
+}
+
+function getInstallmentTone(
+  status: InstallmentStatus
+): "accent" | "success" | "warning" | "destructive" | "secondary" {
+  if (status === "paga") return "success";
+  if (status === "atrasada") return "destructive";
+  if (status === "cancelada") return "secondary";
+  if (status === "agendada") return "accent";
+  return "warning";
+}
+
+const getChargeStatusFromInstallmentStatus = installmentStatusToChargeStatus;
+
+function AddProjectDocumentForm({
+  clientId,
+  projectId,
+  actorUserId,
+  onAdded,
+}: {
+  clientId: string;
+  projectId: string;
+  actorUserId?: string | null;
+  onAdded: () => Promise<void>;
+}) {
+  const [label, setLabel] = useState("");
+  const [url, setUrl] = useState("");
+  const [type, setType] = useState<DocumentType>("contrato");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleAdd = async () => {
+    if (!label.trim() || !url.trim()) {
+      toast.error("Preencha o nome e o link do documento.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        client_id: clientId,
+        project_id: projectId,
+        label: label.trim(),
+        url: url.trim(),
+        type,
+        uploaded_by: actorUserId ?? null,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      setSubmitting(false);
+      toast.error("Erro ao adicionar documento.", {
+        description: error?.message ?? "Nao foi possivel salvar o documento.",
+      });
+      return;
+    }
+
+    try {
+      await insertTimelineEvent({
+        client_id: clientId,
+        project_id: projectId,
+        actor_user_id: actorUserId ?? null,
+        event_type: "document_created",
+        title: "Novo documento disponivel",
+        summary: `${label.trim()} foi adicionado aos anexos do projeto.`,
+        visibility: "ambos",
+        source_table: "documents",
+        source_id: data.id,
+        metadata: {
+          document_type: type,
+        },
+      });
+    } catch {
+      // timeline log is non-critical
+    }
+
+    try {
+      const authHeaders = await getSupabaseFunctionAuthHeaders();
+      const { error: notifyError } = await supabase.functions.invoke("send-document-added", {
+        body: {
+          client_id: clientId,
+          project_id: projectId,
+          document_label: label.trim(),
+          document_type: type,
+          document_url: url.trim(),
+        },
+        headers: authHeaders,
+      });
+
+      if (notifyError) {
+        toast.error("Documento salvo, mas o e-mail nao foi enviado.", {
+          description: notifyError.message,
+        });
+      }
+    } catch (notifyError) {
+      const message =
+        notifyError instanceof Error
+          ? notifyError.message
+          : "Nao foi possivel enviar a notificacao por e-mail.";
+      toast.error("Documento salvo, mas o e-mail nao foi enviado.", { description: message });
+    }
+
+    setLabel("");
+    setUrl("");
+    setType("contrato");
+    await onAdded();
+    setSubmitting(false);
+    toast.success("Documento adicionado ao projeto.");
+  };
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_140px_auto] sm:items-end">
+        <Field>
+          <Label>Nome</Label>
+          <Input
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            placeholder="Ex: Briefing do projeto"
+          />
+        </Field>
+
+        <Field>
+          <Label>Link</Label>
+          <Input
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="https://drive.google.com/..."
+          />
+        </Field>
+
+        <Field>
+          <Label>Tipo</Label>
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value as DocumentType)}
+            className={selectClass}
+          >
+            {(Object.keys(DOCUMENT_TYPE_LABEL) as DocumentType[]).map((docType) => (
+              <option key={docType} value={docType}>
+                {DOCUMENT_TYPE_LABEL[docType]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Button
+          type="button"
+          disabled={submitting}
+          onClick={() => void handleAdd()}
+          className="min-h-[44px]"
+        >
+          {submitting ? "Adicionando..." : "Adicionar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function OverlayPanel({
+  open,
+  title,
+  description,
+  onClose,
+  widthClass = "max-w-3xl",
+  children,
+}: {
+  open: boolean;
+  title: string;
+  description?: string;
+  onClose: () => void;
+  widthClass?: string;
+  children: ReactNode;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div
+        className={`flex w-full flex-col ${widthClass} max-h-[calc(100vh-2rem)] rounded-2xl border border-border/60 bg-card shadow-2xl`}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/50 px-6 py-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            {description ? (
+              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            ) : null}
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+            Fechar
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminProjectDetail() {
+  const { user } = useAuth();
+  const { id } = useParams();
+  const [project, setProject] = useState<Database["public"]["Tables"]["projects"]["Row"] | null>(
+    null
+  );
+  const [client, setClient] = useState<PortalClient | null>(null);
+  const [contracts, setContracts] = useState<
+    Database["public"]["Tables"]["project_contracts"]["Row"][]
+  >([]);
+  const [installments, setInstallments] = useState<
+    Database["public"]["Tables"]["project_installments"]["Row"][]
+  >([]);
+  const [subscriptions, setSubscriptions] = useState<
+    Database["public"]["Tables"]["project_subscriptions"]["Row"][]
+  >([]);
+  const [charges, setCharges] = useState<Database["public"]["Tables"]["charges"]["Row"][]>([]);
+  const [nextSteps, setNextSteps] = useState<
+    Database["public"]["Tables"]["project_next_steps"]["Row"][]
+  >([]);
+  const [timeline, setTimeline] = useState<
+    Database["public"]["Tables"]["timeline_events"]["Row"][]
+  >([]);
+  const [documents, setDocuments] = useState<Database["public"]["Tables"]["documents"]["Row"][]>(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [nextStepForms, setNextStepForms] = useState<Record<string, NextStepFormState>>({});
+  const [newNextStepForm, setNewNextStepForm] =
+    useState<NextStepFormState>(getNextStepFormDefaults());
+  const [stepSavingId, setStepSavingId] = useState<string | null>(null);
+  const [creatingStep, setCreatingStep] = useState(false);
+  const [installmentForms, setInstallmentForms] = useState<Record<string, InstallmentFormState>>(
+    {}
+  );
+  const [savingInstallments, setSavingInstallments] = useState(false);
+  const [savingInstallmentId, setSavingInstallmentId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab") as ProjectTab | null;
+  const validTabs: ProjectTab[] = ["detalhes", "financeiro", "documentos", "timeline"];
+  const tab: ProjectTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : "detalhes";
+  const setTab = (next: ProjectTab) => {
+    if (next === "detalhes") {
+      searchParams.delete("tab");
+    } else {
+      searchParams.set("tab", next);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
+  const [showStageJourney, setShowStageJourney] = useState(false);
+  const [projectUpdateOpen, setProjectUpdateOpen] = useState(false);
+  const [nextStepsOpen, setNextStepsOpen] = useState(false);
+  const [documentComposerOpen, setDocumentComposerOpen] = useState(false);
+  const [projectForm, setProjectForm] = useState({
+    name: "",
+    solution_type: "",
+    status: "negociacao" as ProjectStatus,
+    current_stage: "",
+    started_at: "",
+    delivered_at: "",
+    expected_delivery_date: "",
+    client_visible_summary: "",
+    has_subscription: false,
+    subscription_id: "",
+    subscription_label: "Manutencao e hospedagem",
+    subscription_amount: "",
+    subscription_due_day: "10",
+    subscription_starts_on: "",
+    subscription_ends_on: "",
+    subscription_status: "ativa" as SubscriptionStatus,
+  });
+
+  const visibleCharges = useMemo(
+    () => charges.filter((charge) => charge.status !== "pago" && charge.status !== "cancelado"),
+    [charges]
+  );
+  const subscriptionChargeById = useMemo(() => {
+    const orderedCharges = [...visibleCharges].sort((a, b) => a.due_date.localeCompare(b.due_date));
+    return orderedCharges.reduce<Record<string, Database["public"]["Tables"]["charges"]["Row"]>>(
+      (accumulator, charge) => {
+        if (charge.subscription_id && !accumulator[charge.subscription_id]) {
+          accumulator[charge.subscription_id] = charge;
+        }
+        return accumulator;
+      },
+      {}
+    );
+  }, [visibleCharges]);
+  const financialItems = useMemo(
+    () =>
+      visibleCharges
+        .filter((charge) => charge.origin_type !== "mensalidade" && !charge.installment_id)
+        .map((charge) => ({
+          id: charge.id,
+          label: charge.description,
+          amount: charge.amount,
+          dueDate: charge.due_date,
+          statusKey: charge.status,
+          status: CHARGE_STATUS_META[charge.status],
+        })),
+    [visibleCharges]
+  );
+  const visibleInstallments = useMemo(
+    () =>
+      installments.filter(
+        (installment) => installment.status !== "paga" && installment.status !== "cancelada"
+      ),
+    [installments]
+  );
+  const stageOptions = useMemo(() => {
+    if (
+      projectForm.current_stage &&
+      !PROJECT_STAGE_OPTIONS.some((stage) => stage.value === projectForm.current_stage)
+    ) {
+      return [
+        ...PROJECT_STAGE_OPTIONS,
+        {
+          order: PROJECT_STAGE_OPTIONS.length + 1,
+          value: projectForm.current_stage,
+          label: `${projectForm.current_stage} (legado)`,
+          duration: "Sem referencia padrao",
+          summary: "Etapa anterior mantida para compatibilidade com o historico do projeto.",
+        },
+      ];
+    }
+
+    return PROJECT_STAGE_OPTIONS;
+  }, [projectForm.current_stage]);
+  const derivedStageStatus = useMemo(
+    () => getProjectStatusForStage(projectForm.current_stage),
+    [projectForm.current_stage]
+  );
+  const stageStatusMeta = PROJECT_STATUS_META[derivedStageStatus];
+  const projectStatusOptions = useMemo(() => {
+    const optionKeys: ProjectStatus[] = [
+      derivedStageStatus,
+      projectForm.status,
+      "pausado",
+      "cancelado",
+    ];
+    return Array.from(new Set(optionKeys));
+  }, [derivedStageStatus, projectForm.status]);
+  const contractAmount = Number(contracts[0]?.total_amount ?? 0);
+  const stageMeta = getProjectStageMeta(project?.current_stage);
+  const managedSubscription = useMemo(() => getManagedSubscription(subscriptions), [subscriptions]);
+  const hasActiveManagedSubscription = Boolean(
+    managedSubscription && managedSubscription.status !== "encerrada"
+  );
+
+  const syncSubscriptionCharges = useCallback(
+    async ({
+      projectId,
+      clientId,
+      subscriptionsToSync,
+      currentContracts,
+      currentCharges,
+    }: {
+      projectId: string;
+      clientId: string;
+      subscriptionsToSync: Database["public"]["Tables"]["project_subscriptions"]["Row"][];
+      currentContracts: Database["public"]["Tables"]["project_contracts"]["Row"][];
+      currentCharges: Database["public"]["Tables"]["charges"]["Row"][];
+    }) => {
+      const syncableSubscriptions = subscriptionsToSync.filter((subscription) =>
+        ["agendada", "ativa"].includes(subscription.status)
+      );
+
+      if (syncableSubscriptions.length === 0) return currentCharges;
+
+      const latestContract = currentContracts[0] ?? null;
+      const missingCharges = syncableSubscriptions.flatMap((subscription) => {
+        const coverageEnd = getSubscriptionCoverageEnd(
+          subscription.ends_on,
+          latestContract?.ends_at ?? null
+        );
+        const dueDates = listSubscriptionDueDates({
+          startsOn: subscription.starts_on,
+          dueDay: subscription.due_day,
+          endsOn: coverageEnd,
+        });
+
+        const existingDueDates = new Set(
+          currentCharges
+            .filter((charge) => charge.subscription_id === subscription.id)
+            .map((charge) => charge.due_date)
+        );
+
+        const todayIso = new Date().toISOString().slice(0, 10);
+        return dueDates
+          .filter((dueDate) => !existingDueDates.has(dueDate))
+          .map((dueDate) => ({
+            client_id: clientId,
+            project_id: projectId,
+            contract_id: latestContract?.id ?? null,
+            subscription_id: subscription.id,
+            origin_type: "mensalidade" as const,
+            description: subscription.label,
+            amount: Number(subscription.amount),
+            due_date: dueDate,
+            status: (dueDate > todayIso ? "agendada" : "pendente") as "agendada" | "pendente",
+            is_blocking: subscription.is_blocking,
+          }));
+      });
+
+      if (missingCharges.length === 0) return currentCharges;
+
+      // Double-check against DB to prevent duplicates (handles partial index edge cases)
+      const subIds = [...new Set(missingCharges.map((c) => c.subscription_id))];
+      const { data: dbExisting } = await supabase
+        .from("charges")
+        .select("subscription_id, due_date")
+        .in("subscription_id", subIds);
+
+      const dbKeys = new Set(
+        (dbExisting ?? []).map(
+          (r: { subscription_id: string; due_date: string }) =>
+            `${r.subscription_id}__${r.due_date}`
+        )
+      );
+
+      const safeInserts = missingCharges.filter(
+        (c) => !dbKeys.has(`${c.subscription_id}__${c.due_date}`)
+      );
+
+      if (safeInserts.length === 0) return currentCharges;
+
+      const { error: insertError } = await supabase.from("charges").insert(safeInserts);
+      if (insertError) throw insertError;
+
+      const refreshedChargesRes = await loadChargesForProject(projectId, clientId);
+      if (refreshedChargesRes.error) throw refreshedChargesRes.error;
+
+      return refreshedChargesRes.charges;
+    },
+    []
+  );
+
+  const loadProject = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setPageError(null);
+
+    const projectRes = await loadProjectById(id);
+
+    if (projectRes.error || !projectRes.project) {
+      setPageError(projectRes.error?.message ?? "Projeto nao encontrado.");
+      setLoading(false);
+      return;
+    }
+
+    const clientRes = await supabase
+      .from("clients")
+      .select("*")
+      .eq("id", projectRes.project.client_id)
+      .maybeSingle();
+
+    const [
+      contractsRes,
+      installmentsRes,
+      subscriptionsRes,
+      chargesRes,
+      nextStepsRes,
+      timelineRes,
+      docsRes,
+    ] = await Promise.all([
+      loadContractsForProject(projectRes.project.id),
+      loadInstallmentsForProject(projectRes.project.id),
+      loadSubscriptionsForProject(projectRes.project.id),
+      loadChargesForProject(projectRes.project.id, projectRes.project.client_id),
+      loadNextStepsForProject(projectRes.project.id),
+      loadTimelineForProject(projectRes.project.id),
+      loadDocumentsForProject(projectRes.project.client_id, projectRes.project.id),
+    ]);
+
+    const queryError =
+      clientRes.error ??
+      contractsRes.error ??
+      installmentsRes.error ??
+      subscriptionsRes.error ??
+      chargesRes.error ??
+      nextStepsRes.error ??
+      timelineRes.error ??
+      docsRes.error;
+
+    if (queryError) {
+      setPageError(queryError.message);
+      setLoading(false);
+      return;
+    }
+
+    let nextCharges = chargesRes.charges;
+
+    try {
+      nextCharges = await syncSubscriptionCharges({
+        projectId: projectRes.project.id,
+        clientId: projectRes.project.client_id,
+        subscriptionsToSync: subscriptionsRes.subscriptions,
+        currentContracts: contractsRes.contracts,
+        currentCharges: chargesRes.charges,
+      });
+    } catch {
+      // sync is non-critical
+    }
+
+    const managedProjectSubscription = getManagedSubscription(subscriptionsRes.subscriptions);
+
+    setProject(projectRes.project);
+    setClient((clientRes.data as PortalClient | null) ?? null);
+    setContracts(contractsRes.contracts);
+    setInstallments(installmentsRes.installments);
+    setSubscriptions(subscriptionsRes.subscriptions);
+    setCharges(nextCharges);
+    setNextSteps(nextStepsRes.nextSteps);
+    setTimeline(timelineRes.events);
+    setDocuments(docsRes.documents);
+    setNextStepForms(
+      Object.fromEntries(
+        nextStepsRes.nextSteps.map((stepItem) => [stepItem.id, getNextStepFormDefaults(stepItem)])
+      )
+    );
+    setNewNextStepForm(getNextStepFormDefaults());
+    setInstallmentForms(
+      Object.fromEntries(
+        installmentsRes.installments.map((installment) => [
+          installment.id,
+          getInstallmentFormDefaults(installment),
+        ])
+      )
+    );
+    setProjectForm({
+      name: projectRes.project.name,
+      solution_type: projectRes.project.solution_type ?? "",
+      status: projectRes.project.status,
+      current_stage: projectRes.project.current_stage,
+      started_at: formatDateInput(projectRes.project.started_at),
+      delivered_at: formatDateInput(projectRes.project.delivered_at),
+      expected_delivery_date: formatDateInput(projectRes.project.expected_delivery_date),
+      client_visible_summary: projectRes.project.client_visible_summary ?? "",
+      has_subscription: Boolean(
+        managedProjectSubscription && managedProjectSubscription.status !== "encerrada"
+      ),
+      subscription_id: managedProjectSubscription?.id ?? "",
+      subscription_label: managedProjectSubscription?.label ?? "Manutencao e hospedagem",
+      subscription_amount: managedProjectSubscription
+        ? formatBRL(Number(managedProjectSubscription.amount))
+        : "",
+      subscription_due_day: managedProjectSubscription
+        ? String(managedProjectSubscription.due_day)
+        : "10",
+      subscription_starts_on: formatDateInput(managedProjectSubscription?.starts_on ?? null),
+      subscription_ends_on: formatDateInput(managedProjectSubscription?.ends_on ?? null),
+      subscription_status: managedProjectSubscription?.status ?? "ativa",
+    });
+    setLoading(false);
+  }, [id, syncSubscriptionCharges]);
+
+  useEffect(() => {
+    void loadProject();
+  }, [loadProject]);
+
+  const handleSaveProject = async () => {
+    if (!project || !client) return;
+    const startedAtIso = parseFormDate(projectForm.started_at);
+    const deliveredAtIso = parseFormDate(projectForm.delivered_at);
+    const expectedDeliveryIso = parseFormDate(projectForm.expected_delivery_date);
+    const subscriptionStartsOnIso = parseFormDate(projectForm.subscription_starts_on);
+    const subscriptionEndsOnIso = parseFormDate(projectForm.subscription_ends_on);
+    const todayIso = new Date().toISOString().slice(0, 10);
+
+    if (projectForm.name.trim().length < 3) {
+      toast.error("Informe um nome valido para o projeto.");
+      return;
+    }
+
+    if (projectForm.solution_type.trim().length < 3) {
+      toast.error("Informe o tipo de solucao.");
+      return;
+    }
+
+    if (projectForm.current_stage.trim().length < 3) {
+      toast.error("Informe a etapa atual.");
+      return;
+    }
+
+    if (!startedAtIso) {
+      toast.error("Informe uma data valida para inicio.");
+      return;
+    }
+
+    if (projectForm.expected_delivery_date && !expectedDeliveryIso) {
+      toast.error("Informe uma data valida para entrega prevista.");
+      return;
+    }
+
+    if (projectForm.delivered_at && !deliveredAtIso) {
+      toast.error("Informe uma data valida para entrega realizada.");
+      return;
+    }
+
+    if (deliveredAtIso && deliveredAtIso < startedAtIso) {
+      toast.error("A entrega realizada nao pode ser anterior ao inicio do projeto.");
+      return;
+    }
+
+    if (!hasActiveManagedSubscription && projectForm.has_subscription) {
+      if (!projectForm.subscription_label.trim()) {
+        toast.error("Informe o nome da manutencao/hospedagem.");
+        return;
+      }
+
+      if (
+        !projectForm.subscription_amount ||
+        unmaskCurrency(projectForm.subscription_amount) <= 0
+      ) {
+        toast.error("Informe um valor mensal valido para manutencao/hospedagem.");
+        return;
+      }
+
+      const dueDay = Number(projectForm.subscription_due_day);
+      if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) {
+        toast.error("Informe um dia de vencimento entre 1 e 31.");
+        return;
+      }
+
+      if (!subscriptionStartsOnIso) {
+        toast.error("Informe a data de inicio da manutencao/hospedagem.");
+        return;
+      }
+
+      if (projectForm.subscription_ends_on && !subscriptionEndsOnIso) {
+        toast.error("Informe uma data valida para encerramento da manutencao/hospedagem.");
+        return;
+      }
+
+      if (subscriptionEndsOnIso && subscriptionEndsOnIso < subscriptionStartsOnIso) {
+        toast.error("O encerramento da manutencao/hospedagem nao pode ser anterior ao inicio.");
+        return;
+      }
+    }
+
+    const previousStage = project.current_stage.trim();
+    const nextStage = projectForm.current_stage.trim();
+    const previousStatus = project.status;
+    const nextStatus = syncProjectStatusWithStage(nextStage, projectForm.status);
+    const nextBillingType = projectForm.has_subscription ? "mensal" : "projeto";
+    const currentManagedSubscription = managedSubscription;
+    const hasCurrentManagedSubscription =
+      currentManagedSubscription?.status !== undefined &&
+      currentManagedSubscription.status !== "encerrada";
+
+    setSaving(true);
+
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await supabase
+        .from("projects")
+        .update({
+          name: projectForm.name.trim(),
+          solution_type: projectForm.solution_type.trim(),
+          status: nextStatus,
+          current_stage: projectForm.current_stage.trim(),
+          started_at: startedAtIso,
+          delivered_at: deliveredAtIso,
+          expected_delivery_date: expectedDeliveryIso,
+          billing_type: nextBillingType,
+          client_visible_summary: projectForm.client_visible_summary.trim() || null,
+          updated_at: nowIso,
+        })
+        .eq("id", project.id);
+
+      if (error) throw error;
+
+      const timelineEvents: Database["public"]["Tables"]["timeline_events"]["Insert"][] = [];
+      const previousDeliveredAt = project.delivered_at ?? null;
+
+      if (!hasCurrentManagedSubscription && projectForm.has_subscription) {
+        const { data: createdSubscription, error: subscriptionError } = await supabase
+          .from("project_subscriptions")
+          .insert({
+            client_id: client.id,
+            project_id: project.id,
+            label: projectForm.subscription_label.trim(),
+            amount: unmaskCurrency(projectForm.subscription_amount),
+            due_day: Number(projectForm.subscription_due_day),
+            starts_on: subscriptionStartsOnIso,
+            ends_on: subscriptionEndsOnIso,
+            status: "ativa",
+            is_blocking: true,
+          })
+          .select("id")
+          .single();
+
+        if (subscriptionError || !createdSubscription) {
+          throw subscriptionError ?? new Error("Nao foi possivel ativar a manutencao/hospedagem.");
+        }
+
+        timelineEvents.push({
+          client_id: client.id,
+          project_id: project.id,
+          actor_user_id: user?.id ?? null,
+          event_type: "subscription_created",
+          title: "Manutencao/hospedagem ativada",
+          summary: `${projectForm.subscription_label.trim()} foi ativada para continuidade do projeto apos a entrega.`,
+          visibility: "ambos",
+          source_table: "project_subscriptions",
+          source_id: createdSubscription.id,
+          metadata: {
+            amount: unmaskCurrency(projectForm.subscription_amount),
+            due_day: Number(projectForm.subscription_due_day),
+            starts_on: subscriptionStartsOnIso,
+          },
+        });
+      }
+
+      if (
+        hasCurrentManagedSubscription &&
+        !projectForm.has_subscription &&
+        currentManagedSubscription
+      ) {
+        const { error: subscriptionError } = await supabase
+          .from("project_subscriptions")
+          .update({
+            status: "encerrada",
+            ends_on: currentManagedSubscription.ends_on ?? deliveredAtIso ?? todayIso,
+            updated_at: nowIso,
+          })
+          .eq("id", currentManagedSubscription.id);
+
+        if (subscriptionError) {
+          throw subscriptionError;
+        }
+
+        timelineEvents.push({
+          client_id: client.id,
+          project_id: project.id,
+          actor_user_id: user?.id ?? null,
+          event_type: "subscription_updated",
+          title: "Manutencao/hospedagem encerrada",
+          summary:
+            "A continuidade recorrente de manutencao/hospedagem deste projeto foi encerrada.",
+          visibility: "ambos",
+          source_table: "project_subscriptions",
+          source_id: currentManagedSubscription.id,
+          metadata: {
+            status: "encerrada",
+            ends_on: currentManagedSubscription.ends_on ?? deliveredAtIso ?? todayIso,
+          },
+        });
+      }
+
+      if (previousStage !== nextStage) {
+        timelineEvents.push({
+          client_id: client.id,
+          project_id: project.id,
+          actor_user_id: user?.id ?? null,
+          event_type: "project_stage_changed",
+          title: "Etapa do projeto atualizada",
+          summary: `A etapa atual do projeto passou de ${previousStage || "Sem etapa"} para ${nextStage}.`,
+          visibility: "ambos",
+          source_table: "projects",
+          source_id: project.id,
+          metadata: {
+            from_stage: previousStage,
+            to_stage: nextStage,
+          },
+        });
+      }
+
+      if (previousStatus !== nextStatus) {
+        timelineEvents.push({
+          client_id: client.id,
+          project_id: project.id,
+          actor_user_id: user?.id ?? null,
+          event_type: "project_status_changed",
+          title: "Status do projeto atualizado",
+          summary: `O status do projeto mudou de ${PROJECT_STATUS_META[previousStatus].label} para ${PROJECT_STATUS_META[nextStatus].label}.`,
+          visibility: "ambos",
+          source_table: "projects",
+          source_id: project.id,
+          metadata: {
+            from_status: previousStatus,
+            to_status: nextStatus,
+          },
+        });
+      }
+
+      if (previousDeliveredAt !== deliveredAtIso) {
+        timelineEvents.push({
+          client_id: client.id,
+          project_id: project.id,
+          actor_user_id: user?.id ?? null,
+          event_type: "project_delivery_updated",
+          title: "Entrega do projeto atualizada",
+          summary: deliveredAtIso
+            ? `A entrega realizada do projeto foi registrada para ${formatDateInput(deliveredAtIso)}.`
+            : "A data de entrega realizada foi removida da operacao do projeto.",
+          visibility: "ambos",
+          source_table: "projects",
+          source_id: project.id,
+          metadata: {
+            from_delivered_at: previousDeliveredAt,
+            to_delivered_at: deliveredAtIso,
+          },
+        });
+      }
+
+      timelineEvents.push({
+        client_id: client.id,
+        project_id: project.id,
+        actor_user_id: user?.id ?? null,
+        event_type: "project_updated",
+        title: "Projeto atualizado",
+        summary: "Informacoes principais do projeto foram revisadas e atualizadas pela Elkys.",
+        visibility: "ambos",
+        source_table: "projects",
+        source_id: project.id,
+        metadata: {
+          current_stage: nextStage,
+          status: nextStatus,
+          billing_type: nextBillingType,
+          delivered_at: deliveredAtIso,
+        },
+      });
+
+      await insertTimelineEvents(timelineEvents);
+      toast.success("Projeto atualizado.");
+      await loadProject();
+      setProjectUpdateOpen(false);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Nao foi possivel atualizar o projeto.";
+      toast.error("Nao foi possivel atualizar o projeto.", { description: message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveNextStep = async (stepId: string) => {
+    if (!project || !client) return;
+    const form = nextStepForms[stepId];
+    if (!form || form.title.trim().length < 3) {
+      toast.error("Informe um titulo valido para a pendencia.");
+      return;
+    }
+
+    setStepSavingId(stepId);
+
+    const dueDateIso = parseFormDate(form.due_date);
+    const { error } = await supabase
+      .from("project_next_steps")
+      .update({
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        owner: form.owner,
+        status: form.status,
+        due_date: dueDateIso,
+        client_visible: form.client_visible,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", stepId);
+
+    if (error) {
+      setStepSavingId(null);
+      toast.error("Nao foi possivel atualizar a pendencia.", { description: error.message });
+      return;
+    }
+
+    try {
+      await insertTimelineEvent({
+        client_id: client.id,
+        project_id: project.id,
+        actor_user_id: user?.id ?? null,
+        event_type: "next_step_updated",
+        title: "Pendencia atualizada",
+        summary: `${form.title.trim()} agora esta como ${NEXT_STEP_STATUS_LABEL[form.status].toLowerCase()}.`,
+        visibility: form.client_visible ? "ambos" : "interno",
+        source_table: "project_next_steps",
+        source_id: stepId,
+        metadata: {
+          status: form.status,
+          due_date: dueDateIso,
+        },
+      });
+    } catch {
+      // timeline log is non-critical
+    }
+
+    setStepSavingId(null);
+    toast.success("Pendencia atualizada.");
+    await loadProject();
+  };
+
+  const handleCreateNextStep = async () => {
+    if (!project || !client) return;
+    if (newNextStepForm.title.trim().length < 3) {
+      toast.error("Informe um titulo valido para a pendencia.");
+      return;
+    }
+
+    setCreatingStep(true);
+    const dueDateIso = parseFormDate(newNextStepForm.due_date);
+
+    const { data, error } = await supabase
+      .from("project_next_steps")
+      .insert({
+        client_id: client.id,
+        project_id: project.id,
+        title: newNextStepForm.title.trim(),
+        description: newNextStepForm.description.trim() || null,
+        owner: newNextStepForm.owner,
+        status: newNextStepForm.status,
+        due_date: dueDateIso,
+        client_visible: newNextStepForm.client_visible,
+        sort_order: nextSteps.length,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      setCreatingStep(false);
+      toast.error("Nao foi possivel criar a pendencia.", {
+        description: error?.message ?? "Falha ao salvar o registro.",
+      });
+      return;
+    }
+
+    try {
+      await insertTimelineEvent({
+        client_id: client.id,
+        project_id: project.id,
+        actor_user_id: user?.id ?? null,
+        event_type: "next_step_created",
+        title: "Nova pendencia registrada",
+        summary: `${newNextStepForm.title.trim()} foi adicionada ao plano de acao do projeto.`,
+        visibility: newNextStepForm.client_visible ? "ambos" : "interno",
+        source_table: "project_next_steps",
+        source_id: data.id,
+        metadata: {
+          status: newNextStepForm.status,
+          due_date: dueDateIso,
+        },
+      });
+    } catch {
+      // timeline log is non-critical
+    }
+
+    setCreatingStep(false);
+    toast.success("Pendencia criada.");
+    await loadProject();
+  };
+
+  const handleSaveInstallments = async (targetInstallmentId?: string) => {
+    if (!project || !client || installments.length === 0) return;
+
+    setSavingInstallments(true);
+    setSavingInstallmentId(targetInstallmentId ?? null);
+    const installmentsToSave = targetInstallmentId
+      ? installments.filter((installment) => installment.id === targetInstallmentId)
+      : installments;
+
+    try {
+      for (const installment of installmentsToSave) {
+        const draft = installmentForms[installment.id];
+        if (!draft) continue;
+
+        const { error: installmentError } = await supabase
+          .from("project_installments")
+          .update({
+            status: draft.status,
+            paid_at: draft.status === "paga" ? new Date().toISOString().slice(0, 10) : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", installment.id);
+
+        if (installmentError) throw installmentError;
+
+        const { error: chargeError } = await supabase
+          .from("charges")
+          .update({
+            status: getChargeStatusFromInstallmentStatus(draft.status),
+            paid_at: draft.status === "paga" ? new Date().toISOString().slice(0, 10) : null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("installment_id", installment.id);
+
+        if (chargeError) throw chargeError;
+      }
+
+      await insertTimelineEvent({
+        client_id: client.id,
+        project_id: project.id,
+        actor_user_id: user?.id ?? null,
+        event_type: "installment_updated",
+        title: targetInstallmentId ? "Parcela atualizada" : "Parcelas atualizadas",
+        summary: targetInstallmentId
+          ? "Status de uma parcela do projeto foi atualizado."
+          : "Status das parcelas do projeto foram atualizados.",
+        visibility: "ambos",
+        source_table: "project_installments",
+        source_id: targetInstallmentId ?? installments[0]?.id ?? null,
+        metadata: {
+          statuses: installmentsToSave.map((installment) => ({
+            installment_type: installment.installment_type,
+            status: installmentForms[installment.id]?.status ?? installment.status,
+          })),
+        },
+      });
+
+      // Notify client by email for each installment newly marked as paid
+      const paidInstallments = installmentsToSave.filter(
+        (inst) => installmentForms[inst.id]?.status === "paga" && inst.status !== "paga"
+      );
+      if (paidInstallments.length > 0) {
+        const authHeaders = await getSupabaseFunctionAuthHeaders();
+        for (const inst of paidInstallments) {
+          const { error: notifyError } = await supabase.functions.invoke("send-installment-paid", {
+            body: {
+              installment_id: inst.id,
+              client_id: client.id,
+              project_id: project.id,
+            },
+            headers: authHeaders,
+          });
+          if (notifyError) {
+            console.warn("[send-installment-paid] email not sent:", notifyError.message);
+          }
+        }
+      }
+
+      toast.success(targetInstallmentId ? "Parcela atualizada." : "Parcelas atualizadas.");
+      await loadProject();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : targetInstallmentId
+            ? "Nao foi possivel atualizar a parcela."
+            : "Nao foi possivel atualizar as parcelas.";
+      toast.error(
+        targetInstallmentId ? "Erro ao atualizar parcela." : "Erro ao atualizar parcelas.",
+        {
+          description: message,
+        }
+      );
+    } finally {
+      setSavingInstallments(false);
+      setSavingInstallmentId(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (!project || pageError) {
+    return (
+      <AdminEmptyState
+        icon={Search}
+        title="Projeto nao encontrado"
+        description={pageError ?? "O projeto pode ter sido removido ou o link esta incorreto."}
+        action={
+          <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "default" })}>
+            Voltar para projetos
+          </Link>
+        }
+      />
+    );
+  }
+
+  const projectStatusMeta = PROJECT_STATUS_META[project.status];
+  const installmentPercentageTotal = installments.reduce((sum, installment) => {
+    const draft = installmentForms[installment.id];
+    return sum + Number(draft?.percentage || installment.percentage || 0);
+  }, 0);
+  const openNextStepsCount = nextSteps.filter(
+    (step) => step.status !== "concluido" && step.status !== "cancelado"
+  ).length;
+  const projectTabs: { key: ProjectTab; label: string }[] = [
+    {
+      key: "detalhes",
+      label: `Detalhes do projeto${openNextStepsCount > 0 ? ` (${openNextStepsCount})` : ""}`,
+    },
+    { key: "financeiro", label: "Financeiro" },
+    { key: "documentos", label: `Anexos (${documents.length})` },
+    { key: "timeline", label: `Timeline (${timeline.length})` },
+  ];
+  const summaryCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Resumo do projeto</CardTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setProjectUpdateOpen(true)}
+          >
+            Editar projeto
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 pt-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-border/50 bg-background/60 p-3">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Inicio
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-foreground">
+              {formatPortalDate(project.started_at)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background/60 p-3">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Entrega prevista
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-foreground">
+              {formatPortalDate(project.expected_delivery_date)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background/60 p-3">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Entrega realizada
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-foreground">
+              {formatPortalDate(project.delivered_at)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background/60 p-3">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Etapa atual
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-foreground">{project.current_stage}</p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background/60 p-3 sm:col-span-2">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Status
+            </p>
+            <div className="mt-2">
+              <StatusBadge label={projectStatusMeta.label} tone={projectStatusMeta.tone} />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Pos-entrega
+          </p>
+          {hasActiveManagedSubscription && managedSubscription ? (
+            <>
+              <p className="mt-1 text-sm font-semibold text-foreground">
+                Manutencao/hospedagem ativa
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {managedSubscription.label} · {formatBRL(Number(managedSubscription.amount))} por
+                mes · dia {managedSubscription.due_day}
+              </p>
+            </>
+          ) : (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sem continuidade recorrente ativa apos a entrega.
+            </p>
+          )}
+        </div>
+
+        {stageMeta ? (
+          <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Referencia da etapa atual
+            </p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{stageMeta.label}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{stageMeta.summary}</p>
+            <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
+              Duracao base: {stageMeta.duration}
+            </p>
+          </div>
+        ) : null}
+
+        <div className="overflow-hidden">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Leitura para o cliente
+          </p>
+          <p className="mt-1 break-words text-sm leading-relaxed text-foreground">
+            {getProjectSummary(project)}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+  const stageJourneyCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <CardTitle className="text-base">Jornada operacional</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-5">
+        <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Etapa atual
+          </p>
+          <p className="mt-1 text-base font-semibold text-foreground">{project.current_stage}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {stageMeta?.summary ??
+              "Defina uma etapa para orientar time e cliente com o mesmo marco operacional."}
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowStageJourney((current) => !current)}
+        >
+          {showStageJourney ? "Ocultar jornada completa" : "Ver jornada completa"}
+        </Button>
+
+        {showStageJourney ? <ProjectStageJourney currentStage={project.current_stage} /> : null}
+      </CardContent>
+    </Card>
+  );
+
+  const detailsWorkspaceCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Acoes operacionais</CardTitle>
+          <Button type="button" variant="outline" size="sm" onClick={() => setNextStepsOpen(true)}>
+            Gerenciar pendencias
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 pt-5">
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            className={cn(
+              "min-w-0 overflow-hidden rounded-xl border bg-background/60 p-4",
+              openNextStepsCount > 0 ? "border-warning/40" : "border-border/50"
+            )}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Pendencias em aberto
+            </p>
+            <p
+              className={cn(
+                "mt-1.5 text-2xl font-bold tabular-nums",
+                openNextStepsCount > 0 ? "text-warning" : "text-foreground"
+              )}
+            >
+              {openNextStepsCount}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Atualize status, responsavel e vencimento sem sair do projeto.
+            </p>
+          </div>
+          <div className="min-w-0 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Ultima leitura para o cliente
+            </p>
+            <p className="mt-1.5 line-clamp-4 break-words text-sm leading-relaxed text-foreground">
+              {project.client_visible_summary?.trim() || "Sem resumo publicado no momento."}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            Proximas pendencias
+          </p>
+
+          {nextSteps.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma pendencia cadastrada ainda.</p>
+          ) : (
+            <div className="space-y-2">
+              {nextSteps.slice(0, 3).map((step) => (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "relative flex items-start justify-between gap-3 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-3 pl-4",
+                    "before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]",
+                    step.status === "concluido"
+                      ? "before:bg-success"
+                      : step.status === "em_andamento"
+                        ? "before:bg-primary"
+                        : step.status === "cancelado"
+                          ? "before:bg-muted-foreground/40"
+                          : "before:bg-warning"
+                  )}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {NEXT_STEP_OWNER_LABEL[step.owner]}
+                      {step.due_date ? ` · vence ${formatPortalDate(step.due_date)}` : ""}
+                    </p>
+                  </div>
+                  <StatusBadge
+                    label={NEXT_STEP_STATUS_LABEL[step.status]}
+                    tone={getNextStepTone(step.status)}
+                  />
+                </div>
+              ))}
+
+              {nextSteps.length > 3 ? (
+                <button
+                  type="button"
+                  onClick={() => setNextStepsOpen(true)}
+                  className="mt-1 text-xs font-medium text-primary hover:underline"
+                >
+                  Ver todas as {nextSteps.length} pendencias →
+                </button>
+              ) : null}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const projectUpdateCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <CardTitle className="text-base">Atualizacao do projeto</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-5">
+        <Field>
+          <Label>Nome do projeto</Label>
+          <Input
+            value={projectForm.name}
+            onChange={(event) =>
+              setProjectForm((current) => ({ ...current, name: event.target.value }))
+            }
+          />
+        </Field>
+
+        <Field>
+          <Label>Tipo de solucao</Label>
+          <Input
+            value={projectForm.solution_type}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                solution_type: event.target.value,
+              }))
+            }
+          />
+        </Field>
+
+        <Field>
+          <Label>Etapa atual</Label>
+          <select
+            value={projectForm.current_stage}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                current_stage: event.target.value,
+                status: syncProjectStatusWithStage(event.target.value, current.status),
+              }))
+            }
+            className={selectClass}
+          >
+            {stageOptions.map((stage) => (
+              <option key={stage.value} value={stage.value}>
+                {stage.order}a etapa - {stage.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Status sugerido pela etapa
+          </p>
+          <div className="mt-2">
+            <StatusBadge label={stageStatusMeta.label} tone={stageStatusMeta.tone} />
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">
+            `Pausado` e `Cancelado` continuam podendo ser definidos manualmente.
+          </p>
+        </div>
+
+        <Field>
+          <Label>Status</Label>
+          <select
+            value={projectForm.status}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                status: event.target.value as ProjectStatus,
+              }))
+            }
+            className={selectClass}
+          >
+            {projectStatusOptions.map((status) => (
+              <option key={status} value={status}>
+                {PROJECT_STATUS_META[status].label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field>
+            <Label>Inicio</Label>
+            <Input
+              value={projectForm.started_at}
+              onChange={(event) =>
+                setProjectForm((current) => ({
+                  ...current,
+                  started_at: maskDate(event.target.value),
+                }))
+              }
+              placeholder="DD/MM/AAAA"
+              inputMode="numeric"
+            />
+          </Field>
+
+          <Field>
+            <Label>Entrega prevista</Label>
+            <Input
+              value={projectForm.expected_delivery_date}
+              onChange={(event) =>
+                setProjectForm((current) => ({
+                  ...current,
+                  expected_delivery_date: maskDate(event.target.value),
+                }))
+              }
+              placeholder="DD/MM/AAAA"
+              inputMode="numeric"
+            />
+          </Field>
+        </div>
+
+        <Field>
+          <Label>Entrega realizada</Label>
+          <Input
+            value={projectForm.delivered_at}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                delivered_at: maskDate(event.target.value),
+              }))
+            }
+            placeholder="DD/MM/AAAA"
+            inputMode="numeric"
+          />
+        </Field>
+
+        <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={projectForm.has_subscription}
+              onChange={(event) =>
+                setProjectForm((current) => ({
+                  ...current,
+                  has_subscription: event.target.checked,
+                  subscription_starts_on:
+                    event.target.checked && !current.subscription_starts_on
+                      ? formatDateInput(project.delivered_at ?? project.started_at)
+                      : current.subscription_starts_on,
+                }))
+              }
+              className="mt-1 h-4 w-4 rounded border-border"
+            />
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Continua com manutencao/hospedagem apos a entrega
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use esta opcao quando o projeto ja foi entregue, mas continua com recorrencia de
+                sustentacao, manutencao ou hospedagem.
+              </p>
+            </div>
+          </label>
+
+          {hasActiveManagedSubscription && managedSubscription ? (
+            <div className="mt-4 rounded-xl border border-border/50 bg-background/70 p-4">
+              <p className="text-sm font-semibold text-foreground">Assinatura atual em andamento</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {managedSubscription.label} · {formatBRL(Number(managedSubscription.amount))} por
+                mes · dia {managedSubscription.due_day}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Inicio em {formatPortalDate(managedSubscription.starts_on)} · status{" "}
+                {SUBSCRIPTION_STATUS_LABEL[managedSubscription.status]}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Desmarque a opcao acima se quiser encerrar essa continuidade recorrente.
+              </p>
+            </div>
+          ) : null}
+
+          {projectForm.has_subscription && !hasActiveManagedSubscription ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field>
+                <Label>Nome da manutencao *</Label>
+                <Input
+                  value={projectForm.subscription_label}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      subscription_label: event.target.value,
+                    }))
+                  }
+                />
+              </Field>
+
+              <Field>
+                <Label>Valor mensal *</Label>
+                <Input
+                  value={projectForm.subscription_amount}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      subscription_amount: maskCurrency(event.target.value),
+                    }))
+                  }
+                  placeholder="R$ 0,00"
+                  inputMode="numeric"
+                />
+              </Field>
+
+              <Field>
+                <Label>Dia de vencimento *</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={projectForm.subscription_due_day}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      subscription_due_day: sanitizeInteger(event.target.value).slice(0, 2),
+                    }))
+                  }
+                />
+              </Field>
+
+              <Field>
+                <Label>Inicio da manutencao *</Label>
+                <Input
+                  value={projectForm.subscription_starts_on}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      subscription_starts_on: maskDate(event.target.value),
+                    }))
+                  }
+                  placeholder="DD/MM/AAAA"
+                  inputMode="numeric"
+                />
+              </Field>
+
+              <Field className="sm:col-span-2">
+                <Label>Encerramento da manutencao</Label>
+                <Input
+                  value={projectForm.subscription_ends_on}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      subscription_ends_on: maskDate(event.target.value),
+                    }))
+                  }
+                  placeholder="DD/MM/AAAA"
+                  inputMode="numeric"
+                />
+              </Field>
+            </div>
+          ) : null}
+        </div>
+
+        <Field>
+          <Label>Resumo visivel para o cliente</Label>
+          <Textarea
+            rows={5}
+            value={projectForm.client_visible_summary}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                client_visible_summary: event.target.value,
+              }))
+            }
+          />
+        </Field>
+
+        <Button type="button" disabled={saving} onClick={() => void handleSaveProject()}>
+          {saving ? "Salvando..." : "Salvar atualizacao"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+  const nextStepsCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Pendencias do projeto</CardTitle>
+          {nextSteps.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado").length}{" "}
+              em aberto
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-5">
+        {nextSteps.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma pendencia cadastrada ainda.</p>
+        ) : (
+          nextSteps.map((step) => {
+            const form = nextStepForms[step.id] ?? getNextStepFormDefaults(step);
+
+            return (
+              <div
+                key={step.id}
+                className="rounded-xl border border-border/50 bg-background/60 p-4"
+              >
+                {/* Compact header: inline title input + status badge */}
+                <div className="flex items-start gap-3">
+                  <Input
+                    value={form.title}
+                    onChange={(event) =>
+                      setNextStepForms((current) => ({
+                        ...current,
+                        [step.id]: { ...form, title: event.target.value },
+                      }))
+                    }
+                    className="flex-1 h-9 text-sm font-semibold"
+                  />
+                  <StatusBadge
+                    label={NEXT_STEP_STATUS_LABEL[form.status]}
+                    tone={getNextStepTone(form.status)}
+                  />
+                </div>
+
+                {/* Controls: owner + status + date in a single responsive row */}
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <Field>
+                    <Label>Responsavel</Label>
+                    <select
+                      value={form.owner}
+                      onChange={(event) =>
+                        setNextStepForms((current) => ({
+                          ...current,
+                          [step.id]: {
+                            ...form,
+                            owner: event.target.value as NextStepOwner,
+                          },
+                        }))
+                      }
+                      className={selectClass}
+                    >
+                      {Object.entries(NEXT_STEP_OWNER_LABEL).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field>
+                    <Label>Status</Label>
+                    <select
+                      value={form.status}
+                      onChange={(event) =>
+                        setNextStepForms((current) => ({
+                          ...current,
+                          [step.id]: {
+                            ...form,
+                            status: event.target.value as NextStepStatus,
+                          },
+                        }))
+                      }
+                      className={selectClass}
+                    >
+                      {Object.entries(NEXT_STEP_STATUS_LABEL).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field>
+                    <Label>Vencimento</Label>
+                    <Input
+                      value={form.due_date}
+                      onChange={(event) =>
+                        setNextStepForms((current) => ({
+                          ...current,
+                          [step.id]: {
+                            ...form,
+                            due_date: maskDate(event.target.value),
+                          },
+                        }))
+                      }
+                      placeholder="DD/MM/AAAA"
+                      inputMode="numeric"
+                    />
+                  </Field>
+                </div>
+
+                <Field className="mt-3">
+                  <Label>Descricao</Label>
+                  <Textarea
+                    rows={2}
+                    value={form.description}
+                    onChange={(event) =>
+                      setNextStepForms((current) => ({
+                        ...current,
+                        [step.id]: { ...form, description: event.target.value },
+                      }))
+                    }
+                  />
+                </Field>
+
+                {/* Footer: visibility toggle + save aligned */}
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={form.client_visible}
+                      onChange={(event) =>
+                        setNextStepForms((current) => ({
+                          ...current,
+                          [step.id]: {
+                            ...form,
+                            client_visible: event.target.checked,
+                          },
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-border accent-primary"
+                    />
+                    Visivel para o cliente
+                  </label>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={stepSavingId === step.id}
+                    onClick={() => void handleSaveNextStep(step.id)}
+                  >
+                    {stepSavingId === step.id ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {/* Nova pendencia */}
+        <div className="rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Nova pendencia
+          </p>
+
+          <div className="grid gap-3">
+            <Field>
+              <Label>Titulo</Label>
+              <Input
+                value={newNextStepForm.title}
+                onChange={(event) =>
+                  setNewNextStepForm((current) => ({
+                    ...current,
+                    title: event.target.value,
+                  }))
+                }
+              />
+            </Field>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field>
+                <Label>Responsavel</Label>
+                <select
+                  value={newNextStepForm.owner}
+                  onChange={(event) =>
+                    setNewNextStepForm((current) => ({
+                      ...current,
+                      owner: event.target.value as NextStepOwner,
+                    }))
+                  }
+                  className={selectClass}
+                >
+                  {Object.entries(NEXT_STEP_OWNER_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
+                <Label>Status</Label>
+                <select
+                  value={newNextStepForm.status}
+                  onChange={(event) =>
+                    setNewNextStepForm((current) => ({
+                      ...current,
+                      status: event.target.value as NextStepStatus,
+                    }))
+                  }
+                  className={selectClass}
+                >
+                  {Object.entries(NEXT_STEP_STATUS_LABEL).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
+                <Label>Vencimento</Label>
+                <Input
+                  value={newNextStepForm.due_date}
+                  onChange={(event) =>
+                    setNewNextStepForm((current) => ({
+                      ...current,
+                      due_date: maskDate(event.target.value),
+                    }))
+                  }
+                  placeholder="DD/MM/AAAA"
+                  inputMode="numeric"
+                />
+              </Field>
+            </div>
+
+            <Field>
+              <Label>Descricao</Label>
+              <Textarea
+                rows={2}
+                value={newNextStepForm.description}
+                onChange={(event) =>
+                  setNewNextStepForm((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
+                }
+              />
+            </Field>
+
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={newNextStepForm.client_visible}
+                  onChange={(event) =>
+                    setNewNextStepForm((current) => ({
+                      ...current,
+                      client_visible: event.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4 rounded border-border accent-primary"
+                />
+                Visivel para o cliente
+              </label>
+
+              <Button
+                type="button"
+                size="sm"
+                disabled={creatingStep}
+                onClick={() => void handleCreateNextStep()}
+              >
+                {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+  const financeOverviewCard = (() => {
+    const totalPaid = charges
+      .filter((c) => c.status === "pago")
+      .reduce((sum, c) => sum + Number(c.amount), 0);
+    const totalOpen = visibleCharges
+      .filter(
+        (c) =>
+          c.origin_type !== "mensalidade" && (c.status === "pendente" || c.status === "atrasado")
+      )
+      .reduce((sum, c) => sum + Number(c.amount), 0);
+
+    return (
+      <div className="space-y-5">
+        {/* Summary metric tiles */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Valor contratado
+            </p>
+            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+              {contracts[0] ? formatBRL(Number(contracts[0].total_amount)) : "—"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Total recebido
+            </p>
+            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+              {formatBRL(totalPaid)}
+            </p>
+          </div>
+          <div
+            className={cn(
+              "rounded-xl border bg-card/80 p-4",
+              totalOpen > 0 ? "border-destructive/40" : "border-border/50"
+            )}
+          >
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Em aberto
+            </p>
+            <p
+              className={cn(
+                "mt-2 text-xl font-bold tabular-nums",
+                totalOpen > 0 ? "text-destructive" : "text-foreground"
+              )}
+            >
+              {formatBRL(totalOpen)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Parcelas abertas
+            </p>
+            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+              {visibleInstallments.length}
+            </p>
+          </div>
+        </div>
+
+        {/* Main financial card with sections */}
+        <Card className="border-border/70 bg-card/92">
+          {/* Contract section */}
+          {contracts[0] ? (
+            <div className="p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Contrato
+              </p>
+              <div className="mt-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+                <div>
+                  <p className="text-2xl font-bold tabular-nums text-foreground">
+                    {formatBRL(Number(contracts[0].total_amount))}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Assinado em {formatPortalDate(contracts[0].signed_at)} · {contracts[0].status}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Subscriptions section */}
+          {subscriptions.length > 0 ? (
+            <div className={cn("p-5", contracts[0] ? "border-t border-border/50" : "")}>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Assinaturas mensais
+              </p>
+              <div className="mt-3 space-y-2">
+                {subscriptions.map((subscription) => (
+                  <div
+                    key={subscription.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {subscription.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatBRL(Number(subscription.amount))} · todo dia {subscription.due_day}
+                        {subscriptionChargeById[subscription.id]
+                          ? ` · próx. ${formatPortalDate(subscriptionChargeById[subscription.id].due_date)}`
+                          : ""}
+                      </p>
+                    </div>
+                    <select
+                      value={subscription.status}
+                      onChange={async (e) => {
+                        const next = e.target.value;
+                        const { error } = await supabase
+                          .from("project_subscriptions")
+                          .update({ status: next })
+                          .eq("id", subscription.id);
+                        if (error) {
+                          toast.error("Nao foi possivel atualizar o status.");
+                          return;
+                        }
+                        toast.success("Status da assinatura atualizado.");
+                        void loadProject();
+                      }}
+                      className="h-8 min-w-[120px] rounded-lg border border-border/60 bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="agendada">Agendada</option>
+                      <option value="ativa">Ativa</option>
+                      <option value="pausada">Pausada</option>
+                      <option value="encerrada">Encerrada</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Charges section */}
+          {financialItems.length > 0 ? (
+            <div
+              className={cn(
+                "p-5",
+                contracts[0] || subscriptions.length > 0 ? "border-t border-border/50" : ""
+              )}
+            >
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Cobranças
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {financialItems.length} registro{financialItems.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="max-h-[55vh] space-y-1.5 overflow-y-auto">
+                {financialItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3 sm:grid-cols-[1fr_110px_160px]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Vence {formatPortalDate(item.dueDate)}
+                      </p>
+                    </div>
+                    <p className="hidden text-right text-sm font-semibold tabular-nums text-foreground sm:block">
+                      {formatBRL(Number(item.amount))}
+                    </p>
+                    <select
+                      value={item.statusKey}
+                      onChange={async (e) => {
+                        const next = e.target.value as typeof item.statusKey;
+                        const paidAt =
+                          next === "pago" ? new Date().toISOString().slice(0, 10) : null;
+                        const { error } = await supabase
+                          .from("charges")
+                          .update({ status: next, paid_at: paidAt })
+                          .eq("id", item.id);
+                        if (error) {
+                          toast.error("Nao foi possivel atualizar o status.");
+                          return;
+                        }
+                        toast.success("Status atualizado.");
+                        void loadProject();
+                      }}
+                      className="h-8 rounded-lg border border-border/60 bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {Object.entries(CHARGE_STATUS_META).map(([key, meta]) => (
+                        <option key={key} value={key}>
+                          {meta.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : !contracts[0] && subscriptions.length === 0 ? (
+            <div className="p-5">
+              <AdminEmptyState
+                icon={TrendingUp}
+                title="Sem cobranças avulsas"
+                description="Cobranças extras fora do contrato de parcelas aparecerão aqui."
+              />
+            </div>
+          ) : null}
+        </Card>
+      </div>
+    );
+  })();
+
+  const installmentsCard =
+    visibleInstallments.length === 0 ? null : (
+      <Card className="border-border/70 bg-card/92">
+        <CardHeader className="border-b border-border/60">
+          <CardTitle className="text-base">
+            Parcelas do projeto{" "}
+            <span className="ml-1 text-sm font-normal text-muted-foreground">
+              ({visibleInstallments.length} em aberto)
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-5">
+          <p className="text-xs text-muted-foreground">
+            Percentual e vencimento são definidos em contrato. Atualize apenas o status de cada
+            parcela.
+          </p>
+
+          {visibleInstallments.map((installment) => {
+            const draft =
+              installmentForms[installment.id] ?? getInstallmentFormDefaults(installment);
+            const percentage = Number(installment.percentage || 0);
+            const amountValue = Number(((contractAmount * percentage) / 100).toFixed(2));
+            const dueDate = installment.effective_due_date ?? installment.expected_due_date ?? null;
+
+            return (
+              <div
+                key={installment.id}
+                className="rounded-xl border border-border/50 bg-background/60 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold capitalize text-foreground">
+                      {installment.installment_type}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {percentage}% · {formatBRL(amountValue)}
+                      {dueDate ? ` · vence ${formatPortalDate(dueDate)}` : ""}
+                    </p>
+                  </div>
+                  <StatusBadge
+                    label={PROJECT_INSTALLMENT_STATUS_LABEL[draft.status]}
+                    tone={getInstallmentTone(draft.status)}
+                  />
+                </div>
+
+                {percentage > 0 ? (
+                  <div className="mt-3">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/50">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all duration-300"
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-3 flex items-center gap-2">
+                  <select
+                    value={draft.status}
+                    onChange={(event) =>
+                      setInstallmentForms((current) => ({
+                        ...current,
+                        [installment.id]: {
+                          ...draft,
+                          status: event.target.value as InstallmentStatus,
+                        },
+                      }))
+                    }
+                    className="h-10 min-h-[44px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    {Object.entries(PROJECT_INSTALLMENT_STATUS_LABEL).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={savingInstallments}
+                    onClick={() => void handleSaveInstallments(installment.id)}
+                  >
+                    {savingInstallmentId === installment.id ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+    );
+  const documentsCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <CardTitle className="text-base">Anexos do projeto</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-5">
+        {client ? (
+          <AddProjectDocumentForm
+            clientId={client.id}
+            projectId={project.id}
+            actorUserId={user?.id ?? null}
+            onAdded={async () => {
+              await loadProject();
+            }}
+          />
+        ) : null}
+
+        {documents.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Ainda nao ha anexos vinculados a este projeto.
+          </p>
+        ) : (
+          <div className="max-h-[65vh] space-y-3 overflow-y-auto pr-1">
+            {documents.map((document) => (
+              <a
+                key={document.id}
+                href={document.external_url ?? document.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-xl border border-border/50 bg-background/60 p-4 transition-colors hover:border-primary/30"
+              >
+                <p className="text-sm font-semibold text-foreground">{document.label}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {DOCUMENT_TYPE_LABEL[document.type]}
+                </p>
+              </a>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const timelineCard = (
+    <Card className="border-border/70 bg-card/92">
+      <CardHeader className="border-b border-border/60">
+        <CardTitle className="text-base">Timeline</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-5">
+        <div className="max-h-[72vh] overflow-y-auto pr-1">
+          <ProjectTimelineFeed
+            events={timeline}
+            emptyMessage="A timeline ainda nao possui eventos registrados."
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6">
+      <AdminPageHeader
+        eyebrow="Projeto"
+        title={project.name}
+        description={`${client ? getClientDisplayName(client) : "Cliente nao encontrado"} · ${project.solution_type ?? "Tipo nao definido"} · ${project.current_stage}`}
+        action={
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {client ? (
+              <Link
+                to={`/portal/admin/clientes/${client.id}`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Ver cliente
+              </Link>
+            ) : null}
+            <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
+              Voltar
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <StatusBadge label={projectStatusMeta.label} tone={projectStatusMeta.tone} />
+        {project.solution_type ? (
+          <StatusBadge label={project.solution_type} tone="secondary" />
+        ) : null}
+      </div>
+
+      <div className="flex gap-1 overflow-x-auto rounded-xl border border-border/50 bg-background/40 p-1">
+        {projectTabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+              tab === t.key
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "detalhes" ? (
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
+          <div className="space-y-6">
+            {summaryCard}
+            {stageJourneyCard}
+          </div>
+          <div className="space-y-6">{detailsWorkspaceCard}</div>
+        </div>
+      ) : null}
+
+      {tab === "financeiro" ? (
+        <div
+          className={cn("grid gap-6", installmentsCard ? "xl:grid-cols-[minmax(0,1fr)_440px]" : "")}
+        >
+          <div>{financeOverviewCard}</div>
+          {installmentsCard ? <div>{installmentsCard}</div> : null}
+        </div>
+      ) : null}
+
+      {tab === "timeline" ? timelineCard : null}
+
+      {tab === "documentos" ? documentsCard : null}
+
+      <OverlayPanel
+        open={projectUpdateOpen}
+        title="Atualizacao do projeto"
+        description="Edite dados principais sem esticar a pagina inteira."
+        onClose={() => setProjectUpdateOpen(false)}
+      >
+        {projectUpdateCard}
+      </OverlayPanel>
+
+      <OverlayPanel
+        open={nextStepsOpen}
+        title="Pendencias do projeto"
+        description="Atualize responsavel, status e visibilidade do cliente em um painel dedicado."
+        onClose={() => setNextStepsOpen(false)}
+        widthClass="max-w-4xl"
+      >
+        {nextStepsCard}
+      </OverlayPanel>
+    </div>
+  );
+}

@@ -10,17 +10,19 @@ export interface IconProps extends SVGProps<SVGSVGElement> {
   size?: number | string;
   /** SVG stroke width (default: 2) */
   strokeWidth?: number | string;
-  /** Accessible title — when provided, sets role="img" and aria-label */
+  /** Accessible title - when provided, sets role="img" and aria-label */
   title?: string;
   className?: string;
 }
 
-type SvgComponent = ForwardRefExoticComponent<
-  SVGProps<SVGSVGElement> & RefAttributes<SVGSVGElement>
->;
+type SvgComponent =
+  | ForwardRefExoticComponent<SVGProps<SVGSVGElement> & RefAttributes<SVGSVGElement>>
+  | React.FunctionComponent<
+      SVGProps<SVGSVGElement> & { title?: string; titleId?: string; desc?: string; descId?: string }
+    >;
 
 /**
- * createIcon — Wraps a raw SVGR component with standardized props and a11y defaults.
+ * createIcon - Wraps a raw SVGR component with standardized props and a11y defaults.
  *
  * - Default: aria-hidden="true" (decorative)
  * - If `title` or `aria-label` is passed: aria-hidden=false, role="img"

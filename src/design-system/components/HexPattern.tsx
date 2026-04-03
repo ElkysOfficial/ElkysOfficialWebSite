@@ -23,7 +23,7 @@ const variantStyles = {
 };
 
 /**
- * HexPattern — Padrão hexagonal decorativo da marca Elkys.
+ * HexPattern - Padrão hexagonal decorativo da marca Elkys.
  *
  * Imagem hexagonal.webp posicionada como overlay em containers
  * com gradiente primário. Animação de rotação contínua (hex-spin).

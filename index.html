@@ -196,41 +196,34 @@
       }
     </script>
     <script>
-      // Apply theme early to avoid FOUC — must match next-themes logic
+      // Apply the system theme early to avoid FOUC.
+      // The old "theme" key is cleared because the site no longer exposes a manual toggle.
       (function () {
         var d = document.documentElement;
-        var e;
         try {
-          e = localStorage.getItem("theme");
+          localStorage.removeItem("theme");
         } catch (t) {}
-        if (e === "dark") {
+
+        var m = window.matchMedia("(prefers-color-scheme: dark)");
+        if (m.matches) {
           d.classList.add("dark");
           d.style.colorScheme = "dark";
-        } else if (e === "light") {
+        } else {
           d.classList.remove("dark");
           d.style.colorScheme = "light";
-        } else {
-          // "system" or no stored value → use OS preference
-          var m = window.matchMedia("(prefers-color-scheme: dark)");
-          if (m.matches) {
-            d.classList.add("dark");
-            d.style.colorScheme = "dark";
-          } else {
-            d.style.colorScheme = "light";
-          }
         }
       })();
     </script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GA_ID%"></script>
+    <!-- Google tag (gtag.js) — disabled until VITE_GA_ID is configured -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_ID_HERE"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        window.dataLayer.push(arguments);
-      }
+      function gtag() { window.dataLayer.push(arguments); }
       gtag("js", new Date());
-      gtag("config", "%VITE_GA_ID%");
+      gtag("config", "GA_ID_HERE");
     </script>
+    -->
   </head>
   <body>
     <div id="root"></div>

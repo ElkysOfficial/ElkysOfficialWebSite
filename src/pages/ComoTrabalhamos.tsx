@@ -107,7 +107,7 @@ const ComoTrabalhamos = () => {
                 loading="eager"
                 {...{ fetchpriority: "high" }}
                 className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
-                style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
+                style={{ filter: "drop-shadow(0 0 40px hsl(var(--primary) / 0.3))" }}
               />
             </div>
 
@@ -138,7 +138,7 @@ const ComoTrabalhamos = () => {
             </div>
           </section>
 
-          {/* Process — Interactive Hexagonal Wheel */}
+          {/* Process - Interactive Hexagonal Wheel */}
           <section className="py-10 md:py-14 lg:py-16 bg-gradient-subtle">
             <div className="container mx-auto px-4">
               {/* Desktop: Hexagonal Wheel + Info (lg+) */}
@@ -155,7 +155,7 @@ const ComoTrabalhamos = () => {
                       />
                     </div>
 
-                    {/* Spokes — 6 hexagonal directions */}
+                    {/* Spokes - 6 hexagonal directions */}
                     {HEX_ANGLES_DEG.map((angleDeg, i) => (
                       <div
                         key={`spoke-${i}`}
@@ -183,18 +183,18 @@ const ComoTrabalhamos = () => {
                       </div>
                     </div>
 
-                    {/* 6 step nodes — positioned at hexagon vertices
+                    {/* 6 step nodes - positioned at hexagon vertices
                        Ajuste manual: mude left/top (%) de cada fase individualmente.
                        50/50 = centro. Menor top = mais pra cima, maior left = mais pra direita. */}
                     {processSteps6.map((step, i) => {
                       /* R = 45%  |  sin60 ≈ 0.866 → dx = 39  |  cos60 = 0.5 → dy = 23 */
                       const positions = [
-                        { left: 50, top: 10 }, // 1ª Etapa — topo           (d = 38)
-                        { left: 89, top: 27 }, // 2ª Etapa — superior dir   (d ≈ 45.3)
-                        { left: 89, top: 73 }, // 3ª Etapa — inferior dir   (d ≈ 45.3)
-                        { left: 50, top: 90 }, // 4ª Etapa — base           (d = 38)
-                        { left: 11, top: 73 }, // 5ª Etapa — inferior esq   (d ≈ 45.3)
-                        { left: 11, top: 27 }, // 6ª Etapa — superior esq   (d ≈ 45.3)
+                        { left: 50, top: 10 }, // 1ª Etapa - topo           (d = 38)
+                        { left: 89, top: 27 }, // 2ª Etapa - superior dir   (d ≈ 45.3)
+                        { left: 89, top: 73 }, // 3ª Etapa - inferior dir   (d ≈ 45.3)
+                        { left: 50, top: 90 }, // 4ª Etapa - base           (d = 38)
+                        { left: 11, top: 73 }, // 5ª Etapa - inferior esq   (d ≈ 45.3)
+                        { left: 11, top: 27 }, // 6ª Etapa - superior esq   (d ≈ 45.3)
                       ];
                       const x = positions[i].left;
                       const y = positions[i].top;
@@ -460,7 +460,7 @@ const ComoTrabalhamos = () => {
             </div>
           </section>
 
-          {/* Info Cards — mobile/tablet only */}
+          {/* Info Cards - mobile/tablet only */}
           <section className="py-16 md:py-20 bg-background lg:hidden">
             <div className="container mx-auto px-4">
               <div className="grid md:grid-cols-3 gap-6 md:gap-8">

@@ -1,4 +1,4 @@
-import { ArrowUp, Mail, Phone, Linkedin, Github } from "@/assets/icons";
+import { ArrowUp, Mail, Phone, Linkedin, Github, Instagram } from "@/assets/icons";
 import { Link } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -50,7 +50,7 @@ const Footer = () => {
                 width={80}
                 height={40}
                 loading="lazy"
-                className="h-10 w-auto transition-all duration-300"
+                className="h-14 w-auto transition-all duration-300"
               />
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -60,7 +60,7 @@ const Footer = () => {
             <div className="flex space-x-3">
               <a
                 href="https://linkedin.com/company/elkys"
-                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
+                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground transition-all duration-150 hover:shadow-md hover:text-primary"
                 aria-label="Visite nosso perfil no LinkedIn"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -69,12 +69,21 @@ const Footer = () => {
               </a>
               <a
                 href="https://github.com/elkys"
-                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
+                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground transition-all duration-150 hover:shadow-md hover:text-foreground"
                 aria-label="Visite nosso perfil no Github"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <Github className="h-5 w-5" />
+              </a>
+              <a
+                href="https://instagram.com/elkys_.oficial"
+                className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground transition-all duration-150 hover:shadow-md hover:text-primary"
+                aria-label="Visite nosso perfil no Instagram"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>

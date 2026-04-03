@@ -93,7 +93,7 @@ jobs:
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           content: |
-            **${{ env.PRODUCT_NAME }} — Deploy**
+            **${{ env.PRODUCT_NAME }} - Deploy**
             **Status:** ${{ job.status == 'success' && '✅ Sucesso' || '❌ Falha' }}
             **Repo:** `${{ github.repository }}`
             **Branch:** `${{ github.ref_name }}`

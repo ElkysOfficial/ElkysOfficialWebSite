@@ -89,7 +89,7 @@ const About = () => {
           </div>
         </div>
 
-        {/* Values — horizontal compact */}
+        {/* Values - horizontal compact */}
         <div className="grid md:grid-cols-3 gap-4 md:gap-6 mb-16 md:mb-20">
           {values.map((value, index) => (
             <Card key={index} className="p-4 md:p-5">
@@ -110,7 +110,7 @@ const About = () => {
           ))}
         </div>
 
-        {/* How We Work — grid 2 cols, icons left / text right */}
+        {/* How We Work - grid 2 cols, icons left / text right */}
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
           <div className="space-y-4">
             {workPhilosophy.highlights.map((h, i) => {

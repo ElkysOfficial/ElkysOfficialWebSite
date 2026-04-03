@@ -21,8 +21,8 @@ export default defineConfig(({ mode }) => {
           plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
           svgoConfig: {
             plugins: [
-              { name: "removeViewBox", active: false },
-              { name: "removeDimensions", active: true },
+              { name: "removeViewBox" } as { name: string },
+              { name: "removeDimensions" } as { name: string },
               {
                 name: "prefixIds",
                 params: { prefixClassNames: false },
@@ -57,6 +57,7 @@ export default defineConfig(({ mode }) => {
       }),
     ].filter(Boolean),
     resolve: {
+      dedupe: ["react", "react-dom"],
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },

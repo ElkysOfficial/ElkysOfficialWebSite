@@ -1,0 +1,707 @@
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
+
+import { useAuth, type AppRole } from "@/contexts/AuthContext";
+import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DEFAULT_PROFILE_AVATAR_TRANSFORM,
+  PORTAL_PROFILE_UPDATED_EVENT,
+  getProfileAvatarImageStyle,
+  getProfileInitials,
+  resolveProfileAvatarTransform,
+  type PortalProfileUpdatedDetail,
+} from "@/lib/profile";
+import {
+  AgileMono,
+  ArrowLeft,
+  ArrowRight,
+  BarChart,
+  Banknote,
+  Building2,
+  CalendarX,
+  Code2,
+  Folder,
+  SuporteFill,
+  Users,
+  X,
+} from "@/assets/icons";
+
+const SIDEBAR_STORAGE_KEY = "elkys-admin-sidebar-collapsed";
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  roles: AppRole[];
+};
+
+type NavSection = {
+  label?: string;
+  items: NavItem[];
+};
+
+const ALL_NAV_SECTIONS: NavSection[] = [
+  {
+    items: [
+      {
+        label: "Visão Geral",
+        href: "/portal/admin",
+        icon: BarChart,
+        roles: ["admin_super", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [
+      {
+        label: "Clientes",
+        href: "/portal/admin/clientes",
+        icon: Building2,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Projetos",
+        href: "/portal/admin/projetos",
+        icon: AgileMono,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Financeiro",
+        href: "/portal/admin/financeiro",
+        icon: Banknote,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Equipe",
+        href: "/portal/admin/equipe",
+        icon: Users,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Suporte",
+        href: "/portal/admin/suporte",
+        icon: SuporteFill,
+        roles: ["admin_super", "admin", "support"],
+      },
+    ],
+  },
+  {
+    label: "Marketing",
+    items: [
+      {
+        label: "Calendário",
+        href: "/portal/admin/calendario",
+        icon: CalendarX,
+        roles: ["admin_super", "admin", "marketing"],
+      },
+      {
+        label: "Documentos M&D",
+        href: "/portal/admin/documentos/marketing-design",
+        icon: Folder,
+        roles: ["admin_super", "admin", "marketing"],
+      },
+    ],
+  },
+  {
+    label: "Desenvolvimento",
+    items: [
+      {
+        label: "Documentos Dev",
+        href: "/portal/admin/documentos/desenvolvedor",
+        icon: Code2,
+        roles: ["admin_super", "admin", "developer"],
+      },
+    ],
+  },
+];
+
+const adminPageMeta = [
+  {
+    match: (pathname: string) => pathname === "/portal/admin",
+    title: "Visão Geral",
+    description:
+      "Panorama executivo da operação com leitura direta de receita recorrente, pendências e custo mensal.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/calendario",
+    title: "Calendário",
+    description:
+      "Agenda operacional do marketing para campanhas, publicações, eventos e entregas planejadas.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/documentos/marketing-design",
+    title: "Documentos M&D",
+    description:
+      "Área interna para concentrar links, referências e materiais de Marketing & Design.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/documentos/desenvolvedor",
+    title: "Documentos Dev",
+    description:
+      "Área interna para concentrar links técnicos, handoffs e materiais de Desenvolvimento.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/clientes",
+    title: "Clientes",
+    description:
+      "Carteira organizada para localizar rapidamente contas ativas, recorrência e valor contratado.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/clientes/novo",
+    title: "Novo cliente",
+    description: "",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/projetos",
+    title: "Projetos",
+    description:
+      "Carteira operacional organizada por projeto, com foco em status, etapas, escopo e andamento.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/projetos/novo",
+    title: "Novo projeto",
+    description: "",
+  },
+  {
+    match: (pathname: string) =>
+      pathname.startsWith("/portal/admin/projetos/") && pathname !== "/portal/admin/projetos/novo",
+    title: "Detalhes do projeto",
+    description: "Leitura operacional centralizada do projeto com financeiro, anexos e timeline.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/financeiro",
+    title: "Financeiro",
+    description: "Receitas e despesas centralizadas em uma única leitura operacional.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/financeiro/nova-despesa",
+    title: "Nova despesa",
+    description:
+      "Lançamento financeiro enxuto para manter consistência, rastreabilidade e visão real do custo operacional.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/despesas",
+    title: "Despesas",
+    description:
+      "Controle financeiro dos custos operacionais com leitura objetiva por período e categoria.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/despesas/nova",
+    title: "Nova despesa",
+    description:
+      "Lançamento financeiro enxuto para manter consistência, rastreabilidade e visão real do custo operacional.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/equipe",
+    title: "Equipe",
+    description: "Estrutura interna do time com foco em função, disponibilidade e contato rápido.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/equipe/novo",
+    title: "Novo membro",
+    description:
+      "Registro interno de pessoas com identificação, cargo e disponibilidade para a operação.",
+  },
+  {
+    match: (pathname: string) =>
+      pathname.startsWith("/portal/admin/clientes/") && pathname !== "/portal/admin/clientes/novo",
+    title: "Detalhes do cliente",
+    description: "Perfil completo do cliente com dados contratuais, documentos e histórico.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/suporte",
+    title: "Suporte",
+    description: "Solicitações de ajuda abertas pelos clientes para acompanhamento e resolução.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/perfil",
+    title: "Perfil",
+    description: "Dados pessoais, foto e leitura do acesso interno no portal da Elkys.",
+  },
+];
+
+function isItemActive(currentPath: string, href: string) {
+  if (href === "/portal/admin") return currentPath === href;
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+
+function MenuGlyph({ className }: { className?: string }) {
+  return (
+    <span className={cn("flex h-4 w-4 flex-col items-center justify-center gap-1", className)}>
+      <span className="block h-[1.5px] w-4 rounded-full bg-current" />
+      <span className="block h-[1.5px] w-3 rounded-full bg-current" />
+      <span className="block h-[1.5px] w-4 rounded-full bg-current" />
+    </span>
+  );
+}
+
+export default function AdminLayout() {
+  const { user, roles, signOut } = useAuth();
+  const navSections = useMemo(
+    () =>
+      ALL_NAV_SECTIONS.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => item.roles.some((role) => roles.includes(role))),
+      })).filter((section) => section.items.length > 0),
+    [roles]
+  );
+  const { resolvedTheme } = useTheme();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [profileName, setProfileName] = useState("Usuário logado");
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileAvatarTransform, setProfileAvatarTransform] = useState(
+    DEFAULT_PROFILE_AVATAR_TRANSFORM
+  );
+  useEffect(() => {
+    setMounted(true);
+
+    if (typeof window === "undefined") return;
+
+    const storedValue = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (storedValue !== null) setSidebarCollapsed(storedValue === "true");
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed));
+  }, [mounted, sidebarCollapsed]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fallbackNameFromUser = () => {
+      const metadataName = user?.user_metadata?.full_name;
+      if (typeof metadataName === "string" && metadataName.trim().length > 0) {
+        return metadataName.trim();
+      }
+
+      const emailPrefix = user?.email
+        ?.split("@")[0]
+        ?.replace(/[._-]+/g, " ")
+        .trim();
+      if (!emailPrefix) return "Usuário logado";
+
+      return emailPrefix.replace(/\b\w/g, (letter) => letter.toUpperCase());
+    };
+
+    const formatName = (value: string) => {
+      const parts = value.trim().split(/\s+/);
+      if (parts.length <= 1) return value.trim();
+      return `${parts[0]} ${parts[parts.length - 1]}`;
+    };
+
+    if (!user?.id) {
+      setProfileName("Usuário logado");
+      setProfileAvatarUrl(null);
+      setProfileAvatarTransform(DEFAULT_PROFILE_AVATAR_TRANSFORM);
+      return () => {
+        active = false;
+      };
+    }
+
+    const loadProfile = async () => {
+      const profileRes = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!active) return;
+
+      const resolvedName = profileRes.data?.full_name?.trim() || fallbackNameFromUser();
+      const resolvedAvatar =
+        profileRes.data?.avatar_url?.trim() ||
+        (typeof user.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url : null);
+      const resolvedAvatarTransform = resolveProfileAvatarTransform({
+        zoom: profileRes.data?.avatar_zoom ?? user.user_metadata?.avatar_zoom,
+        positionX: profileRes.data?.avatar_position_x ?? user.user_metadata?.avatar_position_x,
+        positionY: profileRes.data?.avatar_position_y ?? user.user_metadata?.avatar_position_y,
+      });
+
+      setProfileName(formatName(resolvedName));
+      setProfileAvatarUrl(resolvedAvatar);
+      setProfileAvatarTransform(resolvedAvatarTransform);
+    };
+
+    void loadProfile();
+
+    const handleProfileUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<PortalProfileUpdatedDetail>).detail;
+      if (!active || !detail) return;
+
+      if (typeof detail.fullName === "string" && detail.fullName.trim().length > 0) {
+        setProfileName(formatName(detail.fullName));
+      }
+
+      if ("avatarUrl" in detail) {
+        setProfileAvatarUrl(detail.avatarUrl ?? null);
+      }
+
+      if (detail.avatarTransform) {
+        setProfileAvatarTransform(resolveProfileAvatarTransform(detail.avatarTransform));
+      }
+    };
+
+    window.addEventListener(PORTAL_PROFILE_UPDATED_EVENT, handleProfileUpdated as EventListener);
+
+    return () => {
+      active = false;
+      window.removeEventListener(
+        PORTAL_PROFILE_UPDATED_EVENT,
+        handleProfileUpdated as EventListener
+      );
+    };
+  }, [user?.email, user?.id, user?.user_metadata]);
+
+  const isDarkTheme = mounted && resolvedTheme === "dark";
+  const avatarInitial = getProfileInitials(profileName, "U");
+  const avatarImageStyle = useMemo(
+    () => getProfileAvatarImageStyle(profileAvatarTransform),
+    [profileAvatarTransform]
+  );
+  const todayLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }).format(new Date()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mounted]
+  );
+  const [clockTime, setClockTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setClockTime(
+        `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+      );
+    };
+    const id = window.setInterval(tick, 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const currentPageMeta = useMemo(
+    () =>
+      adminPageMeta.find((item) => item.match(location.pathname)) ?? {
+        title: "Painel Administrativo",
+        description: "Ambiente interno para acompanhamento objetivo da operação Elkys.",
+      },
+    [location.pathname]
+  );
+
+  const closeMobileSidebar = () => setMobileOpen(false);
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {mobileOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-30 bg-secondary-dark/35 backdrop-blur-sm lg:hidden"
+          onClick={closeMobileSidebar}
+          aria-label="Fechar navegação"
+        />
+      ) : null}
+
+      <div className="relative flex min-h-screen">
+        <aside
+          id="admin-sidebar"
+          className={cn(
+            "fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-border/75 bg-card transition-all duration-300 ease-out lg:sticky lg:top-0",
+            sidebarCollapsed ? "w-[6.5rem]" : "w-56",
+            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          )}
+        >
+          <div className="flex h-16 items-center justify-between gap-2 border-b border-border/75 px-3">
+            <Link
+              to="/portal/admin"
+              className="flex min-w-0 items-center"
+              aria-label="Ir para visão geral do admin"
+            >
+              <img
+                src={
+                  isDarkTheme
+                    ? "/imgs/icons/lettering_elkys.webp"
+                    : "/imgs/icons/lettering_elkys_purple.webp"
+                }
+                alt="Elkys"
+                width={90}
+                height={30}
+                className={cn("block h-auto", sidebarCollapsed ? "w-[48px]" : "w-[60px]")}
+              />
+            </Link>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="hidden shrink-0 text-muted-foreground hover:text-foreground lg:inline-flex"
+              onClick={() => setSidebarCollapsed((current) => !current)}
+              aria-expanded={!sidebarCollapsed}
+              aria-label={sidebarCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+            >
+              {sidebarCollapsed ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="justify-self-center text-muted-foreground hover:text-foreground lg:hidden"
+              onClick={closeMobileSidebar}
+              aria-label="Fechar sidebar"
+            >
+              <X size={18} />
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-hidden px-2 py-2">
+            <nav className={cn("space-y-1", sidebarCollapsed ? "space-y-1" : "")}>
+              {navSections.map((section) => (
+                <div
+                  key={section.label ?? "overview"}
+                  className={cn("space-y-0.5", sidebarCollapsed ? "space-y-1" : "")}
+                >
+                  {section.label ? (
+                    <span
+                      className={cn(
+                        "block font-semibold uppercase tracking-wider text-muted-foreground/60",
+                        sidebarCollapsed
+                          ? "px-1 py-0.5 text-center text-[8px] leading-[1.2]"
+                          : "px-3 py-0.5 text-[9px]"
+                      )}
+                    >
+                      {section.label}
+                    </span>
+                  ) : null}
+
+                  {section.items.map(({ label, href, icon: Icon, roles: _roles }) => {
+                    void _roles;
+                    const active = isItemActive(location.pathname, href);
+
+                    return (
+                      <Link
+                        key={href}
+                        to={href}
+                        title={sidebarCollapsed ? label : undefined}
+                        aria-label={label}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "group relative flex items-center gap-2.5 overflow-hidden rounded-lg border px-2.5 py-2 transition-all duration-300 ease-out",
+                          sidebarCollapsed ? "min-h-[44px] justify-center px-0" : "min-h-[40px]",
+                          active
+                            ? "border-border/80 bg-background text-foreground"
+                            : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/65 hover:text-foreground"
+                        )}
+                      >
+                        {!sidebarCollapsed ? (
+                          <HexPattern
+                            variant="inline"
+                            className={cn(
+                              active
+                                ? "-right-4 -bottom-4 h-16 w-16 opacity-[0.16] transition-all duration-300 dark:opacity-[0.22]"
+                                : "-right-4 -bottom-4 h-16 w-16 opacity-[0.05] transition-all duration-300 group-hover:opacity-[0.09] dark:opacity-[0.08] dark:group-hover:opacity-[0.12]"
+                            )}
+                          />
+                        ) : (
+                          <HexPattern
+                            variant="inline"
+                            className={cn(
+                              "left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2",
+                              active
+                                ? "opacity-[0.14] transition-all duration-300 dark:opacity-[0.2]"
+                                : "opacity-[0.04] transition-all duration-300 group-hover:opacity-[0.08] dark:opacity-[0.07] dark:group-hover:opacity-[0.1]"
+                            )}
+                          />
+                        )}
+
+                        {!sidebarCollapsed && active ? (
+                          <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                        ) : null}
+
+                        <span
+                          className={cn(
+                            "relative z-10 flex shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-out",
+                            sidebarCollapsed ? "h-8 w-8" : "h-8 w-8",
+                            active
+                              ? "bg-primary/12 text-primary dark:bg-primary/18"
+                              : "bg-transparent text-muted-foreground group-hover:text-foreground"
+                          )}
+                        >
+                          <Icon size={20} />
+                        </span>
+
+                        {!sidebarCollapsed ? (
+                          <span className="relative z-10 min-w-0 flex-1 truncate text-[13px] font-medium">
+                            {label}
+                          </span>
+                        ) : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          <div className="border-t border-border/75 p-2">
+            <Link
+              to="/portal/admin/perfil"
+              className={cn(
+                "group mb-2 block rounded-lg border border-border/75 bg-background/60 p-2 transition-colors duration-200 hover:border-primary/20 hover:bg-background",
+                sidebarCollapsed ? "px-0 py-2" : ""
+              )}
+              aria-label="Abrir perfil"
+              title={sidebarCollapsed ? profileName : undefined}
+            >
+              {sidebarCollapsed ? (
+                <div className="flex flex-col items-center gap-1">
+                  {profileAvatarUrl ? (
+                    <HexAvatar
+                      size="sm"
+                      src={profileAvatarUrl}
+                      fallback={avatarInitial}
+                      alt={profileName}
+                      imageStyle={avatarImageStyle}
+                      backgroundClassName="scale-[1.1]"
+                      contentInsetClassName="inset-[6.25%]"
+                      className="h-7 w-7"
+                    />
+                  ) : (
+                    <HexAvatar
+                      size="sm"
+                      fallback={avatarInitial}
+                      backgroundClassName="scale-[1.1]"
+                      contentInsetClassName="inset-[6.25%]"
+                      className="h-7 w-7"
+                    />
+                  )}
+                  <p className="w-full truncate text-center text-[9px] font-semibold leading-tight text-foreground">
+                    {profileName}
+                  </p>
+                  <p className="text-[9px] font-medium leading-none text-muted-foreground tabular-nums">
+                    {clockTime}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5">
+                  {profileAvatarUrl ? (
+                    <HexAvatar
+                      size="sm"
+                      src={profileAvatarUrl}
+                      fallback={avatarInitial}
+                      alt={profileName}
+                      imageStyle={avatarImageStyle}
+                      backgroundClassName="scale-[1.1]"
+                      contentInsetClassName="inset-[6.25%]"
+                      className="h-9 w-9"
+                    />
+                  ) : (
+                    <HexAvatar
+                      size="sm"
+                      fallback={avatarInitial}
+                      backgroundClassName="scale-[1.1]"
+                      contentInsetClassName="inset-[6.25%]"
+                      className="h-9 w-9"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
+                      {profileName}
+                    </p>
+                    <p className="text-[11px] font-medium leading-tight text-muted-foreground tabular-nums">
+                      {clockTime}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </Link>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size={sidebarCollapsed ? "icon" : "default"}
+              className={cn(
+                "w-full text-destructive hover:bg-destructive/10 hover:text-destructive",
+                sidebarCollapsed ? "px-0" : "justify-start"
+              )}
+              onClick={() => void signOut()}
+              aria-label="Sair"
+              title={sidebarCollapsed ? "Sair" : undefined}
+            >
+              <X size={18} />
+              {!sidebarCollapsed ? <span>Sair</span> : null}
+            </Button>
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-20 h-16 border-b border-border/75 bg-background">
+            <div className="flex h-full items-center justify-between gap-4 px-4 md:px-6 xl:px-8">
+              <div className="flex min-w-0 items-center gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="items-center justify-center text-muted-foreground hover:text-foreground lg:hidden"
+                  onClick={() => setMobileOpen(true)}
+                  aria-controls="admin-sidebar"
+                  aria-expanded={mobileOpen}
+                  aria-label="Abrir navegação"
+                >
+                  <MenuGlyph />
+                </Button>
+
+                <div className="min-w-0 space-y-0.5">
+                  <p className="truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
+                    {currentPageMeta.title}
+                  </p>
+                  {currentPageMeta.description ? (
+                    <p className="hidden max-w-2xl truncate text-xs leading-relaxed text-muted-foreground md:block">
+                      {currentPageMeta.description}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-3">
+                <p className="hidden text-right text-sm font-medium capitalize text-muted-foreground md:block">
+                  {todayLabel}
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8">
+            <div className="mx-auto w-full max-w-[1400px]">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
