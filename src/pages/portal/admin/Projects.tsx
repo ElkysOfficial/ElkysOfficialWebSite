@@ -74,15 +74,22 @@ function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}>
+    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+          t.icon
+        )}
+      >
         <Icon size={18} />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-xl font-semibold tracking-tight", t.text)}>{value}</p>
+        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -196,29 +203,48 @@ function ProjectRow({
   ];
 
   return (
-    <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-3 rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card md:grid-cols-[1fr_140px_140px_160px_40px]">
-      {/* Col 1 — Project info */}
-      <Link to={`/portal/admin/projetos/${project.id}`} className="min-w-0">
-        <p className="truncate text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-          {project.name}
-        </p>
-        <p className="mt-1 truncate text-sm text-muted-foreground">
-          {client ? getClientDisplayName(client) : "—"}
-          {project.solution_type ? ` · ${project.solution_type}` : ""}
-        </p>
-      </Link>
+    <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_140px_140px_160px_40px] md:gap-y-3">
+      {/* Col 1 — Project info + actions (mobile: same row) */}
+      <div className="flex items-start justify-between gap-2 md:contents">
+        <Link to={`/portal/admin/projetos/${project.id}`} className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+            {project.name}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+            {client ? getClientDisplayName(client) : "—"}
+            {project.solution_type ? ` · ${project.solution_type}` : ""}
+          </p>
+        </Link>
 
-      {/* Col 2 — Status */}
-      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Mobile actions */}
+        <div className="shrink-0 md:hidden">
+          <RowActionMenu actions={actions} />
+        </div>
+      </div>
+
+      {/* Mobile: secondary info in a compact layout */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 md:hidden">
+        <StatusBadge label={meta.label} tone={meta.tone} />
+        {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
+        <span className="text-xs text-muted-foreground">{project.current_stage || "—"}</span>
+        <span className="text-xs font-medium text-foreground">
+          {formatPortalDate(project.expected_delivery_date)}
+        </span>
+      </div>
+
+      {/* Col 2 — Status (desktop) */}
+      <div className="hidden flex-wrap items-center gap-1.5 md:flex">
         <StatusBadge label={meta.label} tone={meta.tone} />
         {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
       </div>
 
-      {/* Col 3 — Stage */}
-      <p className="text-sm text-muted-foreground">{project.current_stage || "—"}</p>
+      {/* Col 3 — Stage (desktop) */}
+      <p className="hidden text-sm text-muted-foreground md:block">
+        {project.current_stage || "—"}
+      </p>
 
-      {/* Col 4 — Dates */}
-      <div className="text-right md:text-left">
+      {/* Col 4 — Dates (desktop) */}
+      <div className="hidden md:block">
         <p className="whitespace-nowrap text-sm font-medium text-foreground">
           {formatPortalDate(project.expected_delivery_date)}
         </p>
@@ -227,8 +253,10 @@ function ProjectRow({
         </p>
       </div>
 
-      {/* Col 5 — Actions */}
-      <RowActionMenu actions={actions} />
+      {/* Col 5 — Actions (desktop) */}
+      <div className="hidden md:block">
+        <RowActionMenu actions={actions} />
+      </div>
     </div>
   );
 }
@@ -462,7 +490,7 @@ export default function AdminProjects() {
       </div>
 
       {/* ── Metrics — uniform 4-col grid ── */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <MetricTile label="Ativos" value={activeProjects.toString()} icon={Zap} tone="accent" />
         <MetricTile
           label="Pausados"

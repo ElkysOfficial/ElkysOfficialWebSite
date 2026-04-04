@@ -143,7 +143,7 @@ export default function ClientFinance() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
@@ -176,7 +176,7 @@ export default function ClientFinance() {
   return (
     <div className="space-y-8">
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
         <MetricTile
           label="Proxima fatura"
           value={nextInvoice ? formatBRL(nextInvoiceAmount) : "Sem fatura"}
@@ -215,7 +215,7 @@ export default function ClientFinance() {
               {upcomingItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
@@ -238,7 +238,7 @@ export default function ClientFinance() {
               {overdueItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
@@ -261,7 +261,7 @@ export default function ClientFinance() {
               {futureItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
@@ -284,7 +284,7 @@ export default function ClientFinance() {
               {paidItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
@@ -307,7 +307,7 @@ export default function ClientFinance() {
               {historicalItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
                 >
                   <div>
                     <p className="text-sm font-semibold text-muted-foreground">

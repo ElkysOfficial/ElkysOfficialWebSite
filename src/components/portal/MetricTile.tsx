@@ -27,15 +27,22 @@ export default function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}>
+    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+          t.icon
+        )}
+      >
         <Icon size={18} />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-xl font-semibold tracking-tight", t.text)}>{value}</p>
+        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+          {value}
+        </p>
       </div>
     </div>
   );

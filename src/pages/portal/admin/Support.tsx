@@ -82,15 +82,22 @@ function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}>
+    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+          t.icon
+        )}
+      >
         <Icon size={18} />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-xl font-semibold tracking-tight", t.text)}>{value}</p>
+        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -379,7 +386,7 @@ export default function AdminSupport() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
         <MetricTile
           label="Tickets abertos"
           value={openCount.toString()}
@@ -490,7 +497,7 @@ export default function AdminSupport() {
                       setExpandedId(isExpanded ? null : ticket.id);
                     }
                   }}
-                  className="cursor-pointer px-5 py-4 hover:bg-card"
+                  className="cursor-pointer px-4 py-3 hover:bg-card sm:px-5 sm:py-4"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
@@ -553,7 +560,7 @@ export default function AdminSupport() {
 
                 {/* Expanded: original message + thread + reply */}
                 {isExpanded && (
-                  <div className="border-t border-border/50 px-5 pb-5 pt-4 space-y-4">
+                  <div className="space-y-4 border-t border-border/50 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
                     {/* Original message */}
                     <div className="space-y-1">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

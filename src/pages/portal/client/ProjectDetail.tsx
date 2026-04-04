@@ -237,7 +237,7 @@ export default function ClientProjectDetail() {
               <CardTitle className="text-base">Visao do projeto</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
-              <div className="rounded-xl border border-border/50 bg-background/60 px-5 py-4 md:col-span-2">
+              <div className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 md:col-span-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Situacao atual
                 </p>
@@ -246,7 +246,7 @@ export default function ClientProjectDetail() {
                     "O projeto segue disponivel no portal com acompanhamento ativo da Elkys."}
                 </p>
               </div>
-              <div className="rounded-xl border border-border/50 bg-background/60 px-5 py-4">
+              <div className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Inicio
                 </p>
@@ -254,7 +254,7 @@ export default function ClientProjectDetail() {
                   {formatPortalDate(project.started_at)}
                 </p>
               </div>
-              <div className="rounded-xl border border-border/50 bg-background/60 px-5 py-4">
+              <div className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Entrega prevista
                 </p>
@@ -278,7 +278,7 @@ export default function ClientProjectDetail() {
                 nextSteps.map((stepItem) => (
                   <div
                     key={stepItem.id}
-                    className="rounded-xl border border-border/50 bg-background/60 px-5 py-4"
+                    className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4"
                   >
                     <p className="text-sm font-semibold text-foreground">{stepItem.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -452,7 +452,7 @@ export default function ClientProjectDetail() {
                     href={document.external_url ?? document.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card"
+                    className="block rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 transition-all hover:border-primary/25 hover:bg-card"
                   >
                     <p className="text-sm font-semibold text-foreground">{document.label}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -481,7 +481,7 @@ export default function ClientProjectDetail() {
                 {timeline.map((event) => (
                   <div
                     key={event.id}
-                    className="rounded-xl border border-border/50 bg-background/60 px-5 py-4"
+                    className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-foreground">{event.title}</p>

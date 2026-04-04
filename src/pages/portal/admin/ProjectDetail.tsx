@@ -332,7 +332,7 @@ function OverlayPanel({
             Fechar
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );
@@ -2079,7 +2079,7 @@ export default function AdminProjectDetail() {
         <Card className="border-border/70 bg-card/92">
           {/* Contract section */}
           {contracts[0] ? (
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Contrato
               </p>
@@ -2098,7 +2098,7 @@ export default function AdminProjectDetail() {
 
           {/* Subscriptions section */}
           {subscriptions.length > 0 ? (
-            <div className={cn("p-5", contracts[0] ? "border-t border-border/50" : "")}>
+            <div className={cn("p-3 sm:p-5", contracts[0] ? "border-t border-border/50" : "")}>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Assinaturas mensais
               </p>
@@ -2151,7 +2151,7 @@ export default function AdminProjectDetail() {
           {financialItems.length > 0 ? (
             <div
               className={cn(
-                "p-5",
+                "p-3 sm:p-5",
                 contracts[0] || subscriptions.length > 0 ? "border-t border-border/50" : ""
               )}
             >
@@ -2208,7 +2208,7 @@ export default function AdminProjectDetail() {
               </div>
             </div>
           ) : !contracts[0] && subscriptions.length === 0 ? (
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <AdminEmptyState
                 icon={TrendingUp}
                 title="Sem cobranças avulsas"

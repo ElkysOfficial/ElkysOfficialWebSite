@@ -275,7 +275,7 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
             documents.map((document) => (
               <article
                 key={document.id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:gap-4 sm:px-5 sm:py-4"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

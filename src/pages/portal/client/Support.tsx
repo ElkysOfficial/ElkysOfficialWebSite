@@ -541,7 +541,7 @@ export default function ClientSupport() {
                           setExpandedId(isExpanded ? null : ticket.id);
                         }
                       }}
-                      className="cursor-pointer px-5 py-4 hover:bg-card"
+                      className="cursor-pointer px-4 py-3 hover:bg-card sm:px-5 sm:py-4"
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0 flex-1">
@@ -581,7 +581,7 @@ export default function ClientSupport() {
 
                     {/* Expanded: original message + thread + reply */}
                     {isExpanded && (
-                      <div className="space-y-4 border-t border-border/50 px-5 pb-5 pt-4">
+                      <div className="space-y-4 border-t border-border/50 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
                         {/* Original message */}
                         <div className="space-y-1">
                           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

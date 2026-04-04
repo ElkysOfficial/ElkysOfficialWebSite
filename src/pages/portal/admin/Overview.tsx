@@ -463,13 +463,20 @@ function ExecutiveKpiCard({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-4 pl-5">
+    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
       <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
         {label}
       </p>
-      <p className={cn("mt-1 text-lg font-semibold tracking-tight", toneStyles[tone])}>{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{subInfo}</p>
+      <p
+        className={cn(
+          "mt-0.5 text-base font-semibold tracking-tight sm:mt-1 sm:text-lg",
+          toneStyles[tone]
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground sm:mt-1 sm:text-xs">{subInfo}</p>
     </div>
   );
 }
@@ -500,12 +507,19 @@ function SurfaceStat({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-4 pl-5">
+    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
       <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
         {label}
       </p>
-      <p className={cn("mt-2 text-lg font-semibold tracking-tight", toneStyles[tone])}>{value}</p>
+      <p
+        className={cn(
+          "mt-1 text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
+          toneStyles[tone]
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -523,13 +537,13 @@ function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
   }
 
   return (
-    <div className="h-[240px]">
+    <div className="h-[200px] sm:h-[240px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
-          barGap={4}
-          barSize={26}
+          margin={{ top: 12, right: 4, left: -8, bottom: 0 }}
+          barGap={2}
+          barSize={16}
         >
           <defs>
             <linearGradient id="cf-cashIn" x1="0" y1="0" x2="0" y2="1">
@@ -543,16 +557,16 @@ function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
           </defs>
           <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
           <XAxis
-            dataKey="label"
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            dataKey="shortLabel"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            width={64}
+            width={48}
             tickCount={4}
             tickFormatter={(value) => formatCompactCurrency(Number(value))}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
@@ -583,9 +597,9 @@ function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
   }
 
   return (
-    <div className="h-[220px]">
+    <div className="h-[180px] sm:h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barSize={32}>
+        <BarChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 0 }} barSize={20}>
           <defs>
             <linearGradient id="res-pos" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
@@ -598,16 +612,16 @@ function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
           </defs>
           <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
           <XAxis
-            dataKey="label"
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            dataKey="shortLabel"
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            width={64}
+            width={48}
             tickCount={4}
             tickFormatter={(value) => formatCompactCurrency(Number(value))}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
@@ -666,9 +680,9 @@ function ClientDistributionBarChart({
   }
 
   return (
-    <div className="h-[200px]">
+    <div className="h-[170px] sm:h-[200px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+        <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="cd-success" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
@@ -686,16 +700,16 @@ function ClientDistributionBarChart({
           <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
           <XAxis
             dataKey="name"
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
-            width={28}
+            width={24}
           />
           <Tooltip content={<DashboardTooltip formatter={(v) => `${v} cliente(s)`} />} />
           <Bar dataKey="value" name="Clientes" radius={[12, 12, 0, 0]}>
@@ -739,9 +753,9 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
   ];
 
   return (
-    <div className="h-[180px]">
+    <div className="h-[160px] sm:h-[180px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+        <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="ps-accent" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
@@ -763,16 +777,16 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
           <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
           <XAxis
             dataKey="name"
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 12 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
-            width={28}
+            width={24}
           />
           <Tooltip content={<DashboardTooltip formatter={(v) => `${v} projeto(s)`} />} />
           <Bar dataKey="value" name="Projetos" radius={[12, 12, 0, 0]}>
@@ -1313,22 +1327,22 @@ export default function AdminOverview() {
         <>
           {/* Summary card */}
           <Card className="overflow-hidden rounded-2xl border-border/80 bg-gradient-subtle">
-            <CardContent className="space-y-4 p-6">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+            <CardContent className="space-y-3 p-4 sm:space-y-4 sm:p-6">
+              <div className="flex flex-col gap-3 sm:gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div className="min-w-0 space-y-1 sm:space-y-2">
+                  <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl">
                     {insightHeadline}
                   </h2>
                 </div>
 
-                <div className="inline-flex rounded-full border border-border/80 bg-background/80 p-1">
+                <div className="inline-flex shrink-0 self-start rounded-full border border-border/80 bg-background/80 p-1">
                   {PERIOD_OPTIONS.map((option) => (
                     <button
                       key={option}
                       type="button"
                       onClick={() => setSelectedPeriod(option)}
                       className={cn(
-                        "rounded-full px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
+                        "min-h-[36px] rounded-full px-3 py-2 text-xs font-semibold tracking-wide transition-colors",
                         selectedPeriod === option
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground"
@@ -1340,7 +1354,7 @@ export default function AdminOverview() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2 xl:max-w-[520px]">
+              <div className="grid gap-2 sm:grid-cols-2 sm:gap-3 xl:max-w-[520px]">
                 <SurfaceStat
                   label="Saldo no periodo"
                   value={getSignedCurrency(periodNet)}
@@ -1370,7 +1384,7 @@ export default function AdminOverview() {
           </Card>
 
           {/* KPI cards — essentials only */}
-          <section className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+          <section className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
             <ExecutiveKpiCard
               label="MRR"
               value={formatBRL(summary.currentMrr)}
@@ -1431,12 +1445,12 @@ export default function AdminOverview() {
           {/* Cash flow + Result charts */}
           <section className="grid gap-4 xl:grid-cols-12">
             <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-8">
-              <CardContent className="space-y-4 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[11px]">
                   Entradas e saidas por mes
                 </p>
                 <CashFlowGroupedBarChart data={periodSeries} />
-                <div className="grid gap-3 grid-cols-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
                   <SurfaceStat
                     label="Total entradas"
                     value={formatBRL(periodReceived)}
@@ -1457,8 +1471,8 @@ export default function AdminOverview() {
             </Card>
 
             <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-4">
-              <CardContent className="space-y-4 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[11px]">
                   Resultado por mes
                 </p>
                 <ResultBarChart data={periodSeries} />

@@ -54,15 +54,22 @@ function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}>
+    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+          t.icon
+        )}
+      >
         <Icon size={18} />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-xl font-semibold tracking-tight", t.text)}>{value}</p>
+        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -173,17 +180,47 @@ function ClientRow({
   ];
 
   return (
-    <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-3 rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card md:grid-cols-[1fr_80px_140px_100px_100px_40px]">
-      {/* Col 1 — Client info */}
-      <Link to={`/portal/admin/clientes/${client.id}`} className="min-w-0">
-        <p className="truncate text-[15px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors">
-          {displayName}
-        </p>
-        <p className="mt-1 truncate text-sm text-muted-foreground">{client.email}</p>
-      </Link>
+    <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_80px_140px_100px_100px_40px] md:gap-y-3">
+      {/* Col 1 — Client info + actions (mobile: same row) */}
+      <div className="flex items-start justify-between gap-2 md:contents">
+        <Link to={`/portal/admin/clientes/${client.id}`} className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+            {displayName}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+            {client.email}
+          </p>
+        </Link>
 
-      {/* Col 2 — Status */}
-      <div>
+        {/* Mobile actions */}
+        <div className="shrink-0 md:hidden">
+          <RowActionMenu actions={actions} />
+        </div>
+      </div>
+
+      {/* Mobile: secondary info in a compact row */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 md:hidden">
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide",
+            client.is_active ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+          )}
+        >
+          {client.is_active ? "Ativo" : "Inativo"}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {formatClientSince(client.client_since)}
+        </span>
+        <span className="text-xs font-medium text-foreground">
+          Mensal {formatBRL(Number(client.monthly_value))}
+        </span>
+        <span className="text-xs font-medium text-foreground">
+          Projeto {formatBRL(Number(client.project_total_value))}
+        </span>
+      </div>
+
+      {/* Col 2 — Status (desktop) */}
+      <div className="hidden md:block">
         <span
           className={cn(
             "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide",
@@ -194,23 +231,25 @@ function ClientRow({
         </span>
       </div>
 
-      {/* Col 3 — Entrada */}
-      <p className="whitespace-nowrap text-sm text-muted-foreground">
+      {/* Col 3 — Entrada (desktop) */}
+      <p className="hidden whitespace-nowrap text-sm text-muted-foreground md:block">
         {formatClientSince(client.client_since)}
       </p>
 
-      {/* Col 4 — Mensal */}
-      <p className="text-sm font-medium text-foreground">
+      {/* Col 4 — Mensal (desktop) */}
+      <p className="hidden text-sm font-medium text-foreground md:block">
         {formatBRL(Number(client.monthly_value))}
       </p>
 
-      {/* Col 5 — Projeto */}
-      <p className="text-sm font-medium text-foreground">
+      {/* Col 5 — Projeto (desktop) */}
+      <p className="hidden text-sm font-medium text-foreground md:block">
         {formatBRL(Number(client.project_total_value))}
       </p>
 
-      {/* Col 6 — Actions */}
-      <RowActionMenu actions={actions} />
+      {/* Col 6 — Actions (desktop) */}
+      <div className="hidden md:block">
+        <RowActionMenu actions={actions} />
+      </div>
     </div>
   );
 }
@@ -438,7 +477,7 @@ export default function AdminClients() {
       </div>
 
       {/* -- Metrics -- */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
         <MetricTile
           label="Clientes ativos"
           value={activeClients.toString()}

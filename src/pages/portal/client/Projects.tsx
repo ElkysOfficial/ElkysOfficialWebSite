@@ -127,7 +127,9 @@ export default function ClientProjects() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Meus projetos</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Meus projetos
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Acompanhe cada projeto como uma unidade separada, com status, etapa atual e contexto
             claro.
@@ -142,7 +144,7 @@ export default function ClientProjects() {
             type="button"
             onClick={() => setTab(item.key)}
             className={cn(
-              "min-w-fit rounded-md px-3 py-2 text-sm font-medium transition-all",
+              "min-h-[40px] min-w-fit whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-all",
               tab === item.key
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -168,7 +170,7 @@ export default function ClientProjects() {
               <Link
                 key={project.id}
                 to={`/portal/cliente/projetos/${project.id}`}
-                className="group grid grid-cols-1 items-center gap-x-6 gap-y-3 rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card md:grid-cols-[1fr_auto]"
+                className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_auto] md:gap-y-3"
               >
                 <div className="min-w-0 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">

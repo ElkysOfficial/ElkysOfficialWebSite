@@ -139,7 +139,7 @@ export default function ClientOverview() {
   if (loading && !hasLoaded) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
@@ -180,7 +180,7 @@ export default function ClientOverview() {
   return (
     <div className="space-y-8">
       {/* ── Metrics ── */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <MetricTile
           label="Projetos ativos"
           value={activeProjects.toString()}
@@ -209,7 +209,7 @@ export default function ClientOverview() {
 
       {/* ── Next charge detail ── */}
       {nextFinancialItem && (
-        <div className="rounded-xl border border-border/60 bg-card px-5 py-4">
+        <div className="rounded-xl border border-border/60 bg-card px-4 py-3 sm:px-5 sm:py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Detalhe da proxima cobranca
           </p>
@@ -248,7 +248,7 @@ export default function ClientOverview() {
                 <Link
                   key={project.id}
                   to={`/portal/cliente/projetos/${project.id}`}
-                  className="group grid grid-cols-1 items-center gap-x-6 gap-y-3 rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card md:grid-cols-[1fr_140px_120px]"
+                  className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_140px_120px] md:gap-y-3"
                 >
                   {/* Col 1 — Project info */}
                   <div className="min-w-0">

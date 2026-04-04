@@ -103,15 +103,22 @@ function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-5">
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}>
+    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
+      <div
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+          t.icon
+        )}
+      >
         <Icon size={18} />
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-xl font-semibold tracking-tight", t.text)}>{value}</p>
+        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -400,7 +407,7 @@ export default function AdminExpenses() {
       </div>
 
       {/* ── Metrics ── */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
         <MetricTile
           label="Saida do periodo"
           value={formatBRL(filteredTotal)}
@@ -498,7 +505,7 @@ export default function AdminExpenses() {
       ) : (
         <div className="space-y-2">
           {/* Column headers */}
-          <div className="hidden xl:grid xl:grid-cols-[1fr_120px_120px_120px_auto] gap-x-6 px-5 pb-2">
+          <div className="hidden md:grid md:grid-cols-[1fr_120px_120px_120px_auto] gap-x-6 px-5 pb-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Descricao
             </p>
@@ -520,7 +527,7 @@ export default function AdminExpenses() {
             return (
               <article
                 key={expense.id}
-                className="rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card"
+                className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4"
               >
                 {isEditing ? (
                   <div className="space-y-4">
@@ -621,42 +628,80 @@ export default function AdminExpenses() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 items-center gap-x-6 gap-y-3 xl:grid-cols-[1fr_120px_120px_120px_auto]">
-                    <div className="min-w-0">
-                      <p className="truncate text-[15px] font-semibold leading-snug text-foreground">
-                        {expense.description}
-                      </p>
-                      {expense.notes ? (
-                        <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                          {expense.notes}
+                  <div className="grid grid-cols-1 items-center gap-x-6 gap-y-2 sm:gap-y-3 md:grid-cols-[1fr_120px_120px_120px_auto]">
+                    {/* Description + actions (mobile: same row) */}
+                    <div className="flex items-start justify-between gap-2 md:contents">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold leading-snug text-foreground sm:text-[15px]">
+                          {expense.description}
                         </p>
-                      ) : null}
+                        {expense.notes ? (
+                          <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+                            {expense.notes}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      {/* Mobile actions */}
+                      <div className="shrink-0 md:hidden">
+                        <RowActionMenu
+                          actions={[
+                            { label: "Editar", onClick: () => startEditing(expense) },
+                            ...(isSuperAdmin
+                              ? [
+                                  {
+                                    label: "Remover",
+                                    onClick: () => setDeleteExpenseId(expense.id),
+                                    destructive: true,
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </div>
                     </div>
 
-                    <p className="text-sm text-muted-foreground">{expense.category}</p>
+                    {/* Mobile: compact row */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 md:hidden">
+                      <span className="text-xs text-muted-foreground">{expense.category}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatExpenseDate(expense.expense_date)}
+                      </span>
+                      <span className="text-xs font-semibold text-destructive">
+                        {formatBRL(Number(expense.amount))}
+                      </span>
+                    </div>
 
-                    <p className="text-sm text-muted-foreground">
+                    {/* Desktop columns */}
+                    <p className="hidden text-sm text-muted-foreground md:block">
+                      {expense.category}
+                    </p>
+
+                    <p className="hidden text-sm text-muted-foreground md:block">
                       {formatExpenseDate(expense.expense_date)}
                     </p>
 
-                    <p className="text-sm font-semibold text-destructive">
+                    <p className="hidden text-sm font-semibold text-destructive md:block">
                       {formatBRL(Number(expense.amount))}
                     </p>
 
-                    <RowActionMenu
-                      actions={[
-                        { label: "Editar", onClick: () => startEditing(expense) },
-                        ...(isSuperAdmin
-                          ? [
-                              {
-                                label: "Remover",
-                                onClick: () => setDeleteExpenseId(expense.id),
-                                destructive: true,
-                              },
-                            ]
-                          : []),
-                      ]}
-                    />
+                    {/* Desktop actions */}
+                    <div className="hidden md:block">
+                      <RowActionMenu
+                        actions={[
+                          { label: "Editar", onClick: () => startEditing(expense) },
+                          ...(isSuperAdmin
+                            ? [
+                                {
+                                  label: "Remover",
+                                  onClick: () => setDeleteExpenseId(expense.id),
+                                  destructive: true,
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </div>
                   </div>
                 )}
               </article>

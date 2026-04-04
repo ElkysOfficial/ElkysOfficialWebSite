@@ -121,18 +121,26 @@ function MetricTile({
 }) {
   const t = METRIC_TONE[tone];
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5">
-      <div className="flex items-start gap-4">
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-3 sm:p-5">
+      <div className="flex items-start gap-3 sm:gap-4">
         <div
-          className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", t.icon)}
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
+            t.icon
+          )}
         >
           <Icon size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
             {label}
           </p>
-          <p className={cn("mt-0.5 text-2xl font-bold tabular-nums tracking-tight", t.text)}>
+          <p
+            className={cn(
+              "mt-0.5 text-xl font-bold tabular-nums tracking-tight sm:text-2xl",
+              t.text
+            )}
+          >
             {value}
           </p>
         </div>
@@ -375,7 +383,7 @@ function FinanceRevenueTab({
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
         <MetricTile
           label="Total da competencia"
           value={formatBRL(filteredTotal)}
@@ -470,7 +478,7 @@ function FinanceRevenueTab({
             return (
               <article
                 key={charge.id}
-                className="rounded-xl border border-border/50 bg-background/60 px-5 py-4 transition-all hover:border-primary/25 hover:bg-card"
+                className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4"
               >
                 {isEditing ? (
                   <div className="space-y-4">
@@ -558,17 +566,58 @@ function FinanceRevenueTab({
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_160px_150px_150px_120px_auto] xl:items-center">
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-foreground">
-                        {charge.description}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {client ? getClientDisplayName(client) : "Cliente nao encontrado"}
-                      </p>
+                  <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.6fr)_160px_150px_150px_120px_auto] lg:items-center">
+                    {/* Description + actions (mobile: same row) */}
+                    <div className="flex items-start justify-between gap-2 lg:contents">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground sm:text-base">
+                          {charge.description}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+                          {client ? getClientDisplayName(client) : "Cliente nao encontrado"}
+                        </p>
+                      </div>
+
+                      {/* Mobile actions */}
+                      <div className="shrink-0 lg:hidden">
+                        <RowActionMenu
+                          actions={[
+                            { label: "Editar", onClick: () => startEditing(charge) },
+                            ...(isSuperAdmin
+                              ? [
+                                  {
+                                    label: "Remover",
+                                    onClick: () => setDeleteChargeId(charge.id),
+                                    destructive: true,
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </div>
                     </div>
 
-                    <div>
+                    {/* Mobile: compact secondary info */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 lg:hidden">
+                      <div>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Venc.{" "}
+                        </span>
+                        <span className="text-xs font-medium text-foreground">
+                          {formatPortalDate(charge.due_date)}
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-success">
+                        {formatBRL(Number(charge.amount))}
+                      </span>
+                      <StatusBadge label={meta.label} tone={meta.tone} />
+                      <span className="text-xs text-muted-foreground">
+                        {charge.is_historical ? "Historico" : "Operacional"}
+                      </span>
+                    </div>
+
+                    {/* Desktop columns */}
+                    <div className="hidden lg:block">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Vencimento
                       </p>
@@ -577,7 +626,7 @@ function FinanceRevenueTab({
                       </p>
                     </div>
 
-                    <div>
+                    <div className="hidden lg:block">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Valor
                       </p>
@@ -586,7 +635,7 @@ function FinanceRevenueTab({
                       </p>
                     </div>
 
-                    <div>
+                    <div className="hidden lg:block">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Status
                       </p>
@@ -595,7 +644,7 @@ function FinanceRevenueTab({
                       </div>
                     </div>
 
-                    <div>
+                    <div className="hidden lg:block">
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Tipo
                       </p>
@@ -604,20 +653,23 @@ function FinanceRevenueTab({
                       </p>
                     </div>
 
-                    <RowActionMenu
-                      actions={[
-                        { label: "Editar", onClick: () => startEditing(charge) },
-                        ...(isSuperAdmin
-                          ? [
-                              {
-                                label: "Remover",
-                                onClick: () => setDeleteChargeId(charge.id),
-                                destructive: true,
-                              },
-                            ]
-                          : []),
-                      ]}
-                    />
+                    {/* Desktop actions */}
+                    <div className="hidden lg:block">
+                      <RowActionMenu
+                        actions={[
+                          { label: "Editar", onClick: () => startEditing(charge) },
+                          ...(isSuperAdmin
+                            ? [
+                                {
+                                  label: "Remover",
+                                  onClick: () => setDeleteChargeId(charge.id),
+                                  destructive: true,
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </div>
                   </div>
                 )}
               </article>
@@ -915,13 +967,13 @@ function RevenueBreakdownChart({ data }: { data: MonthlyPoint[] }) {
   if (!hasValue) return null;
 
   return (
-    <div className="h-[220px]">
+    <div className="h-[180px] sm:h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
-          barGap={4}
-          barSize={22}
+          margin={{ top: 12, right: 4, left: -8, bottom: 0 }}
+          barGap={2}
+          barSize={16}
         >
           <defs>
             <linearGradient id="rev-recurring" x1="0" y1="0" x2="0" y2="1">
@@ -936,14 +988,14 @@ function RevenueBreakdownChart({ data }: { data: MonthlyPoint[] }) {
           <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeOpacity={0.15} />
           <XAxis
             dataKey="label"
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            width={60}
+            width={48}
             tickFormatter={(v) => formatCompactCurrency(Number(v))}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
@@ -996,9 +1048,9 @@ function ClientDistributionChart({
   if (total === 0) return null;
 
   return (
-    <div className="h-[180px]">
+    <div className="h-[160px] sm:h-[180px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+        <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="fcd-success" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART_COLORS.success} stopOpacity={1} />
@@ -1022,10 +1074,10 @@ function ClientDistributionChart({
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
-            width={28}
+            width={24}
           />
           <Tooltip content={<AnaliseTooltip formatter={(v) => `${v} cliente(s)`} />} />
           <Bar dataKey="value" name="Clientes" radius={[12, 12, 0, 0]}>
@@ -1066,9 +1118,9 @@ function ProjectStatusChart({ counts }: { counts: Record<ProjectBucket, number> 
   ];
 
   return (
-    <div className="h-[180px]">
+    <div className="h-[160px] sm:h-[180px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }} barSize={44}>
+        <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="fps-accent" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART_COLORS.accent} stopOpacity={1} />
@@ -1096,10 +1148,10 @@ function ProjectStatusChart({ counts }: { counts: Record<ProjectBucket, number> 
           />
           <YAxis
             allowDecimals={false}
-            tick={{ fill: CHART_COLORS.muted, fontSize: 11 }}
+            tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
             axisLine={false}
-            width={28}
+            width={24}
           />
           <Tooltip content={<AnaliseTooltip formatter={(v) => `${v} projeto(s)`} />} />
           <Bar dataKey="value" name="Projetos" radius={[12, 12, 0, 0]}>
@@ -1600,7 +1652,7 @@ function FinanceAnaliseTab() {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Composicao da receita
         </h3>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           <SurfaceStat label="MRR" value={formatBRL(state.currentMrr)} tone="success" />
           <SurfaceStat
             label="Receita de projetos"
@@ -1637,7 +1689,7 @@ function FinanceAnaliseTab() {
           />
         </div>
         <Card className="mt-4 rounded-2xl border-border/80 bg-card/95">
-          <CardContent className="space-y-4 p-5">
+          <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               Receita recorrente vs projetos por mes
             </p>
@@ -1651,7 +1703,7 @@ function FinanceAnaliseTab() {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Recebiveis e cobranca
         </h3>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           <SurfaceStat
             label="A receber"
             value={formatBRL(state.pendingReceivables)}
@@ -1678,7 +1730,7 @@ function FinanceAnaliseTab() {
           />
         </div>
         <Card className="mt-4 rounded-2xl border-border/80 bg-card/95">
-          <CardContent className="space-y-3 p-5">
+          <CardContent className="space-y-3 p-3 sm:p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               Aging de recebiveis
             </p>
@@ -1716,7 +1768,7 @@ function FinanceAnaliseTab() {
         </h3>
         <div className="grid gap-4 xl:grid-cols-12">
           <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-5">
-            <CardContent className="space-y-4 p-5">
+            <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 Distribuicao
               </p>
@@ -1727,7 +1779,7 @@ function FinanceAnaliseTab() {
               />
             </CardContent>
           </Card>
-          <div className="grid grid-cols-2 gap-3 xl:col-span-7 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:col-span-7 xl:grid-cols-3">
             <SurfaceStat label="Ativos" value={`${state.activeClients}`} tone="brand" />
             <SurfaceStat
               label="Novos no mes"
@@ -1765,14 +1817,14 @@ function FinanceAnaliseTab() {
         </h3>
         <div className="grid gap-4 xl:grid-cols-12">
           <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-7">
-            <CardContent className="space-y-4 p-5">
+            <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 Projetos por status
               </p>
               <ProjectStatusChart counts={state.projectStatusCounts} />
             </CardContent>
           </Card>
-          <div className="grid grid-cols-2 gap-3 xl:col-span-5">
+          <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:col-span-5">
             <SurfaceStat label="Ativos" value={`${state.openProjects}`} tone="brand" />
             <SurfaceStat
               label="Concluidos no mes"
@@ -1798,7 +1850,7 @@ function FinanceAnaliseTab() {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Suporte
         </h3>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           <SurfaceStat
             label="Tickets abertos"
             value={`${state.openTickets}`}
@@ -1883,7 +1935,7 @@ export default function AdminFinance() {
             type="button"
             onClick={() => setActiveTab(tab.key)}
             className={cn(
-              "min-w-fit rounded-md px-3 py-2 text-sm font-medium transition-all",
+              "min-h-[40px] min-w-fit whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-all",
               activeTab === tab.key
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
