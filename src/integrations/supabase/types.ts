@@ -195,6 +195,9 @@ export type Database = {
           internal_notes: string | null;
           priority: string;
           project_id: string | null;
+          rated_at: string | null;
+          rating: number | null;
+          rating_feedback: string | null;
           status: string;
           subject: string;
           updated_at: string;
@@ -208,6 +211,9 @@ export type Database = {
           internal_notes?: string | null;
           priority?: string;
           project_id?: string | null;
+          rated_at?: string | null;
+          rating?: number | null;
+          rating_feedback?: string | null;
           status?: string;
           subject: string;
           updated_at?: string;
@@ -221,6 +227,9 @@ export type Database = {
           internal_notes?: string | null;
           priority?: string;
           project_id?: string | null;
+          rated_at?: string | null;
+          rating?: number | null;
+          rating_feedback?: string | null;
           status?: string;
           subject?: string;
           updated_at?: string;

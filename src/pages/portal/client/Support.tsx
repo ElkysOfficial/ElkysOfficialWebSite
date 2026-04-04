@@ -22,6 +22,8 @@ interface Ticket {
   status: TicketStatus;
   created_at: string;
   project_name?: string;
+  rating: number | null;
+  rating_feedback: string | null;
 }
 
 interface TicketMessage {
@@ -223,7 +225,53 @@ export default function ClientSupport() {
   const [sendingReply, setSendingReply] = useState<string | null>(null);
   const replyRef = useRef<HTMLTextAreaElement>(null);
 
-  /* ── Load client context ────────────────────────────────────────── */
+  // Rating state
+  const [ratingDrafts, setRatingDrafts] = useState<Record<string, number>>({});
+  const [ratingFeedbacks, setRatingFeedbacks] = useState<Record<string, string>>({});
+  const [submittingRating, setSubmittingRating] = useState<string | null>(null);
+
+  const handleSubmitRating = async (ticket: Ticket) => {
+    const rating = ratingDrafts[ticket.id];
+    if (!rating || rating < 1 || rating > 5) return;
+
+    setSubmittingRating(ticket.id);
+    const { error } = await supabase
+      .from("support_tickets")
+      .update({
+        rating,
+        rating_feedback: (ratingFeedbacks[ticket.id] ?? "").trim() || null,
+        rated_at: new Date().toISOString(),
+      })
+      .eq("id", ticket.id);
+
+    setSubmittingRating(null);
+
+    if (error) {
+      toast.error("Erro ao enviar avaliacao.", { description: error.message });
+      return;
+    }
+
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === ticket.id
+          ? { ...t, rating, rating_feedback: (ratingFeedbacks[ticket.id] ?? "").trim() || null }
+          : t
+      )
+    );
+    setRatingDrafts((prev) => {
+      const next = { ...prev };
+      delete next[ticket.id];
+      return next;
+    });
+    setRatingFeedbacks((prev) => {
+      const next = { ...prev };
+      delete next[ticket.id];
+      return next;
+    });
+    toast.success("Obrigado pela sua avaliacao!");
+  };
+
+  /* ── Load client context ────���────────────��──────────────────────── */
 
   const loadTickets = useCallback(async (cid: string) => {
     const { data, error } = await supabase
@@ -246,6 +294,8 @@ export default function ClientSupport() {
         status: t["status"] as TicketStatus,
         created_at: t["created_at"] as string,
         project_name: project?.name || undefined,
+        rating: (t["rating"] as number | null) ?? null,
+        rating_feedback: (t["rating_feedback"] as string | null) ?? null,
       };
     });
 
@@ -665,6 +715,92 @@ export default function ClientSupport() {
                                 {isSending ? "Enviando..." : "Enviar mensagem"}
                               </Button>
                             </div>
+                          </div>
+                        )}
+
+                        {/* Rating widget — show when resolved and not yet rated */}
+                        {(ticket.status === "resolvido" || ticket.status === "fechado") &&
+                          !ticket.rating && (
+                            <div className="space-y-3 rounded-lg border border-primary/15 bg-primary-soft/50 p-4 dark:bg-primary/8">
+                              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                                Avalie nosso atendimento
+                              </p>
+                              <p className="text-sm text-foreground">
+                                Como foi sua experiencia com o suporte neste ticket?
+                              </p>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => {
+                                  const draft = ratingDrafts[ticket.id] ?? 0;
+                                  const filled = star <= draft;
+                                  return (
+                                    <button
+                                      key={star}
+                                      type="button"
+                                      onClick={() =>
+                                        setRatingDrafts((prev) => ({ ...prev, [ticket.id]: star }))
+                                      }
+                                      className={cn(
+                                        "flex h-10 w-10 items-center justify-center rounded-lg text-lg transition-colors",
+                                        filled
+                                          ? "bg-warning/15 text-warning"
+                                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                      )}
+                                      aria-label={`${star} estrela${star > 1 ? "s" : ""}`}
+                                    >
+                                      {filled ? "\u2605" : "\u2606"}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {(ratingDrafts[ticket.id] ?? 0) > 0 && (
+                                <>
+                                  <textarea
+                                    value={ratingFeedbacks[ticket.id] ?? ""}
+                                    onChange={(e) =>
+                                      setRatingFeedbacks((prev) => ({
+                                        ...prev,
+                                        [ticket.id]: e.target.value,
+                                      }))
+                                    }
+                                    rows={2}
+                                    placeholder="Comentario opcional..."
+                                    className="flex min-h-[60px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                  />
+                                  <div className="flex justify-end">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      disabled={submittingRating === ticket.id}
+                                      onClick={() => void handleSubmitRating(ticket)}
+                                    >
+                                      {submittingRating === ticket.id
+                                        ? "Enviando..."
+                                        : "Enviar avaliacao"}
+                                    </Button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+
+                        {/* Already rated */}
+                        {ticket.rating && (
+                          <div className="rounded-lg border border-success/15 bg-success/5 p-4">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-success">
+                              Sua avaliacao
+                            </p>
+                            <div className="mt-1 flex items-center gap-1 text-warning">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className="text-lg">
+                                  {star <= ticket.rating! ? "\u2605" : "\u2606"}
+                                </span>
+                              ))}
+                            </div>
+                            {ticket.rating_feedback && (
+                              <p className="mt-2 text-sm text-muted-foreground">
+                                {ticket.rating_feedback}
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-import { FileText, Hexagon, Shield } from "@/assets/icons";
+import { CheckCircle, FileText, Hexagon, Shield, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -54,6 +54,32 @@ interface ProfileFormState {
 }
 
 type ProfileTab = "profile" | "account";
+
+/* ── Password strength helpers ──────────────────────────────────── */
+
+type PasswordRule = { key: string; label: string; test: (pw: string) => boolean };
+
+const PASSWORD_RULES: PasswordRule[] = [
+  { key: "length", label: "Mínimo 8 caracteres", test: (pw) => pw.length >= 8 },
+  { key: "upper", label: "Letra maiúscula (A–Z)", test: (pw) => /[A-Z]/.test(pw) },
+  { key: "lower", label: "Letra minúscula (a–z)", test: (pw) => /[a-z]/.test(pw) },
+  { key: "number", label: "Número (0–9)", test: (pw) => /[0-9]/.test(pw) },
+  { key: "special", label: "Caractere especial (!@#$%&*…)", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+];
+
+function passwordStrengthScore(pw: string): number {
+  return PASSWORD_RULES.filter((r) => r.test(pw)).length;
+}
+
+const STRENGTH_LABELS = ["", "Muito fraca", "Fraca", "Média", "Forte", "Muito forte"];
+const STRENGTH_COLORS = [
+  "",
+  "bg-destructive",
+  "bg-destructive",
+  "bg-warning",
+  "bg-primary",
+  "bg-success",
+];
 
 function formatShortDate(value?: string | null) {
   if (!value) return "Sem registro";
@@ -112,8 +138,77 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
   const initials = useMemo(() => getProfileInitials(displayName, "E"), [displayName]);
   const companionPhone = portal === "admin" ? teamMember?.phone : client?.phone;
   const readOnlyEmail = profile?.email || user?.email || "";
-  const passwordHref =
-    portal === "admin" ? "/portal/admin/alterar-senha" : "/portal/cliente/alterar-senha";
+
+  /* ── Password change state ── */
+  const [pwFormOpen, setPwFormOpen] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwShowCurrent, setPwShowCurrent] = useState(false);
+  const [pwShowNew, setPwShowNew] = useState(false);
+  const [pwShowConfirm, setPwShowConfirm] = useState(false);
+  const [pwSubmitting, setPwSubmitting] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const pwNewId = useId();
+  const pwConfirmId = useId();
+  const pwScore = passwordStrengthScore(pwNew);
+  const pwAllPassed = pwScore === PASSWORD_RULES.length;
+  const pwConfirmMatch = pwConfirm.length > 0 && pwNew === pwConfirm;
+
+  const resetPwForm = () => {
+    setPwCurrent("");
+    setPwNew("");
+    setPwConfirm("");
+    setPwShowCurrent(false);
+    setPwShowNew(false);
+    setPwShowConfirm(false);
+    setPwError(null);
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+
+    if (!pwCurrent.trim()) {
+      setPwError("Informe sua senha atual.");
+      return;
+    }
+    if (!pwAllPassed) {
+      setPwError("A nova senha não atende a todos os requisitos.");
+      return;
+    }
+    if (pwNew !== pwConfirm) {
+      setPwError("As senhas não coincidem.");
+      return;
+    }
+
+    setPwSubmitting(true);
+    try {
+      // Verify current password by re-authenticating
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: readOnlyEmail,
+        password: pwCurrent,
+      });
+      if (signInError) {
+        setPwError("Senha atual incorreta.");
+        setPwSubmitting(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: pwNew });
+      if (updateError) throw updateError;
+
+      toast.success("Senha alterada com sucesso!", {
+        description: "Use sua nova senha nos próximos acessos.",
+      });
+      resetPwForm();
+      setPwFormOpen(false);
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : "Não foi possível alterar a senha.");
+    } finally {
+      setPwSubmitting(false);
+    }
+  };
   const persistedAvatarTransform = useMemo(
     () =>
       resolveProfileAvatarTransform({
@@ -626,26 +721,175 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
         <Card className="border-border/70 bg-card/92 shadow-card">
           <CardHeader className="border-b border-border/60 pb-4">
             <CardTitle className="text-lg">Segurança</CardTitle>
-            <CardDescription>Ações sensíveis da sua conta em um acesso rápido.</CardDescription>
+            <CardDescription>Altere sua senha e mantenha o acesso protegido.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4 pt-5">
-            <div className="rounded-lg border border-primary/10 bg-primary-soft/60 p-4 dark:bg-primary/10">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
-                <Shield size={14} />
-                <span>Proteção da conta</span>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-foreground">
-                Troque sua senha sempre que precisar e mantenha o acesso ao portal protegido.
-              </p>
-            </div>
+            {!pwFormOpen ? (
+              <>
+                <div className="rounded-lg border border-primary/10 bg-primary-soft/60 p-4 dark:bg-primary/10">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                    <Shield size={14} />
+                    <span>Proteção da conta</span>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-foreground">
+                    Troque sua senha sempre que precisar e mantenha o acesso ao portal protegido.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-center"
+                  onClick={() => {
+                    resetPwForm();
+                    setPwFormOpen(true);
+                  }}
+                >
+                  Alterar senha
+                </Button>
+              </>
+            ) : (
+              <form onSubmit={(e) => void handlePasswordChange(e)} className="space-y-4">
+                <Field>
+                  <Label>Senha atual</Label>
+                  <div className="relative">
+                    <Input
+                      type={pwShowCurrent ? "text" : "password"}
+                      value={pwCurrent}
+                      onChange={(e) => setPwCurrent(e.target.value)}
+                      autoComplete="current-password"
+                      placeholder="Digite sua senha atual"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                      onClick={() => setPwShowCurrent((v) => !v)}
+                      tabIndex={-1}
+                    >
+                      {pwShowCurrent ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                </Field>
 
-            <Link
-              to={passwordHref}
-              className={cn(buttonVariants({ variant: "outline" }), "w-full justify-center")}
-            >
-              Alterar senha
-            </Link>
+                <Field>
+                  <Label htmlFor={pwNewId}>Nova senha</Label>
+                  <div className="relative">
+                    <Input
+                      id={pwNewId}
+                      type={pwShowNew ? "text" : "password"}
+                      value={pwNew}
+                      onChange={(e) => setPwNew(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Crie uma senha forte"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                      onClick={() => setPwShowNew((v) => !v)}
+                      tabIndex={-1}
+                    >
+                      {pwShowNew ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+
+                  {pwNew.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      <div className="flex gap-1">
+                        {Array.from({ length: PASSWORD_RULES.length }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={cn(
+                              "h-1.5 flex-1 rounded-full transition-colors",
+                              i < pwScore ? STRENGTH_COLORS[pwScore] : "bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {STRENGTH_LABELS[pwScore]}
+                      </p>
+                      <ul className="space-y-1">
+                        {PASSWORD_RULES.map((rule) => {
+                          const passed = rule.test(pwNew);
+                          return (
+                            <li key={rule.key} className="flex items-center gap-1.5">
+                              {passed ? (
+                                <CheckCircle size={12} className="text-success" />
+                              ) : (
+                                <X size={12} className="text-muted-foreground" />
+                              )}
+                              <span
+                                className={cn(
+                                  "text-xs",
+                                  passed ? "text-success" : "text-muted-foreground"
+                                )}
+                              >
+                                {rule.label}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </Field>
+
+                <Field>
+                  <Label htmlFor={pwConfirmId}>Confirmar nova senha</Label>
+                  <div className="relative">
+                    <Input
+                      id={pwConfirmId}
+                      type={pwShowConfirm ? "text" : "password"}
+                      value={pwConfirm}
+                      onChange={(e) => setPwConfirm(e.target.value)}
+                      autoComplete="new-password"
+                      placeholder="Repita a nova senha"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                      onClick={() => setPwShowConfirm((v) => !v)}
+                      tabIndex={-1}
+                    >
+                      {pwShowConfirm ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  {pwConfirm.length > 0 && (
+                    <p
+                      className={cn(
+                        "mt-1 text-xs font-medium",
+                        pwConfirmMatch ? "text-success" : "text-destructive"
+                      )}
+                    >
+                      {pwConfirmMatch ? "Senhas coincidem" : "Senhas não coincidem"}
+                    </p>
+                  )}
+                </Field>
+
+                {pwError && (
+                  <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                    {pwError}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      resetPwForm();
+                      setPwFormOpen(false);
+                    }}
+                    disabled={pwSubmitting}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={pwSubmitting || !pwAllPassed || !pwConfirmMatch}>
+                    {pwSubmitting ? "Salvando..." : "Alterar senha"}
+                  </Button>
+                </div>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -25,6 +25,8 @@ interface Ticket {
   client_name?: string;
   client_email?: string;
   project_name?: string;
+  rating: number | null;
+  rating_feedback: string | null;
 }
 
 interface TicketMessage {
@@ -189,6 +191,8 @@ export default function AdminSupport() {
           project_id: (t["project_id"] as string | null | undefined) ?? null,
           client_name: client?.nome_fantasia || client?.full_name || "Cliente",
           client_email: client?.email || "",
+          rating: (t["rating"] as number | null) ?? null,
+          rating_feedback: (t["rating_feedback"] as string | null) ?? null,
           project_name: project?.name || "",
         };
       });
@@ -366,6 +370,11 @@ export default function AdminSupport() {
   const uniqueClientsCount = new Set(tickets.map((ticket) => ticket.client_id)).size;
   const uniqueProjectsCount = new Set(tickets.map((ticket) => ticket.project_id).filter(Boolean))
     .size;
+  const ratedTickets = tickets.filter((t) => t.rating !== null);
+  const averageRating =
+    ratedTickets.length > 0
+      ? (ratedTickets.reduce((sum, t) => sum + (t.rating ?? 0), 0) / ratedTickets.length).toFixed(1)
+      : null;
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
@@ -386,7 +395,7 @@ export default function AdminSupport() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <MetricTile
           label="Tickets abertos"
           value={openCount.toString()}
@@ -405,6 +414,20 @@ export default function AdminSupport() {
           icon={CheckCircle}
           tone="success"
         />
+        {!supportOnlyView && (
+          <MetricTile
+            label="Satisfacao media"
+            value={averageRating ? `${averageRating}/5` : "—"}
+            icon={CheckCircle}
+            tone={
+              averageRating && Number(averageRating) >= 4
+                ? "success"
+                : averageRating
+                  ? "warning"
+                  : "secondary"
+            }
+          />
+        )}
       </div>
 
       {/* Filters */}
@@ -510,6 +533,16 @@ export default function AdminSupport() {
                         >
                           {cfg.label}
                         </span>
+                        {ticket.rating && (
+                          <span
+                            className="inline-flex items-center gap-0.5 text-xs text-warning"
+                            title={`Avaliacao: ${ticket.rating}/5`}
+                          >
+                            {Array.from({ length: ticket.rating }).map((_, i) => (
+                              <span key={i}>{"\u2605"}</span>
+                            ))}
+                          </span>
+                        )}
                         <p className="truncate text-sm font-semibold text-foreground">
                           {ticket.subject}
                         </p>

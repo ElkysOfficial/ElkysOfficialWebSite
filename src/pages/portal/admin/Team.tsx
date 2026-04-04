@@ -305,6 +305,34 @@ export default function AdminTeam() {
     }
   };
 
+  const handleForcePasswordReset = async (member: TeamMember) => {
+    if (!member.email) return;
+    setActionLoadingId(member.id);
+    try {
+      const authHeaders = await getSupabaseFunctionAuthHeaders();
+      const { error } = await supabase.functions.invoke("send-password-reset", {
+        body: { email: member.email },
+        headers: authHeaders,
+      });
+      if (error) throw error;
+
+      // Mark must_change_password so they're forced to set a new one
+      await supabase
+        .from("team_members")
+        .update({ must_change_password: true })
+        .eq("id", member.id);
+
+      toast.success("Link de redefinição enviado.", {
+        description: `Um e-mail foi enviado para ${member.email}.`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Não foi possível enviar o e-mail.";
+      toast.error("Erro ao redefinir senha.", { description: message });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
   const visibleMembers = filteredMembers.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const { activeMembers, uniqueRoles } = useMemo(
@@ -490,6 +518,10 @@ export default function AdminTeam() {
                             label: member.is_active ? "Desativar" : "Reativar",
                             onClick: () => void handleToggleActive(member),
                           },
+                          {
+                            label: "Redefinir senha",
+                            onClick: () => void handleForcePasswordReset(member),
+                          },
                           ...(isSuperAdmin
                             ? [
                                 {
@@ -553,6 +585,10 @@ export default function AdminTeam() {
                         {
                           label: member.is_active ? "Desativar" : "Reativar",
                           onClick: () => void handleToggleActive(member),
+                        },
+                        {
+                          label: "Redefinir senha",
+                          onClick: () => void handleForcePasswordReset(member),
                         },
                         ...(isSuperAdmin
                           ? [

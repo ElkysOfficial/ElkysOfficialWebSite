@@ -965,6 +965,24 @@ export default function AdminProjectDetail() {
       });
 
       await insertTimelineEvents(timelineEvents);
+
+      // Notify client when project is delivered (fire-and-forget)
+      if (previousStatus !== "concluido" && nextStatus === "concluido") {
+        try {
+          const completedHeaders = await getSupabaseFunctionAuthHeaders();
+          void supabase.functions.invoke("send-project-completed", {
+            body: {
+              client_id: client.id,
+              project_name: projectForm.name.trim(),
+              delivered_at: deliveredAtIso ?? undefined,
+            },
+            headers: completedHeaders,
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
+
       toast.success("Projeto atualizado.");
       await loadProject();
       setProjectUpdateOpen(false);

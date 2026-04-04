@@ -337,6 +337,23 @@ function FinanceRevenueTab({
       return;
     }
 
+    // Notify client when charge becomes overdue (fire-and-forget)
+    const originalCharge = charges.find((c) => c.id === chargeId);
+    if (editor.status === "atrasado" && originalCharge && originalCharge.status !== "atrasado") {
+      try {
+        void supabase.functions.invoke("send-charge-overdue", {
+          body: {
+            client_id: originalCharge.client_id,
+            charge_description: editor.description.trim(),
+            charge_amount: unmaskCurrency(editor.amount),
+            due_date: parsedDate,
+          },
+        });
+      } catch {
+        // Non-blocking
+      }
+    }
+
     toast.success("Cobranca atualizada.");
     await onReload();
     stopEditing();

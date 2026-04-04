@@ -18,6 +18,7 @@ import {
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import {
   formatBRL,
   formatDateInput,
@@ -671,6 +672,22 @@ export default function AdminProjectCreate() {
         if (snapshotError) {
           console.warn("[project-create] snapshot update error:", snapshotError.message);
         }
+      }
+
+      // Notify client about new project (fire-and-forget)
+      try {
+        const authHeaders = await getSupabaseFunctionAuthHeaders();
+        void supabase.functions.invoke("send-project-created", {
+          body: {
+            client_id: form.client_id,
+            project_name: form.name,
+            solution_type: form.solution_type || undefined,
+            current_stage: form.current_stage || undefined,
+          },
+          headers: authHeaders,
+        });
+      } catch {
+        // Non-blocking: do not prevent navigation on email failure
       }
 
       toast.success("Projeto criado com sucesso.", {
