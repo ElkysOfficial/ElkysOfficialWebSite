@@ -82,6 +82,9 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
+              {/* Catch-all /portal → redirect to login (handles OAuth callback) */}
+              <Route path="/portal" element={<Navigate to="/login" replace />} />
+
               {/* First-access password change (client only, before portal) */}
               <Route
                 path="/portal/cliente/alterar-senha"

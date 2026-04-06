@@ -126,7 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (roles.length === 0) {
           await supabase.auth.signOut();
 
-          if (syncId === authSyncId.current) updateState(null, null, []);
+          if (syncId === authSyncId.current) {
+            updateState(null, null, []);
+            window.dispatchEvent(
+              new CustomEvent("auth-no-access", {
+                detail:
+                  "Sua conta não possui acesso ao portal. Entre em contato com a Elkys para solicitar o cadastro.",
+              })
+            );
+          }
           return;
         }
 
@@ -220,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/portal" },
+      options: { redirectTo: window.location.origin + "/login" },
     });
     if (error) return { error: error.message };
     return { error: null };

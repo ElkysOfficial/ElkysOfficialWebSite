@@ -33,6 +33,16 @@ export default function Login() {
 
   useEffect(() => setMounted(true), []);
 
+  // Listen for auth-no-access event (user authenticated but not registered in portal)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      setAuthError(detail);
+    };
+    window.addEventListener("auth-no-access", handler);
+    return () => window.removeEventListener("auth-no-access", handler);
+  }, []);
+
   // Redirect if already logged in
   useEffect(() => {
     if (!isLoading && user) {
