@@ -10,6 +10,7 @@ import { createIcon } from "./create-icon";
 import ArrowLeftSvg from "./svg/arrow-left.svg?react";
 import ArrowRightSvg from "./svg/arrow-right.svg?react";
 import ArrowUpSvg from "./svg/arrow-up.svg?react";
+import BellSvg from "./svg/bell.svg?react";
 import Building2Svg from "./svg/building-2.svg?react";
 import CheckCircleSvg from "./svg/check-circle.svg?react";
 import ChevronRightSvg from "./svg/chevron-right.svg?react";
@@ -64,6 +65,7 @@ import AgileFillSvg from "./svg/agile-fill.svg?react";
 import SuporteFillSvg from "./svg/suporte-fill.svg?react";
 
 // --- Named exports (match lucide-react naming) ---
+export const Bell = createIcon(BellSvg, "Bell");
 export const Blueprint = createIcon(BlueprintSvg, "Blueprint");
 export const ArrowLeft = createIcon(ArrowLeftSvg, "ArrowLeft");
 export const ArrowRight = createIcon(ArrowRightSvg, "ArrowRight");

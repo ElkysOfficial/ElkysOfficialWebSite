@@ -19,6 +19,7 @@ import {
   ArrowRight,
   BarChart,
   Banknote,
+  Bell,
   Building2,
   CalendarX,
   Code2,
@@ -85,6 +86,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/suporte",
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
+      },
+      {
+        label: "Notificações",
+        href: "/portal/admin/notificacoes",
+        icon: Bell,
+        roles: ["admin_super", "admin"],
       },
     ],
   },
@@ -215,6 +222,11 @@ const adminPageMeta = [
     match: (pathname: string) => pathname === "/portal/admin/suporte",
     title: "Suporte",
     description: "Solicitações de ajuda abertas pelos clientes para acompanhamento e resolução.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/notificacoes",
+    title: "Notificações",
+    description: "Envio e histórico de comunicações para os clientes do portal.",
   },
   {
     match: (pathname: string) => pathname === "/portal/admin/perfil",
@@ -430,7 +442,7 @@ export default function AdminLayout() {
         <aside
           id="admin-sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-border/75 bg-card transition-all duration-300 ease-out lg:sticky lg:top-0",
+            "fixed inset-y-0 left-0 z-40 flex h-dvh flex-col border-r border-border/75 bg-card transition-all duration-300 ease-out lg:sticky lg:top-0 lg:h-screen",
             sidebarCollapsed ? "w-[6.5rem]" : "w-56",
             mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
@@ -478,20 +490,20 @@ export default function AdminLayout() {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-hidden px-2 py-2">
-            <nav className={cn("space-y-1", sidebarCollapsed ? "space-y-1" : "")}>
+          <div className="flex-1 overflow-hidden px-2 py-1.5">
+            <nav className={cn("space-y-0.5", sidebarCollapsed ? "space-y-0.5" : "")}>
               {navSections.map((section) => (
                 <div
                   key={section.label ?? "overview"}
-                  className={cn("space-y-0.5", sidebarCollapsed ? "space-y-1" : "")}
+                  className={cn("space-y-0.5", sidebarCollapsed ? "space-y-0.5" : "")}
                 >
                   {section.label ? (
                     <span
                       className={cn(
                         "block font-semibold uppercase tracking-wider text-muted-foreground/60",
                         sidebarCollapsed
-                          ? "px-1 py-0.5 text-center text-[8px] leading-[1.2]"
-                          : "px-3 py-0.5 text-[9px]"
+                          ? "px-1 py-0.5 text-center text-[7px] leading-[1.1]"
+                          : "px-3 pb-0.5 pt-1 text-[8px]"
                       )}
                     >
                       {section.label}
@@ -510,8 +522,8 @@ export default function AdminLayout() {
                         aria-label={label}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "group relative flex items-center gap-2.5 overflow-hidden rounded-lg border px-2.5 py-2 transition-all duration-300 ease-out",
-                          sidebarCollapsed ? "min-h-[44px] justify-center px-0" : "min-h-[40px]",
+                          "group relative flex items-center gap-2 overflow-hidden rounded-lg border px-2 py-1.5 transition-all duration-300 ease-out",
+                          sidebarCollapsed ? "min-h-[36px] justify-center px-0" : "min-h-[34px]",
                           active
                             ? "border-border/80 bg-background text-foreground"
                             : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/65 hover:text-foreground"
@@ -522,15 +534,15 @@ export default function AdminLayout() {
                             variant="inline"
                             className={cn(
                               active
-                                ? "-right-4 -bottom-4 h-16 w-16 opacity-[0.16] transition-all duration-300 dark:opacity-[0.22]"
-                                : "-right-4 -bottom-4 h-16 w-16 opacity-[0.05] transition-all duration-300 group-hover:opacity-[0.09] dark:opacity-[0.08] dark:group-hover:opacity-[0.12]"
+                                ? "-right-4 -bottom-4 h-14 w-14 opacity-[0.16] transition-all duration-300 dark:opacity-[0.22]"
+                                : "-right-4 -bottom-4 h-14 w-14 opacity-[0.05] transition-all duration-300 group-hover:opacity-[0.09] dark:opacity-[0.08] dark:group-hover:opacity-[0.12]"
                             )}
                           />
                         ) : (
                           <HexPattern
                             variant="inline"
                             className={cn(
-                              "left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2",
+                              "left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2",
                               active
                                 ? "opacity-[0.14] transition-all duration-300 dark:opacity-[0.2]"
                                 : "opacity-[0.04] transition-all duration-300 group-hover:opacity-[0.08] dark:opacity-[0.07] dark:group-hover:opacity-[0.1]"
@@ -539,23 +551,23 @@ export default function AdminLayout() {
                         )}
 
                         {!sidebarCollapsed && active ? (
-                          <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                          <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
                         ) : null}
 
                         <span
                           className={cn(
                             "relative z-10 flex shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-out",
-                            sidebarCollapsed ? "h-8 w-8" : "h-8 w-8",
+                            sidebarCollapsed ? "h-7 w-7" : "h-6 w-6",
                             active
                               ? "bg-primary/12 text-primary dark:bg-primary/18"
                               : "bg-transparent text-muted-foreground group-hover:text-foreground"
                           )}
                         >
-                          <Icon size={20} />
+                          <Icon size={16} />
                         </span>
 
                         {!sidebarCollapsed ? (
-                          <span className="relative z-10 min-w-0 flex-1 truncate text-[13px] font-medium">
+                          <span className="relative z-10 min-w-0 flex-1 truncate text-xs font-medium">
                             {label}
                           </span>
                         ) : null}

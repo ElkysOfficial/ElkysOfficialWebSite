@@ -111,7 +111,7 @@ serve(async (req) => {
     const projectUrl = `${PORTAL_URL}/projetos/${project_id}`;
 
     const html = buildEmail({
-      preheader: `Pagamento confirmado: ${typeLabel} de ${amount} — ${project.name}`,
+      preheader: `Pagamento confirmado: ${typeLabel} de ${amount} -${project.name}`,
       title: "Pagamento confirmado",
       greeting: `Olá, ${firstName}!`,
       body: `
@@ -140,7 +140,7 @@ serve(async (req) => {
 
     const result = await sendEmail({
       to: client.email,
-      subject: `[Elkys] Pagamento confirmado — ${project.name} · ${typeLabel} ${percentage}%`,
+      subject: `[Elkys] Pagamento confirmado -${project.name} · ${typeLabel} ${percentage}%`,
       html,
     });
 

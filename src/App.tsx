@@ -39,6 +39,7 @@ const AdminExpenseCreate = lazy(() => import("./pages/portal/admin/ExpenseCreate
 const AdminTeam = lazy(() => import("./pages/portal/admin/Team"));
 const AdminTeamCreate = lazy(() => import("./pages/portal/admin/TeamCreate"));
 const AdminTeamEdit = lazy(() => import("./pages/portal/admin/TeamEdit"));
+const AdminNotifications = lazy(() => import("./pages/portal/admin/Notifications"));
 const AdminSupport = lazy(() => import("./pages/portal/admin/Support"));
 const AdminProfile = lazy(() => import("./pages/portal/admin/Profile"));
 const ClientLayout = lazy(() => import("./components/portal/ClientLayout"));
@@ -265,6 +266,14 @@ const App = () => (
                   element={
                     <PortalRoleGuard allowedRoles={["admin_super", "admin", "support"]}>
                       <AdminSupport />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="notificacoes"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminNotifications />
                     </PortalRoleGuard>
                   }
                 />

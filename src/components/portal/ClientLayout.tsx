@@ -14,6 +14,7 @@ import {
   type PortalProfileUpdatedDetail,
 } from "@/lib/profile";
 import { ArrowLeft, ArrowRight, Banknote, CalendarX, Home, Phone, X } from "@/assets/icons";
+import NotificationBell from "@/components/portal/NotificationBell";
 
 const SIDEBAR_STORAGE_KEY = "elkys-client-sidebar-collapsed";
 
@@ -254,7 +255,7 @@ export default function ClientLayout() {
         <aside
           id="client-sidebar"
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex h-screen flex-col border-r border-border/75 bg-card transition-all duration-300 ease-out lg:sticky lg:top-0",
+            "fixed inset-y-0 left-0 z-40 flex h-dvh flex-col border-r border-border/75 bg-card transition-all duration-300 ease-out lg:sticky lg:top-0 lg:h-screen",
             sidebarCollapsed ? "w-32" : "w-56",
             mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
@@ -476,6 +477,7 @@ export default function ClientLayout() {
               </div>
 
               <div className="flex shrink-0 items-center gap-3">
+                <NotificationBell />
                 <p className="hidden text-right text-sm font-medium capitalize text-muted-foreground md:block">
                   {todayLabel}
                 </p>

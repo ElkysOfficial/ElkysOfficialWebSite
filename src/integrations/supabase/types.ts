@@ -996,6 +996,111 @@ export type Database = {
           },
         ];
       };
+      notifications: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          type: Database["public"]["Enums"]["notification_type"];
+          status: Database["public"]["Enums"]["notification_status"];
+          send_at: string | null;
+          sent_at: string | null;
+          filter_mode: string;
+          filter_tags: string[];
+          filter_contract_status: string | null;
+          filter_client_ids: string[];
+          recipient_count: number;
+          error_count: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+          status?: Database["public"]["Enums"]["notification_status"];
+          send_at?: string | null;
+          sent_at?: string | null;
+          filter_mode?: string;
+          filter_tags?: string[];
+          filter_contract_status?: string | null;
+          filter_client_ids?: string[];
+          recipient_count?: number;
+          error_count?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          body?: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+          status?: Database["public"]["Enums"]["notification_status"];
+          send_at?: string | null;
+          sent_at?: string | null;
+          filter_mode?: string;
+          filter_tags?: string[];
+          filter_contract_status?: string | null;
+          filter_client_ids?: string[];
+          recipient_count?: number;
+          error_count?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notification_recipients: {
+        Row: {
+          id: string;
+          notification_id: string;
+          client_id: string;
+          user_id: string | null;
+          email_sent: boolean;
+          email_error: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          notification_id: string;
+          client_id: string;
+          user_id?: string | null;
+          email_sent?: boolean;
+          email_error?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          notification_id?: string;
+          client_id?: string;
+          user_id?: string | null;
+          email_sent?: boolean;
+          email_error?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_recipients_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_recipients_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       team_members: {
         Row: {
           created_at: string;
@@ -1095,6 +1200,8 @@ export type Database = {
       client_origin: "lead" | "indicacao" | "inbound";
       contract_record_status: "rascunho" | "ativo" | "encerrado" | "cancelado";
       contract_status: "ativo" | "inadimplente" | "cancelado";
+      notification_type: "manutencao" | "atualizacao" | "otimizacao" | "alerta" | "personalizado";
+      notification_status: "rascunho" | "agendada" | "enviando" | "enviada" | "falha";
       contract_type: "projeto" | "recorrente" | "hibrido";
       document_visibility: "cliente" | "interno" | "ambos";
       document_type: "contrato" | "aditivo" | "nota_fiscal" | "codigo_fonte" | "outro";
