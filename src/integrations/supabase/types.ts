@@ -8,6 +8,48 @@ export type Database = {
   };
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          id: string;
+          type: string;
+          title: string;
+          body: string;
+          severity: string;
+          target_roles: string[];
+          entity_type: string | null;
+          entity_id: string | null;
+          action_url: string | null;
+          read_by: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          type: string;
+          title: string;
+          body: string;
+          severity?: string;
+          target_roles?: string[];
+          entity_type?: string | null;
+          entity_id?: string | null;
+          action_url?: string | null;
+          read_by?: string[];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          type?: string;
+          title?: string;
+          body?: string;
+          severity?: string;
+          target_roles?: string[];
+          entity_type?: string | null;
+          entity_id?: string | null;
+          action_url?: string | null;
+          read_by?: string[];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       audit_logs: {
         Row: {
           id: string;

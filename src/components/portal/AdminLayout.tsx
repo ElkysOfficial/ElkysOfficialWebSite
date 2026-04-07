@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
+import AdminNotificationBell from "@/components/portal/AdminNotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_PROFILE_AVATAR_TRANSFORM,
@@ -812,6 +813,7 @@ export default function AdminLayout() {
                 <p className="hidden text-right text-sm font-medium capitalize text-muted-foreground md:block">
                   {todayLabel}
                 </p>
+                <AdminNotificationBell />
               </div>
             </div>
           </header>

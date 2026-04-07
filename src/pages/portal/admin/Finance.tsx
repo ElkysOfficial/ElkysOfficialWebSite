@@ -1233,31 +1233,43 @@ function FinanceAnaliseTab() {
   const loadAnalise = useCallback(async () => {
     setLoading(true);
 
-    const [clientsRes, projectsRes, chargesRes, subsRes, expensesRes, contractsRes, ticketsRes] =
-      await Promise.all([
-        supabase.from("clients").select("id, is_active, client_since"),
-        supabase
-          .from("projects")
-          .select(
-            "id, client_id, status, started_at, delivered_at, expected_delivery_date, current_stage"
-          ),
-        supabase
-          .from("charges")
-          .select(
-            "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, subscription_id"
-          ),
-        supabase
-          .from("project_subscriptions")
-          .select(
-            "id, client_id, project_id, amount, status, starts_on, due_day, ends_on, is_blocking, label"
-          ),
-        supabase.from("expenses").select("id, amount, expense_date"),
-        supabase
-          .from("project_contracts")
-          .select("id, project_id, total_amount, status, ends_at")
-          .order("created_at", { ascending: false }),
-        supabase.from("support_tickets").select("id, status, created_at"),
-      ]);
+    const [
+      clientsRes,
+      projectsRes,
+      chargesRes,
+      subsRes,
+      expensesRes,
+      contractsRes,
+      ticketsRes,
+      proposalsRes,
+    ] = await Promise.all([
+      supabase.from("clients").select("id, is_active, client_since"),
+      supabase
+        .from("projects")
+        .select(
+          "id, client_id, status, started_at, delivered_at, expected_delivery_date, current_stage"
+        ),
+      supabase
+        .from("charges")
+        .select(
+          "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, subscription_id"
+        ),
+      supabase
+        .from("project_subscriptions")
+        .select(
+          "id, client_id, project_id, amount, status, starts_on, due_day, ends_on, is_blocking, label"
+        ),
+      supabase.from("expenses").select("id, amount, expense_date"),
+      supabase
+        .from("project_contracts")
+        .select("id, project_id, total_amount, status, ends_at")
+        .order("created_at", { ascending: false }),
+      supabase.from("support_tickets").select("id, status, created_at"),
+      supabase
+        .from("proposals")
+        .select("id, total_amount, status")
+        .in("status", ["enviada", "aprovada"]),
+    ]);
 
     const err =
       clientsRes.error ??
@@ -1266,7 +1278,8 @@ function FinanceAnaliseTab() {
       subsRes.error ??
       expensesRes.error ??
       contractsRes.error ??
-      ticketsRes.error;
+      ticketsRes.error ??
+      proposalsRes.error;
     if (err) {
       setLoading(false);
       return;
@@ -1584,12 +1597,17 @@ function FinanceAnaliseTab() {
         ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
         : null;
 
-    // Pipeline
+    // Pipeline: projects in negociacao (contracts) + active proposals (enviadas/aprovadas)
     const negIds = new Set(projects.filter((p) => p.status === "negociacao").map((p) => p.id));
     const pipeContracts = contracts.filter(
       (c) => negIds.has(c.project_id) && c.status !== "cancelado"
     );
-    const pipelineValue = pipeContracts.reduce((s, c) => s + Number(c.total_amount), 0);
+    const projectPipelineValue = pipeContracts.reduce((s, c) => s + Number(c.total_amount), 0);
+
+    type ProposalPipeline = { id: string; total_amount: number; status: string };
+    const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+    const proposalPipelineValue = activeProposals.reduce((s, p) => s + Number(p.total_amount), 0);
+    const pipelineValue = projectPipelineValue + proposalPipelineValue;
 
     // Burn rate — average monthly expenses over the last 6 months
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
@@ -1681,7 +1699,7 @@ function FinanceAnaliseTab() {
       avgDeliveryDays,
       projectStatusCounts,
       pipelineValue,
-      pipelineCount: negIds.size,
+      pipelineCount: negIds.size + activeProposals.length,
       openTickets,
       resolvedTicketsThisMonth,
       monthlySeries,

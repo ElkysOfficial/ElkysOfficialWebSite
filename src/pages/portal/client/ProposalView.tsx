@@ -79,37 +79,32 @@ export default function ProposalView() {
       return;
     }
 
-    // Auto-create project in "negociacao" status from approved proposal
-    const clientId = proposal.client_id;
-    if (clientId) {
-      const { data: newProject } = await supabase
-        .from("projects")
-        .insert({
-          client_id: clientId,
-          name: proposal.title,
-          description: proposal.scope_summary ?? null,
-          status: "negociacao",
-          current_stage: "Acordo Formal",
-          billing_type: "projeto",
-          proposal_id: proposal.id,
-        })
-        .select("id")
-        .single();
-
-      // Timeline: proposal approved + project created
+    // Timeline: proposal approved by client
+    if (proposal.client_id) {
       void supabase.from("timeline_events").insert({
-        client_id: clientId,
-        project_id: newProject?.id ?? null,
+        client_id: proposal.client_id,
         event_type: "proposta_aprovada",
         title: "Proposta aprovada pelo cliente",
-        summary: `Proposta "${proposal.title}" aprovada. Projeto criado automaticamente em negociacao.`,
+        summary: `Proposta "${proposal.title}" aprovada pelo cliente. Aguardando criacao do projeto pelo admin.`,
         visibility: "ambos",
         source_table: "proposals",
         source_id: proposal.id,
       });
     }
 
-    // If linked to a lead, update lead status to "negociacao"
+    // Notify admin team via admin_notifications
+    void supabase.from("admin_notifications").insert({
+      type: "proposta_aprovada",
+      title: `Proposta aprovada: ${proposal.title}`,
+      body: `O cliente aprovou a proposta "${proposal.title}" no valor de R$ ${Number(proposal.total_amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Acesse para criar o projeto.`,
+      severity: "action_required",
+      target_roles: ["admin_super", "admin"],
+      entity_type: "proposal",
+      entity_id: proposal.id,
+      action_url: `/portal/admin/propostas/${proposal.id}`,
+    });
+
+    // If linked to a lead, update lead status
     if (proposal.lead_id) {
       void supabase
         .from("leads")

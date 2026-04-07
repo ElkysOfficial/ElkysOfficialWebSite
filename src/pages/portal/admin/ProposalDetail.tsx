@@ -104,7 +104,8 @@ function ProposalReadOnly({
   const meta =
     PROPOSAL_STATUS_META[proposal.status as ProposalStatus] ?? PROPOSAL_STATUS_META.rascunho;
 
-  const canApprove = proposal.status === "enviada";
+  const canApprove =
+    proposal.status === "enviada" || (proposal.status === "aprovada" && !linkedProjectId);
 
   return (
     <div className="space-y-6">
@@ -132,10 +133,16 @@ function ProposalReadOnly({
       {canApprove && (
         <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
           <Button type="button" disabled={approving} onClick={onApprove}>
-            {approving ? "Aprovando..." : "Aprovar e criar projeto"}
+            {approving
+              ? "Criando projeto..."
+              : proposal.status === "aprovada"
+                ? "Criar projeto a partir desta proposta"
+                : "Aprovar e criar projeto"}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Ao aprovar, um projeto sera criado automaticamente vinculado a esta proposta.
+            {proposal.status === "aprovada"
+              ? "Cliente ja aprovou. Clique para criar o projeto e contrato vinculados."
+              : "Ao aprovar, um projeto sera criado automaticamente vinculado a esta proposta."}
           </span>
         </div>
       )}
@@ -571,20 +578,22 @@ export default function ProposalDetail() {
 
     setApproving(true);
 
-    // 1. Update proposal status to approved
-    const { error: approveError } = await supabase
-      .from("proposals")
-      .update({
-        status: "aprovada",
-        approved_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", proposal.id);
+    // 1. Update proposal status to approved (skip if already approved by client)
+    if (proposal.status !== "aprovada") {
+      const { error: approveError } = await supabase
+        .from("proposals")
+        .update({
+          status: "aprovada",
+          approved_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", proposal.id);
 
-    if (approveError) {
-      setApproving(false);
-      toast.error("Erro ao aprovar proposta.", { description: approveError.message });
-      return;
+      if (approveError) {
+        setApproving(false);
+        toast.error("Erro ao aprovar proposta.", { description: approveError.message });
+        return;
+      }
     }
 
     // 2. Create project linked to this proposal
@@ -604,13 +613,28 @@ export default function ProposalDetail() {
         .select("id")
         .single();
 
-      // Timeline event
+      // 3. Create draft contract pre-filled from proposal
+      if (newProject) {
+        const approvedDate = new Date().toISOString().slice(0, 10);
+        void supabase.from("project_contracts").insert({
+          project_id: newProject.id,
+          client_id: clientId,
+          total_amount: proposal.total_amount,
+          scope_summary: proposal.scope_summary ?? null,
+          starts_at: approvedDate,
+          status: "rascunho" as const,
+          payment_model: "50_50" as const,
+          created_by: user?.id ?? null,
+        });
+      }
+
+      // 4. Timeline event
       void supabase.from("timeline_events").insert({
         client_id: clientId,
         project_id: newProject?.id ?? null,
         event_type: "proposta_aprovada",
-        title: "Proposta aprovada pelo admin",
-        summary: `Proposta "${proposal.title}" aprovada. Projeto criado automaticamente.`,
+        title: "Projeto criado a partir de proposta",
+        summary: `Proposta "${proposal.title}" aprovada. Projeto e contrato rascunho criados.`,
         visibility: "ambos",
         source_table: "proposals",
         source_id: proposal.id,
@@ -618,7 +642,7 @@ export default function ProposalDetail() {
       });
     }
 
-    // 3. If linked to a lead, advance lead status
+    // 5. If linked to a lead, advance lead status
     if (proposal.lead_id) {
       void supabase
         .from("leads")
@@ -627,7 +651,7 @@ export default function ProposalDetail() {
     }
 
     setApproving(false);
-    toast.success("Proposta aprovada e projeto criado com sucesso!");
+    toast.success("Projeto e contrato criados com sucesso!");
     void loadData();
   }
 
