@@ -5,6 +5,8 @@ import type { ComponentType } from "react";
 
 import type { IconProps } from "@/assets/icons";
 import { Clock, FileText, Search, TrendingUp } from "@/assets/icons";
+import ExportMenu from "@/components/portal/ExportMenu";
+import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -302,6 +304,52 @@ export default function AdminExpenses() {
   const filteredTotal = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
   const filteredAverage = filteredExpenses.length > 0 ? filteredTotal / filteredExpenses.length : 0;
 
+  const categoryBreakdown = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const expense of filteredExpenses) {
+      map.set(expense.category, (map.get(expense.category) ?? 0) + Number(expense.amount));
+    }
+    return Array.from(map.entries())
+      .map(([category, total]) => ({
+        category,
+        total,
+        percent: filteredTotal > 0 ? (total / filteredTotal) * 100 : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [filteredExpenses, filteredTotal]);
+
+  const expExportColumns: ExportColumn[] = [
+    { key: "description", label: "Descricao" },
+    { key: "category", label: "Categoria" },
+    { key: "amount", label: "Valor", align: "right" },
+    { key: "date", label: "Data" },
+    { key: "notes", label: "Observacoes" },
+  ];
+
+  const expExportRows = filteredExpenses.map((e) => ({
+    description: e.description,
+    category: e.category,
+    amount: formatBRL(Number(e.amount)),
+    date: new Date(`${e.expense_date}T00:00:00`).toLocaleDateString("pt-BR"),
+    notes: e.notes ?? "",
+  }));
+
+  const handleExpCSV = () =>
+    exportCSV({
+      title: "Despesas",
+      filename: "despesas",
+      columns: expExportColumns,
+      rows: expExportRows,
+    });
+  const handleExpPDF = () =>
+    exportPDF({
+      title: "Relatorio de Despesas",
+      subtitle: `${filteredExpenses.length} lancamentos | Total: ${formatBRL(filteredTotal)}`,
+      filename: "despesas",
+      columns: expExportColumns,
+      rows: expExportRows,
+    });
+
   const startEditing = (expense: Expense) => {
     setEditingExpenseId(expense.id);
     setEditor(getEditorFromExpense(expense));
@@ -398,12 +446,15 @@ export default function AdminExpenses() {
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Despesas</h2>
           <p className="mt-1 text-sm text-muted-foreground">{formatMonthLabel(monthFilter)}</p>
         </div>
-        <Link
-          to="/portal/admin/financeiro/nova-despesa"
-          className={buttonVariants({ variant: "default" })}
-        >
-          Nova despesa
-        </Link>
+        <div className="flex gap-2">
+          <ExportMenu onExportCSV={handleExpCSV} onExportPDF={handleExpPDF} />
+          <Link
+            to="/portal/admin/financeiro/nova-despesa"
+            className={buttonVariants({ variant: "default" })}
+          >
+            Nova despesa
+          </Link>
+        </div>
       </div>
 
       {/* ── Metrics ── */}
@@ -427,6 +478,36 @@ export default function AdminExpenses() {
           tone="secondary"
         />
       </div>
+
+      {/* ── Category breakdown ── */}
+      {categoryBreakdown.length > 1 && (
+        <div className="rounded-xl border border-border/60 bg-card/92 p-4">
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Distribuicao por categoria
+          </p>
+          <div className="space-y-2">
+            {categoryBreakdown.map((item) => (
+              <div key={item.category} className="flex items-center gap-3">
+                <span className="w-24 truncate text-xs font-medium text-foreground sm:w-32">
+                  {item.category}
+                </span>
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted/40">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${Math.min(item.percent, 100)}%` }}
+                  />
+                </div>
+                <span className="w-20 text-right text-xs font-semibold tabular-nums text-foreground">
+                  {formatBRL(item.total)}
+                </span>
+                <span className="w-12 text-right text-[10px] tabular-nums text-muted-foreground">
+                  {item.percent.toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Filters ── */}
       <div className="flex flex-col gap-3 sm:flex-row">

@@ -69,6 +69,8 @@ type ProjectCreateForm = {
   next_step_title: string;
   next_step_description: string;
   next_step_owner: NextStepOwner;
+  tags: string[];
+  tag_input: string;
 };
 
 const STEPS = [
@@ -228,6 +230,8 @@ export default function AdminProjectCreate() {
     next_step_title: "",
     next_step_description: "",
     next_step_owner: "elkys",
+    tags: [],
+    tag_input: "",
   });
 
   useEffect(() => {
@@ -386,6 +390,7 @@ export default function AdminProjectCreate() {
           solution_type: form.solution_type.trim(),
           expected_delivery_date: expectedDeliveryIso,
           client_visible_summary: form.client_visible_summary.trim() || null,
+          tags: form.tags,
           ...(deliveredAtIso ? { delivered_at: deliveredAtIso } : {}),
         })
         .select("*")
@@ -780,12 +785,12 @@ export default function AdminProjectCreate() {
 
               <Field>
                 <Label>Status inicial</Label>
-                <div className="rounded-xl border border-border/70 bg-background/70 px-4 py-3">
+                <div className="flex min-h-[44px] items-center rounded-md border border-border/70 bg-background/70 px-3 py-2">
                   <p className="text-sm font-semibold text-foreground">{derivedStatusMeta.label}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    A etapa selecionada define automaticamente o status inicial do projeto.
-                  </p>
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A etapa selecionada define automaticamente o status inicial do projeto.
+                </p>
               </Field>
 
               <Field>
@@ -870,6 +875,51 @@ export default function AdminProjectCreate() {
                   />
                 </Field>
               ) : null}
+
+              <Field className="md:col-span-2">
+                <Label>Tags</Label>
+                <div className="space-y-2">
+                  {form.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setField(
+                                "tags",
+                                form.tags.filter((t) => t !== tag)
+                              )
+                            }
+                            className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20"
+                          >
+                            <span className="text-[10px]">✕</span>
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <Input
+                    value={form.tag_input}
+                    onChange={(event) => setField("tag_input", event.target.value)}
+                    onKeyDown={(event) => {
+                      if ((event.key === "Enter" || event.key === ",") && form.tag_input.trim()) {
+                        event.preventDefault();
+                        const newTag = form.tag_input.trim().replace(/,/g, "");
+                        if (newTag && !form.tags.includes(newTag)) {
+                          setField("tags", [...form.tags, newTag]);
+                        }
+                        setField("tag_input", "");
+                      }
+                    }}
+                    placeholder="Digite uma tag e pressione Enter..."
+                  />
+                </div>
+              </Field>
 
               <Field className="md:col-span-2">
                 <Label>Resumo interno do projeto</Label>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 import {
   Bar,
@@ -12,17 +13,17 @@ import {
   YAxis,
 } from "recharts";
 
-import { Shield, TrendingUp } from "@/assets/icons";
+import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL } from "@/lib/masks";
-import { isProjectOperationallyOpen } from "@/lib/portal";
+import { getClientDisplayName, isProjectOperationallyOpen } from "@/lib/portal";
 
 type DashboardClient = Pick<
   Database["public"]["Tables"]["clients"]["Row"],
-  "id" | "is_active" | "client_since"
+  "id" | "is_active" | "client_since" | "full_name" | "client_type" | "nome_fantasia"
 >;
 type DashboardProject = Pick<
   Database["public"]["Tables"]["projects"]["Row"],
@@ -48,6 +49,7 @@ type DashboardCharge = Pick<
   | "paid_at"
   | "status"
   | "is_historical"
+  | "description"
 >;
 type DashboardExpense = Pick<
   Database["public"]["Tables"]["expenses"]["Row"],
@@ -121,7 +123,30 @@ interface OverviewState {
   monthlySeries: MonthlyPoint[];
   projectStatusCounts: Record<ProjectBucket, number>;
   averageRecurringRevenuePerClient: number;
+  upcomingCharges: UpcomingCharge[];
+  upcomingDeliveries: {
+    id: string;
+    name: string;
+    clientName: string;
+    dueDate: string;
+    daysUntil: number;
+  }[];
+  forecast: {
+    months3: { recurring: number; scheduled: number; total: number };
+    months6: { recurring: number; scheduled: number; total: number };
+    months12: { recurring: number; scheduled: number; total: number };
+  };
 }
+
+type UpcomingCharge = {
+  id: string;
+  clientName: string;
+  clientId: string;
+  description: string;
+  amount: number;
+  dueDate: string;
+  daysUntilDue: number;
+};
 
 const PERIOD_OPTIONS: PeriodOption[] = [3, 6, 12];
 const CHART_COLORS = {
@@ -175,6 +200,13 @@ const initialState: OverviewState = {
     pausado: 0,
   },
   averageRecurringRevenuePerClient: 0,
+  upcomingCharges: [],
+  upcomingDeliveries: [],
+  forecast: {
+    months3: { recurring: 0, scheduled: 0, total: 0 },
+    months6: { recurring: 0, scheduled: 0, total: 0 },
+    months12: { recurring: 0, scheduled: 0, total: 0 },
+  },
 };
 
 function createMonthKey(year: number, monthIndex: number) {
@@ -737,7 +769,7 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
 
   const data = [
     {
-      name: "Em andamento",
+      name: "Em desenvolvimento",
       value: counts.em_andamento,
       color: CHART_COLORS.accent,
       gradId: "ps-accent",
@@ -823,7 +855,9 @@ export default function AdminOverview() {
         contractsRes,
         ticketsRes,
       ] = await Promise.all([
-        supabase.from("clients").select("id, is_active, client_since"),
+        supabase
+          .from("clients")
+          .select("id, is_active, client_since, full_name, client_type, nome_fantasia"),
         supabase
           .from("projects")
           .select(
@@ -831,7 +865,9 @@ export default function AdminOverview() {
           ),
         supabase
           .from("charges")
-          .select("id, client_id, amount, due_date, origin_type, paid_at, status, is_historical"),
+          .select(
+            "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, description"
+          ),
         supabase.from("project_subscriptions").select("id, client_id, amount, status"),
         supabase.from("expenses").select("id, amount, expense_date"),
         supabase
@@ -1160,6 +1196,102 @@ export default function AdminOverview() {
         return created && created >= startOfMonth;
       }).length;
 
+      // Upcoming charges (due in next 7 days)
+      const clientNameMap = new Map(clients.map((c) => [c.id, getClientDisplayName(c)]));
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+      const sevenDaysStr = sevenDaysFromNow.toISOString().slice(0, 10);
+
+      const upcomingCharges: UpcomingCharge[] = charges
+        .filter(
+          (c) =>
+            !c.is_historical &&
+            (c.status === "pendente" || c.status === "agendada") &&
+            c.due_date >= todayStr &&
+            c.due_date <= sevenDaysStr
+        )
+        .map((c) => {
+          const dueDate = new Date(`${c.due_date}T00:00:00`);
+          const daysUntil = Math.max(
+            0,
+            Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          );
+          return {
+            id: c.id,
+            clientName: clientNameMap.get(c.client_id) ?? "—",
+            clientId: c.client_id,
+            description: c.description,
+            amount: Number(c.amount),
+            dueDate: c.due_date,
+            daysUntilDue: daysUntil,
+          };
+        })
+        .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
+        .slice(0, 5);
+
+      // Upcoming deliveries (projects due in next 14 days)
+      const fourteenDaysFromNow = new Date();
+      fourteenDaysFromNow.setDate(fourteenDaysFromNow.getDate() + 14);
+      const fourteenDaysStr = fourteenDaysFromNow.toISOString().slice(0, 10);
+
+      const upcomingDeliveries = projects
+        .filter(
+          (p) =>
+            p.status === "em_andamento" &&
+            p.expected_delivery_date &&
+            p.expected_delivery_date >= todayStr &&
+            p.expected_delivery_date <= fourteenDaysStr &&
+            !p.delivered_at
+        )
+        .map((p) => {
+          const dueDate = new Date(`${p.expected_delivery_date}T00:00:00`);
+          return {
+            id: p.id,
+            name: p.name ?? "Projeto",
+            clientName: clientNameMap.get(p.client_id) ?? "—",
+            dueDate: p.expected_delivery_date!,
+            daysUntil: Math.max(
+              0,
+              Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            ),
+          };
+        })
+        .sort((a, b) => a.daysUntil - b.daysUntil)
+        .slice(0, 5);
+
+      // Forecast computation
+      const computeForecast = (months: number) => {
+        const horizonDate = new Date();
+        horizonDate.setMonth(horizonDate.getMonth() + months);
+        const horizonStr = horizonDate.toISOString().slice(0, 10);
+
+        // Recurring: active subscriptions projected
+        let recurring = 0;
+        for (const sub of recurringSubscriptions) {
+          if (!activeClientIds.has(sub.client_id)) continue;
+          recurring += Number(sub.amount) * months;
+        }
+
+        // Scheduled: future agendada/pendente charges within horizon
+        const scheduled = charges
+          .filter(
+            (c) =>
+              !c.is_historical &&
+              (c.status === "agendada" || c.status === "pendente") &&
+              c.due_date > todayStr &&
+              c.due_date <= horizonStr
+          )
+          .reduce((sum, c) => sum + Number(c.amount), 0);
+
+        return { recurring, scheduled, total: recurring + scheduled };
+      };
+
+      const forecast = {
+        months3: computeForecast(3),
+        months6: computeForecast(6),
+        months12: computeForecast(12),
+      };
+
       setSummary({
         hasAnyData,
         activeClients: activeClients.length,
@@ -1196,6 +1328,9 @@ export default function AdminOverview() {
         projectStatusCounts,
         averageRecurringRevenuePerClient:
           recurringClientIds.size > 0 ? recurringBase / recurringClientIds.size : 0,
+        upcomingCharges,
+        upcomingDeliveries,
+        forecast,
       });
 
       setHasLoaded(true);
@@ -1222,6 +1357,14 @@ export default function AdminOverview() {
       document.removeEventListener("visibilitychange", refreshDashboard);
     };
   }, [loadDashboard]);
+
+  const [forecastPeriod, setForecastPeriod] = useState<3 | 6 | 12>(6);
+
+  const currentForecast = useMemo(() => {
+    if (forecastPeriod === 3) return summary.forecast.months3;
+    if (forecastPeriod === 6) return summary.forecast.months6;
+    return summary.forecast.months12;
+  }, [forecastPeriod, summary.forecast]);
 
   const periodSeries = useMemo(
     () => summary.monthlySeries.slice(-selectedPeriod),
@@ -1441,6 +1584,219 @@ export default function AdminOverview() {
               change={null}
             />
           </section>
+
+          {/* Quick alerts */}
+          {(summary.upcomingCharges.length > 0 || summary.overdueReceivables > 0) && (
+            <section className="grid gap-4 xl:grid-cols-2">
+              {/* Upcoming charges */}
+              {summary.upcomingCharges.length > 0 && (
+                <Card className="rounded-2xl border-border/80 bg-card/95">
+                  <CardContent className="space-y-3 p-3 sm:p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-warning/15 text-warning">
+                          <Clock size={14} />
+                        </div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
+                          Vencem em ate 7 dias
+                        </p>
+                      </div>
+                      <Link
+                        to="/portal/admin/financeiro"
+                        className="text-[11px] font-semibold text-primary hover:underline"
+                      >
+                        Ver todas
+                      </Link>
+                    </div>
+                    <div className="space-y-1.5">
+                      {summary.upcomingCharges.map((charge) => (
+                        <div
+                          key={charge.id}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium text-foreground">
+                              {charge.clientName}
+                            </p>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {charge.description}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-xs font-semibold tabular-nums text-foreground">
+                              {formatBRL(charge.amount)}
+                            </p>
+                            <p className="text-[10px] tabular-nums text-muted-foreground">
+                              {charge.daysUntilDue === 0
+                                ? "Hoje"
+                                : charge.daysUntilDue === 1
+                                  ? "Amanha"
+                                  : `em ${charge.daysUntilDue}d`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Overdue summary */}
+              {summary.overdueReceivables > 0 && (
+                <Card className="rounded-2xl border-border/80 bg-card/95">
+                  <CardContent className="space-y-3 p-3 sm:p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-destructive/15 text-destructive">
+                          <Receipt size={14} />
+                        </div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
+                          Inadimplencia
+                        </p>
+                      </div>
+                      <Link
+                        to="/portal/admin/inadimplencia"
+                        className="text-[11px] font-semibold text-primary hover:underline"
+                      >
+                        Ver relatorio
+                      </Link>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3">
+                        <p className="text-xl font-bold tabular-nums text-destructive sm:text-2xl">
+                          {formatBRL(summary.overdueReceivables)}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {summary.overdueClients} cliente(s) com cobranca(s) em atraso
+                        </p>
+                      </div>
+                      {summary.agingBuckets.some((b) => b.count > 0) && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {summary.agingBuckets.map((bucket) => (
+                            <div
+                              key={bucket.range}
+                              className="rounded-lg border border-border/50 bg-background/60 p-2 text-center"
+                            >
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                {bucket.range}
+                              </p>
+                              <p className="mt-0.5 text-xs font-bold tabular-nums text-foreground">
+                                {formatBRL(bucket.amount)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {bucket.count} cobr.
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+          )}
+
+          {/* Upcoming deliveries */}
+          {summary.upcomingDeliveries.length > 0 && (
+            <section className="grid gap-4 xl:grid-cols-2">
+              <Card className="rounded-2xl border-border/80 bg-card/95">
+                <CardContent className="space-y-3 p-3 sm:p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent/15 text-accent">
+                        <TrendingUp size={14} />
+                      </div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
+                        Entregas proximas (14 dias)
+                      </p>
+                    </div>
+                    <Link
+                      to="/portal/admin/pipeline"
+                      className="text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      Ver pipeline
+                    </Link>
+                  </div>
+                  <div className="space-y-1.5">
+                    {summary.upcomingDeliveries.map((delivery) => (
+                      <Link
+                        key={delivery.id}
+                        to={`/portal/admin/projetos/${delivery.id}`}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2 transition-colors hover:border-primary/30"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-medium text-foreground">
+                            {delivery.name}
+                          </p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {delivery.clientName}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-semibold tabular-nums text-accent">
+                          {delivery.daysUntil === 0
+                            ? "Hoje"
+                            : delivery.daysUntil === 1
+                              ? "Amanha"
+                              : `em ${delivery.daysUntil}d`}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          )}
+
+          {/* Forecast */}
+          {currentForecast.total > 0 && (
+            <section>
+              <Card className="rounded-2xl border-border/80 bg-card/95">
+                <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[11px]">
+                      Previsao de receita
+                    </p>
+                    <div className="inline-flex shrink-0 self-start rounded-full border border-border/80 bg-background/80 p-1">
+                      {([3, 6, 12] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => setForecastPeriod(m)}
+                          className={cn(
+                            "min-h-[32px] rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                            forecastPeriod === m
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {m}M
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+                    <SurfaceStat
+                      label="Receita recorrente"
+                      value={formatBRL(currentForecast.recurring)}
+                      tone="success"
+                    />
+                    <SurfaceStat
+                      label="Parcelas agendadas"
+                      value={formatBRL(currentForecast.scheduled)}
+                      tone="brand"
+                    />
+                    <SurfaceStat
+                      label="Total projetado"
+                      value={formatBRL(currentForecast.total)}
+                      tone={currentForecast.total > 0 ? "success" : "neutral"}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
           {/* Cash flow + Result charts */}
           <section className="grid gap-4 xl:grid-cols-12">

@@ -18,6 +18,9 @@ import { Clock, FileText, Receipt, Search } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminExpenses from "@/pages/portal/admin/Expenses";
+import Delinquency from "@/pages/portal/admin/Delinquency";
+import RevenueByClient from "@/pages/portal/admin/RevenueByClient";
+import FinanceGoals from "@/pages/portal/admin/FinanceGoals";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -34,6 +37,7 @@ import {
   cn,
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import {
   CHARGE_STATUS_META,
@@ -54,7 +58,13 @@ import {
 
 type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
 type PortalCharge = Database["public"]["Tables"]["charges"]["Row"];
-type FinanceTab = "receitas" | "despesas" | "analise";
+type FinanceTab =
+  | "receitas"
+  | "despesas"
+  | "analise"
+  | "inadimplencia"
+  | "receita-clientes"
+  | "metas";
 
 const REVENUE_PAGE_SIZE = 10;
 
@@ -337,8 +347,9 @@ function FinanceRevenueTab({
       return;
     }
 
-    // Notify client when charge becomes overdue (fire-and-forget)
     const originalCharge = charges.find((c) => c.id === chargeId);
+
+    // Notify client when charge becomes overdue (fire-and-forget)
     if (editor.status === "atrasado" && originalCharge && originalCharge.status !== "atrasado") {
       try {
         void supabase.functions.invoke("send-charge-overdue", {
@@ -351,6 +362,23 @@ function FinanceRevenueTab({
         });
       } catch {
         // Non-blocking
+      }
+    }
+
+    // Send payment confirmation when charge is marked as paid (fire-and-forget)
+    if (editor.status === "pago" && originalCharge && originalCharge.status !== "pago") {
+      try {
+        const headers = await getSupabaseFunctionAuthHeaders();
+        void supabase.functions.invoke("process-billing-rules", {
+          body: {
+            triggered_by: "manual",
+            single_charge_id: chargeId,
+            force_template_type: "agradecimento",
+          },
+          headers,
+        });
+      } catch {
+        // Non-blocking — payment confirmation is best-effort
       }
     }
 
@@ -1114,7 +1142,7 @@ function ProjectStatusChart({ counts }: { counts: Record<ProjectBucket, number> 
 
   const data = [
     {
-      name: "Em andamento",
+      name: "Em desenvolvimento",
       value: counts.em_andamento,
       color: CHART_COLORS.accent,
       gradId: "fps-accent",
@@ -1945,6 +1973,9 @@ export default function AdminFinance() {
         {[
           { key: "receitas" as const, label: "Receitas" },
           { key: "despesas" as const, label: "Despesas" },
+          { key: "inadimplencia" as const, label: "Inadimplencia" },
+          { key: "receita-clientes" as const, label: "Receita/Cliente" },
+          { key: "metas" as const, label: "Metas" },
           { key: "analise" as const, label: "Analise" },
         ].map((tab) => (
           <button
@@ -1973,6 +2004,12 @@ export default function AdminFinance() {
         />
       ) : activeTab === "despesas" ? (
         <AdminExpenses />
+      ) : activeTab === "inadimplencia" ? (
+        <Delinquency />
+      ) : activeTab === "receita-clientes" ? (
+        <RevenueByClient />
+      ) : activeTab === "metas" ? (
+        <FinanceGoals />
       ) : (
         <FinanceAnaliseTab />
       )}

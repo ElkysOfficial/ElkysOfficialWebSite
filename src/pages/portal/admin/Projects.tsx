@@ -214,6 +214,18 @@ function ProjectRow({
             {client ? getClientDisplayName(client) : "—"}
             {project.solution_type ? ` · ${project.solution_type}` : ""}
           </p>
+          {(project.tags ?? []).length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {project.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </Link>
 
         {/* Mobile actions */}
@@ -300,6 +312,7 @@ export default function AdminProjects() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [projectToDelete, setProjectToDelete] = useState<PortalProject | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -404,7 +417,17 @@ export default function AdminProjects() {
 
   useEffect(() => {
     setPage(0);
-  }, [deferredSearch, statusFilter]);
+  }, [deferredSearch, statusFilter, tagFilter]);
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const project of projects) {
+      for (const tag of project.tags ?? []) {
+        tagSet.add(tag);
+      }
+    }
+    return Array.from(tagSet).sort();
+  }, [projects]);
 
   const filteredProjects = useMemo(
     () =>
@@ -419,10 +442,11 @@ export default function AdminProjects() {
           clientName.toLowerCase().includes(deferredSearch);
 
         const matchesStatus = statusFilter === "all" || project.status === statusFilter;
+        const matchesTag = !tagFilter || (project.tags ?? []).includes(tagFilter);
 
-        return matchesSearch && matchesStatus;
+        return matchesSearch && matchesStatus && matchesTag;
       }),
-    [clientsMap, deferredSearch, projects, statusFilter]
+    [clientsMap, deferredSearch, projects, statusFilter, tagFilter]
   );
 
   const visibleProjects = filteredProjects.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -539,6 +563,41 @@ export default function AdminProjects() {
           ))}
         </select>
       </div>
+
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+            Tags:
+          </span>
+          <button
+            type="button"
+            onClick={() => setTagFilter(null)}
+            className={cn(
+              "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+              tagFilter === null
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Todas
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                tagFilter === tag
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary/10 text-primary hover:bg-primary/20"
+              )}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Project list ── */}
       {loading && !hasLoaded ? (

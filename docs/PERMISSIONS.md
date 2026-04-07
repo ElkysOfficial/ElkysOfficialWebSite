@@ -19,18 +19,33 @@ O sistema usa RBAC (Role-Based Access Control) com os seguintes roles definidos 
 
 ### Acesso por Tela
 
-| Tela        | Rota                                        | admin_super | admin | marketing | developer | support |
-| ----------- | ------------------------------------------- | ----------- | ----- | --------- | --------- | ------- |
-| Visão Geral | `/portal/admin`                             | ✅          | ✅    | ❌        | ❌        | ❌      |
-| Clientes    | `/portal/admin/clientes`                    | ✅          | ✅    | ❌        | ❌        | ❌      |
-| Projetos    | `/portal/admin/projetos`                    | ✅          | ✅    | ❌        | ❌        | ❌      |
-| Financeiro  | `/portal/admin/financeiro`                  | ✅          | ✅    | ❌        | ❌        | ❌      |
-| Equipe      | `/portal/admin/equipe`                      | ✅          | ✅    | ❌        | ❌        | ❌      |
-| Suporte     | `/portal/admin/suporte`                     | ✅          | ✅    | ❌        | ❌        | ✅      |
-| Calendário  | `/portal/admin/calendario`                  | ✅          | ✅    | ✅        | ❌        | ❌      |
-| Docs M&D    | `/portal/admin/documentos/marketing-design` | ✅          | ✅    | ✅        | ❌        | ❌      |
-| Docs Dev    | `/portal/admin/documentos/desenvolvedor`    | ✅          | ✅    | ❌        | ✅        | ❌      |
-| Perfil      | `/portal/admin/perfil`                      | ✅          | ✅    | ✅        | ✅        | ✅      |
+| Tela                  | Rota                                        | admin_super | admin | marketing | developer | support |
+| --------------------- | ------------------------------------------- | ----------- | ----- | --------- | --------- | ------- |
+| Visão Geral           | `/portal/admin`                             | ✅          | ✅    | ❌        | ❌        | ❌      |
+| **Clientes & Vendas** |                                             |             |       |           |           |         |
+| Clientes              | `/portal/admin/clientes`                    | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Leads (CRM)           | `/portal/admin/leads`                       | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Propostas             | `/portal/admin/propostas`                   | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Pipeline              | `/portal/admin/pipeline`                    | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Suporte               | `/portal/admin/suporte`                     | ✅          | ✅    | ❌        | ❌        | ✅      |
+| **Projetos**          |                                             |             |       |           |           |         |
+| Projetos              | `/portal/admin/projetos`                    | ✅          | ✅    | ❌        | ❌        | ❌      |
+| **Financeiro**        |                                             |             |       |           |           |         |
+| Receitas & Despesas   | `/portal/admin/financeiro`                  | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Inadimplencia         | `/portal/admin/inadimplencia`               | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Receita/Cliente       | `/portal/admin/receita-clientes`            | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Metas Financeiras     | `/portal/admin/metas`                       | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Regua de Cobranca     | `/portal/admin/cobranca-automatica`         | ✅          | ✅    | ❌        | ❌        | ❌      |
+| **Equipe**            |                                             |             |       |           |           |         |
+| Membros               | `/portal/admin/equipe`                      | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Notificacoes          | `/portal/admin/notificacoes`                | ✅          | ✅    | ❌        | ❌        | ❌      |
+| **Marketing**         |                                             |             |       |           |           |         |
+| Calendario            | `/portal/admin/calendario`                  | ✅          | ✅    | ✅        | ❌        | ❌      |
+| Docs M&D              | `/portal/admin/documentos/marketing-design` | ✅          | ✅    | ✅        | ❌        | ❌      |
+| **Sistema**           |                                             |             |       |           |           |         |
+| Auditoria             | `/portal/admin/audit-log`                   | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Docs Dev              | `/portal/admin/documentos/desenvolvedor`    | ✅          | ✅    | ❌        | ✅        | ❌      |
+| Perfil                | `/portal/admin/perfil`                      | ✅          | ✅    | ✅        | ✅        | ✅      |
 
 ### Operações por Role
 
@@ -43,11 +58,16 @@ O sistema usa RBAC (Role-Based Access Control) com os seguintes roles definidos 
 | Editar projeto               | ✅          | ✅    | ❌        | ❌        | ❌      |
 | **Excluir projeto**          | ✅          | ❌    | ❌        | ❌        | ❌      |
 | Gerenciar financeiro         | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Gerenciar leads (CRM)        | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Gerenciar propostas          | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Gerenciar regua de cobranca  | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Definir metas financeiras    | ✅          | ✅    | ❌        | ❌        | ❌      |
+| Visualizar auditoria         | ✅          | ✅    | ❌        | ❌        | ❌      |
 | Cadastrar membro da equipe   | ✅          | ✅    | ❌        | ❌        | ❌      |
 | Editar membro da equipe      | ✅          | ✅    | ❌        | ❌        | ❌      |
 | **Excluir membro da equipe** | ✅          | ❌    | ❌        | ❌        | ❌      |
 | Responder tickets            | ✅          | ✅    | ❌        | ❌        | ✅      |
-| Gerenciar calendário         | ✅          | ✅    | ✅        | ❌        | ❌      |
+| Gerenciar calendario         | ✅          | ✅    | ✅        | ❌        | ❌      |
 | Gerenciar docs internos      | ✅          | ✅    | ✅ (M&D)  | ✅ (Dev)  | ❌      |
 
 > **Regra principal:** `admin_super` e `admin` têm acesso **idêntico** a todas as telas. A única diferença é que **somente `admin_super` pode excluir** clientes, projetos e membros da equipe permanentemente.
@@ -74,14 +94,16 @@ Lógica em `src/lib/portal-access.ts` → `getDefaultAdminRoute(roles)`.
 
 O portal do cliente é completamente separado do portal admin. Usuários com role `cliente` **nunca** têm acesso ao portal admin.
 
-| Tela               | Rota                           | Acesso                             |
-| ------------------ | ------------------------------ | ---------------------------------- |
-| Visão Geral        | `/portal/cliente`              | Todos os clientes                  |
-| Projetos           | `/portal/cliente/projetos`     | Todos os clientes                  |
-| Detalhe do Projeto | `/portal/cliente/projetos/:id` | Apenas projetos do próprio cliente |
-| Financeiro         | `/portal/cliente/financeiro`   | Cobranças do próprio cliente       |
-| Suporte            | `/portal/cliente/suporte`      | Tickets do próprio cliente         |
-| Perfil             | `/portal/cliente/perfil`       | Dados do próprio cliente           |
+| Tela               | Rota                            | Acesso                                           |
+| ------------------ | ------------------------------- | ------------------------------------------------ |
+| Visão Geral        | `/portal/cliente`               | Todos os clientes                                |
+| Propostas          | `/portal/cliente/propostas`     | Propostas do proprio cliente (status ≠ rascunho) |
+| Detalhe Proposta   | `/portal/cliente/propostas/:id` | Pode aprovar/rejeitar quando status = enviada    |
+| Projetos           | `/portal/cliente/projetos`      | Todos os clientes                                |
+| Detalhe do Projeto | `/portal/cliente/projetos/:id`  | Apenas projetos do proprio cliente               |
+| Financeiro         | `/portal/cliente/financeiro`    | Cobrancas do proprio cliente                     |
+| Suporte            | `/portal/cliente/suporte`       | Tickets do proprio cliente                       |
+| Perfil             | `/portal/cliente/perfil`        | Dados do proprio cliente                         |
 
 ---
 
@@ -107,26 +129,33 @@ get_client_id_for_portal_user(user_id) → uuid
 
 ### Políticas por Tabela
 
-| Tabela                  | Admin (all) | Equipe (read)     | Cliente (read próprio)                          |
-| ----------------------- | ----------- | ----------------- | ----------------------------------------------- |
-| `clients`               | ✅          | ❌                | ✅ (`user_id`)                                  |
-| `team_members`          | ✅          | ✅                | ❌                                              |
-| `projects`              | ✅          | ✅                | ✅ (`client_id`)                                |
-| `project_contracts`     | ✅          | ✅                | ✅ (`client_id`)                                |
-| `project_installments`  | ✅          | ✅                | ✅ (`client_id`)                                |
-| `project_subscriptions` | ✅          | ✅                | ✅ (`client_id`)                                |
-| `charges`               | ✅          | ✅                | ✅ (`client_id`)                                |
-| `documents`             | ✅          | ✅                | ✅ (`client_id` + visibility ≠ `interno`)       |
-| `support_tickets`       | ✅          | ✅                | ✅ (`client_id`)                                |
-| `ticket_messages`       | ✅          | ✅                | ✅ (`ticket.client_id` + `is_internal = false`) |
-| `project_next_steps`    | ✅          | ✅                | ✅ (`client_id` + `client_visible = true`)      |
-| `timeline_events`       | ✅          | ✅                | ✅ (`client_id` + visibility ∈ `cliente,ambos`) |
-| `expenses`              | ✅          | ❌                | ❌                                              |
-| `audit_logs`            | ✅          | ✅                | ❌                                              |
-| `automation_settings`   | ✅          | ✅                | ❌                                              |
-| `internal_documents`    | ✅          | ✅ (por audience) | ❌                                              |
-| `user_roles`            | ✅          | ❌                | Lê próprias roles                               |
-| `profiles`              | ✅          | Lê próprio        | Lê próprio                                      |
+| Tabela                  | Admin (all) | Equipe (read)     | Cliente (read proprio)                                  |
+| ----------------------- | ----------- | ----------------- | ------------------------------------------------------- |
+| `clients`               | ✅          | ❌                | ✅ (`user_id`)                                          |
+| `team_members`          | ✅          | ✅                | ❌                                                      |
+| `projects`              | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `project_contracts`     | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `project_installments`  | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `project_subscriptions` | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `charges`               | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `documents`             | ✅          | ✅                | ✅ (`client_id` + visibility ≠ `interno`)               |
+| `support_tickets`       | ✅          | ✅                | ✅ (`client_id`)                                        |
+| `ticket_messages`       | ✅          | ✅                | ✅ (`ticket.client_id` + `is_internal = false`)         |
+| `project_next_steps`    | ✅          | ✅                | ✅ (`client_id` + `client_visible = true`)              |
+| `timeline_events`       | ✅          | ✅                | ✅ (`client_id` + visibility ∈ `cliente,ambos`)         |
+| `leads`                 | ✅          | ❌                | ❌                                                      |
+| `lead_interactions`     | ✅          | ❌                | ❌                                                      |
+| `proposals`             | ✅          | ❌                | ✅ (read: status ≠ rascunho + update: aprovar/rejeitar) |
+| `billing_templates`     | ✅          | ❌                | ❌                                                      |
+| `billing_rules`         | ✅          | ❌                | ❌                                                      |
+| `billing_actions_log`   | ✅          | ❌                | ❌                                                      |
+| `financial_goals`       | ✅          | ❌                | ❌                                                      |
+| `expenses`              | ✅          | ❌                | ❌                                                      |
+| `audit_logs`            | ✅          | ✅                | ❌                                                      |
+| `automation_settings`   | ✅          | ✅                | ❌                                                      |
+| `internal_documents`    | ✅          | ✅ (por audience) | ❌                                                      |
+| `user_roles`            | ✅          | ❌                | Le proprias roles                                       |
+| `profiles`              | ✅          | Le proprio        | Le proprio                                              |
 
 ---
 

@@ -792,46 +792,49 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
                     </button>
                   </div>
 
-                  {pwNew.length > 0 && (
-                    <div className="mt-2 space-y-2">
-                      <div className="flex gap-1">
-                        {Array.from({ length: PASSWORD_RULES.length }).map((_, i) => (
-                          <div
-                            key={i}
-                            className={cn(
-                              "h-1.5 flex-1 rounded-full transition-colors",
-                              i < pwScore ? STRENGTH_COLORS[pwScore] : "bg-muted"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {STRENGTH_LABELS[pwScore]}
-                      </p>
-                      <ul className="space-y-1">
-                        {PASSWORD_RULES.map((rule) => {
-                          const passed = rule.test(pwNew);
-                          return (
-                            <li key={rule.key} className="flex items-center gap-1.5">
-                              {passed ? (
-                                <CheckCircle size={12} className="text-success" />
-                              ) : (
-                                <X size={12} className="text-muted-foreground" />
-                              )}
-                              <span
-                                className={cn(
-                                  "text-xs",
-                                  passed ? "text-success" : "text-muted-foreground"
-                                )}
-                              >
-                                {rule.label}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                  <div
+                    className={cn(
+                      "mt-2 space-y-2 transition-opacity duration-200",
+                      pwNew.length > 0 ? "opacity-100" : "opacity-0"
+                    )}
+                  >
+                    <div className="flex gap-1">
+                      {Array.from({ length: PASSWORD_RULES.length }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "h-1.5 flex-1 rounded-full transition-colors",
+                            i < pwScore ? STRENGTH_COLORS[pwScore] : "bg-muted"
+                          )}
+                        />
+                      ))}
                     </div>
-                  )}
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {STRENGTH_LABELS[pwScore] || "\u00A0"}
+                    </p>
+                    <ul className="space-y-1">
+                      {PASSWORD_RULES.map((rule) => {
+                        const passed = rule.test(pwNew);
+                        return (
+                          <li key={rule.key} className="flex items-center gap-1.5">
+                            {passed ? (
+                              <CheckCircle size={12} className="text-success" />
+                            ) : (
+                              <X size={12} className="text-muted-foreground" />
+                            )}
+                            <span
+                              className={cn(
+                                "text-xs",
+                                passed ? "text-success" : "text-muted-foreground"
+                              )}
+                            >
+                              {rule.label}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </Field>
 
                 <Field>
@@ -854,16 +857,19 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
                       {pwShowConfirm ? "Ocultar" : "Mostrar"}
                     </button>
                   </div>
-                  {pwConfirm.length > 0 && (
-                    <p
-                      className={cn(
-                        "mt-1 text-xs font-medium",
-                        pwConfirmMatch ? "text-success" : "text-destructive"
-                      )}
-                    >
-                      {pwConfirmMatch ? "Senhas coincidem" : "Senhas não coincidem"}
-                    </p>
-                  )}
+                  <p
+                    className={cn(
+                      "mt-1 text-xs font-medium transition-opacity duration-200",
+                      pwConfirm.length > 0 ? "opacity-100" : "opacity-0",
+                      pwConfirmMatch ? "text-success" : "text-destructive"
+                    )}
+                  >
+                    {pwConfirm.length > 0
+                      ? pwConfirmMatch
+                        ? "Senhas coincidem"
+                        : "Senhas não coincidem"
+                      : "\u00A0"}
+                  </p>
                 </Field>
 
                 {pwError && (

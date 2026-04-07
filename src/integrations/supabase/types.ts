@@ -8,6 +8,42 @@ export type Database = {
   };
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          id: string;
+          entity_type: string;
+          entity_id: string;
+          action: string;
+          before_data: Json | null;
+          after_data: Json | null;
+          reason: string | null;
+          actor_user_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          entity_type: string;
+          entity_id: string;
+          action: string;
+          before_data?: Json | null;
+          after_data?: Json | null;
+          reason?: string | null;
+          actor_user_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          entity_type?: string;
+          entity_id?: string;
+          action?: string;
+          before_data?: Json | null;
+          after_data?: Json | null;
+          reason?: string | null;
+          actor_user_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       clients: {
         Row: {
           address: string | null;
@@ -191,6 +227,7 @@ export type Database = {
           category: string;
           client_id: string;
           created_at: string;
+          first_response_at: string | null;
           id: string;
           internal_notes: string | null;
           priority: string;
@@ -198,6 +235,7 @@ export type Database = {
           rated_at: string | null;
           rating: number | null;
           rating_feedback: string | null;
+          resolved_at: string | null;
           status: string;
           subject: string;
           updated_at: string;
@@ -207,6 +245,7 @@ export type Database = {
           category?: string;
           client_id: string;
           created_at?: string;
+          first_response_at?: string | null;
           id?: string;
           internal_notes?: string | null;
           priority?: string;
@@ -214,6 +253,7 @@ export type Database = {
           rated_at?: string | null;
           rating?: number | null;
           rating_feedback?: string | null;
+          resolved_at?: string | null;
           status?: string;
           subject: string;
           updated_at?: string;
@@ -223,6 +263,7 @@ export type Database = {
           category?: string;
           client_id?: string;
           created_at?: string;
+          first_response_at?: string | null;
           id?: string;
           internal_notes?: string | null;
           priority?: string;
@@ -230,6 +271,7 @@ export type Database = {
           rated_at?: string | null;
           rating?: number | null;
           rating_feedback?: string | null;
+          resolved_at?: string | null;
           status?: string;
           subject?: string;
           updated_at?: string;
@@ -250,6 +292,111 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      billing_actions_log: {
+        Row: {
+          id: string;
+          charge_id: string;
+          rule_id: string | null;
+          action_type: string;
+          template_id: string | null;
+          sent_at: string;
+          status: string;
+          error_message: string | null;
+          triggered_by: string;
+        };
+        Insert: {
+          id?: string;
+          charge_id: string;
+          rule_id?: string | null;
+          action_type: string;
+          template_id?: string | null;
+          sent_at?: string;
+          status?: string;
+          error_message?: string | null;
+          triggered_by?: string;
+        };
+        Update: {
+          id?: string;
+          charge_id?: string;
+          rule_id?: string | null;
+          action_type?: string;
+          template_id?: string | null;
+          sent_at?: string;
+          status?: string;
+          error_message?: string | null;
+          triggered_by?: string;
+        };
+        Relationships: [];
+      };
+      billing_rules: {
+        Row: {
+          id: string;
+          name: string;
+          trigger_days: number;
+          action_type: string;
+          template_id: string | null;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          trigger_days: number;
+          action_type: string;
+          template_id?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          trigger_days?: number;
+          action_type?: string;
+          template_id?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      billing_templates: {
+        Row: {
+          id: string;
+          name: string;
+          subject: string;
+          body: string;
+          type: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          subject: string;
+          body: string;
+          type?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          subject?: string;
+          body?: string;
+          type?: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       charges: {
         Row: {
@@ -483,6 +630,126 @@ export type Database = {
           expense_date?: string;
           id?: string;
           notes?: string | null;
+        };
+        Relationships: [];
+      };
+      financial_goals: {
+        Row: {
+          id: string;
+          period_type: string;
+          period_start: string;
+          period_end: string;
+          target_amount: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          period_type: string;
+          period_start: string;
+          period_end: string;
+          target_amount: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          period_type?: string;
+          period_start?: string;
+          period_end?: string;
+          target_amount?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      lead_interactions: {
+        Row: {
+          id: string;
+          lead_id: string;
+          type: string;
+          notes: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          type: string;
+          notes: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          type?: string;
+          notes?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      leads: {
+        Row: {
+          id: string;
+          name: string;
+          email: string | null;
+          phone: string | null;
+          company: string | null;
+          source: string;
+          status: string;
+          estimated_value: number;
+          probability: number;
+          assigned_to: string | null;
+          notes: string | null;
+          lost_reason: string | null;
+          converted_client_id: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email?: string | null;
+          phone?: string | null;
+          company?: string | null;
+          source?: string;
+          status?: string;
+          estimated_value?: number;
+          probability?: number;
+          assigned_to?: string | null;
+          notes?: string | null;
+          lost_reason?: string | null;
+          converted_client_id?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string | null;
+          phone?: string | null;
+          company?: string | null;
+          source?: string;
+          status?: string;
+          estimated_value?: number;
+          probability?: number;
+          assigned_to?: string | null;
+          notes?: string | null;
+          lost_reason?: string | null;
+          converted_client_id?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -859,6 +1126,69 @@ export type Database = {
           },
         ];
       };
+      proposals: {
+        Row: {
+          id: string;
+          client_id: string | null;
+          lead_id: string | null;
+          title: string;
+          status: string;
+          valid_until: string | null;
+          total_amount: number;
+          scope_summary: string | null;
+          payment_conditions: string | null;
+          observations: string | null;
+          document_url: string | null;
+          approved_at: string | null;
+          rejected_at: string | null;
+          rejection_reason: string | null;
+          sent_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id?: string | null;
+          lead_id?: string | null;
+          title: string;
+          status?: string;
+          valid_until?: string | null;
+          total_amount?: number;
+          scope_summary?: string | null;
+          payment_conditions?: string | null;
+          observations?: string | null;
+          document_url?: string | null;
+          approved_at?: string | null;
+          rejected_at?: string | null;
+          rejection_reason?: string | null;
+          sent_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string | null;
+          lead_id?: string | null;
+          title?: string;
+          status?: string;
+          valid_until?: string | null;
+          total_amount?: number;
+          scope_summary?: string | null;
+          payment_conditions?: string | null;
+          observations?: string | null;
+          document_url?: string | null;
+          approved_at?: string | null;
+          rejected_at?: string | null;
+          rejection_reason?: string | null;
+          sent_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       projects: {
         Row: {
           archived_at: string | null;
@@ -879,6 +1209,7 @@ export type Database = {
           solution_type: string | null;
           started_at: string;
           status: Database["public"]["Enums"]["project_status"];
+          tags: string[];
           updated_at: string;
         };
         Insert: {
@@ -900,6 +1231,7 @@ export type Database = {
           solution_type?: string | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["project_status"];
+          tags?: string[];
           updated_at?: string;
         };
         Update: {
@@ -921,6 +1253,7 @@ export type Database = {
           solution_type?: string | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["project_status"];
+          tags?: string[];
           updated_at?: string;
         };
         Relationships: [

@@ -194,7 +194,9 @@ export default function AdminTeamEdit() {
             <Field>
               <Label>Nome completo *</Label>
               <Input {...register("full_name")} placeholder="Nome do membro" />
-              {errors.full_name ? <ErrorText>{errors.full_name.message}</ErrorText> : null}
+              <ErrorText className={errors.full_name ? "" : "invisible"}>
+                {errors.full_name?.message || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -232,10 +234,12 @@ export default function AdminTeamEdit() {
                   </option>
                 ))}
               </select>
-              {roleInfo ? (
-                <p className="mt-1 text-xs text-muted-foreground">{roleInfo.description}</p>
-              ) : null}
-              {errors.system_role ? <ErrorText>{errors.system_role.message}</ErrorText> : null}
+              <p className={`mt-1 text-xs text-muted-foreground ${roleInfo ? "" : "invisible"}`}>
+                {roleInfo?.description || "\u00A0"}
+              </p>
+              <ErrorText className={errors.system_role ? "" : "invisible"}>
+                {errors.system_role?.message || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -244,7 +248,9 @@ export default function AdminTeamEdit() {
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>
               </select>
-              {errors.status ? <ErrorText>{errors.status.message}</ErrorText> : null}
+              <ErrorText className={errors.status ? "" : "invisible"}>
+                {errors.status?.message || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <div className="flex justify-end md:col-span-2">

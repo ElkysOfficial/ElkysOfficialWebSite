@@ -39,8 +39,13 @@ const AdminExpenseCreate = lazy(() => import("./pages/portal/admin/ExpenseCreate
 const AdminTeam = lazy(() => import("./pages/portal/admin/Team"));
 const AdminTeamCreate = lazy(() => import("./pages/portal/admin/TeamCreate"));
 const AdminTeamEdit = lazy(() => import("./pages/portal/admin/TeamEdit"));
-const AdminNotifications = lazy(() => import("./pages/portal/admin/Notifications"));
 const AdminSupport = lazy(() => import("./pages/portal/admin/Support"));
+const AdminAuditLog = lazy(() => import("./pages/portal/admin/AuditLog"));
+const AdminCRM = lazy(() => import("./pages/portal/admin/CRM"));
+const AdminLeadDetail = lazy(() => import("./pages/portal/admin/LeadDetail"));
+const AdminProposalDetail = lazy(() => import("./pages/portal/admin/ProposalDetail"));
+const AdminBillingAutomation = lazy(() => import("./pages/portal/admin/BillingAutomation"));
+const AdminTeamHub = lazy(() => import("./pages/portal/admin/TeamHub"));
 const AdminProfile = lazy(() => import("./pages/portal/admin/Profile"));
 const ClientLayout = lazy(() => import("./components/portal/ClientLayout"));
 const ClientOverview = lazy(() => import("./pages/portal/client/Overview"));
@@ -48,6 +53,8 @@ const ClientProjects = lazy(() => import("./pages/portal/client/Projects"));
 const ClientProjectDetail = lazy(() => import("./pages/portal/client/ProjectDetail"));
 const ClientFinance = lazy(() => import("./pages/portal/client/Finance"));
 const ClientSupport = lazy(() => import("./pages/portal/client/Support"));
+const ClientProposals = lazy(() => import("./pages/portal/client/Proposals"));
+const ClientProposalView = lazy(() => import("./pages/portal/client/ProposalView"));
 const ClientProfile = lazy(() => import("./pages/portal/client/Profile"));
 const ChangePassword = lazy(() => import("./pages/portal/client/ChangePassword"));
 const AdminChangePassword = lazy(() => import("./pages/portal/admin/ChangePassword"));
@@ -237,11 +244,12 @@ const App = () => (
                     </PortalRoleGuard>
                   }
                 />
+                {/* Equipe hub (membros + notificacoes) */}
                 <Route
                   path="equipe"
                   element={
                     <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                      <AdminTeam />
+                      <AdminTeamHub />
                     </PortalRoleGuard>
                   }
                 />
@@ -269,12 +277,111 @@ const App = () => (
                     </PortalRoleGuard>
                   }
                 />
+                {/* CRM hub (leads + propostas + pipeline) */}
+                <Route
+                  path="crm"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminCRM />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="leads/:id"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminLeadDetail />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="propostas/nova"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminProposalDetail />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="propostas/:id"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminProposalDetail />
+                    </PortalRoleGuard>
+                  }
+                />
+                {/* Financeiro standalone routes */}
+                <Route
+                  path="cobranca-automatica"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminBillingAutomation />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="audit-log"
+                  element={
+                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+                      <AdminAuditLog />
+                    </PortalRoleGuard>
+                  }
+                />
+                {/* Redirects for old standalone URLs */}
                 <Route
                   path="notificacoes"
                   element={
-                    <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                      <AdminNotifications />
-                    </PortalRoleGuard>
+                    <Navigate
+                      to="/portal/admin/equipe"
+                      replace
+                      state={{ teamTab: "notificacoes" }}
+                    />
+                  }
+                />
+                <Route
+                  path="inadimplencia"
+                  element={
+                    <Navigate
+                      to="/portal/admin/financeiro"
+                      replace
+                      state={{ financeTab: "inadimplencia" }}
+                    />
+                  }
+                />
+                <Route
+                  path="receita-clientes"
+                  element={
+                    <Navigate
+                      to="/portal/admin/financeiro"
+                      replace
+                      state={{ financeTab: "receita-clientes" }}
+                    />
+                  }
+                />
+                <Route
+                  path="metas"
+                  element={
+                    <Navigate
+                      to="/portal/admin/financeiro"
+                      replace
+                      state={{ financeTab: "metas" }}
+                    />
+                  }
+                />
+                <Route
+                  path="leads"
+                  element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "leads" }} />}
+                />
+                <Route
+                  path="propostas"
+                  element={
+                    <Navigate to="/portal/admin/crm" replace state={{ crmTab: "propostas" }} />
+                  }
+                />
+                <Route
+                  path="pipeline"
+                  element={
+                    <Navigate to="/portal/admin/crm" replace state={{ crmTab: "pipeline" }} />
                   }
                 />
                 <Route path="perfil" element={<AdminProfile />} />
@@ -292,6 +399,8 @@ const App = () => (
                 }
               >
                 <Route index element={<ClientOverview />} />
+                <Route path="propostas" element={<ClientProposals />} />
+                <Route path="propostas/:id" element={<ClientProposalView />} />
                 <Route path="projetos" element={<ClientProjects />} />
                 <Route path="projetos/:id" element={<ClientProjectDetail />} />
                 <Route path="financeiro" element={<ClientFinance />} />

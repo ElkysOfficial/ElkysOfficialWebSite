@@ -19,6 +19,7 @@ interface Ticket {
   subject: string;
   body: string;
   status: TicketStatus;
+  category: string;
   created_at: string;
   client_id: string;
   project_id?: string | null;
@@ -27,6 +28,8 @@ interface Ticket {
   project_name?: string;
   rating: number | null;
   rating_feedback: string | null;
+  first_response_at: string | null;
+  resolved_at: string | null;
 }
 
 interface TicketMessage {
@@ -194,6 +197,9 @@ export default function AdminSupport() {
           rating: (t["rating"] as number | null) ?? null,
           rating_feedback: (t["rating_feedback"] as string | null) ?? null,
           project_name: project?.name || "",
+          category: (t["category"] as string) || "outro",
+          first_response_at: (t["first_response_at"] as string | null) ?? null,
+          resolved_at: (t["resolved_at"] as string | null) ?? null,
         };
       });
 
@@ -261,9 +267,16 @@ export default function AdminSupport() {
 
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     setUpdatingId(ticketId);
+    const updatePayload: Record<string, unknown> = {
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (newStatus === "resolvido") {
+      updatePayload.resolved_at = new Date().toISOString();
+    }
     const { error } = await supabase
       .from("support_tickets")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq("id", ticketId);
     setUpdatingId(null);
 
@@ -324,6 +337,16 @@ export default function AdminSupport() {
       return;
     }
 
+    // Set first_response_at if this is the first admin reply
+    const existingMessages = messagesMap[ticket.id] ?? [];
+    const hadAdminReply = existingMessages.some((m) => m.sender_role === "admin");
+    if (!hadAdminReply && !ticket.first_response_at) {
+      void supabase
+        .from("support_tickets")
+        .update({ first_response_at: new Date().toISOString() })
+        .eq("id", ticket.id);
+    }
+
     // Add to local state
     setMessagesMap((prev) => ({
       ...prev,
@@ -375,6 +398,50 @@ export default function AdminSupport() {
     ratedTickets.length > 0
       ? (ratedTickets.reduce((sum, t) => sum + (t.rating ?? 0), 0) / ratedTickets.length).toFixed(1)
       : null;
+
+  /* ── SLA metrics ──────────────────────────────────────────────── */
+
+  const slaMetrics = (() => {
+    const withFirstResponse = tickets.filter((t) => t.first_response_at);
+    const avgFirstResponseHours =
+      withFirstResponse.length > 0
+        ? withFirstResponse.reduce((sum, t) => {
+            const diff =
+              new Date(t.first_response_at!).getTime() - new Date(t.created_at).getTime();
+            return sum + diff;
+          }, 0) /
+          withFirstResponse.length /
+          3600000
+        : null;
+
+    const withResolved = tickets.filter((t) => t.resolved_at);
+    const avgResolutionHours =
+      withResolved.length > 0
+        ? withResolved.reduce((sum, t) => {
+            const diff = new Date(t.resolved_at!).getTime() - new Date(t.created_at).getTime();
+            return sum + diff;
+          }, 0) /
+          withResolved.length /
+          3600000
+        : null;
+
+    const byCategory: Record<string, number> = {};
+    for (const t of tickets) {
+      const cat = t.category || "outro";
+      byCategory[cat] = (byCategory[cat] ?? 0) + 1;
+    }
+
+    return { avgFirstResponseHours, avgResolutionHours, byCategory };
+  })();
+
+  function formatHours(hours: number | null) {
+    if (hours === null) return "—";
+    if (hours < 1) return `${Math.round(hours * 60)}min`;
+    if (hours < 24) return `${hours.toFixed(1)}h`;
+    const days = Math.floor(hours / 24);
+    const remainHours = Math.round(hours % 24);
+    return remainHours > 0 ? `${days}d ${remainHours}h` : `${days}d`;
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
@@ -429,6 +496,68 @@ export default function AdminSupport() {
           />
         )}
       </div>
+
+      {/* SLA Dashboard */}
+      {!supportOnlyView && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4">
+            <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-accent" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Tempo medio 1a resposta
+            </p>
+            <p className="mt-1 text-base font-semibold tracking-tight text-accent">
+              {formatHours(slaMetrics.avgFirstResponseHours)}
+            </p>
+          </div>
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4">
+            <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-success" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Tempo medio resolucao
+            </p>
+            <p className="mt-1 text-base font-semibold tracking-tight text-success">
+              {formatHours(slaMetrics.avgResolutionHours)}
+            </p>
+          </div>
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4">
+            <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-primary" />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Por categoria
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {Object.entries(slaMetrics.byCategory)
+                .sort((a, b) => b[1] - a[1])
+                .map(([cat, count]) => (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                  >
+                    {cat} <span className="font-bold text-foreground">{count}</span>
+                  </span>
+                ))}
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4">
+            <span
+              className={cn(
+                "absolute inset-y-0 left-0 w-[3px] rounded-l-xl",
+                averageRating && Number(averageRating) >= 4 ? "bg-success" : "bg-warning"
+              )}
+            />
+            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Satisfacao media
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-base font-semibold tracking-tight",
+                averageRating && Number(averageRating) >= 4 ? "text-success" : "text-warning"
+              )}
+            >
+              {averageRating ? `${averageRating}/5` : "—"}
+            </p>
+            <p className="text-[10px] text-muted-foreground">{ratedTickets.length} avaliacao(es)</p>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">

@@ -35,6 +35,15 @@ import {
 } from "@/lib/masks";
 import { lookupAddressByCep } from "@/lib/cep";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
+import StatusBadge from "@/components/portal/StatusBadge";
+import {
+  CHARGE_STATUS_META,
+  PROJECT_STATUS_META,
+  TICKET_STATUS_META,
+  TICKET_PRIORITY_META,
+  formatPortalDate,
+  formatPortalDateTime,
+} from "@/lib/portal";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
@@ -43,8 +52,38 @@ type ProjectSubscription = Database["public"]["Tables"]["project_subscriptions"]
 type ContractStatus = Database["public"]["Enums"]["contract_status"];
 type ContractType = Database["public"]["Enums"]["contract_type"];
 type ClientOrigin = Database["public"]["Enums"]["client_origin"];
+type ClientProject = Pick<
+  Database["public"]["Tables"]["projects"]["Row"],
+  | "id"
+  | "name"
+  | "status"
+  | "current_stage"
+  | "started_at"
+  | "delivered_at"
+  | "expected_delivery_date"
+  | "solution_type"
+>;
+type ClientCharge = Pick<
+  Database["public"]["Tables"]["charges"]["Row"],
+  | "id"
+  | "description"
+  | "amount"
+  | "due_date"
+  | "status"
+  | "origin_type"
+  | "paid_at"
+  | "is_historical"
+>;
+type ClientTicket = Pick<
+  Database["public"]["Tables"]["support_tickets"]["Row"],
+  "id" | "subject" | "status" | "priority" | "category" | "created_at" | "updated_at"
+>;
+type ClientTimelineEvent = Pick<
+  Database["public"]["Tables"]["timeline_events"]["Row"],
+  "id" | "event_type" | "title" | "summary" | "occurred_at"
+>;
 type ClientType = "pf" | "pj";
-type TabKey = "dados" | "contrato";
+type TabKey = "dados" | "contrato" | "projetos" | "financeiro" | "suporte" | "timeline";
 type DialogAction = "toggle-active" | "delete" | null;
 type EditingSection = "dados" | "contrato" | null;
 
@@ -423,7 +462,9 @@ function GeneralClientForm({
                 value={form.full_name}
                 onChange={(event) => setField("full_name", event.target.value)}
               />
-              {errors.full_name ? <ErrorText>{errors.full_name}</ErrorText> : null}
+              <ErrorText className={errors.full_name ? "" : "invisible"}>
+                {errors.full_name || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -433,7 +474,9 @@ function GeneralClientForm({
                 value={form.email}
                 onChange={(event) => setField("email", event.target.value)}
               />
-              {errors.email ? <ErrorText>{errors.email}</ErrorText> : null}
+              <ErrorText className={errors.email ? "" : "invisible"}>
+                {errors.email || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -443,7 +486,9 @@ function GeneralClientForm({
                 onChange={(event) => setField("phone", maskPhone(event.target.value))}
                 placeholder="(31) 99999-9999"
               />
-              {errors.phone ? <ErrorText>{errors.phone}</ErrorText> : null}
+              <ErrorText className={errors.phone ? "" : "invisible"}>
+                {errors.phone || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -453,7 +498,9 @@ function GeneralClientForm({
                 onChange={(event) => setField("cpf", maskCPF(event.target.value))}
                 placeholder="000.000.000-00"
               />
-              {errors.cpf ? <ErrorText>{errors.cpf}</ErrorText> : null}
+              <ErrorText className={errors.cpf ? "" : "invisible"}>
+                {errors.cpf || "\u00A0"}
+              </ErrorText>
             </Field>
 
             {form.client_type === "pj" ? (
@@ -465,7 +512,9 @@ function GeneralClientForm({
                     onChange={(event) => setField("cnpj", maskCNPJ(event.target.value))}
                     placeholder="00.000.000/0000-00"
                   />
-                  {errors.cnpj ? <ErrorText>{errors.cnpj}</ErrorText> : null}
+                  <ErrorText className={errors.cnpj ? "" : "invisible"}>
+                    {errors.cnpj || "\u00A0"}
+                  </ErrorText>
                 </Field>
 
                 <Field>
@@ -474,7 +523,9 @@ function GeneralClientForm({
                     value={form.razao_social}
                     onChange={(event) => setField("razao_social", event.target.value)}
                   />
-                  {errors.razao_social ? <ErrorText>{errors.razao_social}</ErrorText> : null}
+                  <ErrorText className={errors.razao_social ? "" : "invisible"}>
+                    {errors.razao_social || "\u00A0"}
+                  </ErrorText>
                 </Field>
 
                 <Field>
@@ -504,7 +555,9 @@ function GeneralClientForm({
                 onChange={(event) => setField("cep", maskCEP(event.target.value))}
                 placeholder="00000-000"
               />
-              {errors.cep ? <ErrorText>{errors.cep}</ErrorText> : null}
+              <ErrorText className={errors.cep ? "" : "invisible"}>
+                {errors.cep || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -676,7 +729,9 @@ function ContractClientForm({
                 onChange={(event) => setField("monthly_value", maskCurrency(event.target.value))}
                 placeholder="R$ 0,00"
               />
-              {errors.monthly_value ? <ErrorText>{errors.monthly_value}</ErrorText> : null}
+              <ErrorText className={errors.monthly_value ? "" : "invisible"}>
+                {errors.monthly_value || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -688,9 +743,9 @@ function ContractClientForm({
                 }
                 placeholder="R$ 0,00"
               />
-              {errors.project_total_value ? (
-                <ErrorText>{errors.project_total_value}</ErrorText>
-              ) : null}
+              <ErrorText className={errors.project_total_value ? "" : "invisible"}>
+                {errors.project_total_value || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -700,7 +755,9 @@ function ContractClientForm({
                 onChange={(event) => setField("client_since", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
               />
-              {errors.client_since ? <ErrorText>{errors.client_since}</ErrorText> : null}
+              <ErrorText className={errors.client_since ? "" : "invisible"}>
+                {errors.client_since || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -713,7 +770,9 @@ function ContractClientForm({
                 onChange={(event) => setField("payment_due_day", event.target.value)}
                 placeholder="10"
               />
-              {errors.payment_due_day ? <ErrorText>{errors.payment_due_day}</ErrorText> : null}
+              <ErrorText className={errors.payment_due_day ? "" : "invisible"}>
+                {errors.payment_due_day || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -771,7 +830,9 @@ function ContractClientForm({
                 onChange={(event) => setField("contract_start", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
               />
-              {errors.contract_start ? <ErrorText>{errors.contract_start}</ErrorText> : null}
+              <ErrorText className={errors.contract_start ? "" : "invisible"}>
+                {errors.contract_start || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field>
@@ -781,7 +842,9 @@ function ContractClientForm({
                 onChange={(event) => setField("contract_end", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
               />
-              {errors.contract_end ? <ErrorText>{errors.contract_end}</ErrorText> : null}
+              <ErrorText className={errors.contract_end ? "" : "invisible"}>
+                {errors.contract_end || "\u00A0"}
+              </ErrorText>
             </Field>
 
             <Field className="md:col-span-2">
@@ -826,6 +889,10 @@ export default function AdminClientDetail() {
   const [client, setClient] = useState<Client | null>(null);
   const [contracts, setContracts] = useState<ProjectContract[]>([]);
   const [subscriptions, setSubscriptions] = useState<ProjectSubscription[]>([]);
+  const [clientProjects, setClientProjects] = useState<ClientProject[]>([]);
+  const [clientCharges, setClientCharges] = useState<ClientCharge[]>([]);
+  const [clientTickets, setClientTickets] = useState<ClientTicket[]>([]);
+  const [clientTimeline, setClientTimeline] = useState<ClientTimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const editParam = searchParams.get("edit") as EditingSection;
@@ -843,7 +910,15 @@ export default function AdminClientDetail() {
     if (!id) return;
 
     setLoading(true);
-    const [clientRes, contractsRes, subscriptionsRes] = await Promise.all([
+    const [
+      clientRes,
+      contractsRes,
+      subscriptionsRes,
+      projectsRes,
+      chargesRes,
+      ticketsRes,
+      timelineRes,
+    ] = await Promise.all([
       supabase.from("clients").select("*").eq("id", id).maybeSingle(),
       supabase
         .from("project_contracts")
@@ -855,11 +930,38 @@ export default function AdminClientDetail() {
         .select("*")
         .eq("client_id", id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("projects")
+        .select(
+          "id, name, status, current_stage, started_at, delivered_at, expected_delivery_date, solution_type"
+        )
+        .eq("client_id", id)
+        .order("started_at", { ascending: false }),
+      supabase
+        .from("charges")
+        .select("id, description, amount, due_date, status, origin_type, paid_at, is_historical")
+        .eq("client_id", id)
+        .order("due_date", { ascending: false }),
+      supabase
+        .from("support_tickets")
+        .select("id, subject, status, priority, category, created_at, updated_at")
+        .eq("client_id", id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("timeline_events")
+        .select("id, event_type, title, summary, occurred_at")
+        .eq("client_id", id)
+        .order("occurred_at", { ascending: false })
+        .limit(50),
     ]);
 
     setClient(clientRes.data ?? null);
     setContracts(contractsRes.data ?? []);
     setSubscriptions(subscriptionsRes.data ?? []);
+    setClientProjects((projectsRes.data ?? []) as ClientProject[]);
+    setClientCharges((chargesRes.data ?? []) as ClientCharge[]);
+    setClientTickets((ticketsRes.data ?? []) as ClientTicket[]);
+    setClientTimeline((timelineRes.data ?? []) as ClientTimelineEvent[]);
     setLoading(false);
   }, [id]);
 
@@ -1118,6 +1220,13 @@ export default function AdminClientDetail() {
   const tabs: { key: TabKey; label: string }[] = [
     { key: "dados", label: "Dados gerais" },
     { key: "contrato", label: "Contrato" },
+    { key: "projetos", label: `Projetos (${clientProjects.length})` },
+    {
+      key: "financeiro",
+      label: `Financeiro (${clientCharges.filter((c) => !c.is_historical).length})`,
+    },
+    { key: "suporte", label: `Suporte (${clientTickets.length})` },
+    { key: "timeline", label: "Timeline" },
   ];
 
   if (loading) {
@@ -1451,6 +1560,252 @@ export default function AdminClientDetail() {
               </div>
             </CardContent>
           </Card>
+        )
+      ) : null}
+
+      {/* Projetos tab */}
+      {tab === "projetos" ? (
+        clientProjects.length === 0 ? (
+          <Card className="border-dashed border-border/70 bg-card/80">
+            <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhum projeto vinculado a este cliente.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {clientProjects.map((project) => {
+              const statusMeta =
+                PROJECT_STATUS_META[project.status as keyof typeof PROJECT_STATUS_META];
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const isOverdue =
+                project.status === "em_andamento" &&
+                !!project.expected_delivery_date &&
+                project.expected_delivery_date < todayStr &&
+                !project.delivered_at;
+
+              return (
+                <Link
+                  key={project.id}
+                  to={`/portal/admin/projetos/${project.id}`}
+                  className="block rounded-xl border border-border/60 bg-card/92 p-4 transition-all hover:border-primary/40 hover:shadow-md"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <h4 className="text-sm font-semibold text-foreground">{project.name}</h4>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {statusMeta && (
+                          <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+                        )}
+                        {project.solution_type && (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {project.solution_type}
+                          </span>
+                        )}
+                        {isOverdue && (
+                          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-bold text-destructive">
+                            Atrasado
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right text-xs text-muted-foreground">
+                      <p>Etapa: {project.current_stage || "—"}</p>
+                      {project.expected_delivery_date && (
+                        <p>Previsao: {formatPortalDate(project.expected_delivery_date)}</p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )
+      ) : null}
+
+      {/* Financeiro tab */}
+      {tab === "financeiro"
+        ? (() => {
+            const operationalCharges = clientCharges.filter((c) => !c.is_historical);
+            const totalPaid = operationalCharges
+              .filter((c) => c.status === "pago")
+              .reduce((sum, c) => sum + Number(c.amount), 0);
+            const totalOverdue = operationalCharges
+              .filter((c) => c.status === "atrasado")
+              .reduce((sum, c) => sum + Number(c.amount), 0);
+            const totalPending = operationalCharges
+              .filter((c) => c.status === "pendente" || c.status === "agendada")
+              .reduce((sum, c) => sum + Number(c.amount), 0);
+
+            return (
+              <div className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-border/60 bg-background/70 p-3 pl-4 relative overflow-hidden">
+                    <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-success" />
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Pago
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-success">
+                      {formatBRL(totalPaid)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/70 p-3 pl-4 relative overflow-hidden">
+                    <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-destructive" />
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Em atraso
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-destructive">
+                      {formatBRL(totalOverdue)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/70 p-3 pl-4 relative overflow-hidden">
+                    <span className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl bg-warning" />
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Pendente / Futura
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-warning">
+                      {formatBRL(totalPending)}
+                    </p>
+                  </div>
+                </div>
+
+                {operationalCharges.length === 0 ? (
+                  <Card className="border-dashed border-border/70 bg-card/80">
+                    <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
+                      <p className="text-sm text-muted-foreground">Nenhuma cobranca registrada.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="overflow-hidden border-border/70 bg-card/92">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[550px] text-sm">
+                        <thead>
+                          <tr className="border-b border-border/60 bg-muted/30">
+                            <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                              Descricao
+                            </th>
+                            <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                              Valor
+                            </th>
+                            <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                              Vencimento
+                            </th>
+                            <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                              Status
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                          {operationalCharges.map((charge) => {
+                            const statusMeta =
+                              CHARGE_STATUS_META[charge.status as keyof typeof CHARGE_STATUS_META];
+                            return (
+                              <tr key={charge.id} className="transition-colors hover:bg-muted/20">
+                                <td className="max-w-[200px] truncate px-4 py-3 text-foreground">
+                                  {charge.description}
+                                </td>
+                                <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">
+                                  {formatBRL(Number(charge.amount))}
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                  {formatPortalDate(charge.due_date)}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {statusMeta && (
+                                    <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </Card>
+                )}
+              </div>
+            );
+          })()
+        : null}
+
+      {/* Suporte tab */}
+      {tab === "suporte" ? (
+        clientTickets.length === 0 ? (
+          <Card className="border-dashed border-border/70 bg-card/80">
+            <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
+              <p className="text-sm text-muted-foreground">Nenhum ticket de suporte registrado.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {clientTickets.map((ticket) => {
+              const statusMeta =
+                TICKET_STATUS_META[ticket.status as keyof typeof TICKET_STATUS_META];
+              const priorityMeta =
+                TICKET_PRIORITY_META[ticket.priority as keyof typeof TICKET_PRIORITY_META];
+
+              return (
+                <div key={ticket.id} className="rounded-xl border border-border/60 bg-card/92 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <h4 className="text-sm font-semibold text-foreground">{ticket.subject}</h4>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {statusMeta && (
+                          <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+                        )}
+                        {priorityMeta && (
+                          <StatusBadge label={priorityMeta.label} tone={priorityMeta.tone} />
+                        )}
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {ticket.category}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="shrink-0 text-xs text-muted-foreground">
+                      {formatPortalDateTime(ticket.created_at)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : null}
+
+      {/* Timeline tab */}
+      {tab === "timeline" ? (
+        clientTimeline.length === 0 ? (
+          <Card className="border-dashed border-border/70 bg-card/80">
+            <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
+              <p className="text-sm text-muted-foreground">Nenhum evento registrado na timeline.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="relative space-y-0 pl-6">
+            <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border/60" />
+            {clientTimeline.map((event) => (
+              <div key={event.id} className="relative pb-4">
+                <div className="absolute -left-6 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-border bg-card">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                </div>
+                <div className="rounded-lg border border-border/50 bg-card/92 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-semibold text-foreground">{event.title}</h4>
+                    <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                      {formatPortalDateTime(event.occurred_at)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {event.summary}
+                  </p>
+                  <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {event.event_type}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )
       ) : null}
     </div>

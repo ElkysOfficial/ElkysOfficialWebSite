@@ -47,7 +47,7 @@ export async function processNotification(
     return { ok: false, sent_count: 0, error_count: 0, error: fetchError?.message ?? "Not found" };
   }
 
-  if (!["rascunho", "agendada"].includes(notification.status)) {
+  if (!["enviando", "agendada"].includes(notification.status)) {
     return {
       ok: false,
       sent_count: 0,

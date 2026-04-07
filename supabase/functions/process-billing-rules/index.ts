@@ -1,0 +1,318 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
+import { buildEmail, sendEmail } from "../_shared/email-template.ts";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+function getEnv(name: string): string {
+  const value = Deno.env.get(name);
+  if (!value) throw new Error(`Missing env: ${name}`);
+  return value;
+}
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+}
+
+function formatBRL(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDate(date: string): string {
+  return new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function replaceVars(
+  template: string,
+  vars: { client_name: string; amount: string; due_date: string; description: string }
+): string {
+  return template
+    .replace(/\{\{client_name\}\}/g, vars.client_name)
+    .replace(/\{\{amount\}\}/g, vars.amount)
+    .replace(/\{\{due_date\}\}/g, vars.due_date)
+    .replace(/\{\{description\}\}/g, vars.description);
+}
+
+/**
+ * Determines if request is from cron (service role key) or admin (bearer token).
+ * Cron: Authorization header contains the service role key directly.
+ * Manual: Authorization header contains the admin's bearer token.
+ */
+function isServiceRoleRequest(req: Request): boolean {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader) return false;
+  const token = authHeader.replace("Bearer ", "");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  return token === serviceKey;
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS });
+  }
+
+  try {
+    // Authentication: allow cron (service role) or admin (bearer token)
+    const isCron = isServiceRoleRequest(req);
+    if (!isCron) {
+      const auth = await requireAdminAccess(req, CORS);
+      if (auth instanceof Response) return auth;
+    }
+
+    const portalUrl = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/cliente";
+    const supabase = createServiceRoleClient();
+
+    let triggeredBy = isCron ? "cron" : "manual";
+    let singleChargeId: string | null = null;
+    let forceTemplateType: string | null = null;
+
+    try {
+      const body = await req.json();
+      if (body?.triggered_by) triggeredBy = body.triggered_by;
+      if (body?.single_charge_id) singleChargeId = body.single_charge_id;
+      if (body?.force_template_type) forceTemplateType = body.force_template_type;
+    } catch {
+      // No body or invalid JSON
+    }
+
+    // Special mode: send a specific template to a specific charge (e.g., payment confirmation)
+    if (singleChargeId && forceTemplateType) {
+      const { data: tpl } = await supabase
+        .from("billing_templates")
+        .select("*")
+        .eq("type", forceTemplateType)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (!tpl) {
+        return jsonResponse(
+          { ok: false, error: `No active template of type '${forceTemplateType}'` },
+          404
+        );
+      }
+
+      const { data: charge } = await supabase
+        .from("charges")
+        .select("id, client_id, description, amount, due_date")
+        .eq("id", singleChargeId)
+        .single();
+
+      if (!charge) {
+        return jsonResponse({ ok: false, error: "Charge not found" }, 404);
+      }
+
+      const { data: client } = await supabase
+        .from("clients")
+        .select("full_name, email, nome_fantasia, client_type")
+        .eq("id", charge.client_id)
+        .single();
+
+      if (!client?.email) {
+        return jsonResponse({ ok: false, error: "Client has no email" }, 400);
+      }
+
+      const clientName =
+        client.client_type === "pj" && client.nome_fantasia
+          ? client.nome_fantasia
+          : client.full_name;
+
+      const vars = {
+        client_name: clientName,
+        amount: formatBRL(Number(charge.amount)),
+        due_date: formatDate(charge.due_date),
+        description: charge.description,
+      };
+
+      const subject = replaceVars(tpl.subject, vars);
+      const bodyText = replaceVars(tpl.body, vars);
+      const html = buildEmail({
+        preheader: subject,
+        title: "Elkys - Aviso Financeiro",
+        greeting: `Ola, ${clientName}`,
+        body: bodyText,
+        button: { label: "Acessar portal", href: `${portalUrl}/financeiro` },
+      });
+
+      const result = await sendEmail({ to: client.email, subject, html });
+
+      await supabase.from("billing_actions_log").insert({
+        charge_id: charge.id,
+        action_type: "email",
+        template_id: tpl.id,
+        status: result.ok ? "enviado" : "falha",
+        error_message: result.error ?? null,
+        triggered_by: triggeredBy,
+      });
+
+      return jsonResponse({ ok: result.ok, sent: result.ok ? 1 : 0, errors: result.ok ? 0 : 1 });
+    }
+
+    // 1. Load active rules
+    const { data: rules, error: rulesError } = await supabase
+      .from("billing_rules")
+      .select("*, billing_templates(*)")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+
+    if (rulesError) {
+      console.error("[billing] Error loading rules:", rulesError.message);
+      return jsonResponse({ ok: false, error: rulesError.message }, 500);
+    }
+
+    if (!rules || rules.length === 0) {
+      return jsonResponse({ ok: true, message: "No active rules", processed: 0 });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().slice(0, 10);
+
+    let totalSent = 0;
+    let totalErrors = 0;
+
+    for (const rule of rules) {
+      // 2. Calculate target date based on trigger_days
+      const targetDate = new Date(today);
+      targetDate.setDate(targetDate.getDate() - rule.trigger_days);
+      const targetDateStr = targetDate.toISOString().slice(0, 10);
+
+      // 3. Find matching charges
+      let statusFilter: string[];
+      if (rule.trigger_days < 0) {
+        // Before due: look for pendente or agendada
+        statusFilter = ["pendente", "agendada"];
+      } else if (rule.trigger_days === 0) {
+        // On due date: pendente
+        statusFilter = ["pendente"];
+      } else {
+        // After due: atrasado
+        statusFilter = ["atrasado"];
+      }
+
+      const { data: charges, error: chargesError } = await supabase
+        .from("charges")
+        .select("id, client_id, description, amount, due_date, status")
+        .eq("due_date", targetDateStr)
+        .in("status", statusFilter)
+        .eq("is_historical", false);
+
+      if (chargesError || !charges || charges.length === 0) continue;
+
+      // 4. Check which charges already had this rule applied today
+      const chargeIds = charges.map((c: { id: string }) => c.id);
+      const { data: existingLogs } = await supabase
+        .from("billing_actions_log")
+        .select("charge_id")
+        .eq("rule_id", rule.id)
+        .in("charge_id", chargeIds)
+        .gte("sent_at", `${todayStr}T00:00:00`);
+
+      const alreadySent = new Set(
+        (existingLogs ?? []).map((l: { charge_id: string }) => l.charge_id)
+      );
+
+      const pendingCharges = charges.filter((c: { id: string }) => !alreadySent.has(c.id));
+
+      if (pendingCharges.length === 0) continue;
+
+      // 5. Get template
+      const template = rule.billing_templates as {
+        subject: string;
+        body: string;
+      } | null;
+
+      if (!template && rule.action_type === "email") continue;
+
+      // 6. Process each charge
+      for (const charge of pendingCharges) {
+        // Get client info
+        const { data: client } = await supabase
+          .from("clients")
+          .select("full_name, email, nome_fantasia, client_type")
+          .eq("id", charge.client_id)
+          .single();
+
+        if (!client || !client.email) continue;
+
+        const clientName =
+          client.client_type === "pj" && client.nome_fantasia
+            ? client.nome_fantasia
+            : client.full_name;
+
+        const vars = {
+          client_name: clientName,
+          amount: formatBRL(Number(charge.amount)),
+          due_date: formatDate(charge.due_date),
+          description: charge.description,
+        };
+
+        let status = "enviado";
+        let errorMessage: string | null = null;
+
+        if (rule.action_type === "email" && template) {
+          const subject = replaceVars(template.subject, vars);
+          const bodyText = replaceVars(template.body, vars);
+
+          const html = buildEmail({
+            preheader: subject,
+            title: "Elkys - Aviso Financeiro",
+            greeting: `Ola, ${clientName}`,
+            body: bodyText,
+            button: {
+              label: "Acessar portal",
+              href: `${portalUrl}/financeiro`,
+            },
+          });
+
+          const result = await sendEmail({ to: client.email, subject, html });
+          if (!result.ok) {
+            status = "falha";
+            errorMessage = result.error ?? "Unknown error";
+            totalErrors++;
+          } else {
+            totalSent++;
+          }
+        } else {
+          // Notificacao type — just log for now
+          totalSent++;
+        }
+
+        // 7. Log the action
+        await supabase.from("billing_actions_log").insert({
+          charge_id: charge.id,
+          rule_id: rule.id,
+          action_type: rule.action_type,
+          template_id: rule.template_id,
+          status,
+          error_message: errorMessage,
+          triggered_by: triggeredBy,
+        });
+      }
+    }
+
+    console.log(`[billing] Processed: ${totalSent} sent, ${totalErrors} errors`);
+
+    return jsonResponse({
+      ok: true,
+      sent: totalSent,
+      errors: totalErrors,
+    });
+  } catch (err) {
+    console.error("[billing] Unexpected error:", err);
+    return jsonResponse(
+      { ok: false, error: err instanceof Error ? err.message : "Unknown error" },
+      500
+    );
+  }
+});

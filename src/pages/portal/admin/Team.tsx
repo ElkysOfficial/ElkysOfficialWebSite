@@ -18,11 +18,23 @@ import type { Database } from "@/integrations/supabase/types";
 import { maskPhone } from "@/lib/masks";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  getProfileInitials,
+  getProfileAvatarImageStyle,
+  resolveProfileAvatarTransform,
+} from "@/lib/profile";
 
 const PAGE_SIZE = 9;
 
 type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
 type StatusFilter = "all" | "active" | "inactive";
+
+interface AvatarInfo {
+  avatar_url: string | null;
+  avatar_zoom: number | null;
+  avatar_position_x: number | null;
+  avatar_position_y: number | null;
+}
 
 /* ── MetricTile ─────────────────────────────────────────────────── */
 
@@ -148,6 +160,7 @@ export default function AdminTeam() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const hasLoadedRef = useRef(false);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
+  const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
   const loadMembers = useCallback(async (background = false) => {
     if (!background || !hasLoadedRef.current) {
@@ -175,6 +188,27 @@ export default function AdminTeam() {
     hasLoadedRef.current = true;
     setHasLoaded(true);
     setLoading(false);
+
+    // Fetch avatar data from profiles
+    const userIds = (data ?? []).map((m) => m.user_id).filter(Boolean) as string[];
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, avatar_url, avatar_zoom, avatar_position_x, avatar_position_y")
+        .in("id", userIds);
+      if (profiles) {
+        const map: Record<string, AvatarInfo> = {};
+        for (const p of profiles) {
+          map[p.id] = {
+            avatar_url: p.avatar_url,
+            avatar_zoom: p.avatar_zoom,
+            avatar_position_x: p.avatar_position_x,
+            avatar_position_y: p.avatar_position_y,
+          };
+        }
+        setAvatarMap(map);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -495,9 +529,32 @@ export default function AdminTeam() {
                   {/* Name + email + actions (mobile: same row) */}
                   <div className="flex items-center justify-between gap-2 xl:contents">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary dark:bg-primary/15">
-                        {member.full_name.charAt(0).toUpperCase()}
-                      </span>
+                      {(() => {
+                        const av = member.user_id ? avatarMap[member.user_id] : undefined;
+                        const hasPhoto = av?.avatar_url;
+                        if (hasPhoto) {
+                          const transform = resolveProfileAvatarTransform({
+                            zoom: av.avatar_zoom ?? undefined,
+                            positionX: av.avatar_position_x ?? undefined,
+                            positionY: av.avatar_position_y ?? undefined,
+                          });
+                          return (
+                            <span className="flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                              <img
+                                src={av.avatar_url!}
+                                alt={member.full_name}
+                                className="h-full w-full object-cover"
+                                style={getProfileAvatarImageStyle(transform)}
+                              />
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary dark:bg-primary/15">
+                            {getProfileInitials(member.full_name)}
+                          </span>
+                        );
+                      })()}
                       <div className="min-w-0">
                         <p className="truncate text-base font-semibold text-foreground">
                           {member.full_name}

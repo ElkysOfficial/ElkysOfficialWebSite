@@ -1524,6 +1524,51 @@ export default function AdminMarketingCalendar() {
         </div>
       </div>
 
+      {/* ── Marketing Summary ── */}
+      {events.length > 0 &&
+        (() => {
+          const statusCounts: Record<string, number> = {};
+          for (const ev of events) {
+            statusCounts[ev.status] = (statusCounts[ev.status] ?? 0) + 1;
+          }
+          const channelCounts: Record<string, number> = {};
+          for (const ev of events) {
+            const ch = ev.channel || "Sem canal";
+            channelCounts[ch] = (channelCounts[ch] ?? 0) + 1;
+          }
+          return (
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+              {Object.entries(STATUS_LABEL).map(([key, label]) => (
+                <div
+                  key={key}
+                  className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-2.5 pl-3.5"
+                >
+                  <span
+                    className={cn(
+                      "absolute inset-y-0 left-0 w-[3px] rounded-l-xl",
+                      key === "publicado"
+                        ? "bg-success"
+                        : key === "agendado"
+                          ? "bg-accent"
+                          : key === "em_producao"
+                            ? "bg-warning"
+                            : key === "cancelado"
+                              ? "bg-destructive"
+                              : "bg-primary"
+                    )}
+                  />
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    {label}
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+                    {statusCounts[key] ?? 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
       {/* ── Filters ── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <select

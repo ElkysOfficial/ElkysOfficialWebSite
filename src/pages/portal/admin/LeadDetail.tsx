@@ -1,0 +1,738 @@
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+
+import { ArrowLeft, Building2, Clock, Mail, Phone, Send, Shield, Users } from "@/assets/icons";
+import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import StatusBadge from "@/components/portal/StatusBadge";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Button,
+  buttonVariants,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  cn,
+  Field,
+  Input,
+  Label,
+  Textarea,
+} from "@/design-system";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { formatBRL, maskCurrency, unmaskCurrency, maskPhone } from "@/lib/masks";
+import { formatPortalDateTime } from "@/lib/portal";
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+type InteractionRow = Database["public"]["Tables"]["lead_interactions"]["Row"];
+
+type LeadStatus = "novo" | "qualificado" | "proposta" | "negociacao" | "ganho" | "perdido";
+type InteractionType = "ligacao" | "email" | "reuniao" | "whatsapp" | "nota";
+
+type StatusMeta = {
+  label: string;
+  tone: "secondary" | "accent" | "primary" | "warning" | "success" | "destructive";
+};
+
+const STATUS_META: Record<LeadStatus, StatusMeta> = {
+  novo: { label: "Novo", tone: "secondary" },
+  qualificado: { label: "Qualificado", tone: "accent" },
+  proposta: { label: "Proposta", tone: "primary" },
+  negociacao: { label: "Negociacao", tone: "warning" },
+  ganho: { label: "Ganho", tone: "success" },
+  perdido: { label: "Perdido", tone: "destructive" },
+};
+
+const INTERACTION_TYPE_LABEL: Record<InteractionType, string> = {
+  ligacao: "Ligacao",
+  email: "Email",
+  reuniao: "Reuniao",
+  whatsapp: "WhatsApp",
+  nota: "Nota",
+};
+
+const SOURCE_LABEL: Record<string, string> = {
+  site: "Site",
+  indicacao: "Indicacao",
+  inbound: "Inbound",
+  outbound: "Outbound",
+  rede_social: "Rede Social",
+  evento: "Evento",
+  outro: "Outro",
+};
+
+const selectClass =
+  "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+
+/* ------------------------------------------------------------------ */
+/*  Small presentational helpers                                       */
+/* ------------------------------------------------------------------ */
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="text-sm font-medium text-foreground">{value || "-"}</span>
+    </div>
+  );
+}
+
+function InteractionIcon({ type }: { type: string }) {
+  const cls = "h-3.5 w-3.5";
+  switch (type) {
+    case "ligacao":
+      return <Phone className={cls} />;
+    case "email":
+      return <Mail className={cls} />;
+    case "reuniao":
+      return <Users className={cls} />;
+    case "whatsapp":
+      return <Send className={cls} />;
+    default:
+      return <Clock className={cls} />;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Form values & helpers                                              */
+/* ------------------------------------------------------------------ */
+
+type FormValues = {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  source: string;
+  estimated_value: string;
+  probability: string;
+  notes: string;
+};
+
+function leadToForm(lead: LeadRow): FormValues {
+  return {
+    name: lead.name,
+    email: lead.email ?? "",
+    phone: lead.phone ? maskPhone(lead.phone) : "",
+    company: lead.company ?? "",
+    source: lead.source,
+    estimated_value: lead.estimated_value ? maskCurrency(String(lead.estimated_value)) : "",
+    probability: String(lead.probability ?? 0),
+    notes: lead.notes ?? "",
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function LeadDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [lead, setLead] = useState<LeadRow | null>(null);
+  const [interactions, setInteractions] = useState<InteractionRow[]>([]);
+  const [teamMap, setTeamMap] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  // Edit mode
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<FormValues | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // New interaction form
+  const [newType, setNewType] = useState<InteractionType>("nota");
+  const [newNotes, setNewNotes] = useState("");
+  const [addingInteraction, setAddingInteraction] = useState(false);
+
+  // Lost reason
+  const [showLostInput, setShowLostInput] = useState(false);
+  const [lostReason, setLostReason] = useState("");
+  const [markingLost, setMarkingLost] = useState(false);
+
+  // Converting
+  const [converting, setConverting] = useState(false);
+
+  // Status change loading
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  /* ---- Fetching -------------------------------------------------- */
+
+  const fetchData = useCallback(async () => {
+    if (!id) return;
+
+    setLoading(true);
+    const [leadRes, interactionsRes, teamRes] = await Promise.all([
+      supabase.from("leads").select("*").eq("id", id).single(),
+      supabase
+        .from("lead_interactions")
+        .select("*")
+        .eq("lead_id", id)
+        .order("created_at", { ascending: false }),
+      supabase.from("team_members").select("user_id, full_name"),
+    ]);
+
+    if (leadRes.error || !leadRes.data) {
+      toast.error("Lead nao encontrado.");
+      navigate("/portal/admin/leads");
+      return;
+    }
+
+    const teamMembers = (teamRes.data ?? []) as { user_id: string; full_name: string }[];
+    const map: Record<string, string> = {};
+    for (const m of teamMembers) {
+      map[m.user_id] = m.full_name;
+    }
+
+    setLead(leadRes.data as LeadRow);
+    setInteractions((interactionsRes.data ?? []) as InteractionRow[]);
+    setTeamMap(map);
+    setLoading(false);
+  }, [id, navigate]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  /* ---- Edit handlers --------------------------------------------- */
+
+  function handleStartEdit() {
+    if (!lead) return;
+    setForm(leadToForm(lead));
+    setEditing(true);
+  }
+
+  function handleCancelEdit() {
+    setEditing(false);
+    setForm(null);
+  }
+
+  function updateField(field: keyof FormValues, value: string) {
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  }
+
+  async function handleSave() {
+    if (!lead || !form) return;
+
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
+      toast.error("O nome do lead e obrigatorio.");
+      return;
+    }
+
+    const prob = Number(form.probability);
+    if (Number.isNaN(prob) || prob < 0 || prob > 100) {
+      toast.error("Probabilidade deve ser entre 0 e 100.");
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        name: trimmedName,
+        email: form.email.trim() || null,
+        phone: form.phone.replace(/\D/g, "") || null,
+        company: form.company.trim() || null,
+        source: form.source,
+        estimated_value: unmaskCurrency(form.estimated_value),
+        probability: prob,
+        notes: form.notes.trim() || null,
+      })
+      .eq("id", lead.id);
+
+    setSaving(false);
+
+    if (error) {
+      toast.error("Erro ao salvar alteracoes.");
+      return;
+    }
+
+    toast.success("Lead atualizado com sucesso.");
+    setEditing(false);
+    setForm(null);
+    void fetchData();
+  }
+
+  /* ---- Status change --------------------------------------------- */
+
+  async function handleStatusChange(newStatus: LeadStatus) {
+    if (!lead) return;
+
+    setStatusLoading(true);
+    const { error } = await supabase.from("leads").update({ status: newStatus }).eq("id", lead.id);
+
+    setStatusLoading(false);
+
+    if (error) {
+      toast.error("Erro ao atualizar status.");
+      return;
+    }
+
+    toast.success(`Status alterado para ${STATUS_META[newStatus].label}.`);
+    void fetchData();
+  }
+
+  /* ---- Add interaction ------------------------------------------- */
+
+  async function handleAddInteraction() {
+    if (!lead || !newNotes.trim()) {
+      toast.error("Preencha as notas da interacao.");
+      return;
+    }
+
+    setAddingInteraction(true);
+    const { error } = await supabase.from("lead_interactions").insert({
+      lead_id: lead.id,
+      type: newType,
+      notes: newNotes.trim(),
+      created_by: user?.id ?? null,
+    });
+
+    setAddingInteraction(false);
+
+    if (error) {
+      toast.error("Erro ao registrar interacao.");
+      return;
+    }
+
+    toast.success("Interacao registrada.");
+    setNewNotes("");
+    setNewType("nota");
+    void fetchData();
+  }
+
+  /* ---- Convert to client ----------------------------------------- */
+
+  async function handleConvert() {
+    if (!lead) return;
+
+    setConverting(true);
+
+    const { data: newClient, error: clientError } = await supabase
+      .from("clients")
+      .insert({
+        full_name: lead.name,
+        email: lead.email || "",
+        cpf: "",
+        phone: lead.phone || "",
+        client_type: lead.company ? "pj" : "pf",
+        nome_fantasia: lead.company || null,
+        client_origin:
+          lead.source === "indicacao"
+            ? "indicacao"
+            : lead.source === "inbound"
+              ? "inbound"
+              : "lead",
+      })
+      .select("id")
+      .single();
+
+    if (clientError || !newClient) {
+      setConverting(false);
+      toast.error("Erro ao criar cliente.");
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({ status: "ganho", converted_client_id: newClient.id })
+      .eq("id", lead.id);
+
+    setConverting(false);
+
+    if (updateError) {
+      toast.error("Cliente criado, mas erro ao atualizar lead.");
+    } else {
+      toast.success("Lead convertido em cliente com sucesso!");
+    }
+
+    navigate(`/portal/admin/clientes/${newClient.id}`);
+  }
+
+  /* ---- Mark as lost ---------------------------------------------- */
+
+  async function handleMarkLost() {
+    if (!lead) return;
+
+    setMarkingLost(true);
+    const { error } = await supabase
+      .from("leads")
+      .update({ status: "perdido", lost_reason: lostReason.trim() || null })
+      .eq("id", lead.id);
+
+    setMarkingLost(false);
+
+    if (error) {
+      toast.error("Erro ao marcar como perdido.");
+      return;
+    }
+
+    toast.success("Lead marcado como perdido.");
+    setShowLostInput(false);
+    setLostReason("");
+    void fetchData();
+  }
+
+  /* ---- Render ---------------------------------------------------- */
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
+        <div className="grid gap-6 xl:grid-cols-12">
+          <div className="xl:col-span-5">
+            <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
+          </div>
+          <div className="xl:col-span-7">
+            <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <AdminEmptyState
+        icon={Users}
+        title="Lead nao encontrado"
+        description="O lead solicitado nao existe ou foi removido."
+        action={
+          <Link
+            to="/portal/admin/leads"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            Voltar para Leads
+          </Link>
+        }
+      />
+    );
+  }
+
+  const status = lead.status as LeadStatus;
+  const statusMeta = STATUS_META[status] ?? STATUS_META.novo;
+
+  const canTransition = status !== "ganho" && status !== "perdido";
+
+  // Build the quick status buttons: show statuses the lead can move to
+  const statusFlow: LeadStatus[] = ["qualificado", "proposta", "negociacao"];
+  const availableStatuses = canTransition ? statusFlow.filter((s) => s !== status) : [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header ---------------------------------------------------- */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/portal/admin/leads"
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-9 w-9 p-0")}
+            aria-label="Voltar para Leads"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{lead.name}</h1>
+            {lead.company && (
+              <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Building2 className="h-3.5 w-3.5" />
+                {lead.company}
+              </p>
+            )}
+          </div>
+        </div>
+        <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+      </div>
+
+      {/* Status quick actions -------------------------------------- */}
+      {availableStatuses.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {availableStatuses.map((s) => {
+            const meta = STATUS_META[s];
+            return (
+              <Button
+                key={s}
+                variant="outline"
+                size="sm"
+                disabled={statusLoading}
+                onClick={() => void handleStatusChange(s)}
+              >
+                Mover para {meta.label}
+              </Button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Two-column layout ----------------------------------------- */}
+      <div className="grid gap-6 xl:grid-cols-12">
+        {/* Left column — Lead data --------------------------------- */}
+        <div className="xl:col-span-5">
+          <Card className="border-border/70 bg-card/92">
+            <CardHeader className="flex flex-row items-center justify-between gap-2">
+              <CardTitle className="text-base">Dados do Lead</CardTitle>
+              {!editing ? (
+                <Button variant="outline" size="sm" onClick={handleStartEdit}>
+                  Editar
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" disabled={saving} onClick={handleCancelEdit}>
+                    Cancelar
+                  </Button>
+                  <Button size="sm" disabled={saving} onClick={() => void handleSave()}>
+                    {saving ? "Salvando..." : "Salvar"}
+                  </Button>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent>
+              {editing && form ? (
+                <div className="space-y-4">
+                  <Field>
+                    <Label>Nome *</Label>
+                    <Input
+                      value={form.name}
+                      onChange={(e) => updateField("name", e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>E-mail</Label>
+                    <Input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => updateField("phone", maskPhone(e.target.value))}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Empresa</Label>
+                    <Input
+                      value={form.company}
+                      onChange={(e) => updateField("company", e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Origem</Label>
+                    <select
+                      className={selectClass}
+                      value={form.source}
+                      onChange={(e) => updateField("source", e.target.value)}
+                    >
+                      {Object.entries(SOURCE_LABEL).map(([val, lbl]) => (
+                        <option key={val} value={val}>
+                          {lbl}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label>Valor estimado</Label>
+                    <Input
+                      value={form.estimated_value}
+                      onChange={(e) => updateField("estimated_value", maskCurrency(e.target.value))}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Probabilidade (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={form.probability}
+                      onChange={(e) => updateField("probability", e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Notas</Label>
+                    <Textarea
+                      rows={4}
+                      value={form.notes}
+                      onChange={(e) => updateField("notes", e.target.value)}
+                    />
+                  </Field>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <InfoRow label="Nome" value={lead.name} />
+                  <InfoRow label="E-mail" value={lead.email} />
+                  <InfoRow label="Telefone" value={lead.phone ? maskPhone(lead.phone) : null} />
+                  <InfoRow label="Empresa" value={lead.company} />
+                  <InfoRow label="Origem" value={SOURCE_LABEL[lead.source] ?? lead.source} />
+                  <InfoRow
+                    label="Valor estimado"
+                    value={lead.estimated_value ? formatBRL(lead.estimated_value) : null}
+                  />
+                  <InfoRow label="Probabilidade" value={`${lead.probability}%`} />
+                  <InfoRow label="Notas" value={lead.notes} />
+                  <InfoRow label="Criado em" value={formatPortalDateTime(lead.created_at)} />
+                  {lead.lost_reason && <InfoRow label="Motivo da perda" value={lead.lost_reason} />}
+                  {lead.converted_client_id && (
+                    <div className="pt-2">
+                      <Link
+                        to={`/portal/admin/clientes/${lead.converted_client_id}`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        Ver cliente convertido
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right column — Interactions ----------------------------- */}
+        <div className="xl:col-span-7 space-y-6">
+          <Card className="border-border/70 bg-card/92">
+            <CardHeader>
+              <CardTitle className="text-base">Interacoes ({interactions.length})</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Add interaction form */}
+              <div className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-4">
+                <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
+                  <Field>
+                    <Label>Tipo</Label>
+                    <select
+                      className={selectClass}
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value as InteractionType)}
+                    >
+                      {Object.entries(INTERACTION_TYPE_LABEL).map(([val, lbl]) => (
+                        <option key={val} value={val}>
+                          {lbl}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label>Notas</Label>
+                    <Textarea
+                      rows={2}
+                      value={newNotes}
+                      onChange={(e) => setNewNotes(e.target.value)}
+                      placeholder="Descreva a interacao..."
+                    />
+                  </Field>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    disabled={addingInteraction || !newNotes.trim()}
+                    onClick={() => void handleAddInteraction()}
+                  >
+                    {addingInteraction ? "Registrando..." : "Registrar"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              {interactions.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  Nenhuma interacao registrada.
+                </p>
+              ) : (
+                <div className="relative space-y-0 pl-6">
+                  <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border/60" />
+                  {interactions.map((interaction) => (
+                    <div key={interaction.id} className="relative pb-4">
+                      <div className="absolute -left-6 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-border bg-card">
+                        <InteractionIcon type={interaction.type} />
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-card/92 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {INTERACTION_TYPE_LABEL[interaction.type as InteractionType] ??
+                                interaction.type}
+                            </span>
+                            {interaction.created_by && teamMap[interaction.created_by] && (
+                              <span className="text-[10px] text-muted-foreground">
+                                por {teamMap[interaction.created_by]}
+                              </span>
+                            )}
+                          </div>
+                          <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                            {formatPortalDateTime(interaction.created_at)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs leading-relaxed text-foreground">
+                          {interaction.notes}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Action buttons at bottom ---------------------------------- */}
+      {canTransition && (
+        <Card className="border-border/70 bg-card/92">
+          <CardContent className="flex flex-wrap items-center gap-3 py-4">
+            <Button variant="default" disabled={converting} onClick={() => void handleConvert()}>
+              {converting ? "Convertendo..." : "Converter em Cliente"}
+            </Button>
+
+            {!showLostInput ? (
+              <Button
+                variant="outline"
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => setShowLostInput(true)}
+              >
+                Marcar como perdido
+              </Button>
+            ) : (
+              <div className="flex flex-1 items-end gap-2">
+                <Field className="flex-1">
+                  <Label>Motivo da perda</Label>
+                  <Input
+                    value={lostReason}
+                    onChange={(e) => setLostReason(e.target.value)}
+                    placeholder="Ex: Preco, concorrente, timing..."
+                  />
+                </Field>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={markingLost}
+                  onClick={() => void handleMarkLost()}
+                >
+                  {markingLost ? "Salvando..." : "Confirmar"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowLostInput(false);
+                    setLostReason("");
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

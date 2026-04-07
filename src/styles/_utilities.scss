@@ -167,6 +167,34 @@
   }
 }
 
+// --- Scrollbar personalizado (sidebar) ---
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--elk-primary) / 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--elk-primary) / 0.3);
+    border-radius: 9999px;
+    transition: background-color 0.2s;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--elk-primary) / 0.5);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--elk-primary) / 0.7);
+  }
+}
+
 // --- Acessibilidade ---
 @media (prefers-reduced-motion: reduce) {
   .animate-float,

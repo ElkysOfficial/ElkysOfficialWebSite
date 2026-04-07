@@ -155,9 +155,11 @@ const ContactForm = () => {
                           className="w-full"
                           {...register("name")}
                         />
-                        {errors.name && (
-                          <p className="text-destructive text-xs mt-1">{errors.name.message}</p>
-                        )}
+                        <p
+                          className={`text-destructive text-xs mt-1 ${errors.name ? "" : "invisible"}`}
+                        >
+                          {errors.name?.message || "\u00A0"}
+                        </p>
                       </div>
                       <div>
                         <label
@@ -173,9 +175,11 @@ const ContactForm = () => {
                           className="w-full"
                           {...register("email")}
                         />
-                        {errors.email && (
-                          <p className="text-destructive text-xs mt-1">{errors.email.message}</p>
-                        )}
+                        <p
+                          className={`text-destructive text-xs mt-1 ${errors.email ? "" : "invisible"}`}
+                        >
+                          {errors.email?.message || "\u00A0"}
+                        </p>
                       </div>
                     </div>
 
@@ -193,9 +197,11 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("company")}
                       />
-                      {errors.company && (
-                        <p className="text-destructive text-xs mt-1">{errors.company.message}</p>
-                      )}
+                      <p
+                        className={`text-destructive text-xs mt-1 ${errors.company ? "" : "invisible"}`}
+                      >
+                        {errors.company?.message || "\u00A0"}
+                      </p>
                     </div>
 
                     <div>
@@ -212,9 +218,11 @@ const ContactForm = () => {
                         className="w-full"
                         {...register("message")}
                       />
-                      {errors.message && (
-                        <p className="text-destructive text-xs mt-1">{errors.message.message}</p>
-                      )}
+                      <p
+                        className={`text-destructive text-xs mt-1 ${errors.message ? "" : "invisible"}`}
+                      >
+                        {errors.message?.message || "\u00A0"}
+                      </p>
                     </div>
 
                     <Button

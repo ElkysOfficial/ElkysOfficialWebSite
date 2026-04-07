@@ -13,13 +13,23 @@ import {
   resolveProfileAvatarTransform,
   type PortalProfileUpdatedDetail,
 } from "@/lib/profile";
-import { ArrowLeft, ArrowRight, Banknote, CalendarX, Home, Phone, X } from "@/assets/icons";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Banknote,
+  CalendarX,
+  FileText,
+  Home,
+  Phone,
+  X,
+} from "@/assets/icons";
 import NotificationBell from "@/components/portal/NotificationBell";
 
 const SIDEBAR_STORAGE_KEY = "elkys-client-sidebar-collapsed";
 
 const navItems = [
   { label: "Visão Geral", href: "/portal/cliente", icon: Home },
+  { label: "Propostas", href: "/portal/cliente/propostas", icon: FileText },
   { label: "Projetos", href: "/portal/cliente/projetos", icon: CalendarX },
   { label: "Financeiro", href: "/portal/cliente/financeiro", icon: Banknote },
   { label: "Suporte", href: "/portal/cliente/suporte", icon: Phone },
@@ -31,6 +41,16 @@ const clientPageMeta = [
     title: "Visão Geral",
     description:
       "Acompanhamento objetivo do projeto, da cobrança e dos próximos passos da sua conta.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/cliente/propostas",
+    title: "Propostas",
+    description: "Propostas comerciais enviadas pela Elkys para sua avaliacao e aprovacao.",
+  },
+  {
+    match: (pathname: string) => pathname.startsWith("/portal/cliente/propostas/"),
+    title: "Detalhe da Proposta",
+    description: "Avalie os termos da proposta e responda diretamente pelo portal.",
   },
   {
     match: (pathname: string) => pathname === "/portal/cliente/projetos",
@@ -306,7 +326,7 @@ export default function ClientLayout() {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-hidden px-3 py-4">
+          <div className="flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
             <nav className="space-y-2">
               {navItems.map(({ label, href, icon: Icon }) => {
                 const active = isItemActive(location.pathname, href);

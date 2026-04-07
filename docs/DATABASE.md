@@ -455,6 +455,156 @@ Configurações de automações (cron, regras de negócio).
 
 ---
 
+### `leads`
+
+Pipeline de vendas — leads captados antes de se tornarem clientes.
+
+| Coluna                | Tipo            | Notas                                                                      |
+| --------------------- | --------------- | -------------------------------------------------------------------------- |
+| `id`                  | `uuid` PK       |                                                                            |
+| `name`                | `text`          | NOT NULL                                                                   |
+| `email`               | `text`          |                                                                            |
+| `phone`               | `text`          |                                                                            |
+| `company`             | `text`          |                                                                            |
+| `source`              | `text`          | CHECK: `inbound`, `indicacao`, `rede_social`, `evento`, `cold`, `outro`    |
+| `status`              | `text`          | CHECK: `novo`, `qualificado`, `proposta`, `negociacao`, `ganho`, `perdido` |
+| `estimated_value`     | `numeric(12,2)` | Valor estimado da oportunidade                                             |
+| `probability`         | `smallint`      | 0-100 — probabilidade de conversao                                         |
+| `assigned_to`         | `uuid`          | FK → `auth.users(id)` — responsavel                                        |
+| `notes`               | `text`          |                                                                            |
+| `lost_reason`         | `text`          | Preenchido ao marcar como perdido                                          |
+| `converted_client_id` | `uuid`          | FK → `clients(id)` — preenchido ao converter em cliente                    |
+| `created_by`          | `uuid`          | FK → `auth.users(id)`                                                      |
+| `created_at`          | `timestamptz`   |                                                                            |
+| `updated_at`          | `timestamptz`   |                                                                            |
+
+---
+
+### `lead_interactions`
+
+Historico de interacoes com um lead (ligacoes, emails, reunioes, etc.).
+
+| Coluna       | Tipo          | Notas                                                    |
+| ------------ | ------------- | -------------------------------------------------------- |
+| `id`         | `uuid` PK     |                                                          |
+| `lead_id`    | `uuid`        | FK → `leads(id)` ON DELETE CASCADE                       |
+| `type`       | `text`        | CHECK: `ligacao`, `email`, `reuniao`, `whatsapp`, `nota` |
+| `notes`      | `text`        | NOT NULL                                                 |
+| `created_by` | `uuid`        | FK → `auth.users(id)`                                    |
+| `created_at` | `timestamptz` |                                                          |
+
+---
+
+### `proposals`
+
+Propostas comerciais enviadas a clientes ou leads.
+
+| Coluna               | Tipo            | Notas                                                              |
+| -------------------- | --------------- | ------------------------------------------------------------------ |
+| `id`                 | `uuid` PK       |                                                                    |
+| `client_id`          | `uuid`          | FK → `clients(id)` — preenchido se proposta para cliente existente |
+| `lead_id`            | `uuid`          | FK → `leads(id)` — preenchido se proposta para lead                |
+| `title`              | `text`          | NOT NULL                                                           |
+| `status`             | `text`          | CHECK: `rascunho`, `enviada`, `aprovada`, `rejeitada`, `expirada`  |
+| `valid_until`        | `date`          | Data de validade da proposta                                       |
+| `total_amount`       | `numeric(12,2)` | Valor total                                                        |
+| `scope_summary`      | `text`          | Descricao do escopo                                                |
+| `payment_conditions` | `text`          | Condicoes de pagamento                                             |
+| `observations`       | `text`          |                                                                    |
+| `document_url`       | `text`          | Link externo do arquivo (Google Drive, PDF)                        |
+| `approved_at`        | `timestamptz`   | Preenchido pelo cliente ao aprovar                                 |
+| `rejected_at`        | `timestamptz`   | Preenchido pelo cliente ao rejeitar                                |
+| `rejection_reason`   | `text`          | Motivo da rejeicao                                                 |
+| `sent_at`            | `timestamptz`   | Data de envio ao cliente                                           |
+| `created_by`         | `uuid`          | FK → `auth.users(id)`                                              |
+| `created_at`         | `timestamptz`   |                                                                    |
+| `updated_at`         | `timestamptz`   |                                                                    |
+
+> **RLS:** Admin full access. Cliente leitura (status ≠ rascunho) + update (aprovar/rejeitar quando status = enviada).
+
+---
+
+### `billing_templates`
+
+Templates de email para automacao de cobranca.
+
+| Coluna       | Tipo          | Notas                                                                                              |
+| ------------ | ------------- | -------------------------------------------------------------------------------------------------- |
+| `id`         | `uuid` PK     |                                                                                                    |
+| `name`       | `text`        | NOT NULL — nome interno                                                                            |
+| `subject`    | `text`        | NOT NULL — assunto do email                                                                        |
+| `body`       | `text`        | NOT NULL — corpo com variaveis: `{{client_name}}`, `{{amount}}`, `{{due_date}}`, `{{description}}` |
+| `type`       | `text`        | CHECK: `cobranca`, `lembrete`, `agradecimento`                                                     |
+| `is_active`  | `boolean`     | Default `true`                                                                                     |
+| `created_at` | `timestamptz` |                                                                                                    |
+| `updated_at` | `timestamptz` |                                                                                                    |
+
+---
+
+### `billing_rules`
+
+Regras da regua de cobranca automatica.
+
+| Coluna         | Tipo          | Notas                                                                  |
+| -------------- | ------------- | ---------------------------------------------------------------------- |
+| `id`           | `uuid` PK     |                                                                        |
+| `name`         | `text`        | NOT NULL                                                               |
+| `trigger_days` | `integer`     | Negativo = antes do vencimento, 0 = no dia, positivo = apos vencimento |
+| `action_type`  | `text`        | CHECK: `email`, `notificacao`                                          |
+| `template_id`  | `uuid`        | FK → `billing_templates(id)`                                           |
+| `is_active`    | `boolean`     | Default `true`                                                         |
+| `sort_order`   | `integer`     | Ordem de execucao                                                      |
+| `created_at`   | `timestamptz` |                                                                        |
+| `updated_at`   | `timestamptz` |                                                                        |
+
+---
+
+### `billing_actions_log`
+
+Historico de execucao da regua de cobranca.
+
+| Coluna          | Tipo          | Notas                                         |
+| --------------- | ------------- | --------------------------------------------- |
+| `id`            | `uuid` PK     |                                               |
+| `charge_id`     | `uuid`        | FK → `charges(id)` — cobranca afetada         |
+| `rule_id`       | `uuid`        | FK → `billing_rules(id)` — regra que disparou |
+| `action_type`   | `text`        |                                               |
+| `template_id`   | `uuid`        | FK → `billing_templates(id)`                  |
+| `sent_at`       | `timestamptz` |                                               |
+| `status`        | `text`        | CHECK: `enviado`, `falha`                     |
+| `error_message` | `text`        |                                               |
+| `triggered_by`  | `text`        | CHECK: `cron`, `manual`                       |
+
+---
+
+### `financial_goals`
+
+Metas de faturamento por periodo.
+
+| Coluna          | Tipo            | Notas                                  |
+| --------------- | --------------- | -------------------------------------- |
+| `id`            | `uuid` PK       |                                        |
+| `period_type`   | `text`          | CHECK: `mensal`, `trimestral`, `anual` |
+| `period_start`  | `date`          | NOT NULL                               |
+| `period_end`    | `date`          | NOT NULL — deve ser > period_start     |
+| `target_amount` | `numeric(12,2)` | NOT NULL — deve ser > 0                |
+| `notes`         | `text`          |                                        |
+| `created_by`    | `uuid`          | FK → `auth.users(id)`                  |
+| `created_at`    | `timestamptz`   |                                        |
+| `updated_at`    | `timestamptz`   |                                        |
+
+---
+
+### Colunas adicionadas a tabelas existentes
+
+| Tabela            | Coluna              | Tipo          | Notas                                  |
+| ----------------- | ------------------- | ------------- | -------------------------------------- |
+| `projects`        | `tags`              | `text[]`      | Default `'{}'` — categorias do projeto |
+| `support_tickets` | `first_response_at` | `timestamptz` | Auto-preenchido na 1a resposta admin   |
+| `support_tickets` | `resolved_at`       | `timestamptz` | Auto-preenchido ao resolver ticket     |
+
+---
+
 ## Funções SQL
 
 ### `has_role(_user_id, _role)`
@@ -494,10 +644,12 @@ Chama `mark_overdue_charges()` + `sync_projects_from_blocking_charges()` em sequ
 
 ## Cron Jobs (pg_cron)
 
-| Job                    | Schedule    | Função                                                                 |
-| ---------------------- | ----------- | ---------------------------------------------------------------------- |
-| Auto-mark inadimplente | `0 2 * * *` | Executa `sync_financial_blocks()` + atualiza `clients.contract_status` |
-| Invoice reminders      | `0 9 * * *` | Chama Edge Function `send-invoice-due`                                 |
+| Job                     | Schedule      | Função                                                                 |
+| ----------------------- | ------------- | ---------------------------------------------------------------------- |
+| Auto-mark inadimplente  | `0 2 * * *`   | Executa `sync_financial_blocks()` + atualiza `clients.contract_status` |
+| Invoice reminders       | `0 9 * * *`   | Chama Edge Function `send-invoice-due`                                 |
+| Billing rules           | `0 8 * * *`   | Chama Edge Function `process-billing-rules` (regua de cobranca)        |
+| Scheduled notifications | `*/5 * * * *` | Chama Edge Function `process-scheduled-notifications`                  |
 
 ---
 
@@ -523,8 +675,15 @@ clients (1:N) ─┬─ projects (1:N) ─┬─ project_contracts (1:N) ─ pro
                │                   ├─ project_subscriptions (1:N)
                │                   ├─ project_next_steps (1:N)
                │                   └─ timeline_events (1:N)
-               ├─ charges (1:N)
+               ├─ charges (1:N) ─── billing_actions_log (1:N)
                ├─ documents (1:N)
+               ├─ proposals (1:N)
                ├─ support_tickets (1:N) ─ ticket_messages (1:N)
                └─ client_contacts (1:N)
+
+leads (1:N) ─┬─ lead_interactions (1:N)
+             └─ proposals (1:N)
+
+billing_rules (N:1) ── billing_templates
+financial_goals (standalone)
 ```

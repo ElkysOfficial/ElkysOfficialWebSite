@@ -281,7 +281,9 @@ export default function AdminExpenseCreate() {
               <Field className="md:col-span-2">
                 <Label>Descrição *</Label>
                 <Input {...register("description")} placeholder="Ex: Servidor AWS" />
-                {errors.description ? <ErrorText>{errors.description.message}</ErrorText> : null}
+                <ErrorText className={errors.description ? "" : "invisible"}>
+                  {errors.description?.message || "\u00A0"}
+                </ErrorText>
               </Field>
 
               <Field>
@@ -297,7 +299,9 @@ export default function AdminExpenseCreate() {
                     </option>
                   ))}
                 </select>
-                {errors.category ? <ErrorText>{errors.category.message}</ErrorText> : null}
+                <ErrorText className={errors.category ? "" : "invisible"}>
+                  {errors.category?.message || "\u00A0"}
+                </ErrorText>
               </Field>
 
               <Field>
@@ -314,7 +318,9 @@ export default function AdminExpenseCreate() {
                     />
                   )}
                 />
-                {errors.expense_date ? <ErrorText>{errors.expense_date.message}</ErrorText> : null}
+                <ErrorText className={errors.expense_date ? "" : "invisible"}>
+                  {errors.expense_date?.message || "\u00A0"}
+                </ErrorText>
               </Field>
 
               <Field className={entryMode === "unica" ? "md:col-span-2" : ""}>
@@ -331,7 +337,9 @@ export default function AdminExpenseCreate() {
                     />
                   )}
                 />
-                {errors.amount ? <ErrorText>{errors.amount.message}</ErrorText> : null}
+                <ErrorText className={errors.amount ? "" : "invisible"}>
+                  {errors.amount?.message || "\u00A0"}
+                </ErrorText>
               </Field>
 
               {entryMode === "parcelada" ? (
@@ -349,13 +357,14 @@ export default function AdminExpenseCreate() {
                       />
                     )}
                   />
-                  {errors.installments_count ? (
-                    <ErrorText>{errors.installments_count.message}</ErrorText>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Valor por parcela: {formatBRL(installmentValue || 0)}
-                    </p>
-                  )}
+                  <ErrorText className={errors.installments_count ? "" : "hidden"}>
+                    {errors.installments_count?.message || "\u00A0"}
+                  </ErrorText>
+                  <p
+                    className={`text-xs text-muted-foreground ${errors.installments_count ? "hidden" : ""}`}
+                  >
+                    Valor por parcela: {formatBRL(installmentValue || 0)}
+                  </p>
                 </Field>
               ) : null}
 
@@ -374,14 +383,15 @@ export default function AdminExpenseCreate() {
                       />
                     )}
                   />
-                  {errors.recurrence_months ? (
-                    <ErrorText>{errors.recurrence_months.message}</ErrorText>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      O sistema vai criar {Math.max(recurrenceMonths, 0)} lançamento(s) mensal(is)
-                      com o mesmo valor.
-                    </p>
-                  )}
+                  <ErrorText className={errors.recurrence_months ? "" : "hidden"}>
+                    {errors.recurrence_months?.message || "\u00A0"}
+                  </ErrorText>
+                  <p
+                    className={`text-xs text-muted-foreground ${errors.recurrence_months ? "hidden" : ""}`}
+                  >
+                    O sistema vai criar {Math.max(recurrenceMonths, 0)} lançamento(s) mensal(is) com
+                    o mesmo valor.
+                  </p>
                 </Field>
               ) : null}
 

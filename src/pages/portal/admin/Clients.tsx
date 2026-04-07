@@ -12,11 +12,26 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import { formatBRL } from "@/lib/masks";
+import {
+  getProfileInitials,
+  getProfileAvatarImageStyle,
+  resolveProfileAvatarTransform,
+} from "@/lib/profile";
 
 const PAGE_SIZE = 8;
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
 type StatusFilter = "all" | "active" | "inactive";
+
+interface AvatarInfo {
+  avatar_url: string | null;
+  avatar_zoom: number | null;
+  avatar_position_x: number | null;
+  avatar_position_y: number | null;
+}
+type ClientTypeFilter = "all" | "pf" | "pj";
+type ContractStatusFilter = "all" | "ativo" | "inadimplente" | "cancelado";
+type OriginFilter = "all" | "lead" | "indicacao" | "inbound";
 
 function formatClientSince(date: string) {
   return new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
@@ -149,11 +164,13 @@ function ClientRow({
   onToggleActive,
   onDelete,
   canDelete,
+  avatarInfo,
 }: {
   client: Client;
   onToggleActive: (client: Client) => void;
   onDelete: (client: Client) => void;
   canDelete: boolean;
+  avatarInfo?: AvatarInfo;
 }) {
   const navigate = useNavigate();
   const displayName =
@@ -183,13 +200,38 @@ function ClientRow({
     <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_80px_140px_100px_100px_40px] md:gap-y-3">
       {/* Col 1 — Client info + actions (mobile: same row) */}
       <div className="flex items-start justify-between gap-2 md:contents">
-        <Link to={`/portal/admin/clientes/${client.id}`} className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
-            {displayName}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
-            {client.email}
-          </p>
+        <Link
+          to={`/portal/admin/clientes/${client.id}`}
+          className="flex min-w-0 items-center gap-3"
+        >
+          {avatarInfo?.avatar_url ? (
+            <span className="flex h-10 w-10 shrink-0 overflow-hidden rounded-full">
+              <img
+                src={avatarInfo.avatar_url}
+                alt={displayName}
+                className="h-full w-full object-cover"
+                style={getProfileAvatarImageStyle(
+                  resolveProfileAvatarTransform({
+                    zoom: avatarInfo.avatar_zoom ?? undefined,
+                    positionX: avatarInfo.avatar_position_x ?? undefined,
+                    positionY: avatarInfo.avatar_position_y ?? undefined,
+                  })
+                )}
+              />
+            </span>
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary dark:bg-primary/15">
+              {getProfileInitials(displayName)}
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+              {displayName}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+              {client.email}
+            </p>
+          </div>
         </Link>
 
         {/* Mobile actions */}
@@ -293,9 +335,14 @@ export default function AdminClients() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [clientTypeFilter, setClientTypeFilter] = useState<ClientTypeFilter>("all");
+  const [contractStatusFilter, setContractStatusFilter] = useState<ContractStatusFilter>("all");
+  const [originFilter, setOriginFilter] = useState<OriginFilter>("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
   const loadClients = useCallback(
     async (background = false) => {
@@ -322,6 +369,27 @@ export default function AdminClients() {
       setClients(data ?? []);
       setHasLoaded(true);
       setLoading(false);
+
+      // Fetch avatar data from profiles
+      const userIds = (data ?? []).map((c) => c.user_id).filter(Boolean) as string[];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, avatar_url, avatar_zoom, avatar_position_x, avatar_position_y")
+          .in("id", userIds);
+        if (profiles) {
+          const map: Record<string, AvatarInfo> = {};
+          for (const p of profiles) {
+            map[p.id] = {
+              avatar_url: p.avatar_url,
+              avatar_zoom: p.avatar_zoom,
+              avatar_position_x: p.avatar_position_x,
+              avatar_position_y: p.avatar_position_y,
+            };
+          }
+          setAvatarMap(map);
+        }
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -348,7 +416,24 @@ export default function AdminClients() {
 
   useEffect(() => {
     setPage(0);
-  }, [deferredSearch, statusFilter]);
+  }, [
+    deferredSearch,
+    statusFilter,
+    clientTypeFilter,
+    contractStatusFilter,
+    originFilter,
+    tagFilter,
+  ]);
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const client of clients) {
+      for (const tag of client.tags ?? []) {
+        tagSet.add(tag);
+      }
+    }
+    return Array.from(tagSet).sort();
+  }, [clients]);
 
   const filteredClients = useMemo(
     () =>
@@ -364,9 +449,34 @@ export default function AdminClients() {
           (statusFilter === "active" && client.is_active) ||
           (statusFilter === "inactive" && !client.is_active);
 
-        return matchesSearch && matchesStatus;
+        const matchesClientType =
+          clientTypeFilter === "all" || client.client_type === clientTypeFilter;
+
+        const matchesContractStatus =
+          contractStatusFilter === "all" || client.contract_status === contractStatusFilter;
+
+        const matchesOrigin = originFilter === "all" || client.client_origin === originFilter;
+
+        const matchesTag = !tagFilter || (client.tags ?? []).includes(tagFilter);
+
+        return (
+          matchesSearch &&
+          matchesStatus &&
+          matchesClientType &&
+          matchesContractStatus &&
+          matchesOrigin &&
+          matchesTag
+        );
       }),
-    [clients, deferredSearch, statusFilter]
+    [
+      clients,
+      deferredSearch,
+      statusFilter,
+      clientTypeFilter,
+      contractStatusFilter,
+      originFilter,
+      tagFilter,
+    ]
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredClients.length / PAGE_SIZE));
@@ -499,28 +609,149 @@ export default function AdminClients() {
       </div>
 
       {/* -- Filters -- */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nome, e-mail ou CPF..."
-            className="pl-9"
-          />
+      <div className="space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nome, e-mail ou CPF..."
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+            className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
+          >
+            <option value="all">Todos os status</option>
+            <option value="active">Apenas ativos</option>
+            <option value="inactive">Apenas inativos</option>
+          </select>
         </div>
-        <select
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-          className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
-        >
-          <option value="all">Todos os status</option>
-          <option value="active">Apenas ativos</option>
-          <option value="inactive">Apenas inativos</option>
-        </select>
+
+        {/* Advanced filters */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {/* Tipo (PF/PJ) */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+              Tipo:
+            </span>
+            {[
+              { value: "all" as const, label: "Todos" },
+              { value: "pf" as const, label: "PF" },
+              { value: "pj" as const, label: "PJ" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setClientTypeFilter(option.value)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  clientTypeFilter === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Status do contrato */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+              Contrato:
+            </span>
+            {[
+              { value: "all" as const, label: "Todos" },
+              { value: "ativo" as const, label: "Ativo" },
+              { value: "inadimplente" as const, label: "Inadimplente" },
+              { value: "cancelado" as const, label: "Cancelado" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setContractStatusFilter(option.value)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  contractStatusFilter === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Origem */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+              Origem:
+            </span>
+            {[
+              { value: "all" as const, label: "Todas" },
+              { value: "lead" as const, label: "Lead" },
+              { value: "indicacao" as const, label: "Indicacao" },
+              { value: "inbound" as const, label: "Inbound" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setOriginFilter(option.value)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  originFilter === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tags filter */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mr-1">
+              Tags:
+            </span>
+            <button
+              type="button"
+              onClick={() => setTagFilter(null)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                tagFilter === null
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Todas
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  tagFilter === tag
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary/10 text-primary hover:bg-primary/20"
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* -- Client list -- */}
@@ -569,6 +800,7 @@ export default function AdminClients() {
               onToggleActive={handleToggleActive}
               onDelete={setClientToDelete}
               canDelete={isSuperAdmin}
+              avatarInfo={client.user_id ? avatarMap[client.user_id] : undefined}
             />
           ))}
 

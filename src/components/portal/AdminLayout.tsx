@@ -23,10 +23,17 @@ import {
   Building2,
   CalendarX,
   Code2,
+  Cog,
+  FileText,
   Folder,
+  Receipt,
+  Shield,
   SuporteFill,
+  Target,
+  TrendingUp,
   Users,
   X,
+  Zap,
 } from "@/assets/icons";
 
 const SIDEBAR_STORAGE_KEY = "elkys-admin-sidebar-collapsed";
@@ -55,7 +62,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Gestão",
+    label: "Clientes & Vendas",
     items: [
       {
         label: "Clientes",
@@ -64,21 +71,9 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["admin_super", "admin"],
       },
       {
-        label: "Projetos",
-        href: "/portal/admin/projetos",
-        icon: AgileMono,
-        roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Financeiro",
-        href: "/portal/admin/financeiro",
-        icon: Banknote,
-        roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Equipe",
-        href: "/portal/admin/equipe",
-        icon: Users,
+        label: "CRM",
+        href: "/portal/admin/crm",
+        icon: Target,
         roles: ["admin_super", "admin"],
       },
       {
@@ -87,10 +82,43 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
       },
+    ],
+  },
+  {
+    label: "Projetos",
+    items: [
       {
-        label: "Notificações",
-        href: "/portal/admin/notificacoes",
-        icon: Bell,
+        label: "Projetos",
+        href: "/portal/admin/projetos",
+        icon: AgileMono,
+        roles: ["admin_super", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      {
+        label: "Financeiro",
+        href: "/portal/admin/financeiro",
+        icon: Banknote,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Regua de Cobranca",
+        href: "/portal/admin/cobranca-automatica",
+        icon: Zap,
+        roles: ["admin_super", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Equipe",
+    items: [
+      {
+        label: "Equipe",
+        href: "/portal/admin/equipe",
+        icon: Users,
         roles: ["admin_super", "admin"],
       },
     ],
@@ -113,8 +141,14 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Desenvolvimento",
+    label: "Sistema",
     items: [
+      {
+        label: "Auditoria",
+        href: "/portal/admin/audit-log",
+        icon: Shield,
+        roles: ["admin_super", "admin"],
+      },
       {
         label: "Documentos Dev",
         href: "/portal/admin/documentos/desenvolvedor",
@@ -202,9 +236,14 @@ const adminPageMeta = [
       "Lançamento financeiro enxuto para manter consistência, rastreabilidade e visão real do custo operacional.",
   },
   {
+    match: (pathname: string) => pathname === "/portal/admin/crm",
+    title: "CRM",
+    description: "Funil de vendas completo: leads, propostas e pipeline em uma visao unificada.",
+  },
+  {
     match: (pathname: string) => pathname === "/portal/admin/equipe",
     title: "Equipe",
-    description: "Estrutura interna do time com foco em função, disponibilidade e contato rápido.",
+    description: "Gestao da equipe interna e comunicacao com clientes.",
   },
   {
     match: (pathname: string) => pathname === "/portal/admin/equipe/novo",
@@ -229,6 +268,68 @@ const adminPageMeta = [
     description: "Envio e histórico de comunicações para os clientes do portal.",
   },
   {
+    match: (pathname: string) => pathname === "/portal/admin/inadimplencia",
+    title: "Inadimplencia",
+    description:
+      "Relatorio detalhado de cobrancas vencidas com aging, valor em aberto e acoes de cobranca.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/pipeline",
+    title: "Pipeline",
+    description: "Visao Kanban dos projetos por status para acompanhar o fluxo de entregas.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/receita-clientes",
+    title: "Receita por Cliente",
+    description:
+      "Ranking de clientes por receita gerada com distribuicao percentual e ticket medio.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/audit-log",
+    title: "Log de Auditoria",
+    description: "Registro cronologico de todas as acoes realizadas no painel administrativo.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/metas",
+    title: "Metas Financeiras",
+    description: "Definicao e acompanhamento de metas de faturamento por periodo.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/leads",
+    title: "Leads",
+    description: "Pipeline de captacao e qualificacao de leads para o funil de vendas.",
+  },
+  {
+    match: (pathname: string) =>
+      pathname.startsWith("/portal/admin/leads/") && pathname !== "/portal/admin/leads",
+    title: "Detalhe do Lead",
+    description: "Dados, interacoes e historico de relacionamento com o lead.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/propostas",
+    title: "Propostas",
+    description: "Gestao de propostas comerciais com acompanhamento de status e valor.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/propostas/nova",
+    title: "Nova Proposta",
+    description: "",
+  },
+  {
+    match: (pathname: string) =>
+      pathname.startsWith("/portal/admin/propostas/") &&
+      pathname !== "/portal/admin/propostas" &&
+      pathname !== "/portal/admin/propostas/nova",
+    title: "Detalhe da Proposta",
+    description: "Edicao e acompanhamento da proposta comercial.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/cobranca-automatica",
+    title: "Regua de Cobranca",
+    description:
+      "Automacao de lembretes e cobrancas com regras, templates e historico de execucao.",
+  },
+  {
     match: (pathname: string) => pathname === "/portal/admin/perfil",
     title: "Perfil",
     description: "Dados pessoais, foto e leitura do acesso interno no portal da Elkys.",
@@ -237,6 +338,14 @@ const adminPageMeta = [
 
 function isItemActive(currentPath: string, href: string) {
   if (href === "/portal/admin") return currentPath === href;
+  // CRM hub: active for leads/:id and propostas/* sub-routes
+  if (href === "/portal/admin/crm") {
+    return (
+      currentPath === href ||
+      currentPath.startsWith("/portal/admin/leads/") ||
+      currentPath.startsWith("/portal/admin/propostas/")
+    );
+  }
   return currentPath === href || currentPath.startsWith(`${href}/`);
 }
 
@@ -490,7 +599,7 @@ export default function AdminLayout() {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-hidden px-2 py-1.5">
+          <div className="flex-1 overflow-y-auto px-2 py-1.5 sidebar-scroll">
             <nav className={cn("space-y-0.5", sidebarCollapsed ? "space-y-0.5" : "")}>
               {navSections.map((section) => (
                 <div

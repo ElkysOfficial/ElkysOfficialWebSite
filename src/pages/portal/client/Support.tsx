@@ -752,34 +752,34 @@ export default function ClientSupport() {
                                   );
                                 })}
                               </div>
-                              {(ratingDrafts[ticket.id] ?? 0) > 0 && (
-                                <>
-                                  <textarea
-                                    value={ratingFeedbacks[ticket.id] ?? ""}
-                                    onChange={(e) =>
-                                      setRatingFeedbacks((prev) => ({
-                                        ...prev,
-                                        [ticket.id]: e.target.value,
-                                      }))
-                                    }
-                                    rows={2}
-                                    placeholder="Comentario opcional..."
-                                    className="flex min-h-[60px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                  />
-                                  <div className="flex justify-end">
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      disabled={submittingRating === ticket.id}
-                                      onClick={() => void handleSubmitRating(ticket)}
-                                    >
-                                      {submittingRating === ticket.id
-                                        ? "Enviando..."
-                                        : "Enviar avaliacao"}
-                                    </Button>
-                                  </div>
-                                </>
-                              )}
+                              <div
+                                className={`space-y-3 transition-all duration-200 ${(ratingDrafts[ticket.id] ?? 0) > 0 ? "opacity-100 max-h-40" : "opacity-0 max-h-0 overflow-hidden"}`}
+                              >
+                                <textarea
+                                  value={ratingFeedbacks[ticket.id] ?? ""}
+                                  onChange={(e) =>
+                                    setRatingFeedbacks((prev) => ({
+                                      ...prev,
+                                      [ticket.id]: e.target.value,
+                                    }))
+                                  }
+                                  rows={2}
+                                  placeholder="Comentario opcional..."
+                                  className="flex min-h-[60px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                />
+                                <div className="flex justify-end">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    disabled={submittingRating === ticket.id}
+                                    onClick={() => void handleSubmitRating(ticket)}
+                                  >
+                                    {submittingRating === ticket.id
+                                      ? "Enviando..."
+                                      : "Enviar avaliacao"}
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
                           )}
 

@@ -333,6 +333,56 @@ CORS  // Headers CORS padrão para todas as respostas.
 
 ---
 
+### `process-billing-rules`
+
+**Trigger:** Cron diario as 8h UTC (`0 8 * * *`) ou disparo manual pelo admin via botao "Executar regua agora".
+
+**Payload (opcional):**
+
+```json
+{
+  "triggered_by": "manual" | "cron"
+}
+```
+
+**Fluxo de execucao:**
+
+1. Carrega todas as `billing_rules` ativas, ordenadas por `sort_order`
+2. Para cada regra, calcula a data-alvo: `hoje - trigger_days`
+   - `trigger_days = -3` → busca cobrancas com `due_date` = daqui a 3 dias (pendente/agendada)
+   - `trigger_days = 0` → busca cobrancas com `due_date` = hoje (pendente)
+   - `trigger_days = 7` → busca cobrancas com `due_date` = 7 dias atras (atrasado)
+3. Verifica duplicatas no `billing_actions_log` para evitar reenvio no mesmo dia
+4. Resolve o template vinculado e substitui variaveis (`{{client_name}}`, `{{amount}}`, `{{due_date}}`, `{{description}}`)
+5. Envia email via `buildEmail()` + `sendEmail()` (Resend API)
+6. Registra resultado no `billing_actions_log`
+
+**Resposta:**
+
+```json
+{
+  "ok": true,
+  "sent": 5,
+  "errors": 0
+}
+```
+
+**Auth:** Aceita Bearer token admin ou Service Role Key (para cron).
+
+**Secrets:** `RESEND_API_KEY`, `FROM_EMAIL`, `PORTAL_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+---
+
+### `process-scheduled-notifications`
+
+**Trigger:** Cron a cada 5 minutos (`*/5 * * * *`).
+
+**Fluxo:** Busca notificacoes com `status = 'agendada'` e `send_at <= now()`. Processa ate 20 por execucao, enviando emails aos destinatarios filtrados.
+
+**Auth:** Service Role Key (cron).
+
+---
+
 ## Configuração de Secrets
 
 Secrets configurados via Supabase Dashboard (Settings → Edge Functions → Secrets) ou CLI:
@@ -371,4 +421,8 @@ supabase functions deploy
 supabase functions deploy complete-first-access --no-verify-jwt
 supabase functions deploy delete-user --no-verify-jwt
 supabase functions deploy update-user --no-verify-jwt
+
+# Funções de automaç��o (chamadas por cron + admin)
+supabase functions deploy process-billing-rules --no-verify-jwt
+supabase functions deploy process-scheduled-notifications --no-verify-jwt
 ```

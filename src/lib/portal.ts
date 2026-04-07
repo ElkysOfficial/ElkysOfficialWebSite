@@ -72,7 +72,7 @@ export const PROJECT_STATUS_META: Record<
   { label: string; tone: "accent" | "success" | "warning" | "destructive" | "secondary" }
 > = {
   negociacao: { label: "Negociacao", tone: "secondary" },
-  em_andamento: { label: "Em andamento", tone: "accent" },
+  em_andamento: { label: "Em desenvolvimento", tone: "accent" },
   concluido: { label: "Concluido", tone: "success" },
   pausado: { label: "Pausado", tone: "warning" },
   cancelado: { label: "Cancelado", tone: "destructive" },

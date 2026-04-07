@@ -2,15 +2,7 @@ import { useState, useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-} from "@/design-system";
+import { Button, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
@@ -97,27 +89,32 @@ export default function ChangePassword() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Defina sua senha</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Este é seu primeiro acesso. Crie uma senha segura para proteger sua conta.
-          </p>
-        </div>
+      <div className="w-full max-w-md">
+        <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-xl">
+          {/* Accent bar */}
+          <div className="h-1 bg-gradient-primary" />
 
-        <Card className="border-border/70 bg-card/92">
-          <CardHeader className="border-b border-border/60 pb-4">
-            <CardTitle className="text-base">Nova senha</CardTitle>
-            <CardDescription>Siga os requisitos abaixo para criar uma senha forte.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-5">
-            {error ? (
-              <div className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            ) : null}
+          <div className="px-6 pt-7 pb-6 sm:px-8">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Defina sua senha</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Este é seu primeiro acesso. Crie uma senha segura para proteger sua conta.
+              </p>
+            </div>
 
-            <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+            {/* Error */}
+            <div
+              className={cn(
+                "mb-4 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-destructive text-sm text-center transition-all duration-200 overflow-hidden",
+                error ? "opacity-100 max-h-20" : "max-h-0 opacity-0 mb-0 py-0 border-0"
+              )}
+            >
+              {error}
+            </div>
+
+            {/* Form */}
+            <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3.5">
               {/* Password field */}
               <div className="space-y-1.5">
                 <label htmlFor={pwId} className="text-sm font-medium text-foreground">
@@ -130,39 +127,43 @@ export default function ChangePassword() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-16 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     placeholder="Digite sua nova senha"
                   />
                   <button
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 hover:text-foreground transition-colors"
                   >
                     {showPw ? "Ocultar" : "Mostrar"}
                   </button>
                 </div>
               </div>
 
-              {/* Strength bar */}
-              {password.length > 0 ? (
-                <div className="space-y-1.5">
-                  <div className="flex gap-1">
-                    {Array.from({ length: RULES.length }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "h-1.5 flex-1 rounded-full transition-all duration-300",
-                          i < score ? STRENGTH_COLORS[score] : "bg-border"
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Força: <span className="text-foreground">{STRENGTH_LABELS[score]}</span>
-                  </p>
+              {/* Strength bar – always rendered to prevent layout shift */}
+              <div
+                className={cn(
+                  "space-y-1.5 transition-opacity duration-200",
+                  password.length > 0 ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <div className="flex gap-1">
+                  {Array.from({ length: RULES.length }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "h-1.5 flex-1 rounded-full transition-all duration-300",
+                        i < score ? STRENGTH_COLORS[score] : "bg-border"
+                      )}
+                    />
+                  ))}
                 </div>
-              ) : null}
+                <p className="text-xs font-medium text-muted-foreground">
+                  Força:{" "}
+                  <span className="text-foreground">{STRENGTH_LABELS[score] || "\u00A0"}</span>
+                </p>
+              </div>
 
               {/* Rules checklist */}
               <div className="rounded-lg border border-border/60 bg-background/60 p-3 space-y-1.5">
@@ -206,7 +207,7 @@ export default function ChangePassword() {
                     onChange={(e) => setConfirm(e.target.value)}
                     autoComplete="new-password"
                     className={cn(
-                      "flex h-10 w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors",
+                      "flex h-10 w-full rounded-md border bg-background px-3 py-2 pr-16 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors",
                       confirm.length > 0
                         ? confirmMatch
                           ? "border-success focus-visible:ring-success"
@@ -219,33 +220,39 @@ export default function ChangePassword() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 hover:text-foreground transition-colors"
                   >
                     {showConfirm ? "Ocultar" : "Mostrar"}
                   </button>
                 </div>
-                {confirm.length > 0 ? (
-                  <p
-                    className={cn(
-                      "text-xs font-medium",
-                      confirmMatch ? "text-success" : "text-destructive"
-                    )}
-                  >
-                    {confirmMatch ? "Senhas coincidem." : "Senhas não coincidem."}
-                  </p>
-                ) : null}
+                <p
+                  className={cn(
+                    "text-xs font-medium transition-opacity duration-200",
+                    confirm.length > 0 ? "opacity-100" : "opacity-0",
+                    confirmMatch ? "text-success" : "text-destructive"
+                  )}
+                >
+                  {confirm.length > 0
+                    ? confirmMatch
+                      ? "Senhas coincidem."
+                      : "Senhas não coincidem."
+                    : "\u00A0"}
+                </p>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={submitting || !allPassed || !confirmMatch}
-              >
-                {submitting ? "Salvando..." : "Definir nova senha"}
-              </Button>
+              <div className="pt-1">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={submitting || !allPassed || !confirmMatch}
+                >
+                  {submitting ? "Salvando..." : "Definir nova senha"}
+                </Button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

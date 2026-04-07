@@ -1,4 +1,4 @@
-import { type ComponentType, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ComponentType, useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -110,7 +110,6 @@ const CONTRACT_STATUS_OPTIONS = [
 ] as const;
 
 const STATUS_BADGES: Record<string, { label: string; className: string }> = {
-  rascunho: { label: "Rascunho", className: "bg-muted text-muted-foreground" },
   agendada: { label: "Agendada", className: "bg-warning/15 text-warning" },
   enviando: { label: "Enviando...", className: "bg-accent/15 text-accent" },
   enviada: { label: "Enviada", className: "bg-success/15 text-success" },
@@ -299,32 +298,12 @@ const AutoResizeTextarea = forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
 >(function AutoResizeTextarea(props, ref) {
-  const internalRef = useRef<HTMLTextAreaElement | null>(null);
-
-  const adjustHeight = useCallback(() => {
-    const el = internalRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, []);
-
-  useEffect(() => {
-    adjustHeight();
-  }, [props.value, adjustHeight]);
-
   return (
     <textarea
       {...props}
-      ref={(node) => {
-        internalRef.current = node;
-        if (typeof ref === "function") ref(node);
-        else if (ref) ref.current = node;
-      }}
-      onInput={(e) => {
-        adjustHeight();
-        props.onInput?.(e);
-      }}
-      className="flex min-h-[120px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      ref={ref}
+      rows={12}
+      className="flex w-full resize-none overflow-hidden rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     />
   );
 });
@@ -341,6 +320,7 @@ export default function AdminNotifications() {
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [historyTick, setHistoryTick] = useState(0);
   const [page, setPage] = useState(0);
 
   const {
@@ -391,10 +371,10 @@ export default function AdminNotifications() {
   }, []);
 
   useEffect(() => {
-    if (tab === "history" && !historyLoaded) {
+    if (tab === "history") {
       void loadHistory();
     }
-  }, [tab, historyLoaded, loadHistory]);
+  }, [tab, historyTick, loadHistory]);
 
   /* ── Available tags ──────────────────────────────────────────── */
 
@@ -437,7 +417,7 @@ export default function AdminNotifications() {
           title: data.title,
           body: data.body,
           type: data.type,
-          status: isScheduled ? "agendada" : "rascunho",
+          status: isScheduled ? "agendada" : "enviando",
           send_at: isScheduled ? new Date(data.send_at!).toISOString() : null,
           filter_mode: data.filter_mode,
           filter_tags: filterTags,
@@ -454,23 +434,37 @@ export default function AdminNotifications() {
 
       // 2. If immediate, trigger the edge function
       if (!isScheduled) {
-        const authHeaders = await getSupabaseFunctionAuthHeaders();
-        const { data: sendResult, error: sendError } = await supabase.functions.invoke(
-          "send-notification",
-          {
-            body: { notification_id: notifData.id },
-            headers: authHeaders,
+        let sendOk = false;
+        try {
+          const authHeaders = await getSupabaseFunctionAuthHeaders();
+          const { data: sendResult, error: sendError } = await supabase.functions.invoke(
+            "send-notification",
+            {
+              body: { notification_id: notifData.id },
+              headers: authHeaders,
+            }
+          );
+
+          if (sendError) throw new Error(`Envio falhou: ${sendError.message}`);
+          if (sendResult?.ok === false) throw new Error(sendResult.error ?? "Falha no envio.");
+
+          sendOk = true;
+          const sentCount = sendResult?.sent_count ?? 0;
+          const errorCount = sendResult?.error_count ?? 0;
+
+          toast.success(`Notificação enviada para ${sentCount} cliente(s).`, {
+            description: errorCount > 0 ? `${errorCount} falha(s) no envio de e-mail.` : undefined,
+          });
+        } finally {
+          // Cleanup: if the send failed, remove the notification and its recipients
+          if (!sendOk) {
+            await supabase
+              .from("notification_recipients")
+              .delete()
+              .eq("notification_id", notifData.id);
+            await supabase.from("notifications").delete().eq("id", notifData.id);
           }
-        );
-
-        if (sendError) throw new Error(`Envio falhou: ${sendError.message}`);
-
-        const sentCount = sendResult?.sent_count ?? 0;
-        const errorCount = sendResult?.error_count ?? 0;
-
-        toast.success(`Notificação enviada para ${sentCount} cliente(s).`, {
-          description: errorCount > 0 ? `${errorCount} falha(s) no envio de e-mail.` : undefined,
-        });
+        }
       } else {
         toast.success("Notificação agendada com sucesso.", {
           description: `Será enviada em ${new Intl.DateTimeFormat("pt-BR", {
@@ -481,7 +475,7 @@ export default function AdminNotifications() {
       }
 
       reset();
-      setHistoryLoaded(false);
+      setHistoryTick((t) => t + 1);
     } catch (submitError) {
       const message =
         submitError instanceof Error
@@ -567,7 +561,9 @@ export default function AdminNotifications() {
                 <Field>
                   <Label>Título *</Label>
                   <Input {...register("title")} placeholder="Ex: Manutenção programada dia 10/04" />
-                  {errors.title ? <ErrorText>{errors.title.message}</ErrorText> : null}
+                  <ErrorText className={errors.title ? "" : "invisible"}>
+                    {errors.title?.message || "\u00A0"}
+                  </ErrorText>
                 </Field>
 
                 <Field>
@@ -589,7 +585,9 @@ export default function AdminNotifications() {
                   placeholder="Escreva o conteúdo da notificação..."
                   value={watch("body") ?? ""}
                 />
-                {errors.body ? <ErrorText>{errors.body.message}</ErrorText> : null}
+                <ErrorText className={errors.body ? "" : "invisible"}>
+                  {errors.body?.message || "\u00A0"}
+                </ErrorText>
               </Field>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -615,9 +613,9 @@ export default function AdminNotifications() {
                         </option>
                       ))}
                     </select>
-                    {errors.filter_contract_status ? (
-                      <ErrorText>{errors.filter_contract_status.message}</ErrorText>
-                    ) : null}
+                    <ErrorText className={errors.filter_contract_status ? "" : "invisible"}>
+                      {errors.filter_contract_status?.message || "\u00A0"}
+                    </ErrorText>
                   </Field>
                 ) : null}
 
@@ -663,7 +661,9 @@ export default function AdminNotifications() {
                   <Field>
                     <Label>Data e hora *</Label>
                     <Input {...register("send_at")} type="datetime-local" />
-                    {errors.send_at ? <ErrorText>{errors.send_at.message}</ErrorText> : null}
+                    <ErrorText className={errors.send_at ? "" : "invisible"}>
+                      {errors.send_at?.message || "\u00A0"}
+                    </ErrorText>
                   </Field>
                 ) : null}
               </div>
@@ -760,7 +760,7 @@ export default function AdminNotifications() {
               <div className="space-y-2">
                 {visibleNotifications.map((notif) => {
                   const typeBadge = TYPE_BADGES[notif.type] ?? TYPE_BADGES.personalizado;
-                  const statusBadge = STATUS_BADGES[notif.status] ?? STATUS_BADGES.rascunho;
+                  const statusBadge = STATUS_BADGES[notif.status] ?? STATUS_BADGES.enviando;
                   const dateStr = notif.sent_at ?? notif.send_at ?? notif.created_at;
                   const formattedDate = new Intl.DateTimeFormat("pt-BR", {
                     dateStyle: "short",
