@@ -212,6 +212,16 @@ export default function ProposalView() {
                   </p>
                 </div>
               )}
+              {proposal.solution_type && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                    Tipo de solucao
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-foreground">
+                    {proposal.solution_type}
+                  </p>
+                </div>
+              )}
             </div>
 
             {proposal.scope_summary && (
@@ -263,6 +273,26 @@ export default function ProposalView() {
                 >
                   <ExternalLink size={16} />
                   Abrir documento
+                </a>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Technical document link */}
+          {proposal.technical_document_url && (
+            <Card className="border-border/70 bg-card/92">
+              <CardContent className="p-4">
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">
+                  Anexo tecnico
+                </p>
+                <a
+                  href={proposal.technical_document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  <ExternalLink size={16} />
+                  Abrir anexo tecnico
                 </a>
               </CardContent>
             </Card>

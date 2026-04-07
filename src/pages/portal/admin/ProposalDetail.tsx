@@ -53,12 +53,14 @@ type FormState = {
   destination_type: DestinationType;
   client_id: string;
   lead_id: string;
+  solution_type: string;
   total_amount: string;
   valid_until: string;
   scope_summary: string;
   payment_conditions: string;
   observations: string;
   document_url: string;
+  technical_document_url: string;
 };
 
 const selectClass =
@@ -75,12 +77,14 @@ function formDefaults(proposal?: ProposalRow | null): FormState {
     destination_type: proposal?.lead_id ? "lead" : "client",
     client_id: proposal?.client_id ?? "",
     lead_id: proposal?.lead_id ?? "",
+    solution_type: proposal?.solution_type ?? "",
     total_amount: proposal ? maskCurrency(String(Math.round(proposal.total_amount * 100))) : "",
     valid_until: proposal?.valid_until ?? "",
     scope_summary: proposal?.scope_summary ?? "",
     payment_conditions: proposal?.payment_conditions ?? "",
     observations: proposal?.observations ?? "",
     document_url: proposal?.document_url ?? "",
+    technical_document_url: proposal?.technical_document_url ?? "",
   };
 }
 
@@ -128,6 +132,21 @@ function ProposalReadOnly({
           </span>
         ) : null}
       </div>
+
+      {/* Warning: proposal for lead without client */}
+      {canApprove && !proposal.client_id && proposal.lead_id && (
+        <div className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/5 p-3">
+          <Shield size={18} className="text-warning shrink-0" />
+          <span className="text-sm text-warning">
+            Esta proposta e para um lead. Para criar o projeto, primeiro converta o lead em cliente
+            na{" "}
+            <Link to="/portal/admin/crm" className="font-medium underline">
+              pagina do CRM
+            </Link>
+            .
+          </span>
+        </div>
+      )}
 
       {/* Admin approve action */}
       {canApprove && (
@@ -200,6 +219,14 @@ function ProposalReadOnly({
           </p>
           <p className="mt-1 text-sm text-foreground">{formatPortalDate(proposal.valid_until)}</p>
         </div>
+        {proposal.solution_type ? (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Tipo de solucao
+            </p>
+            <p className="mt-1 text-sm text-foreground">{proposal.solution_type}</p>
+          </div>
+        ) : null}
       </div>
 
       {proposal.scope_summary ? (
@@ -247,6 +274,23 @@ function ProposalReadOnly({
             className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
             Abrir documento
+            <ExternalLink size={14} />
+          </a>
+        </div>
+      ) : null}
+
+      {proposal.technical_document_url ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Anexo tecnico
+          </p>
+          <a
+            href={proposal.technical_document_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            Abrir anexo tecnico
             <ExternalLink size={14} />
           </a>
         </div>
@@ -389,6 +433,8 @@ export default function ProposalDetail() {
       payment_conditions: form.payment_conditions.trim() || null,
       observations: form.observations.trim() || null,
       document_url: form.document_url.trim() || null,
+      solution_type: form.solution_type.trim() || null,
+      technical_document_url: form.technical_document_url.trim() || null,
       status,
       created_by: user?.id ?? null,
     };
@@ -596,8 +642,33 @@ export default function ProposalDetail() {
       }
     }
 
-    // 2. Create project linked to this proposal
-    const clientId = proposal.client_id;
+    // 2. Resolve client_id (may come from lead conversion)
+    let clientId = proposal.client_id;
+
+    if (!clientId && proposal.lead_id) {
+      // Check if the lead was already converted to a client
+      const { data: leadData } = await supabase
+        .from("leads")
+        .select("converted_client_id")
+        .eq("id", proposal.lead_id)
+        .maybeSingle();
+
+      if (leadData?.converted_client_id) {
+        clientId = leadData.converted_client_id;
+      }
+    }
+
+    if (!clientId) {
+      setApproving(false);
+      toast.error("Nao e possivel criar o projeto.", {
+        description: proposal.lead_id
+          ? "O lead desta proposta ainda nao foi convertido em cliente. Converta o lead primeiro e tente novamente."
+          : "A proposta nao possui um cliente vinculado.",
+      });
+      return;
+    }
+
+    // 3. Create project linked to this proposal
     if (clientId) {
       const { data: newProject } = await supabase
         .from("projects")
@@ -609,6 +680,7 @@ export default function ProposalDetail() {
           current_stage: "Acordo Formal",
           billing_type: "projeto" as const,
           proposal_id: proposal.id,
+          solution_type: proposal.solution_type ?? null,
         })
         .select("id")
         .single();
@@ -625,6 +697,18 @@ export default function ProposalDetail() {
           status: "rascunho" as const,
           payment_model: "50_50" as const,
           created_by: user?.id ?? null,
+        });
+      }
+
+      // 3b. Auto-create document entry for technical attachment
+      if (newProject && proposal.technical_document_url) {
+        void supabase.from("documents").insert({
+          client_id: clientId,
+          project_id: newProject.id,
+          label: `Anexo tecnico - ${proposal.title}`,
+          url: proposal.technical_document_url,
+          type: "outro" as const,
+          uploaded_by: user?.id ?? null,
         });
       }
 
@@ -796,6 +880,17 @@ export default function ProposalDetail() {
               </Field>
             )}
 
+            {/* Solution type */}
+            <Field>
+              <Label htmlFor="solution_type">Tipo de solucao</Label>
+              <Input
+                id="solution_type"
+                value={form.solution_type}
+                onChange={(e) => setField("solution_type", e.target.value)}
+                placeholder="Ex: Site institucional, E-commerce, Sistema web..."
+              />
+            </Field>
+
             {/* Value + Valid until */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
@@ -872,6 +967,28 @@ export default function ProposalDetail() {
                   className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
                   Abrir link
+                  <ExternalLink size={12} />
+                </a>
+              ) : null}
+            </Field>
+
+            {/* Technical Document URL */}
+            <Field>
+              <Label htmlFor="technical_document_url">Anexo tecnico (link)</Label>
+              <Input
+                id="technical_document_url"
+                value={form.technical_document_url}
+                onChange={(e) => setField("technical_document_url", e.target.value)}
+                placeholder="https://drive.google.com/..."
+              />
+              {form.technical_document_url.trim() ? (
+                <a
+                  href={form.technical_document_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  Abrir anexo tecnico
                   <ExternalLink size={12} />
                 </a>
               ) : null}

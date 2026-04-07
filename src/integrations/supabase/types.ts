@@ -1049,12 +1049,15 @@ export type Database = {
         Row: {
           client_id: string;
           client_visible: boolean;
+          client_responded_at: string | null;
+          client_response: string | null;
           created_at: string;
           description: string | null;
           due_date: string | null;
           id: string;
           owner: Database["public"]["Enums"]["next_step_owner"];
           project_id: string;
+          requires_client_action: boolean;
           sort_order: number;
           status: Database["public"]["Enums"]["next_step_status"];
           title: string;
@@ -1063,12 +1066,15 @@ export type Database = {
         Insert: {
           client_id: string;
           client_visible?: boolean;
+          client_responded_at?: string | null;
+          client_response?: string | null;
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
           id?: string;
           owner?: Database["public"]["Enums"]["next_step_owner"];
           project_id: string;
+          requires_client_action?: boolean;
           sort_order?: number;
           status?: Database["public"]["Enums"]["next_step_status"];
           title: string;
@@ -1077,12 +1083,15 @@ export type Database = {
         Update: {
           client_id?: string;
           client_visible?: boolean;
+          client_responded_at?: string | null;
+          client_response?: string | null;
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
           id?: string;
           owner?: Database["public"]["Enums"]["next_step_owner"];
           project_id?: string;
+          requires_client_action?: boolean;
           sort_order?: number;
           status?: Database["public"]["Enums"]["next_step_status"];
           title?: string;
@@ -1181,6 +1190,8 @@ export type Database = {
           payment_conditions: string | null;
           observations: string | null;
           document_url: string | null;
+          solution_type: string | null;
+          technical_document_url: string | null;
           approved_at: string | null;
           rejected_at: string | null;
           rejection_reason: string | null;
@@ -1201,6 +1212,8 @@ export type Database = {
           payment_conditions?: string | null;
           observations?: string | null;
           document_url?: string | null;
+          solution_type?: string | null;
+          technical_document_url?: string | null;
           approved_at?: string | null;
           rejected_at?: string | null;
           rejection_reason?: string | null;
@@ -1221,6 +1234,8 @@ export type Database = {
           payment_conditions?: string | null;
           observations?: string | null;
           document_url?: string | null;
+          solution_type?: string | null;
+          technical_document_url?: string | null;
           approved_at?: string | null;
           rejected_at?: string | null;
           rejection_reason?: string | null;

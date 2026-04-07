@@ -22,6 +22,27 @@ export type TicketStatus = "aberto" | "em_andamento" | "resolvido" | "fechado";
 export type TicketPriority = "baixa" | "media" | "alta";
 export type TicketCategory = "bug" | "duvida" | "acesso" | "financeiro" | "conteudo" | "outro";
 
+export const PROJECT_TAG_OPTIONS = [
+  "Site Institucional",
+  "Landing Page",
+  "E-commerce",
+  "Aplicacao Web",
+  "App Mobile",
+  "Sistema Web (SaaS)",
+  "Identidade Visual",
+  "Branding",
+  "UI/UX Design",
+  "SEO",
+  "Marketing Digital",
+  "Manutencao",
+  "Consultoria",
+  "Integracao de Sistemas",
+  "API",
+  "Infraestrutura / DevOps",
+  "Redesign",
+  "MVP",
+] as const;
+
 export const PROJECT_STAGE_OPTIONS = [
   {
     order: 1,

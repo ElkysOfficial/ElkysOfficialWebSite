@@ -30,6 +30,7 @@ import {
 import {
   PROJECT_STAGE_OPTIONS,
   PROJECT_STATUS_META,
+  PROJECT_TAG_OPTIONS,
   getClientDisplayName,
   getProjectStatusForStage,
 } from "@/lib/portal";
@@ -878,46 +879,30 @@ export default function AdminProjectCreate() {
 
               <Field className="md:col-span-2">
                 <Label>Tags</Label>
-                <div className="space-y-2">
-                  {form.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {form.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setField(
-                                "tags",
-                                form.tags.filter((t) => t !== tag)
-                              )
-                            }
-                            className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20"
-                          >
-                            <span className="text-[10px]">✕</span>
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <Input
-                    value={form.tag_input}
-                    onChange={(event) => setField("tag_input", event.target.value)}
-                    onKeyDown={(event) => {
-                      if ((event.key === "Enter" || event.key === ",") && form.tag_input.trim()) {
-                        event.preventDefault();
-                        const newTag = form.tag_input.trim().replace(/,/g, "");
-                        if (newTag && !form.tags.includes(newTag)) {
-                          setField("tags", [...form.tags, newTag]);
+                <div className="flex flex-wrap gap-2">
+                  {PROJECT_TAG_OPTIONS.map((tag) => {
+                    const isSelected = form.tags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() =>
+                          setField(
+                            "tags",
+                            isSelected ? form.tags.filter((t) => t !== tag) : [...form.tags, tag]
+                          )
                         }
-                        setField("tag_input", "");
-                      }
-                    }}
-                    placeholder="Digite uma tag e pressione Enter..."
-                  />
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/70 bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                        )}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
                 </div>
               </Field>
 

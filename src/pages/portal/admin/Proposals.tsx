@@ -1,5 +1,5 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FileText, Search, Shield, TrendingUp, Wallet } from "@/assets/icons";
@@ -7,7 +7,7 @@ import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
 import ExportMenu from "@/components/portal/ExportMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
-import { Button, Card, CardContent, Input, cn } from "@/design-system";
+import { AlertDialog, Button, Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
@@ -76,6 +76,71 @@ function getDestinationName(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Row action menu                                                    */
+/* ------------------------------------------------------------------ */
+
+function RowActionMenu({
+  actions,
+}: {
+  actions: { label: string; onClick: () => void; destructive?: boolean }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        aria-label="Acoes"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="8" cy="3" r="1.5" />
+          <circle cx="8" cy="8" r="1.5" />
+          <circle cx="8" cy="13" r="1.5" />
+        </svg>
+      </button>
+      {open ? (
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-border/80 bg-card py-1 shadow-lg">
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(false);
+                action.onClick();
+              }}
+              className={cn(
+                "flex w-full items-center px-3 py-2 text-left text-sm transition-colors hover:bg-muted",
+                action.destructive ? "text-destructive" : "text-foreground"
+              )}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Column header                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -111,25 +176,46 @@ function ColumnHeader() {
 function ProposalRow({
   proposal,
   destinationName,
+  onDelete,
 }: {
   proposal: ProposalRow;
   destinationName: string;
+  onDelete: (proposal: ProposalRow) => void;
 }) {
+  const navigate = useNavigate();
   const meta =
     PROPOSAL_STATUS_META[(proposal.status as ProposalStatus) ?? "rascunho"] ??
     PROPOSAL_STATUS_META.rascunho;
 
+  const actions: { label: string; onClick: () => void; destructive?: boolean }[] = [
+    {
+      label: "Ver detalhes",
+      onClick: () => navigate(`/portal/admin/propostas/${proposal.id}`),
+    },
+    {
+      label: "Excluir proposta",
+      onClick: () => onDelete(proposal),
+      destructive: true,
+    },
+  ];
+
   return (
-    <Link
-      to={`/portal/admin/propostas/${proposal.id}`}
-      className="group grid grid-cols-1 items-center gap-x-4 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_180px_120px_120px_110px_110px_40px] md:gap-y-3"
-    >
+    <div className="group grid grid-cols-1 items-center gap-x-4 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_180px_120px_120px_110px_110px_40px] md:gap-y-3">
       {/* Col 1 — Client/Lead */}
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
-          {destinationName}
-        </p>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground md:hidden">{proposal.title}</p>
+      <div className="flex items-start justify-between gap-2 md:contents">
+        <Link to={`/portal/admin/propostas/${proposal.id}`} className="min-w-0">
+          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+            {destinationName}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground md:hidden">
+            {proposal.title}
+          </p>
+        </Link>
+
+        {/* Mobile actions */}
+        <div className="shrink-0 md:hidden">
+          <RowActionMenu actions={actions} />
+        </div>
       </div>
 
       {/* Mobile: secondary info */}
@@ -166,25 +252,11 @@ function ProposalRow({
         {formatPortalDate(proposal.created_at?.slice(0, 10))}
       </p>
 
-      {/* Col 7 — Action arrow (desktop) */}
-      <div className="hidden items-center justify-center md:flex">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          className="text-muted-foreground transition-colors group-hover:text-primary"
-        >
-          <path
-            d="M6 3l5 5-5 5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+      {/* Col 7 — Actions (desktop) */}
+      <div className="hidden md:block">
+        <RowActionMenu actions={actions} />
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -203,6 +275,8 @@ export default function Proposals() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
+  const [proposalToDelete, setProposalToDelete] = useState<ProposalRow | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   /* ── Data fetching ── */
 
@@ -336,10 +410,44 @@ export default function Proposals() {
       rows: exportRows,
     });
 
+  const handleDeleteProposal = async () => {
+    if (!proposalToDelete) return;
+    setDeleteLoading(true);
+
+    try {
+      const { error } = await supabase.from("proposals").delete().eq("id", proposalToDelete.id);
+
+      if (error) throw error;
+
+      setProposals((prev) => prev.filter((p) => p.id !== proposalToDelete.id));
+      toast.success("Proposta excluida com sucesso.");
+      setProposalToDelete(null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error(`Erro ao excluir proposta: ${message}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   /* ── Render ── */
+
+  const deleteDisplayName = proposalToDelete?.title ?? "";
 
   return (
     <div className="space-y-8">
+      <AlertDialog
+        open={proposalToDelete !== null}
+        title="Excluir proposta"
+        description={`Tem certeza que deseja excluir "${deleteDisplayName}"? Esta acao nao pode ser desfeita.`}
+        confirmLabel="Excluir"
+        destructive
+        loading={deleteLoading}
+        loadingLabel="Excluindo..."
+        onConfirm={() => void handleDeleteProposal()}
+        onCancel={() => setProposalToDelete(null)}
+      />
+
       {/* ── Action bar ── */}
       <div className="flex items-center justify-between">
         <div>
@@ -455,6 +563,7 @@ export default function Proposals() {
               key={proposal.id}
               proposal={proposal}
               destinationName={getDestinationName(proposal, clientsMap, leadsMap)}
+              onDelete={setProposalToDelete}
             />
           ))}
 

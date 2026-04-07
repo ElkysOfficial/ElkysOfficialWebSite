@@ -79,6 +79,7 @@ type NextStepFormState = {
   status: NextStepStatus;
   due_date: string;
   client_visible: boolean;
+  requires_client_action: boolean;
 };
 
 type InstallmentFormState = {
@@ -97,6 +98,7 @@ function getNextStepFormDefaults(
     status: step?.status ?? "pendente",
     due_date: formatDateInput(step?.due_date ?? null),
     client_visible: step?.client_visible ?? true,
+    requires_client_action: step?.requires_client_action ?? false,
   };
 }
 
@@ -396,6 +398,8 @@ export default function AdminProjectDetail() {
   const [projectForm, setProjectForm] = useState({
     name: "",
     solution_type: "",
+    description: "",
+    internal_notes: "",
     status: "negociacao" as ProjectStatus,
     current_stage: "",
     started_at: "",
@@ -672,6 +676,8 @@ export default function AdminProjectDetail() {
     setProjectForm({
       name: projectRes.project.name,
       solution_type: projectRes.project.solution_type ?? "",
+      description: projectRes.project.description ?? "",
+      internal_notes: projectRes.project.internal_notes ?? "",
       status: projectRes.project.status,
       current_stage: projectRes.project.current_stage,
       started_at: formatDateInput(projectRes.project.started_at),
@@ -799,6 +805,8 @@ export default function AdminProjectDetail() {
         .update({
           name: projectForm.name.trim(),
           solution_type: projectForm.solution_type.trim(),
+          description: projectForm.description.trim() || null,
+          internal_notes: projectForm.internal_notes.trim() || null,
           status: nextStatus,
           current_stage: projectForm.current_stage.trim(),
           started_at: startedAtIso,
@@ -966,6 +974,31 @@ export default function AdminProjectDetail() {
 
       await insertTimelineEvents(timelineEvents);
 
+      // Notify client about stage or status change (fire-and-forget)
+      if (
+        previousStage !== nextStage ||
+        (previousStatus !== nextStatus && nextStatus !== "concluido")
+      ) {
+        try {
+          const progressHeaders = await getSupabaseFunctionAuthHeaders();
+          const isStageChange = previousStage !== nextStage;
+          void supabase.functions.invoke("send-project-stage-changed", {
+            body: {
+              client_id: client.id,
+              project_id: project.id,
+              project_name: projectForm.name.trim(),
+              change_type: isStageChange ? "stage" : "status",
+              from_value: isStageChange ? previousStage : PROJECT_STATUS_META[previousStatus].label,
+              to_value: isStageChange ? nextStage : PROJECT_STATUS_META[nextStatus].label,
+              client_visible_summary: projectForm.client_visible_summary.trim() || undefined,
+            },
+            headers: progressHeaders,
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
+
       // Notify client when project is delivered (fire-and-forget)
       if (previousStatus !== "concluido" && nextStatus === "concluido") {
         try {
@@ -1015,6 +1048,7 @@ export default function AdminProjectDetail() {
         status: form.status,
         due_date: dueDateIso,
         client_visible: form.client_visible,
+        requires_client_action: form.requires_client_action,
         updated_at: new Date().toISOString(),
       })
       .eq("id", stepId);
@@ -1071,6 +1105,7 @@ export default function AdminProjectDetail() {
         status: newNextStepForm.status,
         due_date: dueDateIso,
         client_visible: newNextStepForm.client_visible,
+        requires_client_action: newNextStepForm.requires_client_action,
         sort_order: nextSteps.length,
       })
       .select("id")
@@ -1090,22 +1125,51 @@ export default function AdminProjectDetail() {
         project_id: project.id,
         actor_user_id: user?.id ?? null,
         event_type: "next_step_created",
-        title: "Nova pendencia registrada",
-        summary: `${newNextStepForm.title.trim()} foi adicionada ao plano de acao do projeto.`,
+        title: newNextStepForm.requires_client_action
+          ? "Solicitacao enviada ao cliente"
+          : "Nova pendencia registrada",
+        summary: newNextStepForm.requires_client_action
+          ? `Solicitacao "${newNextStepForm.title.trim()}" enviada ao cliente para acao.`
+          : `${newNextStepForm.title.trim()} foi adicionada ao plano de acao do projeto.`,
         visibility: newNextStepForm.client_visible ? "ambos" : "interno",
         source_table: "project_next_steps",
         source_id: data.id,
         metadata: {
           status: newNextStepForm.status,
           due_date: dueDateIso,
+          requires_client_action: newNextStepForm.requires_client_action,
         },
       });
     } catch {
       // timeline log is non-critical
     }
 
+    // Notify client by email when action is required (fire-and-forget)
+    if (newNextStepForm.requires_client_action && newNextStepForm.client_visible) {
+      try {
+        const actionHeaders = await getSupabaseFunctionAuthHeaders();
+        void supabase.functions.invoke("send-client-action-required", {
+          body: {
+            client_id: client.id,
+            project_id: project.id,
+            project_name: project.name,
+            step_title: newNextStepForm.title.trim(),
+            step_description: newNextStepForm.description.trim() || undefined,
+            due_date: dueDateIso || undefined,
+          },
+          headers: actionHeaders,
+        });
+      } catch {
+        // Non-blocking
+      }
+    }
+
     setCreatingStep(false);
-    toast.success("Pendencia criada.");
+    toast.success(
+      newNextStepForm.requires_client_action
+        ? "Solicitacao criada e cliente notificado."
+        : "Pendencia criada."
+    );
     await loadProject();
   };
 
@@ -1736,6 +1800,21 @@ export default function AdminProjectDetail() {
         </div>
 
         <Field>
+          <Label>Descricao do projeto</Label>
+          <Textarea
+            rows={3}
+            value={projectForm.description}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
+            }
+            placeholder="Descricao geral do projeto (escopo, objetivos, contexto)..."
+          />
+        </Field>
+
+        <Field>
           <Label>Resumo visivel para o cliente</Label>
           <Textarea
             rows={5}
@@ -1747,6 +1826,22 @@ export default function AdminProjectDetail() {
               }))
             }
           />
+        </Field>
+
+        <Field>
+          <Label>Notas internas</Label>
+          <Textarea
+            rows={3}
+            value={projectForm.internal_notes}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                internal_notes: event.target.value,
+              }))
+            }
+            placeholder="Notas visiveis apenas para a equipe interna..."
+          />
+          <p className="text-xs text-muted-foreground mt-1">Visivel apenas para administradores.</p>
         </Field>
 
         <Button type="button" disabled={saving} onClick={() => void handleSaveProject()}>
@@ -1879,8 +1974,31 @@ export default function AdminProjectDetail() {
                   />
                 </Field>
 
-                {/* Footer: visibility toggle + save aligned */}
-                <div className="mt-3 flex items-center justify-between gap-3">
+                {/* Client response (read-only for admin) */}
+                {step.requires_client_action && step.client_response && (
+                  <div className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
+                    <p className="text-[10px] font-semibold uppercase text-accent mb-1">
+                      Resposta do cliente
+                      {step.client_responded_at
+                        ? ` — ${new Date(step.client_responded_at).toLocaleDateString("pt-BR")}`
+                        : ""}
+                    </p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {step.client_response}
+                    </p>
+                  </div>
+                )}
+
+                {step.requires_client_action && !step.client_responded_at && (
+                  <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
+                    <p className="text-xs font-medium text-warning">
+                      Aguardando resposta do cliente
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer: visibility toggle + action toggle + save */}
+                <div className="mt-3 flex flex-wrap items-center gap-4">
                   <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
@@ -1891,6 +2009,9 @@ export default function AdminProjectDetail() {
                           [step.id]: {
                             ...form,
                             client_visible: event.target.checked,
+                            requires_client_action: event.target.checked
+                              ? form.requires_client_action
+                              : false,
                           },
                         }))
                       }
@@ -1899,14 +2020,36 @@ export default function AdminProjectDetail() {
                     Visivel para o cliente
                   </label>
 
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={stepSavingId === step.id}
-                    onClick={() => void handleSaveNextStep(step.id)}
-                  >
-                    {stepSavingId === step.id ? "Salvando..." : "Salvar"}
-                  </Button>
+                  {form.client_visible && (
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-accent font-medium">
+                      <input
+                        type="checkbox"
+                        checked={form.requires_client_action}
+                        onChange={(event) =>
+                          setNextStepForms((current) => ({
+                            ...current,
+                            [step.id]: {
+                              ...form,
+                              requires_client_action: event.target.checked,
+                            },
+                          }))
+                        }
+                        className="h-4 w-4 rounded border-border accent-accent"
+                      />
+                      Requer acao do cliente
+                    </label>
+                  )}
+
+                  <div className="ml-auto">
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={stepSavingId === step.id}
+                      onClick={() => void handleSaveNextStep(step.id)}
+                    >
+                      {stepSavingId === step.id ? "Salvando..." : "Salvar"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             );
@@ -2004,7 +2147,7 @@ export default function AdminProjectDetail() {
               />
             </Field>
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-4">
               <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
                 <input
                   type="checkbox"
@@ -2013,6 +2156,9 @@ export default function AdminProjectDetail() {
                     setNewNextStepForm((current) => ({
                       ...current,
                       client_visible: event.target.checked,
+                      requires_client_action: event.target.checked
+                        ? current.requires_client_action
+                        : false,
                     }))
                   }
                   className="h-4 w-4 rounded border-border accent-primary"
@@ -2020,14 +2166,33 @@ export default function AdminProjectDetail() {
                 Visivel para o cliente
               </label>
 
-              <Button
-                type="button"
-                size="sm"
-                disabled={creatingStep}
-                onClick={() => void handleCreateNextStep()}
-              >
-                {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
-              </Button>
+              {newNextStepForm.client_visible && (
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-accent font-medium">
+                  <input
+                    type="checkbox"
+                    checked={newNextStepForm.requires_client_action}
+                    onChange={(event) =>
+                      setNewNextStepForm((current) => ({
+                        ...current,
+                        requires_client_action: event.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-border accent-accent"
+                  />
+                  Requer acao do cliente
+                </label>
+              )}
+
+              <div className="ml-auto">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={creatingStep}
+                  onClick={() => void handleCreateNextStep()}
+                >
+                  {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

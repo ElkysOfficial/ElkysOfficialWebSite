@@ -1,11 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import { toast } from "sonner";
+
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import StatusBadge from "@/components/portal/StatusBadge";
-import { Card, CardContent, CardHeader, CardTitle, buttonVariants, cn } from "@/design-system";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Textarea,
+  buttonVariants,
+  cn,
+} from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { insertTimelineEvent } from "@/lib/timeline";
 import {
   CHARGE_STATUS_META,
   DOCUMENT_TYPE_LABEL,
@@ -69,6 +82,8 @@ export default function ClientProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [tab, setTab] = useState<ClientProjectTab>("detalhes");
+  const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
+  const [respondingId, setRespondingId] = useState<string | null>(null);
 
   const financialItems = useMemo(
     () =>
@@ -145,6 +160,61 @@ export default function ClientProjectDetail() {
     void loadProject();
   }, [id, user?.id]);
 
+  const handleRespondToStep = async (stepId: string) => {
+    const responseText = (responseTexts[stepId] ?? "").trim();
+    if (!responseText) {
+      toast.error("Escreva sua resposta antes de enviar.");
+      return;
+    }
+
+    setRespondingId(stepId);
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("project_next_steps")
+      .update({
+        client_response: responseText,
+        client_responded_at: now,
+        updated_at: now,
+      })
+      .eq("id", stepId);
+
+    if (error) {
+      setRespondingId(null);
+      toast.error("Erro ao enviar resposta.", { description: error.message });
+      return;
+    }
+
+    // Update local state
+    setNextSteps((current) =>
+      current.map((step) =>
+        step.id === stepId
+          ? { ...step, client_response: responseText, client_responded_at: now }
+          : step
+      )
+    );
+    setResponseTexts((current) => ({ ...current, [stepId]: "" }));
+
+    // Timeline event (non-blocking)
+    const step = nextSteps.find((s) => s.id === stepId);
+    if (project && step) {
+      void insertTimelineEvent({
+        client_id: project.client_id,
+        project_id: project.id,
+        event_type: "next_step_updated",
+        title: "Cliente respondeu a solicitacao",
+        summary: `Resposta enviada para "${step.title}".`,
+        visibility: "ambos",
+        source_table: "project_next_steps",
+        source_id: stepId,
+        metadata: { responded_at: now },
+      });
+    }
+
+    setRespondingId(null);
+    toast.success("Resposta enviada com sucesso!");
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -184,6 +254,24 @@ export default function ClientProjectDetail() {
 
   return (
     <div className="space-y-6">
+      {/* Pause reason banner */}
+      {project.status === "pausado" && project.pause_reason && (
+        <div className="flex items-center gap-3 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3">
+          <span className="text-sm font-medium text-warning">Projeto pausado</span>
+          <span className="text-sm text-muted-foreground">
+            {project.pause_reason === "dependencia_cliente"
+              ? "Aguardando informacoes ou acao do cliente."
+              : project.pause_reason === "financeiro"
+                ? "Pendencia financeira em aberto."
+                : project.pause_reason === "escopo"
+                  ? "Aguardando definicao de escopo."
+                  : project.pause_reason === "interno"
+                    ? "Reorganizacao interna da equipe."
+                    : "Motivo informado pela equipe."}
+          </span>
+        </div>
+      )}
+
       <Card className="border-border/70 bg-card/92">
         <CardHeader className="border-b border-border/60">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -275,20 +363,83 @@ export default function ClientProjectDetail() {
                   Nenhum proximo passo compartilhado no momento.
                 </p>
               ) : (
-                nextSteps.map((stepItem) => (
-                  <div
-                    key={stepItem.id}
-                    className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4"
-                  >
-                    <p className="text-sm font-semibold text-foreground">{stepItem.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Responsavel: {NEXT_STEP_OWNER_LABEL[stepItem.owner]}
-                    </p>
-                    {stepItem.description ? (
-                      <p className="mt-2 text-sm text-foreground">{stepItem.description}</p>
-                    ) : null}
-                  </div>
-                ))
+                nextSteps.map((stepItem) => {
+                  const needsResponse =
+                    stepItem.requires_client_action && !stepItem.client_responded_at;
+                  const hasResponded =
+                    stepItem.requires_client_action && Boolean(stepItem.client_responded_at);
+
+                  return (
+                    <div
+                      key={stepItem.id}
+                      className={cn(
+                        "rounded-xl border px-4 py-3 sm:px-5 sm:py-4",
+                        needsResponse
+                          ? "border-accent/40 bg-accent/5"
+                          : "border-border/50 bg-background/60"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-semibold text-foreground">{stepItem.title}</p>
+                        {needsResponse && <StatusBadge label="Acao necessaria" tone="accent" />}
+                        {hasResponded && <StatusBadge label="Respondido" tone="success" />}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Responsavel: {NEXT_STEP_OWNER_LABEL[stepItem.owner]}
+                      </p>
+                      {stepItem.due_date ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Prazo: {formatPortalDate(stepItem.due_date)}
+                        </p>
+                      ) : null}
+                      {stepItem.description ? (
+                        <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">
+                          {stepItem.description}
+                        </p>
+                      ) : null}
+
+                      {/* Already responded */}
+                      {hasResponded && stepItem.client_response && (
+                        <div className="mt-3 rounded-lg border border-success/30 bg-success/5 p-3">
+                          <p className="text-[10px] font-semibold uppercase text-success mb-1">
+                            Sua resposta
+                          </p>
+                          <p className="text-sm text-foreground whitespace-pre-wrap">
+                            {stepItem.client_response}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Response form */}
+                      {needsResponse && (
+                        <div className="mt-3 space-y-2">
+                          <Textarea
+                            rows={3}
+                            value={responseTexts[stepItem.id] ?? ""}
+                            onChange={(e) =>
+                              setResponseTexts((current) => ({
+                                ...current,
+                                [stepItem.id]: e.target.value,
+                              }))
+                            }
+                            placeholder="Escreva sua resposta aqui..."
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={
+                              respondingId === stepItem.id ||
+                              !(responseTexts[stepItem.id] ?? "").trim()
+                            }
+                            onClick={() => void handleRespondToStep(stepItem.id)}
+                          >
+                            {respondingId === stepItem.id ? "Enviando..." : "Enviar resposta"}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </CardContent>
           </Card>
