@@ -29,7 +29,16 @@ import {
   unmaskCurrency,
 } from "@/lib/masks";
 
-const CATEGORIES = ["Infraestrutura", "Ferramentas", "Marketing", "Pessoal", "Impostos", "Outros"];
+const CATEGORIES = [
+  { value: "geral", label: "Geral" },
+  { value: "software", label: "Software / Ferramentas" },
+  { value: "infra", label: "Infraestrutura" },
+  { value: "marketing", label: "Marketing" },
+  { value: "pessoal", label: "Pessoal" },
+  { value: "equipamento", label: "Equipamento" },
+  { value: "servico_terceiro", label: "Serviço de Terceiro" },
+  { value: "imposto", label: "Impostos" },
+];
 
 const ENTRY_MODES = [
   {
@@ -293,9 +302,9 @@ export default function AdminExpenseCreate() {
                   className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Selecione</option>
-                  {CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
+                  {CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
                     </option>
                   ))}
                 </select>

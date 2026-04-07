@@ -454,6 +454,11 @@ export default function ProposalDetail() {
       return;
     }
 
+    if (!form.client_id && !form.lead_id) {
+      toast.error("Selecione um cliente ou lead para a proposta.");
+      return;
+    }
+
     setSaving(true);
 
     try {

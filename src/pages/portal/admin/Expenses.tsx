@@ -32,6 +32,22 @@ import {
 
 const PAGE_SIZE = 10;
 
+const CATEGORY_LABELS: Record<string, string> = {
+  geral: "Geral",
+  software: "Software / Ferramentas",
+  infra: "Infraestrutura",
+  marketing: "Marketing",
+  pessoal: "Pessoal",
+  equipamento: "Equipamento",
+  servico_terceiro: "Serviço de Terceiro",
+  imposto: "Impostos",
+};
+
+const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
+
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
 type ExpenseEditor = {
@@ -328,7 +344,7 @@ export default function AdminExpenses() {
 
   const expExportRows = filteredExpenses.map((e) => ({
     description: e.description,
-    category: e.category,
+    category: CATEGORY_LABELS[e.category] ?? e.category,
     amount: formatBRL(Number(e.amount)),
     date: new Date(`${e.expense_date}T00:00:00`).toLocaleDateString("pt-BR"),
     notes: e.notes ?? "",
@@ -489,7 +505,7 @@ export default function AdminExpenses() {
             {categoryBreakdown.map((item) => (
               <div key={item.category} className="flex items-center gap-3">
                 <span className="w-24 truncate text-xs font-medium text-foreground sm:w-32">
-                  {item.category}
+                  {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted/40">
                   <div
@@ -542,7 +558,7 @@ export default function AdminExpenses() {
           <option value="all">Todas categorias</option>
           {categories.map((category) => (
             <option key={category} value={category}>
-              {category}
+              {CATEGORY_LABELS[category] ?? category}
             </option>
           ))}
         </select>
@@ -636,9 +652,9 @@ export default function AdminExpenses() {
                           }
                           className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         >
-                          {categories.map((category) => (
-                            <option key={category} value={category}>
-                              {category}
+                          {CATEGORY_OPTIONS.map((cat) => (
+                            <option key={cat.value} value={cat.value}>
+                              {cat.label}
                             </option>
                           ))}
                         </select>
@@ -744,7 +760,9 @@ export default function AdminExpenses() {
 
                     {/* Mobile: compact row */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 md:hidden">
-                      <span className="text-xs text-muted-foreground">{expense.category}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {CATEGORY_LABELS[expense.category] ?? expense.category}
+                      </span>
                       <span className="text-xs text-muted-foreground">
                         {formatExpenseDate(expense.expense_date)}
                       </span>
@@ -755,7 +773,7 @@ export default function AdminExpenses() {
 
                     {/* Desktop columns */}
                     <p className="hidden text-sm text-muted-foreground md:block">
-                      {expense.category}
+                      {CATEGORY_LABELS[expense.category] ?? expense.category}
                     </p>
 
                     <p className="hidden text-sm text-muted-foreground md:block">
