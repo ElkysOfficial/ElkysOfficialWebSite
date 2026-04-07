@@ -1206,6 +1206,7 @@ export type Database = {
           name: string;
           pause_reason: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source: Database["public"]["Enums"]["pause_source"] | null;
+          proposal_id: string | null;
           solution_type: string | null;
           started_at: string;
           status: Database["public"]["Enums"]["project_status"];
@@ -1228,6 +1229,7 @@ export type Database = {
           name: string;
           pause_reason?: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source?: Database["public"]["Enums"]["pause_source"] | null;
+          proposal_id?: string | null;
           solution_type?: string | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["project_status"];
@@ -1247,6 +1249,7 @@ export type Database = {
           id?: string;
           internal_notes?: string | null;
           manual_status_override?: boolean;
+          proposal_id?: string | null;
           name?: string;
           pause_reason?: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source?: Database["public"]["Enums"]["pause_source"] | null;

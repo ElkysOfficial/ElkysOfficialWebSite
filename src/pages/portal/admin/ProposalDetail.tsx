@@ -18,6 +18,7 @@ import {
 } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, maskCurrency, unmaskCurrency } from "@/lib/masks";
 import { formatPortalDate, formatPortalDateTime } from "@/lib/portal";
@@ -90,12 +91,20 @@ function formDefaults(proposal?: ProposalRow | null): FormState {
 function ProposalReadOnly({
   proposal,
   destinationLabel,
+  onApprove,
+  approving,
+  linkedProjectId,
 }: {
   proposal: ProposalRow;
   destinationLabel: string;
+  onApprove: () => void;
+  approving: boolean;
+  linkedProjectId: string | null;
 }) {
   const meta =
     PROPOSAL_STATUS_META[proposal.status as ProposalStatus] ?? PROPOSAL_STATUS_META.rascunho;
+
+  const canApprove = proposal.status === "enviada";
 
   return (
     <div className="space-y-6">
@@ -118,6 +127,33 @@ function ProposalReadOnly({
           </span>
         ) : null}
       </div>
+
+      {/* Admin approve action */}
+      {canApprove && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+          <Button type="button" disabled={approving} onClick={onApprove}>
+            {approving ? "Aprovando..." : "Aprovar e criar projeto"}
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Ao aprovar, um projeto sera criado automaticamente vinculado a esta proposta.
+          </span>
+        </div>
+      )}
+
+      {/* Linked project reference */}
+      {linkedProjectId && (
+        <div className="flex items-center gap-3 rounded-lg border border-success/30 bg-success/5 p-3">
+          <span className="text-sm text-success font-medium">
+            Projeto criado a partir desta proposta:
+          </span>
+          <Link
+            to={`/portal/admin/projetos/${linkedProjectId}`}
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Ver projeto →
+          </Link>
+        </div>
+      )}
 
       {/* Rejection reason */}
       {proposal.rejection_reason ? (
@@ -230,6 +266,8 @@ export default function ProposalDetail() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [linkedProjectId, setLinkedProjectId] = useState<string | null>(null);
 
   /* ── Helpers ── */
 
@@ -312,6 +350,16 @@ export default function ProposalDetail() {
 
       setProposal(proposalRes.data);
       setForm(formDefaults(proposalRes.data));
+
+      // Check if a project was already created from this proposal
+      const { data: linkedProject } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("proposal_id", proposalRes.data.id)
+        .limit(1)
+        .maybeSingle();
+
+      setLinkedProjectId(linkedProject?.id ?? null);
     }
 
     setLoading(false);
@@ -418,6 +466,43 @@ export default function ProposalDetail() {
         }
 
         toast.success("Proposta enviada com sucesso.");
+
+        // Notify client by email (fire-and-forget)
+        if (form.destination_type === "client" && form.client_id) {
+          try {
+            const headers = await getSupabaseFunctionAuthHeaders();
+            void supabase.functions.invoke("send-proposal-sent", {
+              body: { proposal_id: proposal!.id, client_id: form.client_id },
+              headers,
+            });
+          } catch {
+            // Non-blocking
+          }
+        }
+
+        // Sync: update lead status to "proposta" if linked to a lead
+        if (form.destination_type === "lead" && form.lead_id) {
+          void supabase
+            .from("leads")
+            .update({ status: "proposta", updated_at: new Date().toISOString() })
+            .eq("id", form.lead_id)
+            .in("status", ["novo", "qualificado"]);
+        }
+
+        // Timeline: record proposal sent event
+        if (form.destination_type === "client" && form.client_id) {
+          void supabase.from("timeline_events").insert({
+            client_id: form.client_id,
+            event_type: "proposta_enviada",
+            title: "Proposta enviada",
+            summary: `Proposta "${form.title.trim()}" enviada para avaliacao.`,
+            visibility: "ambos",
+            source_table: "proposals",
+            source_id: proposal?.id ?? null,
+            actor_user_id: user?.id ?? null,
+          });
+        }
+
         void loadData();
       } else {
         const { data, error } = await supabase
@@ -432,6 +517,43 @@ export default function ProposalDetail() {
         }
 
         toast.success("Proposta criada e enviada.");
+
+        // Notify client by email (fire-and-forget)
+        if (form.destination_type === "client" && form.client_id) {
+          try {
+            const headers = await getSupabaseFunctionAuthHeaders();
+            void supabase.functions.invoke("send-proposal-sent", {
+              body: { proposal_id: data.id, client_id: form.client_id },
+              headers,
+            });
+          } catch {
+            // Non-blocking
+          }
+        }
+
+        // Sync lead status
+        if (form.destination_type === "lead" && form.lead_id) {
+          void supabase
+            .from("leads")
+            .update({ status: "proposta", updated_at: new Date().toISOString() })
+            .eq("id", form.lead_id)
+            .in("status", ["novo", "qualificado"]);
+        }
+
+        // Timeline event
+        if (form.destination_type === "client" && form.client_id) {
+          void supabase.from("timeline_events").insert({
+            client_id: form.client_id,
+            event_type: "proposta_enviada",
+            title: "Proposta enviada",
+            summary: `Proposta "${form.title.trim()}" enviada para avaliacao.`,
+            visibility: "ambos",
+            source_table: "proposals",
+            source_id: data.id,
+            actor_user_id: user?.id ?? null,
+          });
+        }
+
         navigate(`/portal/admin/propostas/${data.id}`);
       }
     } catch (err) {
@@ -440,6 +562,73 @@ export default function ProposalDetail() {
     } finally {
       setSending(false);
     }
+  }
+
+  /* ── Approve proposal (admin) ── */
+
+  async function handleApprove() {
+    if (!proposal) return;
+
+    setApproving(true);
+
+    // 1. Update proposal status to approved
+    const { error: approveError } = await supabase
+      .from("proposals")
+      .update({
+        status: "aprovada",
+        approved_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", proposal.id);
+
+    if (approveError) {
+      setApproving(false);
+      toast.error("Erro ao aprovar proposta.", { description: approveError.message });
+      return;
+    }
+
+    // 2. Create project linked to this proposal
+    const clientId = proposal.client_id;
+    if (clientId) {
+      const { data: newProject } = await supabase
+        .from("projects")
+        .insert({
+          client_id: clientId,
+          name: proposal.title,
+          description: proposal.scope_summary ?? null,
+          status: "negociacao" as const,
+          current_stage: "Acordo Formal",
+          billing_type: "projeto" as const,
+          proposal_id: proposal.id,
+        })
+        .select("id")
+        .single();
+
+      // Timeline event
+      void supabase.from("timeline_events").insert({
+        client_id: clientId,
+        project_id: newProject?.id ?? null,
+        event_type: "proposta_aprovada",
+        title: "Proposta aprovada pelo admin",
+        summary: `Proposta "${proposal.title}" aprovada. Projeto criado automaticamente.`,
+        visibility: "ambos",
+        source_table: "proposals",
+        source_id: proposal.id,
+        actor_user_id: user?.id ?? null,
+      });
+    }
+
+    // 3. If linked to a lead, advance lead status
+    if (proposal.lead_id) {
+      void supabase
+        .from("leads")
+        .update({ status: "negociacao", updated_at: new Date().toISOString() })
+        .eq("id", proposal.lead_id);
+    }
+
+    setApproving(false);
+    toast.success("Proposta aprovada e projeto criado com sucesso!");
+    void loadData();
   }
 
   /* ── Render ── */
@@ -483,7 +672,13 @@ export default function ProposalDetail() {
       {isReadOnly && proposal ? (
         <Card>
           <CardContent className="pt-6">
-            <ProposalReadOnly proposal={proposal} destinationLabel={destinationLabel} />
+            <ProposalReadOnly
+              proposal={proposal}
+              destinationLabel={destinationLabel}
+              onApprove={() => void handleApprove()}
+              approving={approving}
+              linkedProjectId={linkedProjectId}
+            />
           </CardContent>
         </Card>
       ) : (

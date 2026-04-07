@@ -341,6 +341,12 @@ export default function LeadDetail() {
       return;
     }
 
+    // Migrate proposals linked to this lead to the new client
+    await supabase
+      .from("proposals")
+      .update({ client_id: newClient.id, lead_id: null })
+      .eq("lead_id", lead.id);
+
     const { error: updateError } = await supabase
       .from("leads")
       .update({ status: "ganho", converted_client_id: newClient.id })
@@ -353,6 +359,18 @@ export default function LeadDetail() {
     } else {
       toast.success("Lead convertido em cliente com sucesso!");
     }
+
+    // Timeline event for client conversion
+    void supabase.from("timeline_events").insert({
+      client_id: newClient.id,
+      event_type: "lead_convertido",
+      title: "Cliente convertido de lead",
+      summary: `Lead "${lead.name}"${lead.company ? ` (${lead.company})` : ""} convertido em cliente.`,
+      visibility: "interno",
+      source_table: "leads",
+      source_id: lead.id,
+      actor_user_id: user?.id ?? null,
+    });
 
     navigate(`/portal/admin/clientes/${newClient.id}`);
   }

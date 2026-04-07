@@ -78,12 +78,30 @@ type ClientTicket = Pick<
   Database["public"]["Tables"]["support_tickets"]["Row"],
   "id" | "subject" | "status" | "priority" | "category" | "created_at" | "updated_at"
 >;
+type ClientProposal = Pick<
+  Database["public"]["Tables"]["proposals"]["Row"],
+  | "id"
+  | "title"
+  | "status"
+  | "total_amount"
+  | "valid_until"
+  | "created_at"
+  | "sent_at"
+  | "approved_at"
+>;
 type ClientTimelineEvent = Pick<
   Database["public"]["Tables"]["timeline_events"]["Row"],
   "id" | "event_type" | "title" | "summary" | "occurred_at"
 >;
 type ClientType = "pf" | "pj";
-type TabKey = "dados" | "contrato" | "projetos" | "financeiro" | "suporte" | "timeline";
+type TabKey =
+  | "dados"
+  | "contrato"
+  | "projetos"
+  | "financeiro"
+  | "suporte"
+  | "propostas"
+  | "timeline";
 type DialogAction = "toggle-active" | "delete" | null;
 type EditingSection = "dados" | "contrato" | null;
 
@@ -893,6 +911,7 @@ export default function AdminClientDetail() {
   const [clientCharges, setClientCharges] = useState<ClientCharge[]>([]);
   const [clientTickets, setClientTickets] = useState<ClientTicket[]>([]);
   const [clientTimeline, setClientTimeline] = useState<ClientTimelineEvent[]>([]);
+  const [clientProposals, setClientProposals] = useState<ClientProposal[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const editParam = searchParams.get("edit") as EditingSection;
@@ -918,6 +937,7 @@ export default function AdminClientDetail() {
       chargesRes,
       ticketsRes,
       timelineRes,
+      proposalsRes,
     ] = await Promise.all([
       supabase.from("clients").select("*").eq("id", id).maybeSingle(),
       supabase
@@ -953,6 +973,11 @@ export default function AdminClientDetail() {
         .eq("client_id", id)
         .order("occurred_at", { ascending: false })
         .limit(50),
+      supabase
+        .from("proposals")
+        .select("id, title, status, total_amount, valid_until, created_at, sent_at, approved_at")
+        .eq("client_id", id)
+        .order("created_at", { ascending: false }),
     ]);
 
     setClient(clientRes.data ?? null);
@@ -962,6 +987,7 @@ export default function AdminClientDetail() {
     setClientCharges((chargesRes.data ?? []) as ClientCharge[]);
     setClientTickets((ticketsRes.data ?? []) as ClientTicket[]);
     setClientTimeline((timelineRes.data ?? []) as ClientTimelineEvent[]);
+    setClientProposals((proposalsRes.data ?? []) as ClientProposal[]);
     setLoading(false);
   }, [id]);
 
@@ -1226,6 +1252,7 @@ export default function AdminClientDetail() {
       label: `Financeiro (${clientCharges.filter((c) => !c.is_historical).length})`,
     },
     { key: "suporte", label: `Suporte (${clientTickets.length})` },
+    { key: "propostas", label: `Propostas (${clientProposals.length})` },
     { key: "timeline", label: "Timeline" },
   ];
 
@@ -1767,6 +1794,62 @@ export default function AdminClientDetail() {
                     </p>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        )
+      ) : null}
+
+      {/* Propostas tab */}
+      {tab === "propostas" ? (
+        clientProposals.length === 0 ? (
+          <Card className="border-dashed border-border/70 bg-card/80">
+            <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhuma proposta vinculada a este cliente.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {clientProposals.map((proposal) => {
+              const statusMap: Record<
+                string,
+                {
+                  label: string;
+                  tone: "accent" | "success" | "warning" | "destructive" | "secondary";
+                }
+              > = {
+                rascunho: { label: "Rascunho", tone: "secondary" },
+                enviada: { label: "Enviada", tone: "accent" },
+                aprovada: { label: "Aprovada", tone: "success" },
+                rejeitada: { label: "Rejeitada", tone: "destructive" },
+                expirada: { label: "Expirada", tone: "warning" },
+              };
+              const meta = statusMap[proposal.status] ?? statusMap.enviada;
+              return (
+                <Link
+                  key={proposal.id}
+                  to={`/portal/admin/propostas/${proposal.id}`}
+                  className="block rounded-xl border border-border/60 bg-card/92 p-4 transition-all hover:border-primary/40 hover:shadow-md"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <h4 className="text-sm font-semibold text-foreground">{proposal.title}</h4>
+                      <StatusBadge label={meta.label} tone={meta.tone} />
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums text-foreground">
+                        {formatBRL(Number(proposal.total_amount))}
+                      </p>
+                      {proposal.valid_until && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Valida ate {formatPortalDate(proposal.valid_until)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>

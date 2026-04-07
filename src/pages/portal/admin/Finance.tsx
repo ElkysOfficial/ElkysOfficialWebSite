@@ -331,6 +331,7 @@ function FinanceRevenueTab({
     setSavingChargeId(chargeId);
     setEditorError(null);
 
+    const isPaidNow = editor.status === "pago";
     const { error } = await supabase
       .from("charges")
       .update({
@@ -338,6 +339,7 @@ function FinanceRevenueTab({
         amount: unmaskCurrency(editor.amount),
         due_date: parsedDate,
         status: editor.status as PortalCharge["status"],
+        ...(isPaidNow ? { paid_at: new Date().toISOString().slice(0, 10) } : {}),
       })
       .eq("id", chargeId);
 
@@ -365,8 +367,22 @@ function FinanceRevenueTab({
       }
     }
 
+    // Timeline event for payment
+    if (isPaidNow && originalCharge && originalCharge.status !== "pago") {
+      void supabase.from("timeline_events").insert({
+        client_id: originalCharge.client_id,
+        project_id: originalCharge.project_id ?? null,
+        event_type: "pagamento_recebido",
+        title: "Pagamento recebido",
+        summary: `Cobranca "${editor.description.trim()}" marcada como paga.`,
+        visibility: "ambos",
+        source_table: "charges",
+        source_id: chargeId,
+      });
+    }
+
     // Send payment confirmation when charge is marked as paid (fire-and-forget)
-    if (editor.status === "pago" && originalCharge && originalCharge.status !== "pago") {
+    if (isPaidNow && originalCharge && originalCharge.status !== "pago") {
       try {
         const headers = await getSupabaseFunctionAuthHeaders();
         void supabase.functions.invoke("process-billing-rules", {

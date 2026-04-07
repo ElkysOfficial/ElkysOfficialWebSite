@@ -290,8 +290,8 @@ export default function Proposals() {
 
   const metrics = useMemo(() => {
     const total = proposals.length;
-    const enviadasValue = proposals
-      .filter((p) => p.status === "enviada")
+    const emNegociacaoValue = proposals
+      .filter((p) => p.status === "enviada" || p.status === "aprovada")
       .reduce((sum, p) => sum + p.total_amount, 0);
     const aprovadas = proposals.filter((p) => p.status === "aprovada").length;
     const decided = proposals.filter(
@@ -299,7 +299,7 @@ export default function Proposals() {
     ).length;
     const taxaAprovacao = decided > 0 ? Math.round((aprovadas / decided) * 100) : 0;
 
-    return { total, enviadasValue, taxaAprovacao };
+    return { total, emNegociacaoValue, taxaAprovacao };
   }, [proposals]);
 
   const exportColumns: ExportColumn[] = [
@@ -330,7 +330,7 @@ export default function Proposals() {
   const handleExportPDF = () =>
     exportPDF({
       title: "Relatorio de Propostas",
-      subtitle: `${filteredProposals.length} propostas | Em negociacao: ${formatBRL(metrics.enviadasValue)}`,
+      subtitle: `${filteredProposals.length} propostas | Em negociacao: ${formatBRL(metrics.emNegociacaoValue)}`,
       filename: "propostas",
       columns: exportColumns,
       rows: exportRows,
@@ -367,7 +367,7 @@ export default function Proposals() {
         />
         <AdminMetricCard
           label="Valor em negociacao"
-          value={formatBRL(metrics.enviadasValue)}
+          value={formatBRL(metrics.emNegociacaoValue)}
           hint="Propostas com status enviada"
           icon={Wallet}
           tone="accent"

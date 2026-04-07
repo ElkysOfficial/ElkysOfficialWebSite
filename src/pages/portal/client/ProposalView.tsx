@@ -79,6 +79,44 @@ export default function ProposalView() {
       return;
     }
 
+    // Auto-create project in "negociacao" status from approved proposal
+    const clientId = proposal.client_id;
+    if (clientId) {
+      const { data: newProject } = await supabase
+        .from("projects")
+        .insert({
+          client_id: clientId,
+          name: proposal.title,
+          description: proposal.scope_summary ?? null,
+          status: "negociacao",
+          current_stage: "Acordo Formal",
+          billing_type: "projeto",
+          proposal_id: proposal.id,
+        })
+        .select("id")
+        .single();
+
+      // Timeline: proposal approved + project created
+      void supabase.from("timeline_events").insert({
+        client_id: clientId,
+        project_id: newProject?.id ?? null,
+        event_type: "proposta_aprovada",
+        title: "Proposta aprovada pelo cliente",
+        summary: `Proposta "${proposal.title}" aprovada. Projeto criado automaticamente em negociacao.`,
+        visibility: "ambos",
+        source_table: "proposals",
+        source_id: proposal.id,
+      });
+    }
+
+    // If linked to a lead, update lead status to "negociacao"
+    if (proposal.lead_id) {
+      void supabase
+        .from("leads")
+        .update({ status: "negociacao", updated_at: new Date().toISOString() })
+        .eq("id", proposal.lead_id);
+    }
+
     toast.success("Proposta aprovada com sucesso!");
     void loadProposal();
   };

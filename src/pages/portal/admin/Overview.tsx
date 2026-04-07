@@ -854,6 +854,7 @@ export default function AdminOverview() {
         expensesRes,
         contractsRes,
         ticketsRes,
+        proposalsRes,
       ] = await Promise.all([
         supabase
           .from("clients")
@@ -874,6 +875,10 @@ export default function AdminOverview() {
           .from("project_contracts")
           .select("id, project_id, total_amount, status, signed_at"),
         supabase.from("support_tickets").select("id, status, created_at"),
+        supabase
+          .from("proposals")
+          .select("id, total_amount, status")
+          .in("status", ["enviada", "aprovada"]),
       ]);
 
       const hardError =
@@ -1151,20 +1156,39 @@ export default function AdminOverview() {
         }
       });
 
-      // Forecast: only future agendada charges (due_date strictly after today)
-      const forecastRevenue = charges
+      // Forecast: future agendada charges + approved proposals (expected future revenue)
+      const chargesForecast = charges
         .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
         .reduce((sum, c) => sum + Number(c.amount), 0);
 
-      // Pipeline: contracts linked to projects in negociacao
+      type ProposalForecast = { id: string; total_amount: number; status: string };
+      const approvedProposalsForecast = ((proposalsRes.data ?? []) as ProposalForecast[])
+        .filter((p) => p.status === "aprovada")
+        .reduce((sum, p) => sum + Number(p.total_amount), 0);
+
+      const forecastRevenue = chargesForecast + approvedProposalsForecast;
+
+      // Pipeline: projects in negociacao (contracts) + active proposals (enviadas/aprovadas)
       const negociacaoProjectIds = new Set(
         projects.filter((p) => p.status === "negociacao").map((p) => p.id)
       );
       const pipelineContracts = contracts.filter(
         (c) => negociacaoProjectIds.has(c.project_id) && c.status !== "cancelado"
       );
-      const pipelineValue = pipelineContracts.reduce((sum, c) => sum + Number(c.total_amount), 0);
-      const pipelineCount = negociacaoProjectIds.size;
+      const projectPipelineValue = pipelineContracts.reduce(
+        (sum, c) => sum + Number(c.total_amount),
+        0
+      );
+
+      type ProposalPipeline = { id: string; total_amount: number; status: string };
+      const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+      const proposalPipelineValue = activeProposals.reduce(
+        (sum, p) => sum + Number(p.total_amount),
+        0
+      );
+
+      const pipelineValue = projectPipelineValue + proposalPipelineValue;
+      const pipelineCount = negociacaoProjectIds.size + activeProposals.length;
 
       // Burn rate: average monthly expenses over the last 6 months
       const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
@@ -1579,7 +1603,7 @@ export default function AdminOverview() {
             <ExecutiveKpiCard
               label="Pipeline"
               value={formatBRL(summary.pipelineValue)}
-              subInfo={`${summary.pipelineCount} em negociacao`}
+              subInfo={`${summary.pipelineCount} oportunidade(s) ativas`}
               tone="brand"
               change={null}
             />
