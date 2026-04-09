@@ -149,6 +149,27 @@ export const NEXT_STEP_STATUS_LABEL: Record<NextStepStatus, string> = {
   cancelado: "Cancelado",
 };
 
+export type NextStepActionType =
+  | "geral"
+  | "reuniao"
+  | "documento"
+  | "aprovacao"
+  | "informacao"
+  | "feedback"
+  | "acesso"
+  | "conteudo";
+
+export const NEXT_STEP_ACTION_TYPE_LABEL: Record<NextStepActionType, string> = {
+  geral: "Geral",
+  reuniao: "Reunião",
+  documento: "Documento",
+  aprovacao: "Aprovação",
+  informacao: "Informação",
+  feedback: "Feedback / Validação",
+  acesso: "Acesso / Credenciais",
+  conteudo: "Conteúdo / Materiais",
+};
+
 export const PROJECT_INSTALLMENT_STATUS_LABEL: Record<ProjectInstallmentStatus, string> = {
   agendada: "Agendada",
   pendente: "Pendente",
