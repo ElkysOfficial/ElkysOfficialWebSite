@@ -117,6 +117,18 @@ function TicketForm({
       },
     });
 
+    // Notify admin team about new ticket
+    void supabase.from("admin_notifications").insert({
+      type: "ticket_aberto",
+      title: `Novo ticket de suporte`,
+      body: `O cliente abriu o ticket "${subject.trim()}".`,
+      severity: "warning",
+      target_roles: ["admin_super", "admin", "support"],
+      entity_type: "support_ticket",
+      entity_id: ticket.id,
+      action_url: "/portal/admin/suporte",
+    });
+
     toast.success("Solicitacao enviada!", {
       description: "Nossa equipe de suporte recebera sua mensagem e entrara em contato em breve.",
     });
@@ -232,7 +244,7 @@ export default function ClientSupport() {
 
   const handleSubmitRating = async (ticket: Ticket) => {
     const rating = ratingDrafts[ticket.id];
-    if (!rating || rating < 1 || rating > 5) return;
+    if (!rating || rating < 1 || rating > 5 || !clientId) return;
 
     setSubmittingRating(ticket.id);
     const { error } = await supabase
@@ -242,7 +254,8 @@ export default function ClientSupport() {
         rating_feedback: (ratingFeedbacks[ticket.id] ?? "").trim() || null,
         rated_at: new Date().toISOString(),
       })
-      .eq("id", ticket.id);
+      .eq("id", ticket.id)
+      .eq("client_id", clientId);
 
     setSubmittingRating(null);
 
@@ -304,10 +317,13 @@ export default function ClientSupport() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadSupportContext = async () => {
       if (!user?.id) return;
 
       const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
       if (!clientRes.client) {
         setClientId(null);
         setProjectOptions([]);
@@ -320,6 +336,7 @@ export default function ClientSupport() {
         loadTickets(clientRes.client.id),
       ]);
 
+      if (cancelled) return;
       const name = clientRes.client.nome_fantasia || clientRes.client.full_name || "Cliente";
 
       setClientId(clientRes.client.id);
@@ -331,6 +348,9 @@ export default function ClientSupport() {
     };
 
     void loadSupportContext();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, loadTickets]);
 
   /* ── Load messages for a ticket ──────────────────────────────────── */
@@ -338,6 +358,9 @@ export default function ClientSupport() {
   const loadMessages = useCallback(
     async (ticketId: string) => {
       if (loadingMessages[ticketId]) return;
+
+      // Only load messages for tickets that belong to the current client
+      if (!tickets.some((t) => t.id === ticketId)) return;
 
       setLoadingMessages((prev) => ({ ...prev, [ticketId]: true }));
       const { data, error } = await supabase
@@ -358,7 +381,7 @@ export default function ClientSupport() {
         [ticketId]: (data ?? []) as TicketMessage[],
       }));
     },
-    [loadingMessages]
+    [loadingMessages, tickets]
   );
 
   useEffect(() => {
@@ -367,11 +390,45 @@ export default function ClientSupport() {
     }
   }, [expandedId, messagesMap, loadMessages]);
 
+  /* ── Realtime: new messages on expanded ticket ──────────────────── */
+
+  useEffect(() => {
+    if (!expandedId || !tickets.some((t) => t.id === expandedId)) return;
+
+    const channel = supabase
+      .channel(`ticket-messages-${expandedId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "ticket_messages",
+          filter: `ticket_id=eq.${expandedId}`,
+        },
+        (payload) => {
+          const msg = payload.new as TicketMessage;
+          setMessagesMap((prev) => {
+            const existing = prev[expandedId] ?? [];
+            if (existing.some((m) => m.id === msg.id)) return prev;
+            return { ...prev, [expandedId]: [...existing, msg] };
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [expandedId, tickets]);
+
   /* ── Send reply ───────────────────────────────────────────────────── */
 
   const handleSendReply = async (ticket: Ticket) => {
     const body = (replyBodies[ticket.id] ?? "").trim();
-    if (!body) return;
+    if (!body || !clientId) return;
+
+    // Verify ticket belongs to current client (loaded list is filtered by client_id)
+    if (!tickets.some((t) => t.id === ticket.id)) return;
 
     setSendingReply(ticket.id);
 
