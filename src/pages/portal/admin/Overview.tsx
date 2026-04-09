@@ -37,7 +37,7 @@ type DashboardProject = Pick<
 >;
 type DashboardSubscription = Pick<
   Database["public"]["Tables"]["project_subscriptions"]["Row"],
-  "id" | "client_id" | "amount" | "status"
+  "id" | "client_id" | "amount" | "status" | "ends_on"
 >;
 type DashboardCharge = Pick<
   Database["public"]["Tables"]["charges"]["Row"],
@@ -869,7 +869,7 @@ export default function AdminOverview() {
           .select(
             "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, description"
           ),
-        supabase.from("project_subscriptions").select("id, client_id, amount, status"),
+        supabase.from("project_subscriptions").select("id, client_id, amount, status, ends_on"),
         supabase.from("expenses").select("id, amount, expense_date"),
         supabase
           .from("project_contracts")
@@ -1299,11 +1299,18 @@ export default function AdminOverview() {
         horizonDate.setMonth(horizonDate.getMonth() + months);
         const horizonStr = horizonDate.toISOString().slice(0, 10);
 
-        // Recurring: active subscriptions projected
+        // Recurring: active subscriptions projected, respecting ends_on
         let recurringCents = 0;
         for (const sub of recurringSubscriptions) {
           if (!activeClientIds.has(sub.client_id)) continue;
-          recurringCents += toCents(sub.amount) * months;
+          let activeMonths = months;
+          if (sub.ends_on && sub.ends_on <= horizonStr) {
+            // Count how many whole months remain until ends_on (from today)
+            const endsDate = new Date(sub.ends_on + "T00:00:00Z");
+            const diffMs = endsDate.getTime() - now.getTime();
+            activeMonths = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
+          }
+          recurringCents += toCents(sub.amount) * activeMonths;
         }
         const recurring = recurringCents / 100;
 
