@@ -16,7 +16,7 @@ import {
   getClientDisplayName,
   isProjectOperationallyOpen,
 } from "@/lib/portal";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, toCents } from "@/lib/masks";
 import type { ComponentType } from "react";
 import type { IconProps } from "@/assets/icons";
 
@@ -312,14 +312,15 @@ export default function AdminProjects() {
       }
 
       const today = new Date();
-      const nextContractedValue = Array.from(latestContractByProject.entries())
-        .filter(([projectId, contract]) => {
-          if (contract.status === "cancelado") return false;
-          const relatedProject = projectMap.get(projectId);
-          if (!relatedProject) return false;
-          return isProjectWithinContractWindow(relatedProject, today);
-        })
-        .reduce((sum, [, contract]) => sum + Number(contract.total_amount), 0);
+      const nextContractedValue =
+        Array.from(latestContractByProject.entries())
+          .filter(([projectId, contract]) => {
+            if (contract.status === "cancelado") return false;
+            const relatedProject = projectMap.get(projectId);
+            if (!relatedProject) return false;
+            return isProjectWithinContractWindow(relatedProject, today);
+          })
+          .reduce((sum, [, contract]) => sum + toCents(contract.total_amount), 0) / 100;
 
       const nextSubscriptionProjectIds = new Set(
         ((subscriptionsRes.data as { project_id: string; status: string }[] | null) ?? [])

@@ -106,3 +106,15 @@ export function unmaskCurrency(value: string): number {
 export function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+/**
+ * Converts a database numeric value (string or number) to integer centavos.
+ * Use inside reduce/accumulation to avoid floating-point errors.
+ * Divide the final sum by 100 to get back to reais.
+ *
+ * Example: toCents("1234.56") → 123456
+ */
+export function toCents(value: string | number | null | undefined): number {
+  if (value == null || value === "") return 0;
+  return Math.round(Number(value) * 100);
+}

@@ -30,6 +30,7 @@ import {
   maskCurrency,
   maskDate,
   maskPhone,
+  toCents,
   unmaskCurrency,
   unmaskDigits,
 } from "@/lib/masks";
@@ -264,7 +265,8 @@ function deriveContractSnapshot(
   const derivedMonthlyValue =
     Number(client.monthly_value) > 0
       ? Number(client.monthly_value)
-      : activeSubscriptions.reduce((sum, subscription) => sum + Number(subscription.amount), 0);
+      : activeSubscriptions.reduce((sum, subscription) => sum + toCents(subscription.amount), 0) /
+        100;
   const derivedProjectTotal =
     Number(client.project_total_value) > 0
       ? Number(client.project_total_value)
@@ -1655,15 +1657,18 @@ export default function AdminClientDetail() {
       {tab === "financeiro"
         ? (() => {
             const operationalCharges = clientCharges.filter((c) => !c.is_historical);
-            const totalPaid = operationalCharges
-              .filter((c) => c.status === "pago")
-              .reduce((sum, c) => sum + Number(c.amount), 0);
-            const totalOverdue = operationalCharges
-              .filter((c) => c.status === "atrasado")
-              .reduce((sum, c) => sum + Number(c.amount), 0);
-            const totalPending = operationalCharges
-              .filter((c) => c.status === "pendente" || c.status === "agendada")
-              .reduce((sum, c) => sum + Number(c.amount), 0);
+            const totalPaid =
+              operationalCharges
+                .filter((c) => c.status === "pago")
+                .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+            const totalOverdue =
+              operationalCharges
+                .filter((c) => c.status === "atrasado")
+                .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+            const totalPending =
+              operationalCharges
+                .filter((c) => c.status === "pendente" || c.status === "agendada")
+                .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
             return (
               <div className="space-y-4">

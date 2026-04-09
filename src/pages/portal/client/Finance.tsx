@@ -7,7 +7,7 @@ import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { CHARGE_STATUS_META, formatPortalDate } from "@/lib/portal";
 import { loadChargesForClient, resolveClientForUser } from "@/lib/portal-data";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, toCents } from "@/lib/masks";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -131,12 +131,14 @@ export default function ClientFinance() {
   // Metrics exclude historical and agendada
   const nextInvoice = financialItems.find((item) => item.bucket === "proxima_fatura") ?? null;
   const nextInvoiceAmount = nextInvoice?.amount ?? 0;
-  const overdueAmount = financialItems
-    .filter((item) => item.bucket === "em_atraso")
-    .reduce((sum, item) => sum + item.amount, 0);
-  const paidAmount = financialItems
-    .filter((item) => item.bucket === "pago")
-    .reduce((sum, item) => sum + item.amount, 0);
+  const overdueAmount =
+    financialItems
+      .filter((item) => item.bucket === "em_atraso")
+      .reduce((sum, item) => sum + toCents(item.amount), 0) / 100;
+  const paidAmount =
+    financialItems
+      .filter((item) => item.bucket === "pago")
+      .reduce((sum, item) => sum + toCents(item.amount), 0) / 100;
 
   const overdueItems = financialItems.filter((item) => item.bucket === "em_atraso");
   const upcomingItems = financialItems.filter((item) => item.bucket === "proxima_fatura");

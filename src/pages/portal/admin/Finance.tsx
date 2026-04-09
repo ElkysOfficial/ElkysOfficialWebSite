@@ -54,6 +54,7 @@ import {
   maskCurrency,
   maskDate,
   parseFormDate,
+  toCents,
   unmaskCurrency,
 } from "@/lib/masks";
 
@@ -231,10 +232,11 @@ function FinanceRevenueTab({
     (page + 1) * REVENUE_PAGE_SIZE
   );
 
-  const filteredTotal = filteredCharges.reduce((sum, c) => sum + Number(c.amount), 0);
-  const filteredPaid = filteredCharges
-    .filter((c) => c.status === "pago")
-    .reduce((sum, c) => sum + Number(c.amount), 0);
+  const filteredTotal = filteredCharges.reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+  const filteredPaid =
+    filteredCharges
+      .filter((c) => c.status === "pago")
+      .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
   const filteredAverage = filteredCharges.length > 0 ? filteredTotal / filteredCharges.length : 0;
 
   const startEditing = (charge: PortalCharge) => {
@@ -1403,6 +1405,7 @@ function FinanceAnaliseTab() {
       ])
     );
 
+    // Accumulate in centavos (integers) to avoid floating-point errors
     charges
       .filter((c) => c.status === "pago" && !c.is_historical)
       .forEach((c) => {
@@ -1410,8 +1413,8 @@ function FinanceAnaliseTab() {
         if (!mk) return;
         const p = monthlyMap.get(mk);
         if (!p) return;
-        p.cashIn += Number(c.amount);
-        if (c.origin_type === "parcela_projeto") p.projectRevenue += Number(c.amount);
+        p.cashIn += toCents(c.amount);
+        if (c.origin_type === "parcela_projeto") p.projectRevenue += toCents(c.amount);
       });
 
     // Recurring revenue: count paid mensalidades for past months,
@@ -1428,7 +1431,7 @@ function FinanceAnaliseTab() {
         if (!p) return;
         // For past months, only count paid; for current/future, count all non-cancelled
         if (mk < curKey && !isPaid) return;
-        p.recurringRevenue += Number(c.amount);
+        p.recurringRevenue += toCents(c.amount);
       });
 
     expenses.forEach((e) => {
@@ -1436,18 +1439,31 @@ function FinanceAnaliseTab() {
       if (!mk) return;
       const p = monthlyMap.get(mk);
       if (!p) return;
-      p.cashOut += Number(e.amount);
+      p.cashOut += toCents(e.amount);
     });
 
     // Subscription base floor for current month
     const recurringSubscriptions = subs.filter((s) => ["agendada", "ativa"].includes(s.status));
-    const recurringBase = recurringSubscriptions.reduce((sum, s) => sum + Number(s.amount), 0);
+    const recurringBaseCents = recurringSubscriptions.reduce(
+      (sum, s) => sum + toCents(s.amount),
+      0
+    );
     const curPt = monthlyMap.get(curKey);
-    if (curPt && curPt.recurringRevenue < recurringBase) curPt.recurringRevenue = recurringBase;
+    if (curPt && curPt.recurringRevenue < recurringBaseCents)
+      curPt.recurringRevenue = recurringBaseCents;
 
+    // Convert centavos back to reais for the public series
+    const recurringBase = recurringBaseCents / 100;
     const monthlySeries = monthFrames.map((f) => {
       const p = monthlyMap.get(f.key)!;
-      return { ...p, net: p.cashIn - p.cashOut };
+      return {
+        ...p,
+        cashIn: p.cashIn / 100,
+        cashOut: p.cashOut / 100,
+        recurringRevenue: p.recurringRevenue / 100,
+        projectRevenue: p.projectRevenue / 100,
+        net: (p.cashIn - p.cashOut) / 100,
+      };
     });
 
     const activeClients = clients.filter((c) => c.is_active);
@@ -1496,18 +1512,20 @@ function FinanceAnaliseTab() {
     agingCharges.forEach((c) => {
       const due = new Date(c.due_date + "T00:00:00");
       const days = Math.floor((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
-      const amt = Number(c.amount);
+      const amtCents = toCents(c.amount);
       if (days <= 30) {
-        agingBuckets[0].amount += amt;
+        agingBuckets[0].amount += amtCents;
         agingBuckets[0].count += 1;
       } else if (days <= 60) {
-        agingBuckets[1].amount += amt;
+        agingBuckets[1].amount += amtCents;
         agingBuckets[1].count += 1;
       } else {
-        agingBuckets[2].amount += amt;
+        agingBuckets[2].amount += amtCents;
         agingBuckets[2].count += 1;
       }
     });
+    // Convert centavos back to reais
+    for (const bucket of agingBuckets) bucket.amount /= 100;
 
     // Projects
     const projectStatusCounts: Record<ProjectBucket, number> = {
@@ -1555,11 +1573,13 @@ function FinanceAnaliseTab() {
     const pipeContracts = contracts.filter(
       (c) => negIds.has(c.project_id) && c.status !== "cancelado"
     );
-    const projectPipelineValue = pipeContracts.reduce((s, c) => s + Number(c.total_amount), 0);
+    const projectPipelineValue =
+      pipeContracts.reduce((s, c) => s + toCents(c.total_amount), 0) / 100;
 
     type ProposalPipeline = { id: string; total_amount: number; status: string };
     const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
-    const proposalPipelineValue = activeProposals.reduce((s, p) => s + Number(p.total_amount), 0);
+    const proposalPipelineValue =
+      activeProposals.reduce((s, p) => s + toCents(p.total_amount), 0) / 100;
     const pipelineValue = projectPipelineValue + proposalPipelineValue;
 
     // Burn rate — average monthly expenses over the last 6 months
@@ -1570,33 +1590,39 @@ function FinanceAnaliseTab() {
     });
     const recentMonthsWithExpenses = monthlySeries.slice(-6).filter((m) => m.cashOut > 0).length;
     const burnRate =
-      recentExp.reduce((s, e) => s + Number(e.amount), 0) / Math.max(recentMonthsWithExpenses, 1);
+      recentExp.reduce((s, e) => s + toCents(e.amount), 0) /
+      100 /
+      Math.max(recentMonthsWithExpenses, 1);
 
     // Cash, receivables, margin
     const cashBalance =
-      charges
+      (charges
         .filter((c) => c.status === "pago" && !c.is_historical)
-        .reduce((s, c) => s + Number(c.amount), 0) -
-      expenses.reduce((s, e) => s + Number(e.amount), 0);
+        .reduce((s, c) => s + toCents(c.amount), 0) -
+        expenses.reduce((s, e) => s + toCents(e.amount), 0)) /
+      100;
     // "A receber" = pendente (due already) + agendada com vencimento este mês
     const currentMonthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0)
       .toISOString()
       .slice(0, 10);
-    const pendingReceivables = charges
-      .filter(
-        (c) =>
-          !c.is_historical &&
-          (c.status === "pendente" || (c.status === "agendada" && c.due_date <= currentMonthEndStr))
-      )
-      .reduce((s, c) => s + Number(c.amount), 0);
-    const overdueReceivables = charges
-      .filter((c) => c.status === "atrasado" && !c.is_historical)
-      .reduce((s, c) => s + Number(c.amount), 0);
+    const pendingReceivables =
+      charges
+        .filter(
+          (c) =>
+            !c.is_historical &&
+            (c.status === "pendente" ||
+              (c.status === "agendada" && c.due_date <= currentMonthEndStr))
+        )
+        .reduce((s, c) => s + toCents(c.amount), 0) / 100;
+    const overdueReceivables =
+      charges
+        .filter((c) => c.status === "atrasado" && !c.is_historical)
+        .reduce((s, c) => s + toCents(c.amount), 0) / 100;
     // Forecast: only future agendada charges (due_date after today)
     const agendadaCharges = charges.filter(
       (c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr
     );
-    const forecastRevenue = agendadaCharges.reduce((s, c) => s + Number(c.amount), 0);
+    const forecastRevenue = agendadaCharges.reduce((s, c) => s + toCents(c.amount), 0) / 100;
 
     const curMonth = monthlySeries[monthlySeries.length - 1];
     const currentMonthNet = curMonth?.net ?? 0;

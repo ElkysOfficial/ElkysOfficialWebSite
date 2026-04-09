@@ -9,7 +9,7 @@ import { Button, Card, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, toCents } from "@/lib/masks";
 import { getClientDisplayName } from "@/lib/portal";
 
 type ChargeRow = Pick<
@@ -108,15 +108,19 @@ export default function RevenueByClient() {
       return c.paid_at && c.paid_at >= startDate;
     });
 
-    const revenueMap = new Map<string, { total: number; count: number }>();
+    const revenueMap = new Map<string, { totalCents: number; count: number }>();
     for (const charge of filteredCharges) {
-      const existing = revenueMap.get(charge.client_id) ?? { total: 0, count: 0 };
-      existing.total += Number(charge.amount);
+      const existing = revenueMap.get(charge.client_id) ?? { totalCents: 0, count: 0 };
+      existing.totalCents += toCents(charge.amount);
       existing.count += 1;
       revenueMap.set(charge.client_id, existing);
     }
 
-    const grandTotal = Array.from(revenueMap.values()).reduce((sum, r) => sum + r.total, 0);
+    const grandTotalCents = Array.from(revenueMap.values()).reduce(
+      (sum, r) => sum + r.totalCents,
+      0
+    );
+    const grandTotal = grandTotalCents / 100;
 
     const result: ClientRevenue[] = Array.from(revenueMap.entries())
       .map(([clientId, revenue]) => {
@@ -127,12 +131,13 @@ export default function RevenueByClient() {
           nome_fantasia: null,
           is_active: false,
         };
+        const total = revenue.totalCents / 100;
         return {
           client,
-          totalRevenue: revenue.total,
+          totalRevenue: total,
           chargeCount: revenue.count,
-          ticketMedio: revenue.count > 0 ? revenue.total / revenue.count : 0,
-          percentOfTotal: grandTotal > 0 ? (revenue.total / grandTotal) * 100 : 0,
+          ticketMedio: revenue.count > 0 ? total / revenue.count : 0,
+          percentOfTotal: grandTotalCents > 0 ? (revenue.totalCents / grandTotalCents) * 100 : 0,
         };
       })
       .sort((a, b) => b.totalRevenue - a.totalRevenue);

@@ -18,7 +18,7 @@ import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, toCents } from "@/lib/masks";
 import { getClientDisplayName, isProjectOperationallyOpen } from "@/lib/portal";
 
 type DashboardClient = Pick<
@@ -942,17 +942,18 @@ export default function AdminOverview() {
       const recurringSubscriptions = subscriptions.filter((subscription) =>
         ["agendada", "ativa"].includes(subscription.status)
       );
-      const recurringBase = recurringSubscriptions.reduce(
-        (sum, subscription) => sum + Number(subscription.amount),
+      const recurringBaseCents = recurringSubscriptions.reduce(
+        (sum, subscription) => sum + toCents(subscription.amount),
         0
       );
+      const recurringBase = recurringBaseCents / 100;
       const recurringClientIds = new Set(
         recurringSubscriptions
           .filter((subscription) => activeClientIds.has(subscription.client_id))
           .map((subscription) => subscription.client_id)
       );
 
-      // Cash in: only operational (non-historical) paid charges, split by origin
+      // Accumulate in centavos (integers) to avoid floating-point errors
       charges
         .filter((charge) => charge.status === "pago" && !charge.is_historical)
         .forEach((charge) => {
@@ -960,9 +961,9 @@ export default function AdminOverview() {
           if (!monthKey) return;
           const point = monthlyMap.get(monthKey);
           if (!point) return;
-          point.cashIn += Number(charge.amount);
+          point.cashIn += toCents(charge.amount);
           if (charge.origin_type === "parcela_projeto") {
-            point.projectRevenue += Number(charge.amount);
+            point.projectRevenue += toCents(charge.amount);
           }
         });
 
@@ -971,7 +972,7 @@ export default function AdminOverview() {
         if (!monthKey) return;
         const point = monthlyMap.get(monthKey);
         if (!point) return;
-        point.cashOut += Number(expense.amount);
+        point.cashOut += toCents(expense.amount);
       });
 
       charges
@@ -981,15 +982,16 @@ export default function AdminOverview() {
           if (!monthKey) return;
           const point = monthlyMap.get(monthKey);
           if (!point) return;
-          point.recurringRevenue += Number(charge.amount);
+          point.recurringRevenue += toCents(charge.amount);
         });
 
       const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
       const currentMonthPoint = monthlyMap.get(currentMonthKey);
-      if (currentMonthPoint && currentMonthPoint.recurringRevenue < recurringBase) {
-        currentMonthPoint.recurringRevenue = recurringBase;
+      if (currentMonthPoint && currentMonthPoint.recurringRevenue < recurringBaseCents) {
+        currentMonthPoint.recurringRevenue = recurringBaseCents;
       }
 
+      // Convert centavos back to reais for the public series
       const monthlySeries = monthFrames.map((frame) => {
         const point = monthlyMap.get(frame.key) ?? {
           key: frame.key,
@@ -1004,7 +1006,11 @@ export default function AdminOverview() {
 
         return {
           ...point,
-          net: point.cashIn - point.cashOut,
+          cashIn: point.cashIn / 100,
+          cashOut: point.cashOut / 100,
+          recurringRevenue: point.recurringRevenue / 100,
+          projectRevenue: point.projectRevenue / 100,
+          net: (point.cashIn - point.cashOut) / 100,
         };
       });
 
@@ -1061,27 +1067,30 @@ export default function AdminOverview() {
 
       // Cash balance: only operational (non-historical) paid charges
       const cashBalance =
-        charges
+        (charges
           .filter((charge) => charge.status === "pago" && !charge.is_historical)
-          .reduce((sum, charge) => sum + Number(charge.amount), 0) -
-        expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+          .reduce((sum, charge) => sum + toCents(charge.amount), 0) -
+          expenses.reduce((sum, expense) => sum + toCents(expense.amount), 0)) /
+        100;
 
       // "A receber" = pendente (já vencido) + agendada com vencimento este mês
       const currentMonthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0)
         .toISOString()
         .slice(0, 10);
-      const pendingReceivables = charges
-        .filter(
-          (c) =>
-            !c.is_historical &&
-            (c.status === "pendente" ||
-              (c.status === "agendada" && c.due_date <= currentMonthEndStr))
-        )
-        .reduce((sum, c) => sum + Number(c.amount), 0);
+      const pendingReceivables =
+        charges
+          .filter(
+            (c) =>
+              !c.is_historical &&
+              (c.status === "pendente" ||
+                (c.status === "agendada" && c.due_date <= currentMonthEndStr))
+          )
+          .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
-      const overdueReceivables = charges
-        .filter((c) => c.status === "atrasado" && !c.is_historical)
-        .reduce((sum, c) => sum + Number(c.amount), 0);
+      const overdueReceivables =
+        charges
+          .filter((c) => c.status === "atrasado" && !c.is_historical)
+          .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
       const currentMonthNet = monthlySeries[monthlySeries.length - 1]?.net ?? 0;
       const previousCashBalance = cashBalance - currentMonthNet;
@@ -1143,28 +1152,32 @@ export default function AdminOverview() {
       agingCharges.forEach((c) => {
         const dueDate = new Date(c.due_date + "T00:00:00");
         const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-        const amount = Number(c.amount);
+        const amtCents = toCents(c.amount);
         if (daysOverdue <= 30) {
-          agingBuckets[0].amount += amount;
+          agingBuckets[0].amount += amtCents;
           agingBuckets[0].count += 1;
         } else if (daysOverdue <= 60) {
-          agingBuckets[1].amount += amount;
+          agingBuckets[1].amount += amtCents;
           agingBuckets[1].count += 1;
         } else {
-          agingBuckets[2].amount += amount;
+          agingBuckets[2].amount += amtCents;
           agingBuckets[2].count += 1;
         }
       });
+      // Convert centavos back to reais
+      for (const bucket of agingBuckets) bucket.amount /= 100;
 
       // Forecast: future agendada charges + approved proposals (expected future revenue)
-      const chargesForecast = charges
-        .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
-        .reduce((sum, c) => sum + Number(c.amount), 0);
+      const chargesForecast =
+        charges
+          .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
+          .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
       type ProposalForecast = { id: string; total_amount: number; status: string };
-      const approvedProposalsForecast = ((proposalsRes.data ?? []) as ProposalForecast[])
-        .filter((p) => p.status === "aprovada")
-        .reduce((sum, p) => sum + Number(p.total_amount), 0);
+      const approvedProposalsForecast =
+        ((proposalsRes.data ?? []) as ProposalForecast[])
+          .filter((p) => p.status === "aprovada")
+          .reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
 
       const forecastRevenue = chargesForecast + approvedProposalsForecast;
 
@@ -1175,17 +1188,13 @@ export default function AdminOverview() {
       const pipelineContracts = contracts.filter(
         (c) => negociacaoProjectIds.has(c.project_id) && c.status !== "cancelado"
       );
-      const projectPipelineValue = pipelineContracts.reduce(
-        (sum, c) => sum + Number(c.total_amount),
-        0
-      );
+      const projectPipelineValue =
+        pipelineContracts.reduce((sum, c) => sum + toCents(c.total_amount), 0) / 100;
 
       type ProposalPipeline = { id: string; total_amount: number; status: string };
       const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
-      const proposalPipelineValue = activeProposals.reduce(
-        (sum, p) => sum + Number(p.total_amount),
-        0
-      );
+      const proposalPipelineValue =
+        activeProposals.reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
 
       const pipelineValue = projectPipelineValue + proposalPipelineValue;
       const pipelineCount = negociacaoProjectIds.size + activeProposals.length;
@@ -1198,7 +1207,8 @@ export default function AdminOverview() {
       });
       const recentMonthCount = Math.min(6, monthlySeries.length || 1);
       const burnRate =
-        recentExpenses.reduce((sum, e) => sum + Number(e.amount), 0) /
+        recentExpenses.reduce((sum, e) => sum + toCents(e.amount), 0) /
+        100 /
         Math.max(recentMonthCount, 1);
 
       // Operational margin: (cashIn - cashOut) / cashIn for current period
@@ -1290,22 +1300,24 @@ export default function AdminOverview() {
         const horizonStr = horizonDate.toISOString().slice(0, 10);
 
         // Recurring: active subscriptions projected
-        let recurring = 0;
+        let recurringCents = 0;
         for (const sub of recurringSubscriptions) {
           if (!activeClientIds.has(sub.client_id)) continue;
-          recurring += Number(sub.amount) * months;
+          recurringCents += toCents(sub.amount) * months;
         }
+        const recurring = recurringCents / 100;
 
         // Scheduled: only future agendada charges within horizon (pendente = already due, not forecast)
-        const scheduled = charges
-          .filter(
-            (c) =>
-              !c.is_historical &&
-              c.status === "agendada" &&
-              c.due_date > todayStr &&
-              c.due_date <= horizonStr
-          )
-          .reduce((sum, c) => sum + Number(c.amount), 0);
+        const scheduled =
+          charges
+            .filter(
+              (c) =>
+                !c.is_historical &&
+                c.status === "agendada" &&
+                c.due_date > todayStr &&
+                c.due_date <= horizonStr
+            )
+            .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
         return { recurring, scheduled, total: recurring + scheduled };
       };

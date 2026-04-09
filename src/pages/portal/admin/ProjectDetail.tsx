@@ -58,6 +58,7 @@ import {
   maskDate,
   parseFormDate,
   sanitizeInteger,
+  toCents,
   unmaskCurrency,
 } from "@/lib/masks";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
@@ -2413,17 +2414,19 @@ export default function AdminProjectDetail() {
     </Card>
   );
   const financeOverviewCard = (() => {
-    const totalPaid = charges
-      .filter((c) => c.status === "pago" && !c.is_historical)
-      .reduce((sum, c) => sum + Number(c.amount), 0);
-    const totalOpen = visibleCharges
-      .filter(
-        (c) =>
-          !c.is_historical &&
-          c.origin_type !== "mensalidade" &&
-          (c.status === "pendente" || c.status === "atrasado")
-      )
-      .reduce((sum, c) => sum + Number(c.amount), 0);
+    const totalPaid =
+      charges
+        .filter((c) => c.status === "pago" && !c.is_historical)
+        .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+    const totalOpen =
+      visibleCharges
+        .filter(
+          (c) =>
+            !c.is_historical &&
+            c.origin_type !== "mensalidade" &&
+            (c.status === "pendente" || c.status === "atrasado")
+        )
+        .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
 
     return (
       <div className="space-y-5">

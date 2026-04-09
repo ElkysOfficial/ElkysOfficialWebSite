@@ -28,6 +28,7 @@ import {
   maskCurrency,
   maskDate,
   parseFormDate,
+  toCents,
   unmaskCurrency,
 } from "@/lib/masks";
 
@@ -257,19 +258,21 @@ export default function AdminExpenses() {
   const totalPages = Math.max(1, Math.ceil(filteredExpenses.length / PAGE_SIZE));
   const visibleExpenses = filteredExpenses.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  const filteredTotal = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const filteredTotal =
+    filteredExpenses.reduce((sum, expense) => sum + toCents(expense.amount), 0) / 100;
   const filteredAverage = filteredExpenses.length > 0 ? filteredTotal / filteredExpenses.length : 0;
 
   const categoryBreakdown = useMemo(() => {
     const map = new Map<string, number>();
     for (const expense of filteredExpenses) {
-      map.set(expense.category, (map.get(expense.category) ?? 0) + Number(expense.amount));
+      map.set(expense.category, (map.get(expense.category) ?? 0) + toCents(expense.amount));
     }
+    const filteredTotalCents = Math.round(filteredTotal * 100);
     return Array.from(map.entries())
-      .map(([category, total]) => ({
+      .map(([category, totalCents]) => ({
         category,
-        total,
-        percent: filteredTotal > 0 ? (total / filteredTotal) * 100 : 0,
+        total: totalCents / 100,
+        percent: filteredTotalCents > 0 ? (totalCents / filteredTotalCents) * 100 : 0,
       }))
       .sort((a, b) => b.total - a.total);
   }, [filteredExpenses, filteredTotal]);

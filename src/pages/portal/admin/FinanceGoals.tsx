@@ -8,7 +8,7 @@ import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatBRL, maskCurrency, unmaskCurrency } from "@/lib/masks";
+import { formatBRL, maskCurrency, toCents, unmaskCurrency } from "@/lib/masks";
 
 type GoalRow = Database["public"]["Tables"]["financial_goals"]["Row"];
 type ChargeRow = Pick<
@@ -166,9 +166,11 @@ export default function FinanceGoals() {
 
   const getActualForPeriod = useCallback(
     (start: string, end: string) => {
-      return charges
-        .filter((c) => c.paid_at && c.paid_at >= start && c.paid_at <= end)
-        .reduce((sum, c) => sum + Number(c.amount), 0);
+      return (
+        charges
+          .filter((c) => c.paid_at && c.paid_at >= start && c.paid_at <= end)
+          .reduce((sum, c) => sum + toCents(c.amount), 0) / 100
+      );
     },
     [charges]
   );
