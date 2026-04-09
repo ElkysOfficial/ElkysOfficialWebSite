@@ -24,6 +24,7 @@ import {
   Bell,
   Building2,
   CalendarX,
+  CheckCircle,
   Code2,
   Cog,
   FileText,
@@ -94,6 +95,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/projetos",
         icon: AgileMono,
         roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Tarefas",
+        href: "/portal/admin/tarefas",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "marketing", "developer", "support"],
       },
     ],
   },
@@ -202,6 +209,12 @@ const adminPageMeta = [
     title: "Projetos",
     description:
       "Carteira operacional organizada por projeto, com foco em status, etapas, escopo e andamento.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/tarefas",
+    title: "Tarefas",
+    description:
+      "Kanban e calendário unificado para acompanhar tarefas, pendências e compromissos da equipe.",
   },
   {
     match: (pathname: string) => pathname === "/portal/admin/projetos/novo",
