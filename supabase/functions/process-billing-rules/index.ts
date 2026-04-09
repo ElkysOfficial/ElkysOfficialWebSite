@@ -134,6 +134,21 @@ Deno.serve(async (req: Request) => {
         description: charge.description,
       };
 
+      // Check for existing send today (idempotency for single-charge mode)
+      const { data: existingLog } = await supabase
+        .from("billing_actions_log")
+        .select("id")
+        .eq("charge_id", charge.id)
+        .eq("template_id", tpl.id)
+        .eq("status", "enviado")
+        .gte("sent_at", `${new Date().toISOString().slice(0, 10)}T00:00:00`)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingLog) {
+        return jsonResponse({ ok: true, sent: 0, skipped: true, reason: "Already sent today" });
+      }
+
       const subject = replaceVars(tpl.subject, vars);
       const bodyText = replaceVars(tpl.body, vars);
       const html = buildEmail({
@@ -146,7 +161,7 @@ Deno.serve(async (req: Request) => {
 
       const result = await sendEmail({ to: client.email, subject, html });
 
-      await supabase.from("billing_actions_log").insert({
+      const { error: logError } = await supabase.from("billing_actions_log").insert({
         charge_id: charge.id,
         action_type: "email",
         template_id: tpl.id,
@@ -154,6 +169,10 @@ Deno.serve(async (req: Request) => {
         error_message: result.error ?? null,
         triggered_by: triggeredBy,
       });
+
+      if (logError?.code === "23505") {
+        return jsonResponse({ ok: true, sent: 0, skipped: true, reason: "Already sent today" });
+      }
 
       return jsonResponse({ ok: result.ok, sent: result.ok ? 1 : 0, errors: result.ok ? 0 : 1 });
     }
@@ -288,8 +307,8 @@ Deno.serve(async (req: Request) => {
           totalSent++;
         }
 
-        // 7. Log the action
-        await supabase.from("billing_actions_log").insert({
+        // 7. Log the action (unique index prevents duplicate sends on conflict)
+        const { error: logError } = await supabase.from("billing_actions_log").insert({
           charge_id: charge.id,
           rule_id: rule.id,
           action_type: rule.action_type,
@@ -298,6 +317,13 @@ Deno.serve(async (req: Request) => {
           error_message: errorMessage,
           triggered_by: triggeredBy,
         });
+
+        // If unique constraint violation (23505), another process already logged this — skip
+        if (logError?.code === "23505") {
+          console.warn(`[billing] Duplicate log skipped: charge=${charge.id} rule=${rule.id}`);
+        } else if (logError) {
+          console.error(`[billing] Log insert error: ${logError.message}`);
+        }
       }
     }
 
