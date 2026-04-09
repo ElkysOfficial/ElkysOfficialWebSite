@@ -17,9 +17,12 @@ export function useClientOverview(clientId: string | null | undefined) {
         loadSupportTicketsForClient(clientId),
       ]);
 
-      const queryError = projectsRes.error ?? chargesRes.error ?? ticketsRes.error;
-      if (queryError) throw queryError;
+      // If ALL queries failed, throw so React Query shows error state
+      if (projectsRes.error && chargesRes.error && ticketsRes.error) {
+        throw projectsRes.error;
+      }
 
+      // Return partial data — consumers already fallback with ?? [] / ?? 0
       return {
         projects: projectsRes.projects,
         charges: chargesRes.charges,
