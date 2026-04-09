@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-import { FileText, Shield } from "@/assets/icons";
+import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import StatusBadge from "@/components/portal/StatusBadge";
-import { Button, Card, CardContent, cn } from "@/design-system";
+import { cn } from "@/design-system";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL } from "@/lib/masks";
 import { formatPortalDate } from "@/lib/portal";
+import { resolveClientForUser } from "@/lib/portal-data";
 
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 
@@ -25,29 +27,54 @@ const STATUS_META: Record<
 };
 
 export default function ClientProposals() {
+  const { user } = useAuth();
   const [proposals, setProposals] = useState<ProposalRow[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const loadProposals = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("proposals")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      toast.error("Erro ao carregar propostas.");
-      setLoading(false);
-      return;
-    }
-
-    setProposals((data ?? []) as ProposalRow[]);
-    setLoading(false);
-  }, []);
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadProposals = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setPageError(null);
+
+      const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
+      if (clientRes.error || !clientRes.client) {
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("proposals")
+        .select("*")
+        .eq("client_id", clientRes.client.id)
+        .neq("status", "rascunho")
+        .order("created_at", { ascending: false });
+
+      if (cancelled) return;
+      if (error) {
+        toast.error("Erro ao carregar propostas.");
+        setLoading(false);
+        return;
+      }
+
+      setProposals((data ?? []) as ProposalRow[]);
+      setLoading(false);
+    };
+
     void loadProposals();
-  }, [loadProposals]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   if (loading) {
     return (
@@ -59,6 +86,12 @@ export default function ClientProposals() {
           />
         ))}
       </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <AdminEmptyState icon={FileText} title="Erro ao carregar propostas" description={pageError} />
     );
   }
 
