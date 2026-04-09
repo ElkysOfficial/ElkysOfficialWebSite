@@ -20,6 +20,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { escapeHtml } from "../_shared/validation.ts";
 
 interface Payload {
   ticket_id: string;
@@ -95,7 +96,7 @@ serve(async (req) => {
         label: "Ver ticket no painel →",
         href: ticketUrl,
       },
-      note: `<strong>Mensagem do cliente:</strong><br/><em style="color:#52525b;">"${bodyPreview}"</em>`,
+      note: `<strong>Mensagem do cliente:</strong><br/><em style="color:#52525b;">"${escapeHtml(bodyPreview)}"</em>`,
     });
 
     // Send to all configured recipients

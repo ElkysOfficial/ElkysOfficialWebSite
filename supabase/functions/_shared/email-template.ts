@@ -1,3 +1,5 @@
+import { escapeHtml } from "./validation.ts";
+
 const LOGO_URL = "https://elkys.com.br/imgs/icons/lettering_elkys_email.png";
 
 interface EmailButton {
@@ -60,7 +62,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                       color: #666666;
                                     "
                                   >
-                                    ${row.label}
+                                    ${escapeHtml(row.label)}
                                   </td>
                                   <td
                                     class="text-dark"
@@ -73,7 +75,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                       font-weight: 700;
                                     "
                                   >
-                                    ${row.value}
+                                    ${escapeHtml(row.value)}
                                   </td>
                                 </tr>`
                                   )
