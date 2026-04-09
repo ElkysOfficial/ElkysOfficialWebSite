@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import { useAuth } from "@/contexts/AuthContext";
-import { AlertDialog, buttonVariants, Button, Input, cn } from "@/design-system";
+import RowActionMenu from "@/components/portal/RowActionMenu";
+import { buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import { formatBRL } from "@/lib/masks";
 import {
   getProfileInitials,
@@ -94,67 +93,6 @@ function MetricTile({
 /*  Row action menu                                                    */
 /* ------------------------------------------------------------------ */
 
-function RowActionMenu({
-  actions,
-}: {
-  actions: { label: string; onClick: () => void; destructive?: boolean }[];
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label="Acoes"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <circle cx="8" cy="3" r="1.5" />
-          <circle cx="8" cy="8" r="1.5" />
-          <circle cx="8" cy="13" r="1.5" />
-        </svg>
-      </button>
-      {open ? (
-        <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-border/80 bg-card py-1 shadow-lg">
-          {actions.map((action) => (
-            <button
-              key={action.label}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen(false);
-                action.onClick();
-              }}
-              className={cn(
-                "flex w-full items-center px-3 py-2 text-left text-sm transition-colors hover:bg-muted",
-                action.destructive ? "text-destructive" : "text-foreground"
-              )}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /*  Client row — table-like, uniform columns + action menu             */
 /* ------------------------------------------------------------------ */
@@ -162,14 +100,10 @@ function RowActionMenu({
 function ClientRow({
   client,
   onToggleActive,
-  onDelete,
-  canDelete,
   avatarInfo,
 }: {
   client: Client;
   onToggleActive: (client: Client) => void;
-  onDelete: (client: Client) => void;
-  canDelete: boolean;
   avatarInfo?: AvatarInfo;
 }) {
   const navigate = useNavigate();
@@ -191,9 +125,6 @@ function ClientRow({
       destructive: client.is_active,
     },
     { label: "Ver detalhes", onClick: () => navigate(`/portal/admin/clientes/${client.id}`) },
-    ...(canDelete
-      ? [{ label: "Excluir cliente", onClick: () => onDelete(client), destructive: true as const }]
-      : []),
   ];
 
   return (
@@ -327,7 +258,6 @@ function ColumnHeader() {
 /* ------------------------------------------------------------------ */
 
 export default function AdminClients() {
-  const { isSuperAdmin } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -340,8 +270,6 @@ export default function AdminClients() {
   const [originFilter, setOriginFilter] = useState<OriginFilter>("all");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
   const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
   const loadClients = useCallback(
@@ -496,46 +424,6 @@ export default function AdminClients() {
 
   const totalClients = clients.length;
 
-  const handleDeleteClient = async () => {
-    if (!clientToDelete) return;
-    setDeleteLoading(true);
-
-    try {
-      if (clientToDelete.user_id) {
-        const authHeaders = await getSupabaseFunctionAuthHeaders();
-        const { data: deleteUserData, error: deleteUserError } = await supabase.functions.invoke(
-          "delete-user",
-          { body: { user_id: clientToDelete.user_id }, headers: authHeaders }
-        );
-        if (deleteUserError || deleteUserData?.error) {
-          throw new Error(deleteUserError?.message ?? String(deleteUserData?.error));
-        }
-      }
-
-      const { error: deleteClientError } = await supabase
-        .from("clients")
-        .delete()
-        .eq("id", clientToDelete.id);
-
-      if (deleteClientError) {
-        toast.error("O acesso foi removido, mas o cadastro ainda existe.", {
-          description: deleteClientError.message,
-        });
-        return;
-      }
-
-      toast.success("Cliente removido. Registros vinculados foram apagados em cascata.");
-      setClientToDelete(null);
-      void loadClients();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Nao foi possivel remover o cliente.";
-      toast.error("Erro ao remover cliente.", { description: message });
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
   const handleToggleActive = async (client: Client) => {
     const next = !client.is_active;
     const { error } = await supabase
@@ -552,26 +440,8 @@ export default function AdminClients() {
     void loadClients();
   };
 
-  const deleteDisplayName =
-    clientToDelete?.client_type === "pj" && clientToDelete?.nome_fantasia
-      ? clientToDelete.nome_fantasia
-      : (clientToDelete?.full_name ?? "");
-
   return (
     <div className="space-y-8">
-      <AlertDialog
-        open={clientToDelete !== null}
-        title="Excluir cliente"
-        description={`Tem certeza que deseja excluir "${deleteDisplayName}"? Esta acao nao pode ser desfeita. Todos os projetos, contratos, financeiro e historico vinculados serao removidos permanentemente.`}
-        confirmLabel="Excluir"
-        cancelLabel="Cancelar"
-        destructive
-        loading={deleteLoading}
-        loadingLabel="Excluindo..."
-        onConfirm={() => void handleDeleteClient()}
-        onCancel={() => setClientToDelete(null)}
-      />
-
       {/* -- Action bar -- */}
       <div className="flex items-center justify-between">
         <div>
@@ -798,8 +668,6 @@ export default function AdminClients() {
               key={client.id}
               client={client}
               onToggleActive={handleToggleActive}
-              onDelete={setClientToDelete}
-              canDelete={isSuperAdmin}
               avatarInfo={client.user_id ? avatarMap[client.user_id] : undefined}
             />
           ))}
