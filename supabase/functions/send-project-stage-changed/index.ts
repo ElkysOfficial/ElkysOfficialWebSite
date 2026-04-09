@@ -70,10 +70,10 @@ serve(async (req) => {
 
     const firstName = client.full_name.split(" ")[0];
     const isStageChange = change_type === "stage";
-    const title = isStageChange ? "Progresso do projeto" : "Atualizacao do projeto";
+    const title = isStageChange ? "Progresso do projeto" : "Atualização do projeto";
     const subject = isStageChange
-      ? `Progresso: ${project_name} avanc\u0327ou para ${to_value}`
-      : `Atualizac\u0327a\u0303o: ${project_name} - ${to_value}`;
+      ? `Progresso: ${project_name} avançou para ${to_value}`
+      : `Atualização: ${project_name} — ${to_value}`;
 
     const highlightRows = [
       { label: "Projeto", value: project_name },
@@ -85,28 +85,28 @@ serve(async (req) => {
 
     const bodyParagraphs = isStageChange
       ? `
-        <p style="margin:0 0 12px;">Boas noticias! O seu projeto <strong>${project_name}</strong> avancou para uma nova etapa.</p>
-        <p style="margin:0 0 12px;">Acompanhe o progresso completo, documentos e proximos passos diretamente no seu portal.</p>
-        ${client_visible_summary ? `<p style="margin:0;"><strong>Resumo:</strong> ${client_visible_summary}</p>` : ""}
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Boas notícias! O seu projeto <strong>${project_name}</strong> avançou para uma nova etapa.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acompanhe o progresso completo, documentos e próximos passos diretamente no seu portal.</p>
+        ${client_visible_summary ? `<p style="margin:0;font-size:14px;line-height:22px;color:#333333;"><strong>Resumo:</strong> ${client_visible_summary}</p>` : ""}
       `
       : `
-        <p style="margin:0 0 12px;">O status do seu projeto <strong>${project_name}</strong> foi atualizado.</p>
-        <p style="margin:0;">Acesse o portal para ver os detalhes completos.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">O status do seu projeto <strong>${project_name}</strong> foi atualizado.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Acesse o portal para conferir todos os detalhes.</p>
       `;
 
     const html = buildEmail({
       preheader: isStageChange
-        ? `Seu projeto "${project_name}" avancou para ${to_value}.`
+        ? `Seu projeto "${project_name}" avançou para ${to_value}.`
         : `O status do projeto "${project_name}" foi atualizado para ${to_value}.`,
       title,
-      greeting: `Ola, ${firstName}!`,
+      greeting: `Olá, ${firstName}!`,
       body: bodyParagraphs,
-      highlight: { title: "Detalhes da atualizacao", rows: highlightRows },
+      highlight: { title: "Detalhes da atualização", rows: highlightRows },
       button: {
-        label: "Acompanhar no Portal →",
+        label: "Acompanhar no portal →",
         href: `${PORTAL_URL}/projetos/${project_id}`,
       },
-      note: "Qualquer duvida, abra um ticket de suporte pelo portal.",
+      note: "Qualquer dúvida, nossa equipe está à disposição pelo suporte do portal.",
     });
 
     const result = await sendEmail({

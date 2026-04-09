@@ -44,13 +44,11 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Seu acesso ao portal Elkys está pronto, ${firstName}.`,
       title: "Bem-vindo ao Portal Elkys",
-      greeting: `Olá, ${firstName},`,
+      greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seja bem-vindo à Elkys.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seu acesso ao portal foi criado com sucesso. A partir de agora, você poderá acompanhar seus projetos, acessar documentos e visualizar todas as informações relacionadas aos serviços contratados em um único lugar.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Trabalhamos com proximidade, transparência e organização, para que você tenha total clareza sobre cada etapa do que está sendo desenvolvido.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Para acessar o portal, utilize as credenciais enviadas neste e-mail. No primeiro acesso, será necessário definir uma nova senha por segurança.</p>
-        <p style="margin:0 0 20px 0;font-size:14px;line-height:22px;color:#333333;">Seguimos à disposição para qualquer necessidade.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seja bem-vindo à <strong>Elkys</strong>. É um prazer ter você conosco.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seu acesso ao <strong>Portal do Cliente</strong> foi criado com sucesso. A partir de agora, você pode acompanhar seus projetos, documentos, financeiro e muito mais em um só lugar.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Utilize as credenciais abaixo para fazer seu primeiro acesso. Por segurança, recomendamos que altere sua senha logo após o login.</p>
       `,
       highlight: {
         title: "Suas credenciais de acesso",
@@ -60,14 +58,14 @@ serve(async (req) => {
         ],
       },
       button: {
-        label: "Ir para o seu portal",
+        label: "Acessar meu portal",
         href: PORTAL_URL,
       },
     });
 
     const result = await sendEmail({
       to: email,
-      subject: `Seu acesso ao Portal Elkys foi criado`,
+      subject: `Bem-vindo ao Portal Elkys`,
       html,
     });
 

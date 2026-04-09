@@ -124,11 +124,11 @@ serve(async (req) => {
         greeting: `Olá, ${firstName}!`,
         body: isInadimplente
           ? `
-            <p style="margin:0 0 12px;">Identificamos que existe uma <strong>pendência financeira</strong> em sua conta. Entre em contato com nossa equipe para regularizar sua situação e evitar interrupções nos serviços.</p>
+            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos uma <strong>pendência financeira</strong> em sua conta. Entre em contato com nossa equipe para regularizar a situação e garantir a continuidade dos serviços.</p>
           `
           : `
-            <p style="margin:0 0 12px;">Este é um lembrete amigável: sua(s) fatura(s) vence(m) em <strong>${DAYS_BEFORE} dia(s)</strong>, no dia <strong>${dueDateFormatted}</strong>.</p>
-            <p style="margin:0;">Certifique-se de que o pagamento está em dia para garantir a continuidade dos serviços sem interrupções.</p>
+            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Este é um lembrete: sua(s) fatura(s) vence(m) em <strong>${DAYS_BEFORE} dia(s)</strong>, no dia <strong>${dueDateFormatted}</strong>.</p>
+            <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Mantenha o pagamento em dia para garantir a continuidade dos serviços sem interrupção.</p>
           `,
         highlight: {
           title: "Resumo da cobrança",
@@ -143,12 +143,12 @@ serve(async (req) => {
           ],
         },
         button: {
-          label: "Acessar o Portal →",
+          label: "Acessar o portal →",
           href: PORTAL_URL,
         },
         ...(isInadimplente && {
           warning:
-            "Sua conta está marcada como inadimplente. Entre em contato com nossa equipe o quanto antes para evitar suspensão dos serviços.",
+            "Sua conta apresenta pendências financeiras. Entre em contato com nossa equipe para evitar a suspensão dos serviços.",
         }),
         note: "Em caso de dúvidas sobre cobranças, entre em contato pelo suporte do portal ou pelo WhatsApp.",
       });

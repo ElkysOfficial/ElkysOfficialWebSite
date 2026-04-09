@@ -74,31 +74,31 @@ serve(async (req) => {
 
     const highlightRows = [
       { label: "Projeto", value: project_name },
-      { label: "Solicitacao", value: step_title },
+      { label: "Solicitação", value: step_title },
       ...(step_description ? [{ label: "Detalhes", value: step_description }] : []),
       ...(formattedDueDate ? [{ label: "Prazo", value: formattedDueDate }] : []),
     ];
 
     const html = buildEmail({
-      preheader: `Acao necessaria: ${step_title} - projeto ${project_name}`,
-      title: "Acao necessaria",
-      greeting: `Ola, ${firstName}!`,
+      preheader: `Ação necessária: ${step_title} — projeto ${project_name}`,
+      title: "Ação necessária",
+      greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 12px;">Precisamos da sua colaboracao para dar continuidade ao projeto <strong>${project_name}</strong>.</p>
-        <p style="margin:0 0 12px;">Acesse o portal para visualizar os detalhes da solicitacao e enviar sua resposta.</p>
-        ${formattedDueDate ? `<p style="margin:0;"><strong>Prazo sugerido:</strong> ${formattedDueDate}</p>` : ""}
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Precisamos da sua colaboração para dar continuidade ao projeto <strong>${project_name}</strong>.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acesse o portal para visualizar os detalhes da solicitação e enviar sua resposta.</p>
+        ${formattedDueDate ? `<p style="margin:0;font-size:14px;line-height:22px;color:#333333;"><strong>Prazo sugerido:</strong> ${formattedDueDate}</p>` : ""}
       `,
-      highlight: { title: "Detalhes da solicitacao", rows: highlightRows },
+      highlight: { title: "Detalhes da solicitação", rows: highlightRows },
       button: {
-        label: "Responder no Portal →",
+        label: "Responder no portal →",
         href: `${PORTAL_URL}/projetos/${project_id}`,
       },
-      note: "Sua resposta e importante para o andamento do projeto. Se tiver duvidas, abra um ticket de suporte.",
+      note: "Sua resposta é importante para o andamento do projeto. Em caso de dúvidas, abra um ticket pelo suporte do portal.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Acao necessaria: ${step_title} - ${project_name}`,
+      subject: `Ação necessária: ${step_title} — ${project_name}`,
       html,
     });
 

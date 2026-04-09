@@ -75,9 +75,9 @@ serve(async (req) => {
       title: "Novo documento disponível",
       greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 12px;">Um novo documento foi disponibilizado em seu perfil no <strong>Portal Elkys</strong> e já está pronto para acesso.</p>
-        <p style="margin:0 0 12px;">Você pode visualizar, baixar ou compartilhar o arquivo a qualquer momento, de forma simples e segura.</p>
-        <p style="margin:0;">Mantemos todas as informações centralizadas para garantir organização, rastreabilidade e fácil acesso sempre que necessário.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo documento foi disponibilizado no seu <strong>Portal Elkys</strong> e já está pronto para acesso.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Você pode visualizar, baixar ou compartilhar o arquivo a qualquer momento, de forma simples e segura.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Mantemos todas as informações centralizadas para garantir organização e fácil acesso sempre que necessário.</p>
       `,
       highlight: {
         title: "Detalhes do documento",
@@ -90,7 +90,7 @@ serve(async (req) => {
         label: "Ver documentos no Portal →",
         href: `${PORTAL_URL}/documentos`,
       },
-      note: "Seguimos à disposição para qualquer suporte.",
+      note: "Qualquer dúvida, nossa equipe está à disposição.",
     });
 
     const result = await sendEmail({

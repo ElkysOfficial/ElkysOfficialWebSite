@@ -25,7 +25,7 @@ interface Payload {
 const EVENT_SUBJECT: Record<EventType, string> = {
   em_andamento: "Seu ticket está sendo analisado",
   resolvido: "Seu ticket foi resolvido",
-  reply: "Você recebeu uma resposta no seu ticket",
+  reply: "Nova resposta no seu ticket",
 };
 
 serve(async (req) => {
@@ -97,13 +97,13 @@ serve(async (req) => {
 
     if (event === "em_andamento") {
       greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;">Sua solicitação de suporte foi recebida pela equipe Elkys e está sendo analisada. Em breve entraremos em contato.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi recebida pela equipe Elkys e já está sendo analisada. Retornaremos em breve com uma resposta.</p>`;
     } else if (event === "resolvido") {
       greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;">Sua solicitação de suporte foi marcada como <strong>resolvida</strong>. Caso o problema persista ou surja uma nova dúvida, sinta-se à vontade para abrir um novo ticket pelo portal.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi marcada como <strong>resolvida</strong>. Caso o problema persista ou surja uma nova dúvida, fique à vontade para abrir um novo ticket pelo portal.</p>`;
     } else if (event === "reply") {
       greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;">A equipe Elkys respondeu ao seu ticket de suporte. Acesse o portal para visualizar a resposta completa.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A equipe Elkys respondeu ao seu ticket de suporte. Acesse o portal para visualizar a resposta completa e dar continuidade à conversa.</p>`;
       if (reply_body) {
         const raw = reply_body.length > 400 ? reply_body.slice(0, 397) + "..." : reply_body;
         const preview = escapeHtml(raw);
@@ -121,7 +121,7 @@ serve(async (req) => {
         rows: [{ label: "Assunto", value: subject }],
       },
       button: {
-        label: "Acessar portal →",
+        label: "Acessar suporte →",
         href: ticketUrl,
       },
       note: noteHtml,

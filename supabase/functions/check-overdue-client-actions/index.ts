@@ -93,25 +93,27 @@ serve(async (req) => {
         .join("");
 
       const html = buildEmail({
-        preheader: `Voce tem ${group.steps.length} solicitacao(oes) pendente(s) que precisam da sua atencao.`,
-        title: "Lembrete: solicitacoes pendentes",
-        greeting: `Ola, ${firstName}!`,
+        preheader: `Você tem ${group.steps.length} solicitação(ões) pendente(s) que precisam da sua atenção.`,
+        title: "Lembrete: solicitações pendentes",
+        greeting: `Olá, ${firstName}!`,
         body: `
-          <p style="margin:0 0 12px;">Voce tem <strong>${group.steps.length}</strong> solicitacao(oes) pendente(s) que ja ultrapassaram o prazo estimado.</p>
-          <p style="margin:0 0 12px;">Sua resposta e fundamental para o andamento dos projetos:</p>
-          <ul style="margin:0 0 12px;padding-left:20px;">${stepsList}</ul>
-          <p style="margin:0;">Acesse o portal para responder rapidamente.</p>
+          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Você tem <strong>${group.steps.length}</strong> solicitação(ões) pendente(s) que já ultrapassaram o prazo estimado.</p>
+          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua resposta é fundamental para o andamento dos projetos:</p>
+          <ul style="margin:0 0 12px;padding-left:20px;">
+            ${stepsList}
+          </ul>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Acesse o portal para responder.</p>
         `,
         button: {
           label: "Acessar meus projetos →",
           href: `${PORTAL_URL}/projetos`,
         },
-        note: "Responder rapidamente evita atrasos no seu projeto.",
+        note: "Responder dentro do prazo evita atrasos nas entregas do seu projeto.",
       });
 
       const result = await sendEmail({
         to: client.email,
-        subject: `Lembrete: ${group.steps.length} solicitacao(oes) pendente(s)`,
+        subject: `Lembrete: ${group.steps.length} solicitação(ões) pendente(s)`,
         html,
       });
 
@@ -121,7 +123,7 @@ serve(async (req) => {
       void admin.from("admin_notifications").insert({
         type: "lembrete_enviado",
         title: `Lembrete enviado: ${client.full_name}`,
-        body: `Lembrete automatico enviado para ${client.full_name} sobre ${group.steps.length} solicitacao(oes) em atraso.`,
+        body: `Lembrete automático enviado para ${client.full_name} sobre ${group.steps.length} solicitação(ões) em atraso.`,
         severity: "info",
         target_roles: ["admin_super", "admin"],
         entity_type: "client",

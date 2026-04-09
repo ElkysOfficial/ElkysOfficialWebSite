@@ -82,7 +82,7 @@ serve(async (req) => {
       title: "Novo ticket de suporte",
       greeting: "Nova solicitação recebida",
       body: `
-        <p style="margin:0 0 12px;">Um cliente abriu um novo ticket de suporte no portal. Verifique e responda o quanto antes.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um cliente abriu um novo ticket de suporte no portal. Verifique e responda o mais breve possível.</p>
       `,
       highlight: {
         title: "Detalhes da solicitação",

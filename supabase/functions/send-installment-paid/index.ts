@@ -111,13 +111,13 @@ serve(async (req) => {
     const projectUrl = `${PORTAL_URL}/projetos/${project_id}`;
 
     const html = buildEmail({
-      preheader: `Pagamento confirmado: ${typeLabel} de ${amount} -${project.name}`,
+      preheader: `Pagamento confirmado: ${typeLabel} de ${amount} — ${project.name}`,
       title: "Pagamento confirmado",
       greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 14px;">Temos o prazer de confirmar o recebimento do pagamento referente à parcela de <strong>${typeLabel.toLowerCase()}</strong> do projeto <strong>${project.name}</strong>.</p>
-        <p style="margin:0 0 14px;">Este registro foi devidamente processado em nosso sistema e sua conta encontra-se em situação regular. A equipe Elkys agradece pela pontualidade e pela confiança depositada em nosso trabalho.</p>
-        <p style="margin:0 0 22px;">Continuamos comprometidos com a entrega de uma solução de excelência. Em caso de dúvidas sobre este ou qualquer outro pagamento, nosso time está à disposição pelo suporte do portal.</p>
+        <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">Confirmamos o recebimento do pagamento referente à parcela de <strong>${typeLabel.toLowerCase()}</strong> do projeto <strong>${project.name}</strong>.</p>
+        <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">O registro foi processado e sua conta encontra-se em situação regular. Agradecemos pela pontualidade e pela confiança no nosso trabalho.</p>
+        <p style="margin:0 0 22px;font-size:14px;line-height:22px;color:#333333;">Em caso de dúvidas sobre este ou qualquer outro pagamento, nossa equipe está à disposição pelo suporte do portal.</p>
       `,
       highlight: {
         title: "Detalhes do pagamento",
@@ -127,7 +127,7 @@ serve(async (req) => {
           { label: "Parcela", value: `${typeLabel} (${percentage}%)` },
           { label: "Valor", value: amount },
           { label: "Vencimento original", value: dueDate },
-          { label: "Data de confirmação", value: paidAt },
+          { label: "Confirmação", value: paidAt },
           { label: "Situação", value: "✓ Pago" },
         ],
       },
@@ -135,12 +135,12 @@ serve(async (req) => {
         label: "Ver projeto no Portal →",
         href: projectUrl,
       },
-      note: "Guarde este e-mail como comprovante do registro de pagamento em nosso sistema.",
+      note: "Guarde este e-mail como comprovante do registro de pagamento.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `[Elkys] Pagamento confirmado -${project.name} · ${typeLabel} ${percentage}%`,
+      subject: `[Elkys] Pagamento confirmado — ${project.name} · ${typeLabel} ${percentage}%`,
       html,
     });
 

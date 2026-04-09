@@ -69,31 +69,31 @@ serve(async (req) => {
 
     const html = buildEmail({
       preheader: `Seu projeto "${project_name}" foi entregue com sucesso!`,
-      title: "Projeto entregue",
-      greeting: `Parabens, ${firstName}!`,
+      title: "Projeto concluído",
+      greeting: `Parabéns, ${firstName}!`,
       body: `
-        <p style="margin:0 0 12px;">Temos o prazer de informar que o projeto <strong>${project_name}</strong> foi concluido e entregue com sucesso.</p>
-        <p style="margin:0 0 12px;">Todos os detalhes, documentos e historico do projeto continuam disponiveis no seu portal para consulta a qualquer momento.</p>
-        <p style="margin:0;">Agradecemos a confianca e estamos prontos para os proximos passos.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Temos o prazer de informar que o projeto <strong>${project_name}</strong> foi concluído e entregue com sucesso.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Todos os detalhes, documentos e histórico do projeto continuam disponíveis no seu portal para consulta a qualquer momento.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Agradecemos a confiança e estamos prontos para os próximos passos juntos.</p>
       `,
       highlight: {
         title: "Resumo da entrega",
         rows: [
           { label: "Projeto", value: project_name },
           { label: "Data de entrega", value: formatDate(delivered_at) },
-          { label: "Status", value: "Concluido" },
+          { label: "Status", value: "Concluído" },
         ],
       },
       button: {
-        label: "Ver projeto no Portal →",
+        label: "Ver projeto no portal →",
         href: `${PORTAL_URL}/projetos`,
       },
-      note: "Se precisar de qualquer ajuste ou suporte, estamos a disposicao.",
+      note: "Se precisar de qualquer ajuste ou suporte pós-entrega, estamos à disposição.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Projeto entregue: ${project_name}`,
+      subject: `Projeto concluído: ${project_name}`,
       html,
     });
 

@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
 import { buildEmail, sendEmail } from "../_shared/email-template.ts";
+import { escapeAndFormat } from "../_shared/validation.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -154,8 +155,8 @@ Deno.serve(async (req: Request) => {
       const html = buildEmail({
         preheader: subject,
         title: "Elkys - Aviso Financeiro",
-        greeting: `Ola, ${clientName}`,
-        body: bodyText,
+        greeting: `Olá, ${clientName}`,
+        body: `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">${escapeAndFormat(bodyText)}</p>`,
         button: { label: "Acessar portal", href: `${portalUrl}/financeiro` },
       });
 
@@ -286,8 +287,8 @@ Deno.serve(async (req: Request) => {
           const html = buildEmail({
             preheader: subject,
             title: "Elkys - Aviso Financeiro",
-            greeting: `Ola, ${clientName}`,
-            body: bodyText,
+            greeting: `Olá, ${clientName}`,
+            body: `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">${escapeAndFormat(bodyText)}</p>`,
             button: {
               label: "Acessar portal",
               href: `${portalUrl}/financeiro`,

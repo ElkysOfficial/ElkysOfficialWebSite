@@ -65,21 +65,21 @@ serve(async (req) => {
       title: "Redefinição de senha",
       greeting: "Olá!",
       body: `
-        <p style="margin:0 0 12px;">Recebemos uma solicitação para redefinir a senha da conta associada a <strong>${email}</strong> no Portal do Cliente Elkys.</p>
-        <p style="margin:0;">Clique no botão abaixo para criar uma nova senha. O link é válido por <strong>1 hora</strong> e pode ser usado apenas uma vez.</p>
+        <p class="text-body" style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Recebemos uma solicitação para redefinir a senha da conta <strong>${email}</strong> no Portal Elkys.</p>
+        <p class="text-body" style="margin:0;font-size:14px;line-height:22px;color:#333333;">Clique no botão abaixo para criar uma nova senha. O link é válido por <strong>1 hora</strong> e pode ser usado uma única vez.</p>
       `,
       button: {
         label: "Redefinir minha senha →",
         href: resetLink,
       },
       warning:
-        "Se você não solicitou a redefinição de senha, ignore este e-mail. Sua senha permanece inalterada e sua conta está segura.",
+        "Se você não solicitou esta redefinição, ignore este e-mail com tranquilidade. Sua senha permanece inalterada e sua conta está segura.",
       note: `Link não funcionou? Copie e cole este endereço no navegador: <a href="${resetLink}" style="word-break:break-all;">${resetLink}</a>`,
     });
 
     const result = await sendEmail({
       to: email,
-      subject: "Redefinição de senha - Portal Elkys",
+      subject: "Redefinição de senha — Portal Elkys",
       html,
     });
 
