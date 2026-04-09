@@ -87,7 +87,7 @@ function MetricTile({
 /* ── Page ────────────────────────────────────────────────────────── */
 
 export default function AdminTeam() {
-  const { isSuperAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -373,7 +373,7 @@ export default function AdminTeam() {
             Gerencie os membros e acompanhe a estrutura do time.
           </p>
         </div>
-        {isSuperAdmin ? (
+        {isAdmin ? (
           <Link to="/portal/admin/equipe/novo" className={buttonVariants({ variant: "default" })}>
             Novo membro
           </Link>
@@ -455,7 +455,7 @@ export default function AdminTeam() {
           title="Nenhum membro encontrado"
           description="Ajuste os filtros ou registre um novo integrante para alimentar a estrutura do time."
           action={
-            isSuperAdmin ? (
+            isAdmin ? (
               <Link
                 to="/portal/admin/equipe/novo"
                 className={buttonVariants({ variant: "default" })}
