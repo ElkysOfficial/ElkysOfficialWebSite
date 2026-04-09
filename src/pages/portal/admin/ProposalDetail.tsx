@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, maskCurrency, unmaskCurrency } from "@/lib/masks";
-import { formatPortalDate, formatPortalDateTime } from "@/lib/portal";
+import { canTransitionProposal, formatPortalDate, formatPortalDateTime } from "@/lib/portal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -504,6 +504,11 @@ export default function ProposalDetail() {
   /* ── Send to client ── */
 
   async function handleSend() {
+    if (isEditing && proposal && !canTransitionProposal(proposal.status, "enviada")) {
+      toast.error("Esta proposta nao pode ser enviada no status atual.");
+      return;
+    }
+
     if (!form.title.trim()) {
       toast.error("Informe o titulo da proposta.");
       return;
@@ -643,6 +648,13 @@ export default function ProposalDetail() {
 
   async function handleApprove() {
     if (!proposal) return;
+
+    // Allow if already approved (by client) — just needs project creation.
+    // Otherwise validate the transition.
+    if (proposal.status !== "aprovada" && !canTransitionProposal(proposal.status, "aprovada")) {
+      toast.error("Esta proposta nao pode ser aprovada no status atual.");
+      return;
+    }
 
     setApproving(true);
 

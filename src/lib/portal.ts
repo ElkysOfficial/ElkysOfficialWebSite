@@ -18,6 +18,24 @@ type NextStepOwner = Database["public"]["Enums"]["next_step_owner"];
 type NextStepStatus = Database["public"]["Enums"]["next_step_status"];
 type ProjectInstallmentStatus = Database["public"]["Enums"]["project_installment_status"];
 
+/* ── Proposal state machine ── */
+
+export type ProposalStatus = "rascunho" | "enviada" | "aprovada" | "rejeitada" | "expirada";
+
+const PROPOSAL_TRANSITIONS: Record<ProposalStatus, readonly ProposalStatus[]> = {
+  rascunho: ["enviada"],
+  enviada: ["aprovada", "rejeitada", "expirada"],
+  aprovada: [],
+  rejeitada: [],
+  expirada: [],
+};
+
+export function canTransitionProposal(from: string, to: string): boolean {
+  const allowed = PROPOSAL_TRANSITIONS[from as ProposalStatus];
+  if (!allowed) return false;
+  return allowed.includes(to as ProposalStatus);
+}
+
 export type TicketStatus = "aberto" | "em_andamento" | "resolvido" | "fechado";
 export type TicketPriority = "baixa" | "media" | "alta";
 export type TicketCategory = "bug" | "duvida" | "acesso" | "financeiro" | "conteudo" | "outro";

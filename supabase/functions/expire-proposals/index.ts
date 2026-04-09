@@ -49,14 +49,16 @@ serve(async (req) => {
 
     const ids = expiredProposals.map((p) => p.id);
 
-    // Update all at once
+    // Update all at once — re-check status = 'enviada' to prevent overwriting
+    // a proposal that was approved/rejected between the SELECT and this UPDATE.
     const { error: updateError } = await admin
       .from("proposals")
       .update({
         status: "expirada",
         updated_at: new Date().toISOString(),
       })
-      .in("id", ids);
+      .in("id", ids)
+      .eq("status", "enviada");
 
     if (updateError) {
       return new Response(JSON.stringify({ ok: false, error: updateError.message }), {

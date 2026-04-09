@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL } from "@/lib/masks";
-import { formatPortalDate, formatPortalDateTime } from "@/lib/portal";
+import { canTransitionProposal, formatPortalDate, formatPortalDateTime } from "@/lib/portal";
 import { resolveClientForUser } from "@/lib/portal-data";
 
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
@@ -126,6 +126,10 @@ export default function ProposalView() {
 
   const handleApprove = async () => {
     if (!proposal || !clientId) return;
+    if (!canTransitionProposal(proposal.status, "aprovada")) {
+      toast.error("Esta proposta nao pode ser aprovada no status atual.");
+      return;
+    }
     setActionLoading(true);
 
     const { error } = await supabase
@@ -183,6 +187,10 @@ export default function ProposalView() {
 
   const handleReject = async () => {
     if (!proposal || !clientId) return;
+    if (!canTransitionProposal(proposal.status, "rejeitada")) {
+      toast.error("Esta proposta nao pode ser rejeitada no status atual.");
+      return;
+    }
     setActionLoading(true);
 
     const { error } = await supabase
