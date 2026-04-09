@@ -984,7 +984,7 @@ function RevenueBreakdownChart({ data }: { data: MonthlyPoint[] }) {
 
   return (
     <div className="h-[180px] sm:h-[220px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart
           data={data}
           margin={{ top: 12, right: 4, left: -8, bottom: 0 }}
@@ -1065,7 +1065,7 @@ function ClientDistributionChart({
 
   return (
     <div className="h-[160px] sm:h-[180px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="fcd-success" x1="0" y1="0" x2="0" y2="1">
@@ -1135,7 +1135,7 @@ function ProjectStatusChart({ counts }: { counts: Record<ProjectBucket, number> 
 
   return (
     <div className="h-[160px] sm:h-[180px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="fps-accent" x1="0" y1="0" x2="0" y2="1">

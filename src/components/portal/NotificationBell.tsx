@@ -84,28 +84,36 @@ export default function NotificationBell() {
     void fetchNotifications();
   }, [fetchNotifications]);
 
-  // Realtime subscription for new notifications
+  // Realtime subscription for new notifications (degrades gracefully when WebSocket is unavailable)
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notification_recipients",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          void fetchNotifications();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel(`notifications:${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notification_recipients",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            void fetchNotifications();
+          }
+        )
+        .subscribe((status, err) => {
+          if (err) console.warn("[realtime] notifications subscribe error:", err.message);
+        });
+    } catch {
+      console.warn("[realtime] WebSocket unavailable — realtime notifications disabled");
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [user?.id, fetchNotifications]);
 

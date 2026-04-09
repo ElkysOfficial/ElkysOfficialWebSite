@@ -390,34 +390,42 @@ export default function ClientSupport() {
     }
   }, [expandedId, messagesMap, loadMessages]);
 
-  /* ── Realtime: new messages on expanded ticket ──────────────────── */
+  /* ── Realtime: new messages on expanded ticket (degrades gracefully) ── */
 
   useEffect(() => {
     if (!expandedId || !tickets.some((t) => t.id === expandedId)) return;
 
-    const channel = supabase
-      .channel(`ticket-messages-${expandedId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "ticket_messages",
-          filter: `ticket_id=eq.${expandedId}`,
-        },
-        (payload) => {
-          const msg = payload.new as TicketMessage;
-          setMessagesMap((prev) => {
-            const existing = prev[expandedId] ?? [];
-            if (existing.some((m) => m.id === msg.id)) return prev;
-            return { ...prev, [expandedId]: [...existing, msg] };
-          });
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel(`ticket-messages-${expandedId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "ticket_messages",
+            filter: `ticket_id=eq.${expandedId}`,
+          },
+          (payload) => {
+            const msg = payload.new as TicketMessage;
+            setMessagesMap((prev) => {
+              const existing = prev[expandedId] ?? [];
+              if (existing.some((m) => m.id === msg.id)) return prev;
+              return { ...prev, [expandedId]: [...existing, msg] };
+            });
+          }
+        )
+        .subscribe((status, err) => {
+          if (err) console.warn("[realtime] ticket-messages subscribe error:", err.message);
+        });
+    } catch {
+      console.warn("[realtime] WebSocket unavailable — realtime ticket messages disabled");
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [expandedId, tickets]);
 

@@ -66,23 +66,31 @@ export default function AdminNotificationBell() {
     void fetchNotifications();
   }, [fetchNotifications]);
 
-  // Realtime subscription
+  // Realtime subscription (degrades gracefully when WebSocket is unavailable)
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
-      .channel("admin-notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "admin_notifications" },
-        () => {
-          void fetchNotifications();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase
+        .channel("admin-notifications")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "admin_notifications" },
+          () => {
+            void fetchNotifications();
+          }
+        )
+        .subscribe((status, err) => {
+          if (err) console.warn("[realtime] admin-notifications subscribe error:", err.message);
+        });
+    } catch {
+      console.warn("[realtime] WebSocket unavailable — realtime notifications disabled");
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [user?.id, fetchNotifications]);
 
