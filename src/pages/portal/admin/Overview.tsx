@@ -1196,7 +1196,7 @@ export default function AdminOverview() {
         const d = parseDateValue(e.expense_date);
         return d && d >= sixMonthsAgo;
       });
-      const recentMonthCount = Math.min(6, monthlySeries.filter((m) => m.cashOut > 0).length || 1);
+      const recentMonthCount = Math.min(6, monthlySeries.length || 1);
       const burnRate =
         recentExpenses.reduce((sum, e) => sum + Number(e.amount), 0) /
         Math.max(recentMonthCount, 1);
@@ -1296,12 +1296,12 @@ export default function AdminOverview() {
           recurring += Number(sub.amount) * months;
         }
 
-        // Scheduled: future agendada/pendente charges within horizon
+        // Scheduled: only future agendada charges within horizon (pendente = already due, not forecast)
         const scheduled = charges
           .filter(
             (c) =>
               !c.is_historical &&
-              (c.status === "agendada" || c.status === "pendente") &&
+              c.status === "agendada" &&
               c.due_date > todayStr &&
               c.due_date <= horizonStr
           )
@@ -1614,7 +1614,7 @@ export default function AdminOverview() {
             <section className="grid gap-4 xl:grid-cols-2">
               {/* Upcoming charges */}
               {summary.upcomingCharges.length > 0 && (
-                <Card className="rounded-2xl border-border/80 bg-card/95">
+                <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-2">
                   <CardContent className="space-y-3 p-3 sm:p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1823,8 +1823,8 @@ export default function AdminOverview() {
           )}
 
           {/* Cash flow + Result charts */}
-          <section className="grid gap-4 xl:grid-cols-12">
-            <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-8">
+          <section className="grid gap-4 lg:grid-cols-12">
+            <Card className="rounded-2xl border-border/80 bg-card/95 lg:col-span-8">
               <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[11px]">
                   Entradas e saidas por mes
@@ -1850,17 +1850,19 @@ export default function AdminOverview() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border-border/80 bg-card/95 xl:col-span-4">
-              <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+            <Card className="rounded-2xl border-border/80 bg-card/95 lg:col-span-4">
+              <CardContent className="flex h-full flex-col gap-3 p-3 sm:gap-4 sm:p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-[11px]">
                   Resultado por mes
                 </p>
                 <ResultBarChart data={periodSeries} />
-                <SurfaceStat
-                  label="Saldo do mes"
-                  value={getSignedCurrency(summary.currentMonthNet)}
-                  tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
-                />
+                <div className="mt-auto">
+                  <SurfaceStat
+                    label="Saldo do mes"
+                    value={getSignedCurrency(summary.currentMonthNet)}
+                    tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
+                  />
+                </div>
               </CardContent>
             </Card>
           </section>
