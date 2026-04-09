@@ -15,10 +15,12 @@ import {
   cn,
   buttonVariants,
 } from "@/design-system";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL } from "@/lib/masks";
 import { formatPortalDate, formatPortalDateTime } from "@/lib/portal";
+import { resolveClientForUser } from "@/lib/portal-data";
 
 type ProposalRow = Database["public"]["Tables"]["proposals"]["Row"];
 
@@ -35,33 +37,95 @@ const STATUS_META: Record<
 
 export default function ProposalView() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [proposal, setProposal] = useState<ProposalRow | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const loadProposal = useCallback(async () => {
-    if (!id) return;
+    if (!id || !user?.id) return;
     setLoading(true);
-    const { data, error } = await supabase.from("proposals").select("*").eq("id", id).single();
+    setPageError(null);
+
+    const clientRes = await resolveClientForUser(user.id);
+    if (clientRes.error || !clientRes.client) {
+      setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+      setLoading(false);
+      return;
+    }
+
+    const resolvedClientId = clientRes.client.id;
+    setClientId(resolvedClientId);
+
+    const { data, error } = await supabase
+      .from("proposals")
+      .select("*")
+      .eq("id", id)
+      .eq("client_id", resolvedClientId)
+      .neq("status", "rascunho")
+      .single();
 
     if (error || !data) {
+      setProposal(null);
       setLoading(false);
       return;
     }
 
     setProposal(data as ProposalRow);
     setLoading(false);
-  }, [id]);
+  }, [id, user?.id]);
 
   useEffect(() => {
-    void loadProposal();
-  }, [loadProposal]);
+    let cancelled = false;
+
+    const initialLoad = async () => {
+      if (!id || !user?.id) return;
+      setLoading(true);
+      setPageError(null);
+
+      const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
+      if (clientRes.error || !clientRes.client) {
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setLoading(false);
+        return;
+      }
+
+      const resolvedCid = clientRes.client.id;
+      setClientId(resolvedCid);
+
+      const { data, error } = await supabase
+        .from("proposals")
+        .select("*")
+        .eq("id", id)
+        .eq("client_id", resolvedCid)
+        .neq("status", "rascunho")
+        .single();
+
+      if (cancelled) return;
+      if (error || !data) {
+        setProposal(null);
+        setLoading(false);
+        return;
+      }
+
+      setProposal(data as ProposalRow);
+      setLoading(false);
+    };
+
+    void initialLoad();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, user?.id]);
 
   const handleApprove = async () => {
-    if (!proposal) return;
+    if (!proposal || !clientId) return;
     setActionLoading(true);
 
     const { error } = await supabase
@@ -71,7 +135,8 @@ export default function ProposalView() {
         approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", proposal.id);
+      .eq("id", proposal.id)
+      .eq("client_id", clientId);
 
     setActionLoading(false);
     if (error) {
@@ -117,7 +182,7 @@ export default function ProposalView() {
   };
 
   const handleReject = async () => {
-    if (!proposal) return;
+    if (!proposal || !clientId) return;
     setActionLoading(true);
 
     const { error } = await supabase
@@ -128,7 +193,8 @@ export default function ProposalView() {
         rejection_reason: rejectionReason.trim() || null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", proposal.id);
+      .eq("id", proposal.id)
+      .eq("client_id", clientId);
 
     setActionLoading(false);
     if (error) {
@@ -147,6 +213,21 @@ export default function ProposalView() {
         <div className="h-12 animate-pulse rounded-xl border border-border/50 bg-card/60" />
         <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
       </div>
+    );
+  }
+
+  if (pageError) {
+    return (
+      <AdminEmptyState
+        icon={FileText}
+        title="Erro ao carregar proposta"
+        description={pageError}
+        action={
+          <Link to="/portal/cliente/propostas" className={buttonVariants({ variant: "default" })}>
+            Voltar para propostas
+          </Link>
+        }
+      />
     );
   }
 
