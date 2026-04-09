@@ -12,6 +12,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { isValidEmail, isStrongPassword } from "../_shared/validation.ts";
 
 interface Payload {
   email: string;
@@ -35,12 +36,38 @@ serve(async (req) => {
       });
     }
 
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedName = full_name.trim();
+
+    if (!isValidEmail(trimmedEmail)) {
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (trimmedName.length < 3 || trimmedName.length > 200) {
+      return new Response(JSON.stringify({ error: "Name must be between 3 and 200 characters" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!isStrongPassword(password)) {
+      return new Response(
+        JSON.stringify({
+          error: "Password must be at least 8 characters with uppercase, lowercase, and digit",
+        }),
+        { status: 400, headers: { ...CORS, "Content-Type": "application/json" } }
+      );
+    }
+
     // Admin createUser never sends Supabase's own confirmation email
     const { data, error } = await auth.adminClient.auth.admin.createUser({
-      email,
+      email: trimmedEmail,
       password,
       email_confirm: true, // mark as confirmed - no email needed, we send our own
-      user_metadata: { full_name },
+      user_metadata: { full_name: trimmedName },
     });
 
     if (error) {

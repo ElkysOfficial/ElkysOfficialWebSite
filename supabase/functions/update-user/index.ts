@@ -11,6 +11,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { isValidEmail } from "../_shared/validation.ts";
 
 interface Payload {
   user_id: string;
@@ -54,8 +55,22 @@ serve(async (req) => {
       user_metadata?: Record<string, unknown>;
     } = {};
 
-    const trimmedEmail = email?.trim();
+    const trimmedEmail = email?.trim().toLowerCase();
     const trimmedFullName = full_name?.trim();
+
+    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (trimmedFullName && (trimmedFullName.length < 3 || trimmedFullName.length > 200)) {
+      return new Response(JSON.stringify({ error: "Name must be between 3 and 200 characters" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
 
     if (trimmedEmail) {
       authUpdatePayload.email = trimmedEmail;

@@ -12,6 +12,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { escapeHtml } from "../_shared/validation.ts";
 
 type EventType = "em_andamento" | "resolvido" | "reply";
 
@@ -33,8 +34,17 @@ serve(async (req) => {
   try {
     const { ticket_id, event, reply_body } = (await req.json()) as Payload;
 
+    const VALID_EVENTS: EventType[] = ["em_andamento", "resolvido", "reply"];
+
     if (!ticket_id || !event) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
+        status: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!VALID_EVENTS.includes(event)) {
+      return new Response(JSON.stringify({ error: "Invalid event type" }), {
         status: 400,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
@@ -95,7 +105,8 @@ serve(async (req) => {
       greeting = `Olá, ${clientName}!`;
       bodyHtml = `<p style="margin:0 0 12px;">A equipe Elkys respondeu ao seu ticket de suporte. Acesse o portal para visualizar a resposta completa.</p>`;
       if (reply_body) {
-        const preview = reply_body.length > 400 ? reply_body.slice(0, 397) + "..." : reply_body;
+        const raw = reply_body.length > 400 ? reply_body.slice(0, 397) + "..." : reply_body;
+        const preview = escapeHtml(raw);
         noteHtml = `<strong>Resposta da equipe:</strong><br/><em style="color:#52525b;">"${preview}"</em>`;
       }
     }
