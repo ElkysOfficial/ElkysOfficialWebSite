@@ -1,19 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { Clock, Folder, Headphones, Receipt } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import MetricTile from "@/components/portal/MetricTile";
 import StatusBadge from "@/components/portal/StatusBadge";
-import { buttonVariants, cn } from "@/design-system";
-import { useAuth } from "@/contexts/AuthContext";
+import { buttonVariants } from "@/design-system";
+import { useClientId } from "@/hooks/useClientId";
+import { useClientOverview } from "@/hooks/useClientOverview";
 import { PROJECT_STATUS_META } from "@/lib/portal";
-import {
-  loadChargesForClient,
-  loadProjectsForClient,
-  loadSupportTicketsForClient,
-  resolveClientForUser,
-} from "@/lib/portal-data";
 import { formatBRL } from "@/lib/masks";
 
 /* ------------------------------------------------------------------ */
@@ -34,109 +29,26 @@ function formatPortalDateLong(date?: string | null) {
 /* ------------------------------------------------------------------ */
 
 export default function ClientOverview() {
-  const { user } = useAuth();
-  const [projects, setProjects] = useState<
-    Awaited<ReturnType<typeof loadProjectsForClient>>["projects"]
-  >([]);
-  const [charges, setCharges] = useState<
-    Awaited<ReturnType<typeof loadChargesForClient>>["charges"]
-  >([]);
-  const [openTickets, setOpenTickets] = useState(0);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const { data: client, isLoading: loadingClient, error: clientError } = useClientId();
+  const { data, isLoading: loadingOverview, error: overviewError } = useClientOverview(client?.id);
 
-  const financialItems = useMemo(
-    () =>
-      charges.map((charge) => ({
-        id: charge.id,
-        amount: charge.amount,
-        dueDate: charge.due_date,
-        description: charge.description,
-        status: charge.status,
-      })),
-    [charges]
-  );
+  const projects = data?.projects ?? [];
+  const charges = data?.charges ?? [];
+  const openTickets = data?.openTickets ?? 0;
 
-  const nextFinancialItem = useMemo(
-    () =>
-      [...financialItems]
-        .filter((item) => ["pendente", "atrasado"].includes(item.status))
-        .sort((left, right) => left.dueDate.localeCompare(right.dueDate))[0] ?? null,
-    [financialItems]
-  );
+  const loading = loadingClient || loadingOverview;
+  const pageError = clientError ?? overviewError;
 
-  useEffect(() => {
-    const loadOverview = async (background = false) => {
-      if (!user?.id) {
-        setProjects([]);
-        setCharges([]);
-        setOpenTickets(0);
-        setHasLoaded(true);
-        setLoading(false);
-        return;
-      }
-
-      if (!background || !hasLoaded) {
-        setLoading(true);
-        setPageError(null);
-      }
-
-      const clientRes = await resolveClientForUser(user.id);
-      if (clientRes.error || !clientRes.client) {
-        if (!hasLoaded) {
-          setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
-          setLoading(false);
-        }
-        return;
-      }
-
-      const [projectsRes, chargesRes, ticketsRes] = await Promise.all([
-        loadProjectsForClient(clientRes.client.id),
-        loadChargesForClient(clientRes.client.id),
-        loadSupportTicketsForClient(clientRes.client.id),
-      ]);
-
-      const queryError = projectsRes.error ?? chargesRes.error ?? ticketsRes.error;
-      if (queryError) {
-        if (!hasLoaded) {
-          setPageError(queryError.message);
-          setLoading(false);
-        }
-        return;
-      }
-
-      setProjects(projectsRes.projects);
-      setCharges(chargesRes.charges);
-      setOpenTickets(
-        ticketsRes.tickets.filter((ticket) => !["resolvido", "fechado"].includes(ticket.status))
-          .length
-      );
-      setHasLoaded(true);
-      setLoading(false);
-    };
-
-    const refreshOverview = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      void loadOverview(true);
-    };
-
-    void loadOverview();
-
-    const interval = window.setInterval(refreshOverview, 60000);
-    window.addEventListener("focus", refreshOverview);
-    document.addEventListener("visibilitychange", refreshOverview);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshOverview);
-      document.removeEventListener("visibilitychange", refreshOverview);
-    };
-  }, [hasLoaded, user?.id]);
+  const nextCharge = useMemo(() => {
+    const actionable = charges
+      .filter((c) => ["pendente", "atrasado"].includes(c.status))
+      .sort((a, b) => a.due_date.localeCompare(b.due_date));
+    return actionable[0] ?? null;
+  }, [charges]);
 
   /* ── Loading skeleton ── */
 
-  if (loading && !hasLoaded) {
+  if (loading && !data) {
     return (
       <div className="space-y-8">
         <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
@@ -166,7 +78,7 @@ export default function ClientOverview() {
       <AdminEmptyState
         icon={Folder}
         title="Nao foi possivel carregar sua visao geral"
-        description={pageError}
+        description={pageError instanceof Error ? pageError.message : String(pageError)}
       />
     );
   }
@@ -195,9 +107,9 @@ export default function ClientOverview() {
         />
         <MetricTile
           label="Proxima cobranca"
-          value={nextFinancialItem ? formatBRL(Number(nextFinancialItem.amount)) : "—"}
+          value={nextCharge ? formatBRL(Number(nextCharge.amount)) : "—"}
           icon={Receipt}
-          tone={nextFinancialItem ? "warning" : "secondary"}
+          tone={nextCharge ? "warning" : "secondary"}
         />
         <MetricTile
           label="Tickets abertos"
@@ -208,14 +120,14 @@ export default function ClientOverview() {
       </div>
 
       {/* ── Next charge detail ── */}
-      {nextFinancialItem && (
+      {nextCharge && (
         <div className="rounded-xl border border-border/60 bg-card px-4 py-3 sm:px-5 sm:py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Detalhe da proxima cobranca
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Vencimento dia {formatPortalDateLong(nextFinancialItem.dueDate)}.
-            {nextFinancialItem.description ? ` ${nextFinancialItem.description}` : ""}
+            Vencimento dia {formatPortalDateLong(nextCharge.due_date)}.
+            {nextCharge.description ? ` ${nextCharge.description}` : ""}
           </p>
         </div>
       )}
