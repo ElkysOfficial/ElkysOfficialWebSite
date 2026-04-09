@@ -290,11 +290,12 @@ function FinanceRevenueTab({
     }
 
     const originalCharge = charges.find((c) => c.id === chargeId);
+    const sideEffectWarnings: string[] = [];
 
-    // Notify client when charge becomes overdue (fire-and-forget)
+    // Notify client when charge becomes overdue
     if (editor.status === "atrasado" && originalCharge && originalCharge.status !== "atrasado") {
       try {
-        void supabase.functions.invoke("send-charge-overdue", {
+        const { error: overdueError } = await supabase.functions.invoke("send-charge-overdue", {
           body: {
             client_id: originalCharge.client_id,
             charge_description: editor.description.trim(),
@@ -302,30 +303,33 @@ function FinanceRevenueTab({
             due_date: parsedDate,
           },
         });
+        if (overdueError) sideEffectWarnings.push("Notificacao de atraso nao enviada.");
       } catch {
-        // Non-blocking
+        sideEffectWarnings.push("Notificacao de atraso nao enviada.");
       }
     }
 
-    // Timeline event for payment
-    if (isPaidNow && originalCharge && originalCharge.status !== "pago") {
-      void supabase.from("timeline_events").insert({
-        client_id: originalCharge.client_id,
-        project_id: originalCharge.project_id ?? null,
-        event_type: "pagamento_recebido",
-        title: "Pagamento recebido",
-        summary: `Cobranca "${editor.description.trim()}" marcada como paga.`,
-        visibility: "ambos",
-        source_table: "charges",
-        source_id: chargeId,
-      });
-    }
-
-    // Send payment confirmation when charge is marked as paid (fire-and-forget)
+    // Timeline event + payment confirmation when charge is marked as paid
     if (isPaidNow && originalCharge && originalCharge.status !== "pago") {
       try {
+        const { error: timelineError } = await supabase.from("timeline_events").insert({
+          client_id: originalCharge.client_id,
+          project_id: originalCharge.project_id ?? null,
+          event_type: "pagamento_recebido",
+          title: "Pagamento recebido",
+          summary: `Cobranca "${editor.description.trim()}" marcada como paga.`,
+          visibility: "ambos",
+          source_table: "charges",
+          source_id: chargeId,
+        });
+        if (timelineError) sideEffectWarnings.push("Evento de timeline nao registrado.");
+      } catch {
+        sideEffectWarnings.push("Evento de timeline nao registrado.");
+      }
+
+      try {
         const headers = await getSupabaseFunctionAuthHeaders();
-        void supabase.functions.invoke("process-billing-rules", {
+        const { error: billingError } = await supabase.functions.invoke("process-billing-rules", {
           body: {
             triggered_by: "manual",
             single_charge_id: chargeId,
@@ -333,12 +337,21 @@ function FinanceRevenueTab({
           },
           headers,
         });
+        if (billingError)
+          sideEffectWarnings.push("Confirmacao de pagamento nao enviada ao cliente.");
       } catch {
-        // Non-blocking — payment confirmation is best-effort
+        sideEffectWarnings.push("Confirmacao de pagamento nao enviada ao cliente.");
       }
     }
 
-    toast.success("Cobranca atualizada.");
+    if (sideEffectWarnings.length > 0) {
+      toast.warning("Cobranca atualizada com pendencias.", {
+        description: sideEffectWarnings.join(" "),
+        duration: 8000,
+      });
+    } else {
+      toast.success("Cobranca atualizada.");
+    }
     await onReload();
     stopEditing();
     setSavingChargeId(null);
