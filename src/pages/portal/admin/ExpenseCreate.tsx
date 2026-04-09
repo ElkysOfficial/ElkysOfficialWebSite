@@ -78,6 +78,14 @@ const expenseSchema = z
       });
     }
 
+    if (!data.amount || unmaskCurrency(data.amount) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["amount"],
+        message: "Informe um valor maior que zero",
+      });
+    }
+
     if (data.entry_mode === "parcelada") {
       const installments = Number(data.installments_count);
       if (!data.installments_count || Number.isNaN(installments) || installments < 2) {

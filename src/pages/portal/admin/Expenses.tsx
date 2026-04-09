@@ -8,6 +8,7 @@ import { Clock, FileText, Search, TrendingUp } from "@/assets/icons";
 import ExportMenu from "@/components/portal/ExportMenu";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import RowActionMenu from "@/components/portal/RowActionMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
@@ -145,67 +146,6 @@ function MetricTile({
 /* ------------------------------------------------------------------ */
 /*  Row action menu                                                    */
 /* ------------------------------------------------------------------ */
-
-function RowActionMenu({
-  actions,
-}: {
-  actions: { label: string; onClick: () => void; destructive?: boolean }[];
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label="Acoes"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <circle cx="8" cy="3" r="1.5" />
-          <circle cx="8" cy="8" r="1.5" />
-          <circle cx="8" cy="13" r="1.5" />
-        </svg>
-      </button>
-      {open ? (
-        <div className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-border/80 bg-card py-1 shadow-lg">
-          {actions.map((action) => (
-            <button
-              key={action.label}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen(false);
-                action.onClick();
-              }}
-              className={cn(
-                "flex w-full items-center px-3 py-2 text-left text-sm transition-colors hover:bg-muted",
-                action.destructive ? "text-destructive" : "text-foreground"
-              )}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Main page                                                         */
@@ -379,7 +319,7 @@ export default function AdminExpenses() {
   };
 
   const handleSaveExpense = async (expenseId: string) => {
-    if (!editor) return;
+    if (!editor || savingExpenseId) return;
 
     const parsedDate = parseFormDate(editor.expense_date);
     if (!parsedDate) {
@@ -397,8 +337,8 @@ export default function AdminExpenses() {
       return;
     }
 
-    if (!editor.amount.trim()) {
-      setEditorError("Informe o valor.");
+    if (!editor.amount.trim() || unmaskCurrency(editor.amount) <= 0) {
+      setEditorError("Informe um valor maior que zero.");
       return;
     }
 
@@ -429,7 +369,7 @@ export default function AdminExpenses() {
   };
 
   const handleRemoveExpense = async () => {
-    if (!deleteExpenseId) return;
+    if (!deleteExpenseId || removingExpenseId) return;
     if (!isSuperAdmin) {
       toast.error("Somente o super admin pode remover despesas.");
       setDeleteExpenseId(null);
@@ -602,7 +542,7 @@ export default function AdminExpenses() {
       ) : (
         <div className="space-y-2">
           {/* Column headers */}
-          <div className="hidden md:grid md:grid-cols-[1fr_120px_120px_120px_auto] gap-x-6 px-5 pb-2">
+          <div className="hidden md:grid md:grid-cols-[1fr_160px_140px_120px_auto] gap-x-6 px-5 pb-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Descricao
             </p>
@@ -725,7 +665,7 @@ export default function AdminExpenses() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 items-center gap-x-6 gap-y-2 sm:gap-y-3 md:grid-cols-[1fr_120px_120px_120px_auto]">
+                  <div className="grid grid-cols-1 items-center gap-x-6 gap-y-2 sm:gap-y-3 md:grid-cols-[1fr_160px_140px_120px_auto]">
                     {/* Description + actions (mobile: same row) */}
                     <div className="flex items-start justify-between gap-2 md:contents">
                       <div className="min-w-0">
@@ -772,11 +712,11 @@ export default function AdminExpenses() {
                     </div>
 
                     {/* Desktop columns */}
-                    <p className="hidden text-sm text-muted-foreground md:block">
+                    <p className="hidden whitespace-nowrap text-sm text-muted-foreground md:block">
                       {CATEGORY_LABELS[expense.category] ?? expense.category}
                     </p>
 
-                    <p className="hidden text-sm text-muted-foreground md:block">
+                    <p className="hidden whitespace-nowrap text-sm text-muted-foreground md:block">
                       {formatExpenseDate(expense.expense_date)}
                     </p>
 
