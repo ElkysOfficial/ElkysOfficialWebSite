@@ -331,6 +331,23 @@ export default function AdminClientCreate() {
       navigate(`/portal/admin/projetos/novo?clientId=${clientData.id}`, { replace: true });
     } catch (error) {
       if (shouldRollbackUser && createdUserId) {
+        // Clean up in reverse order: role → client record → auth user
+        const { error: roleCleanup } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", createdUserId);
+        if (roleCleanup) {
+          console.warn("[client-create] rollback user_roles:", roleCleanup.message);
+        }
+
+        const { error: clientCleanup } = await supabase
+          .from("clients")
+          .delete()
+          .eq("user_id", createdUserId);
+        if (clientCleanup) {
+          console.warn("[client-create] rollback client:", clientCleanup.message);
+        }
+
         try {
           await supabase.functions.invoke("delete-user", {
             body: { user_id: createdUserId },

@@ -710,12 +710,26 @@ export default function AdminProjectCreate() {
       navigate(`/portal/admin/projetos/${projectData.id}`, { replace: true });
     } catch (error) {
       if (createdProjectId) {
+        // Clean up timeline_events explicitly (may not cascade via FK)
+        const { error: tlCleanup } = await supabase
+          .from("timeline_events")
+          .delete()
+          .eq("project_id", createdProjectId);
+        if (tlCleanup) {
+          console.warn("[project-create] rollback timeline_events:", tlCleanup.message);
+        }
+
+        // Delete project — FK CASCADE cleans up contracts, installments, charges, subscriptions, next_steps
         const { error: rollbackError } = await supabase
           .from("projects")
           .delete()
           .eq("id", createdProjectId);
         if (rollbackError) {
           console.warn("[project-create] rollback error:", rollbackError.message);
+          setFormError(
+            `Nao foi possivel criar o projeto. A limpeza automatica falhou — projeto parcial (ID: ${createdProjectId}) pode precisar de remocao manual.`
+          );
+          return;
         }
       }
       const message = error instanceof Error ? error.message : "Nao foi possivel criar o projeto.";
