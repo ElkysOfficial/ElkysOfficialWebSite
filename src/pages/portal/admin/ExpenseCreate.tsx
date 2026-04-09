@@ -149,6 +149,7 @@ export default function AdminExpenseCreate() {
     entryMode === "parcelada" && installmentsCount > 0 ? totalAmount / installmentsCount : 0;
 
   const onSubmit = async (data: ExpenseForm) => {
+    if (submitting) return;
     setSubmitting(true);
     setFormError(null);
 

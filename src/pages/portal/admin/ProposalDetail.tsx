@@ -449,6 +449,7 @@ export default function ProposalDetail() {
   /* ── Save as draft ── */
 
   async function handleSaveDraft() {
+    if (saving || sending) return;
     if (!form.title.trim()) {
       toast.error("Informe o titulo da proposta.");
       return;
@@ -504,6 +505,7 @@ export default function ProposalDetail() {
   /* ── Send to client ── */
 
   async function handleSend() {
+    if (saving || sending) return;
     if (isEditing && proposal && !canTransitionProposal(proposal.status, "enviada")) {
       toast.error("Esta proposta nao pode ser enviada no status atual.");
       return;

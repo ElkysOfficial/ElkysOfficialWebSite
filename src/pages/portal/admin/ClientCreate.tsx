@@ -243,6 +243,8 @@ export default function AdminClientCreate() {
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
+
     const error = validateStep();
     if (error) {
       setFormError(error);

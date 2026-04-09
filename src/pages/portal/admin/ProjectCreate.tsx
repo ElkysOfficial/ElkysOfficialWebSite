@@ -365,6 +365,8 @@ export default function AdminProjectCreate() {
   };
 
   const handleSubmit = async () => {
+    if (submitting) return;
+
     const error = validateStep();
     if (error) {
       setFormError(error);

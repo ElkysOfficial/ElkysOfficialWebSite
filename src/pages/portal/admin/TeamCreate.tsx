@@ -101,6 +101,7 @@ export default function AdminTeamCreate() {
   const roleInfo = ROLE_OPTIONS.find((r) => r.value === selectedRole);
 
   const onSubmit = async (data: TeamForm) => {
+    if (submitting) return;
     setSubmitting(true);
     setFormError(null);
     let createdUserId: string | null = null;
