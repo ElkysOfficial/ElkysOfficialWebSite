@@ -1346,24 +1346,15 @@ function FinanceAnaliseTab() {
           );
       }
 
-      // Insert any truly missing charges
+      // Insert missing charges — upsert with ignoreDuplicates to prevent race conditions.
+      // Relies on unique index idx_charges_subscription_due_date_unique (subscription_id, due_date).
       if (toInsert.length > 0) {
-        const subIds = [...new Set(toInsert.map((c) => c.subscription_id))];
-        const { data: dbExisting } = await supabase
+        const { error: upsertError } = await supabase
           .from("charges")
-          .select("subscription_id, due_date")
-          .in("subscription_id", subIds);
+          .upsert(toInsert, { onConflict: "subscription_id,due_date", ignoreDuplicates: true });
 
-        const dbKeys = new Set(
-          (dbExisting ?? []).map((r) => `${r.subscription_id}__${r.due_date}`)
-        );
-
-        const safeInserts = toInsert.filter(
-          (c) => !dbKeys.has(`${c.subscription_id}__${c.due_date}`)
-        );
-
-        if (safeInserts.length > 0) {
-          await supabase.from("charges").insert(safeInserts);
+        if (upsertError) {
+          console.warn("[finance-sync] upsert charges:", upsertError.message);
         }
       }
 
