@@ -29,11 +29,14 @@ export async function resolveClientForUser(userId: string) {
     return { client: null, error: directClientRes.error };
   }
 
+  // Resolve via client_contacts — any linked contact, primary first.
+  // Aligns with the RLS function get_client_id_for_portal_user which does not filter is_primary.
   const contactRes = await supabase
     .from("client_contacts")
     .select("client_id")
     .eq("auth_user_id", userId)
-    .eq("is_primary", true)
+    .order("is_primary", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (contactRes.error) {
