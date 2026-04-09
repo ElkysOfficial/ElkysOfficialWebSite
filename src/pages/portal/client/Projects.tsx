@@ -21,6 +21,8 @@ export default function ClientProjects() {
   const [tab, setTab] = useState<ProjectListTab>("todos");
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadProjects = async () => {
       if (!user?.id) {
         setProjects([]);
@@ -32,6 +34,7 @@ export default function ClientProjects() {
       setPageError(null);
 
       const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
         setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
         setLoading(false);
@@ -39,6 +42,7 @@ export default function ClientProjects() {
       }
 
       const projectsRes = await loadProjectsForClient(clientRes.client.id);
+      if (cancelled) return;
       if (projectsRes.error) {
         setPageError(projectsRes.error.message);
         setLoading(false);
@@ -50,6 +54,9 @@ export default function ClientProjects() {
     };
 
     void loadProjects();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const orderedProjects = useMemo(() => projects, [projects]);

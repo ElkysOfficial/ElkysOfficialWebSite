@@ -86,7 +86,10 @@ export default function ClientDocuments() {
   );
 
   useEffect(() => {
+    let cancelled = false;
+
     const refreshDocuments = () => {
+      if (cancelled) return;
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       void loadDocuments(true);
     };
@@ -98,6 +101,7 @@ export default function ClientDocuments() {
     document.addEventListener("visibilitychange", refreshDocuments);
 
     return () => {
+      cancelled = true;
       window.clearInterval(interval);
       window.removeEventListener("focus", refreshDocuments);
       document.removeEventListener("visibilitychange", refreshDocuments);

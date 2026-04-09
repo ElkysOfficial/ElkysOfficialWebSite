@@ -100,6 +100,8 @@ export default function ClientProjectDetail() {
   );
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadProject = async () => {
       if (!user?.id || !id) {
         setLoading(false);
@@ -110,6 +112,7 @@ export default function ClientProjectDetail() {
       setPageError(null);
 
       const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
         setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
         setLoading(false);
@@ -117,6 +120,7 @@ export default function ClientProjectDetail() {
       }
 
       const projectRes = await loadProjectById(id);
+      if (cancelled) return;
       if (
         projectRes.error ||
         !projectRes.project ||
@@ -135,6 +139,7 @@ export default function ClientProjectDetail() {
         loadDocumentsForProject(clientRes.client.id, projectRes.project.id),
       ]);
 
+      if (cancelled) return;
       const queryError =
         chargesRes.error ??
         subscriptionsRes.error ??
@@ -158,6 +163,9 @@ export default function ClientProjectDetail() {
     };
 
     void loadProject();
+    return () => {
+      cancelled = true;
+    };
   }, [id, user?.id]);
 
   const handleRespondToStep = async (stepId: string) => {
@@ -208,6 +216,18 @@ export default function ClientProjectDetail() {
         source_table: "project_next_steps",
         source_id: stepId,
         metadata: { responded_at: now },
+      });
+
+      // Notify admin team about client response
+      void supabase.from("admin_notifications").insert({
+        type: "pendencia_respondida",
+        title: `Cliente respondeu pendencia`,
+        body: `O cliente respondeu a pendencia "${step.title}" no projeto "${project.name}".`,
+        severity: "action_required",
+        target_roles: ["admin_super", "admin"],
+        entity_type: "project_next_step",
+        entity_id: stepId,
+        action_url: `/portal/admin/projetos/${project.id}`,
       });
     }
 

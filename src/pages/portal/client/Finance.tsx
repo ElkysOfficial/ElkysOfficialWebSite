@@ -28,6 +28,8 @@ export default function ClientFinance() {
   const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadFinance = async () => {
       if (!user?.id) {
         setLoading(false);
@@ -38,6 +40,7 @@ export default function ClientFinance() {
       setPageError(null);
 
       const clientRes = await resolveClientForUser(user.id);
+      if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
         setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
         setLoading(false);
@@ -45,6 +48,7 @@ export default function ClientFinance() {
       }
 
       const chargesRes = await loadChargesForClient(clientRes.client.id);
+      if (cancelled) return;
       if (chargesRes.error) {
         setPageError(chargesRes.error.message);
         setLoading(false);
@@ -56,6 +60,9 @@ export default function ClientFinance() {
     };
 
     void loadFinance();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const financialItems = useMemo(() => {
