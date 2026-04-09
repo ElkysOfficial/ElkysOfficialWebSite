@@ -217,7 +217,7 @@ export default function AdminTeam() {
     const member = members.find((m) => m.id === id);
 
     try {
-      // Delete from team_members first so we can restore it if Auth removal fails.
+      // 1. Delete from team_members first so we can restore it if later steps fail.
       const { error: memberDeleteError } = await supabase
         .from("team_members")
         .delete()
@@ -227,7 +227,21 @@ export default function AdminTeam() {
         return;
       }
 
-      // Remove from Supabase Auth and rollback the table row if that step fails.
+      // 2. Delete user_roles so the user has no active permissions.
+      let deletedRole: string | null = null;
+      if (member?.user_id) {
+        deletedRole = member.system_role;
+        const { error: roleDeleteError } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", member.user_id);
+        if (roleDeleteError) {
+          console.warn("[team-delete] role cleanup:", roleDeleteError.message);
+          // Continue — role cleanup is best-effort; auth delete will remove the user anyway
+        }
+      }
+
+      // 3. Remove from Supabase Auth. Rollback team_members + user_roles if this fails.
       if (member?.user_id) {
         const authHeaders = await getSupabaseFunctionAuthHeaders();
         const { error: authDeleteError } = await supabase.functions.invoke("delete-user", {
@@ -236,6 +250,19 @@ export default function AdminTeam() {
         });
 
         if (authDeleteError) {
+          // Rollback: restore user_roles first, then team_members
+          if (deletedRole) {
+            const { error: roleRollback } = await supabase
+              .from("user_roles")
+              .upsert(
+                { user_id: member.user_id, role: deletedRole },
+                { onConflict: "user_id,role" }
+              );
+            if (roleRollback) {
+              console.warn("[team-delete] role rollback:", roleRollback.message);
+            }
+          }
+
           const rollbackPayload: Database["public"]["Tables"]["team_members"]["Insert"] = {
             id: member.id,
             user_id: member.user_id,
