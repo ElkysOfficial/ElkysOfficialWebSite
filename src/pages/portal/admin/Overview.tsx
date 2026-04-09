@@ -1192,12 +1192,14 @@ export default function AdminOverview() {
         pipelineContracts.reduce((sum, c) => sum + toCents(c.total_amount), 0) / 100;
 
       type ProposalPipeline = { id: string; total_amount: number; status: string };
-      const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+      const allProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+      // Only "enviada" proposals count toward pipeline — "aprovada" already have a project+contract
+      const pendingProposals = allProposals.filter((p) => p.status === "enviada");
       const proposalPipelineValue =
-        activeProposals.reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
+        pendingProposals.reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
 
       const pipelineValue = projectPipelineValue + proposalPipelineValue;
-      const pipelineCount = negociacaoProjectIds.size + activeProposals.length;
+      const pipelineCount = negociacaoProjectIds.size + pendingProposals.length;
 
       // Burn rate: average monthly expenses over the last 6 months
       const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);

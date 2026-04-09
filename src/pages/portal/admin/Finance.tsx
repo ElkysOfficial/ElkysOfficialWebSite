@@ -1568,9 +1568,11 @@ function FinanceAnaliseTab() {
       pipeContracts.reduce((s, c) => s + toCents(c.total_amount), 0) / 100;
 
     type ProposalPipeline = { id: string; total_amount: number; status: string };
-    const activeProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+    const allProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+    // Only "enviada" proposals count toward pipeline — "aprovada" already have a project+contract
+    const pendingProposals = allProposals.filter((p) => p.status === "enviada");
     const proposalPipelineValue =
-      activeProposals.reduce((s, p) => s + toCents(p.total_amount), 0) / 100;
+      pendingProposals.reduce((s, p) => s + toCents(p.total_amount), 0) / 100;
     const pipelineValue = projectPipelineValue + proposalPipelineValue;
 
     // Burn rate — average monthly expenses over the last 6 months
@@ -1669,7 +1671,7 @@ function FinanceAnaliseTab() {
       avgDeliveryDays,
       projectStatusCounts,
       pipelineValue,
-      pipelineCount: negIds.size + activeProposals.length,
+      pipelineCount: negIds.size + pendingProposals.length,
       openTickets,
       resolvedTicketsThisMonth,
       monthlySeries,
