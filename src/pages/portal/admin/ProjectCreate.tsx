@@ -294,6 +294,13 @@ export default function AdminProjectCreate() {
       if (form.expected_delivery_date && !parseFormDate(form.expected_delivery_date)) {
         return "Informe uma data valida para entrega prevista.";
       }
+      if (form.expected_delivery_date && parseFormDate(form.expected_delivery_date)) {
+        const startIso = parseFormDate(form.started_at);
+        const deliveryIso = parseFormDate(form.expected_delivery_date);
+        if (startIso && deliveryIso && deliveryIso < startIso) {
+          return "A entrega prevista nao pode ser anterior ao inicio do projeto.";
+        }
+      }
     }
 
     if (step >= 1) {

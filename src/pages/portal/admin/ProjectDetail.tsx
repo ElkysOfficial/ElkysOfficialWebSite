@@ -394,6 +394,8 @@ export default function AdminProjectDetail() {
   const [showStageJourney, setShowStageJourney] = useState(false);
   const [projectUpdateOpen, setProjectUpdateOpen] = useState(false);
   const [nextStepsOpen, setNextStepsOpen] = useState(false);
+  const [nextStepsTab, setNextStepsTab] = useState<"pendencias" | "historico">("pendencias");
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set());
   const [documentComposerOpen, setDocumentComposerOpen] = useState(false);
   const [projectForm, setProjectForm] = useState({
     name: "",
@@ -740,6 +742,11 @@ export default function AdminProjectDetail() {
       return;
     }
 
+    if (expectedDeliveryIso && expectedDeliveryIso < startedAtIso) {
+      toast.error("A entrega prevista nao pode ser anterior ao inicio do projeto.");
+      return;
+    }
+
     if (projectForm.delivered_at && !deliveredAtIso) {
       toast.error("Informe uma data valida para entrega realizada.");
       return;
@@ -1081,6 +1088,29 @@ export default function AdminProjectDetail() {
 
     setStepSavingId(null);
     toast.success("Pendencia atualizada.");
+    await loadProject();
+  };
+
+  const handleCloseNextStep = async (stepId: string) => {
+    if (!project || !client) return;
+    setStepSavingId(stepId);
+
+    const { error } = await supabase
+      .from("project_next_steps")
+      .update({
+        status: "concluido",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", stepId);
+
+    if (error) {
+      setStepSavingId(null);
+      toast.error("Nao foi possivel concluir a pendencia.", { description: error.message });
+      return;
+    }
+
+    setStepSavingId(null);
+    toast.success("Pendencia concluida.");
     await loadProject();
   };
 
@@ -1492,56 +1522,99 @@ export default function AdminProjectDetail() {
           </div>
         </div>
 
+        {/* Open pendências */}
         <div>
           <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
             Proximas pendencias
           </p>
 
-          {nextSteps.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma pendencia cadastrada ainda.</p>
+          {nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado").length ===
+          0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma pendencia em aberto.</p>
           ) : (
             <div className="space-y-2">
-              {nextSteps.slice(0, 3).map((step) => (
-                <div
-                  key={step.id}
-                  className={cn(
-                    "relative flex items-start justify-between gap-3 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-3 pl-4",
-                    "before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]",
-                    step.status === "concluido"
-                      ? "before:bg-success"
-                      : step.status === "em_andamento"
-                        ? "before:bg-primary"
-                        : step.status === "cancelado"
-                          ? "before:bg-muted-foreground/40"
-                          : "before:bg-warning"
-                  )}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {NEXT_STEP_OWNER_LABEL[step.owner]}
-                      {step.due_date ? ` · vence ${formatPortalDate(step.due_date)}` : ""}
-                    </p>
+              {nextSteps
+                .filter((s) => s.status !== "concluido" && s.status !== "cancelado")
+                .slice(0, 3)
+                .map((step) => (
+                  <div
+                    key={step.id}
+                    className={cn(
+                      "relative flex items-start justify-between gap-3 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-3 pl-4",
+                      "before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]",
+                      step.status === "em_andamento" ? "before:bg-primary" : "before:bg-warning"
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {NEXT_STEP_OWNER_LABEL[step.owner]}
+                        {step.due_date ? ` · vence ${formatPortalDate(step.due_date)}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge
+                      label={NEXT_STEP_STATUS_LABEL[step.status]}
+                      tone={getNextStepTone(step.status)}
+                    />
                   </div>
-                  <StatusBadge
-                    label={NEXT_STEP_STATUS_LABEL[step.status]}
-                    tone={getNextStepTone(step.status)}
-                  />
-                </div>
-              ))}
+                ))}
 
-              {nextSteps.length > 3 ? (
+              {nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado")
+                .length > 3 ? (
                 <button
                   type="button"
                   onClick={() => setNextStepsOpen(true)}
                   className="mt-1 text-xs font-medium text-primary hover:underline"
                 >
-                  Ver todas as {nextSteps.length} pendencias →
+                  Ver todas as{" "}
+                  {
+                    nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado")
+                      .length
+                  }{" "}
+                  pendencias →
                 </button>
               ) : null}
             </div>
           )}
         </div>
+
+        {/* Histórico de pendências concluídas */}
+        {nextSteps.filter((s) => s.status === "concluido" || s.status === "cancelado").length >
+          0 && (
+          <div>
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Historico de pendencias
+            </p>
+            <div className="space-y-2">
+              {nextSteps
+                .filter((s) => s.status === "concluido" || s.status === "cancelado")
+                .map((step) => (
+                  <div
+                    key={step.id}
+                    className={cn(
+                      "relative flex items-start justify-between gap-3 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-3 pl-4 opacity-60",
+                      "before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]",
+                      step.status === "concluido"
+                        ? "before:bg-success"
+                        : "before:bg-muted-foreground/40"
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {NEXT_STEP_OWNER_LABEL[step.owner]}
+                        {step.due_date ? ` · ${formatPortalDate(step.due_date)}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge
+                      label={NEXT_STEP_STATUS_LABEL[step.status]}
+                      tone={getNextStepTone(step.status)}
+                    />
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -1850,62 +1923,295 @@ export default function AdminProjectDetail() {
       </CardContent>
     </Card>
   );
+  const openSteps = nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado");
+  const closedSteps = nextSteps.filter((s) => s.status === "concluido" || s.status === "cancelado");
+
+  const toggleHistoryExpand = (id: string) => {
+    setExpandedHistoryIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const nextStepsCard = (
     <Card className="border-border/70 bg-card/92">
       <CardHeader className="border-b border-border/60">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-base">Pendencias do projeto</CardTitle>
           {nextSteps.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado").length}{" "}
-              em aberto
-            </span>
+            <span className="text-xs text-muted-foreground">{openSteps.length} em aberto</span>
           )}
         </div>
+        {/* Tabs */}
+        <div className="mt-3 flex gap-1">
+          <button
+            type="button"
+            onClick={() => setNextStepsTab("pendencias")}
+            className={cn(
+              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              nextStepsTab === "pendencias"
+                ? "bg-primary/15 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            Pendencias ({openSteps.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setNextStepsTab("historico")}
+            className={cn(
+              "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+              nextStepsTab === "historico"
+                ? "bg-primary/15 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            Historico ({closedSteps.length})
+          </button>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-3 pt-5">
-        {nextSteps.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma pendencia cadastrada ainda.</p>
-        ) : (
-          nextSteps.map((step) => {
-            const form = nextStepForms[step.id] ?? getNextStepFormDefaults(step);
+      <CardContent className="relative pt-5">
+        {/* ── Tab: Pendências (open) ── */}
+        <div
+          className={cn(
+            "space-y-3",
+            nextStepsTab !== "pendencias" && "invisible h-0 overflow-hidden"
+          )}
+        >
+          <>
+            {openSteps.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma pendencia em aberto.</p>
+            ) : (
+              openSteps.map((step) => {
+                const form = nextStepForms[step.id] ?? getNextStepFormDefaults(step);
 
-            return (
-              <div
-                key={step.id}
-                className="rounded-xl border border-border/50 bg-background/60 p-4"
-              >
-                {/* Compact header: inline title input + status badge */}
-                <div className="flex items-start gap-3">
+                return (
+                  <div
+                    key={step.id}
+                    className="rounded-xl border border-border/50 bg-background/60 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <Input
+                        value={form.title}
+                        onChange={(event) =>
+                          setNextStepForms((current) => ({
+                            ...current,
+                            [step.id]: { ...form, title: event.target.value },
+                          }))
+                        }
+                        className="flex-1 h-9 text-sm font-semibold"
+                      />
+                      <StatusBadge
+                        label={NEXT_STEP_STATUS_LABEL[form.status]}
+                        tone={getNextStepTone(form.status)}
+                      />
+                    </div>
+
+                    <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <Field>
+                        <Label>Responsavel</Label>
+                        <select
+                          value={form.owner}
+                          onChange={(event) =>
+                            setNextStepForms((current) => ({
+                              ...current,
+                              [step.id]: {
+                                ...form,
+                                owner: event.target.value as NextStepOwner,
+                              },
+                            }))
+                          }
+                          className={selectClass}
+                        >
+                          {Object.entries(NEXT_STEP_OWNER_LABEL).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      <Field>
+                        <Label>Status</Label>
+                        <select
+                          value={form.status}
+                          onChange={(event) =>
+                            setNextStepForms((current) => ({
+                              ...current,
+                              [step.id]: {
+                                ...form,
+                                status: event.target.value as NextStepStatus,
+                              },
+                            }))
+                          }
+                          className={selectClass}
+                        >
+                          {Object.entries(NEXT_STEP_STATUS_LABEL).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      <Field>
+                        <Label>Vencimento</Label>
+                        <Input
+                          value={form.due_date}
+                          onChange={(event) =>
+                            setNextStepForms((current) => ({
+                              ...current,
+                              [step.id]: {
+                                ...form,
+                                due_date: maskDate(event.target.value),
+                              },
+                            }))
+                          }
+                          placeholder="DD/MM/AAAA"
+                          inputMode="numeric"
+                        />
+                      </Field>
+                    </div>
+
+                    <Field className="mt-3">
+                      <Label>Descricao</Label>
+                      <Textarea
+                        rows={2}
+                        value={form.description}
+                        onChange={(event) =>
+                          setNextStepForms((current) => ({
+                            ...current,
+                            [step.id]: { ...form, description: event.target.value },
+                          }))
+                        }
+                      />
+                    </Field>
+
+                    {step.requires_client_action && step.client_response && (
+                      <div className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-semibold uppercase text-accent mb-1">
+                              Resposta do cliente
+                              {step.client_responded_at
+                                ? ` — ${new Date(step.client_responded_at).toLocaleDateString("pt-BR")}`
+                                : ""}
+                            </p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">
+                              {step.client_response}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="shrink-0 border-success/50 text-success hover:bg-success/10 hover:text-success"
+                            disabled={stepSavingId === step.id}
+                            onClick={() => void handleCloseNextStep(step.id)}
+                          >
+                            {stepSavingId === step.id ? "Concluindo..." : "Concluir pendencia"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {step.requires_client_action && !step.client_responded_at && (
+                      <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
+                        <p className="text-xs font-medium text-warning">
+                          Aguardando resposta do cliente
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-4">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={form.client_visible}
+                          onChange={(event) =>
+                            setNextStepForms((current) => ({
+                              ...current,
+                              [step.id]: {
+                                ...form,
+                                client_visible: event.target.checked,
+                                requires_client_action: event.target.checked
+                                  ? form.requires_client_action
+                                  : false,
+                              },
+                            }))
+                          }
+                          className="h-4 w-4 rounded border-border accent-primary"
+                        />
+                        Visivel para o cliente
+                      </label>
+
+                      {form.client_visible && (
+                        <label className="flex cursor-pointer items-center gap-2 text-sm text-accent font-medium">
+                          <input
+                            type="checkbox"
+                            checked={form.requires_client_action}
+                            onChange={(event) =>
+                              setNextStepForms((current) => ({
+                                ...current,
+                                [step.id]: {
+                                  ...form,
+                                  requires_client_action: event.target.checked,
+                                },
+                              }))
+                            }
+                            className="h-4 w-4 rounded border-border accent-accent"
+                          />
+                          Requer acao do cliente
+                        </label>
+                      )}
+
+                      <div className="ml-auto">
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={stepSavingId === step.id}
+                          onClick={() => void handleSaveNextStep(step.id)}
+                        >
+                          {stepSavingId === step.id ? "Salvando..." : "Salvar"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            {/* Nova pendencia */}
+            <div className="rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Nova pendencia
+              </p>
+
+              <div className="grid gap-3">
+                <Field>
+                  <Label>Titulo</Label>
                   <Input
-                    value={form.title}
+                    value={newNextStepForm.title}
                     onChange={(event) =>
-                      setNextStepForms((current) => ({
+                      setNewNextStepForm((current) => ({
                         ...current,
-                        [step.id]: { ...form, title: event.target.value },
+                        title: event.target.value,
                       }))
                     }
-                    className="flex-1 h-9 text-sm font-semibold"
                   />
-                  <StatusBadge
-                    label={NEXT_STEP_STATUS_LABEL[form.status]}
-                    tone={getNextStepTone(form.status)}
-                  />
-                </div>
+                </Field>
 
-                {/* Controls: owner + status + date in a single responsive row */}
-                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <Field>
                     <Label>Responsavel</Label>
                     <select
-                      value={form.owner}
+                      value={newNextStepForm.owner}
                       onChange={(event) =>
-                        setNextStepForms((current) => ({
+                        setNewNextStepForm((current) => ({
                           ...current,
-                          [step.id]: {
-                            ...form,
-                            owner: event.target.value as NextStepOwner,
-                          },
+                          owner: event.target.value as NextStepOwner,
                         }))
                       }
                       className={selectClass}
@@ -1921,14 +2227,11 @@ export default function AdminProjectDetail() {
                   <Field>
                     <Label>Status</Label>
                     <select
-                      value={form.status}
+                      value={newNextStepForm.status}
                       onChange={(event) =>
-                        setNextStepForms((current) => ({
+                        setNewNextStepForm((current) => ({
                           ...current,
-                          [step.id]: {
-                            ...form,
-                            status: event.target.value as NextStepStatus,
-                          },
+                          status: event.target.value as NextStepStatus,
                         }))
                       }
                       className={selectClass}
@@ -1944,14 +2247,11 @@ export default function AdminProjectDetail() {
                   <Field>
                     <Label>Vencimento</Label>
                     <Input
-                      value={form.due_date}
+                      value={newNextStepForm.due_date}
                       onChange={(event) =>
-                        setNextStepForms((current) => ({
+                        setNewNextStepForm((current) => ({
                           ...current,
-                          [step.id]: {
-                            ...form,
-                            due_date: maskDate(event.target.value),
-                          },
+                          due_date: maskDate(event.target.value),
                         }))
                       }
                       placeholder="DD/MM/AAAA"
@@ -1960,59 +2260,32 @@ export default function AdminProjectDetail() {
                   </Field>
                 </div>
 
-                <Field className="mt-3">
+                <Field>
                   <Label>Descricao</Label>
                   <Textarea
                     rows={2}
-                    value={form.description}
+                    value={newNextStepForm.description}
                     onChange={(event) =>
-                      setNextStepForms((current) => ({
+                      setNewNextStepForm((current) => ({
                         ...current,
-                        [step.id]: { ...form, description: event.target.value },
+                        description: event.target.value,
                       }))
                     }
                   />
                 </Field>
 
-                {/* Client response (read-only for admin) */}
-                {step.requires_client_action && step.client_response && (
-                  <div className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-3">
-                    <p className="text-[10px] font-semibold uppercase text-accent mb-1">
-                      Resposta do cliente
-                      {step.client_responded_at
-                        ? ` — ${new Date(step.client_responded_at).toLocaleDateString("pt-BR")}`
-                        : ""}
-                    </p>
-                    <p className="text-sm text-foreground whitespace-pre-wrap">
-                      {step.client_response}
-                    </p>
-                  </div>
-                )}
-
-                {step.requires_client_action && !step.client_responded_at && (
-                  <div className="mt-3 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
-                    <p className="text-xs font-medium text-warning">
-                      Aguardando resposta do cliente
-                    </p>
-                  </div>
-                )}
-
-                {/* Footer: visibility toggle + action toggle + save */}
-                <div className="mt-3 flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
-                      checked={form.client_visible}
+                      checked={newNextStepForm.client_visible}
                       onChange={(event) =>
-                        setNextStepForms((current) => ({
+                        setNewNextStepForm((current) => ({
                           ...current,
-                          [step.id]: {
-                            ...form,
-                            client_visible: event.target.checked,
-                            requires_client_action: event.target.checked
-                              ? form.requires_client_action
-                              : false,
-                          },
+                          client_visible: event.target.checked,
+                          requires_client_action: event.target.checked
+                            ? current.requires_client_action
+                            : false,
                         }))
                       }
                       className="h-4 w-4 rounded border-border accent-primary"
@@ -2020,18 +2293,15 @@ export default function AdminProjectDetail() {
                     Visivel para o cliente
                   </label>
 
-                  {form.client_visible && (
+                  {newNextStepForm.client_visible && (
                     <label className="flex cursor-pointer items-center gap-2 text-sm text-accent font-medium">
                       <input
                         type="checkbox"
-                        checked={form.requires_client_action}
+                        checked={newNextStepForm.requires_client_action}
                         onChange={(event) =>
-                          setNextStepForms((current) => ({
+                          setNewNextStepForm((current) => ({
                             ...current,
-                            [step.id]: {
-                              ...form,
-                              requires_client_action: event.target.checked,
-                            },
+                            requires_client_action: event.target.checked,
                           }))
                         }
                         className="h-4 w-4 rounded border-border accent-accent"
@@ -2044,169 +2314,114 @@ export default function AdminProjectDetail() {
                     <Button
                       type="button"
                       size="sm"
-                      disabled={stepSavingId === step.id}
-                      onClick={() => void handleSaveNextStep(step.id)}
+                      disabled={creatingStep}
+                      onClick={() => void handleCreateNextStep()}
                     >
-                      {stepSavingId === step.id ? "Salvando..." : "Salvar"}
+                      {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
                     </Button>
                   </div>
                 </div>
               </div>
-            );
-          })
-        )}
-
-        {/* Nova pendencia */}
-        <div className="rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Nova pendencia
-          </p>
-
-          <div className="grid gap-3">
-            <Field>
-              <Label>Titulo</Label>
-              <Input
-                value={newNextStepForm.title}
-                onChange={(event) =>
-                  setNewNextStepForm((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }))
-                }
-              />
-            </Field>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field>
-                <Label>Responsavel</Label>
-                <select
-                  value={newNextStepForm.owner}
-                  onChange={(event) =>
-                    setNewNextStepForm((current) => ({
-                      ...current,
-                      owner: event.target.value as NextStepOwner,
-                    }))
-                  }
-                  className={selectClass}
-                >
-                  {Object.entries(NEXT_STEP_OWNER_LABEL).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field>
-                <Label>Status</Label>
-                <select
-                  value={newNextStepForm.status}
-                  onChange={(event) =>
-                    setNewNextStepForm((current) => ({
-                      ...current,
-                      status: event.target.value as NextStepStatus,
-                    }))
-                  }
-                  className={selectClass}
-                >
-                  {Object.entries(NEXT_STEP_STATUS_LABEL).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field>
-                <Label>Vencimento</Label>
-                <Input
-                  value={newNextStepForm.due_date}
-                  onChange={(event) =>
-                    setNewNextStepForm((current) => ({
-                      ...current,
-                      due_date: maskDate(event.target.value),
-                    }))
-                  }
-                  placeholder="DD/MM/AAAA"
-                  inputMode="numeric"
-                />
-              </Field>
             </div>
+          </>
+        </div>
 
-            <Field>
-              <Label>Descricao</Label>
-              <Textarea
-                rows={2}
-                value={newNextStepForm.description}
-                onChange={(event) =>
-                  setNewNextStepForm((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-              />
-            </Field>
+        {/* ── Tab: Histórico (concluded/cancelled) ── */}
+        <div
+          className={cn(
+            "space-y-3",
+            nextStepsTab !== "historico" && "invisible h-0 overflow-hidden"
+          )}
+        >
+          <>
+            {closedSteps.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma pendencia concluida ainda.</p>
+            ) : (
+              closedSteps.map((step) => {
+                const isExpanded = expandedHistoryIds.has(step.id);
 
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={newNextStepForm.client_visible}
-                  onChange={(event) =>
-                    setNewNextStepForm((current) => ({
-                      ...current,
-                      client_visible: event.target.checked,
-                      requires_client_action: event.target.checked
-                        ? current.requires_client_action
-                        : false,
-                    }))
-                  }
-                  className="h-4 w-4 rounded border-border accent-primary"
-                />
-                Visivel para o cliente
-              </label>
+                return (
+                  <div key={step.id}>
+                    {/* Compact row */}
+                    <button
+                      type="button"
+                      onClick={() => toggleHistoryExpand(step.id)}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/60 px-4 py-3 text-left transition-colors hover:bg-muted/50",
+                        isExpanded && "rounded-b-none border-b-0"
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="currentColor"
+                          className={cn(
+                            "shrink-0 text-muted-foreground transition-transform",
+                            isExpanded && "rotate-90"
+                          )}
+                        >
+                          <path d="M4 2l4 4-4 4" />
+                        </svg>
+                        <p className="truncate text-sm font-medium text-foreground">{step.title}</p>
+                      </div>
+                      <StatusBadge
+                        label={NEXT_STEP_STATUS_LABEL[step.status]}
+                        tone={getNextStepTone(step.status)}
+                      />
+                    </button>
 
-              {newNextStepForm.client_visible && (
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-accent font-medium">
-                  <input
-                    type="checkbox"
-                    checked={newNextStepForm.requires_client_action}
-                    onChange={(event) =>
-                      setNewNextStepForm((current) => ({
-                        ...current,
-                        requires_client_action: event.target.checked,
-                      }))
-                    }
-                    className="h-4 w-4 rounded border-border accent-accent"
-                  />
-                  Requer acao do cliente
-                </label>
-              )}
+                    {/* Expanded details */}
+                    {isExpanded && (
+                      <div className="rounded-b-xl border border-t-0 border-border/50 bg-background/40 px-4 py-3 space-y-2">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          <span>Responsavel: {NEXT_STEP_OWNER_LABEL[step.owner]}</span>
+                          {step.due_date && (
+                            <span>Vencimento: {formatPortalDate(step.due_date)}</span>
+                          )}
+                        </div>
 
-              <div className="ml-auto">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={creatingStep}
-                  onClick={() => void handleCreateNextStep()}
-                >
-                  {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
-                </Button>
-              </div>
-            </div>
-          </div>
+                        {step.description && (
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                            {step.description}
+                          </p>
+                        )}
+
+                        {step.requires_client_action && step.client_response && (
+                          <div className="rounded-lg border border-accent/30 bg-accent/5 p-3">
+                            <p className="text-[10px] font-semibold uppercase text-accent mb-1">
+                              Resposta do cliente
+                              {step.client_responded_at
+                                ? ` — ${new Date(step.client_responded_at).toLocaleDateString("pt-BR")}`
+                                : ""}
+                            </p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap">
+                              {step.client_response}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </>
         </div>
       </CardContent>
     </Card>
   );
   const financeOverviewCard = (() => {
     const totalPaid = charges
-      .filter((c) => c.status === "pago")
+      .filter((c) => c.status === "pago" && !c.is_historical)
       .reduce((sum, c) => sum + Number(c.amount), 0);
     const totalOpen = visibleCharges
       .filter(
         (c) =>
-          c.origin_type !== "mensalidade" && (c.status === "pendente" || c.status === "atrasado")
+          !c.is_historical &&
+          c.origin_type !== "mensalidade" &&
+          (c.status === "pendente" || c.status === "atrasado")
       )
       .reduce((sum, c) => sum + Number(c.amount), 0);
 
@@ -2604,10 +2819,7 @@ export default function AdminProjectDetail() {
 
       {tab === "detalhes" ? (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
-          <div className="space-y-6">
-            {summaryCard}
-            {stageJourneyCard}
-          </div>
+          <div className="space-y-6">{summaryCard}</div>
           <div className="space-y-6">{detailsWorkspaceCard}</div>
         </div>
       ) : null}

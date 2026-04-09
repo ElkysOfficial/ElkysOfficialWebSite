@@ -454,7 +454,11 @@ export default function ProposalDetail() {
       return;
     }
 
-    if (!form.client_id && !form.lead_id) {
+    const hasOwner =
+      (form.destination_type === "client" && !!form.client_id) ||
+      (form.destination_type === "lead" && !!form.lead_id);
+
+    if (!hasOwner) {
       toast.error("Selecione um cliente ou lead para a proposta.");
       return;
     }
@@ -508,6 +512,19 @@ export default function ProposalDetail() {
     if (!canSend) {
       toast.error("Preencha o destinatario e o link do documento antes de enviar.");
       return;
+    }
+
+    if (!form.total_amount || unmaskCurrency(form.total_amount) <= 0) {
+      toast.error("Informe um valor total maior que zero.");
+      return;
+    }
+
+    if (form.valid_until) {
+      const today = new Date().toISOString().slice(0, 10);
+      if (form.valid_until < today) {
+        toast.error("A data de validade nao pode estar no passado.");
+        return;
+      }
     }
 
     setSending(true);
