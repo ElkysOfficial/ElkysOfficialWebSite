@@ -119,7 +119,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const roles = await withTimeout(fetchRoles(session.user.id), 8000);
+        let roles: AppRole[];
+        try {
+          roles = await withTimeout(fetchRoles(session.user.id), 8000);
+        } catch (firstError) {
+          // On timeout, retry once with a longer window before giving up
+          if (firstError instanceof Error && firstError.message === "Auth bootstrap timeout") {
+            console.warn("[auth] Role fetch timed out, retrying...");
+            try {
+              roles = await withTimeout(fetchRoles(session.user.id), 12000);
+            } catch {
+              if (syncId !== authSyncId.current) return;
+              updateState(null, null, []);
+              window.dispatchEvent(
+                new CustomEvent("auth-no-access", {
+                  detail:
+                    "Nao foi possivel carregar suas permissoes. Verifique sua conexao e tente novamente.",
+                })
+              );
+              return;
+            }
+          } else {
+            throw firstError;
+          }
+        }
 
         if (syncId !== authSyncId.current) return;
 
