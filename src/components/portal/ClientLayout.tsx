@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import PortalErrorBoundary from "@/components/portal/PortalErrorBoundary";
 import { useTheme } from "next-themes";
 
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
@@ -507,7 +508,9 @@ export default function ClientLayout() {
 
           <main className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8">
             <div className="mx-auto w-full max-w-[1400px]">
-              <Outlet />
+              <PortalErrorBoundary key={location.pathname}>
+                <Outlet />
+              </PortalErrorBoundary>
             </div>
           </main>
         </div>
