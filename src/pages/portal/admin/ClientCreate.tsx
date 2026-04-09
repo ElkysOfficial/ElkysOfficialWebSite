@@ -22,6 +22,8 @@ import { lookupAddressByCep } from "@/lib/cep";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import {
   formatDateInput,
+  isValidCNPJ,
+  isValidCPF,
   maskCEP,
   maskCNPJ,
   maskCPF,
@@ -218,9 +220,9 @@ export default function AdminClientCreate() {
       if (form.full_name.trim().length < 3) return "Informe o nome do contato principal.";
       if (!form.email.includes("@")) return "Informe um e-mail valido.";
       if (unmaskDigits(form.phone).length < 10) return "Informe um telefone valido.";
-      if (unmaskDigits(form.cpf).length !== 11) return "Informe um CPF valido.";
+      if (!isValidCPF(unmaskDigits(form.cpf))) return "Informe um CPF valido.";
       if (form.client_type === "pj") {
-        if (unmaskDigits(form.cnpj).length !== 14) return "Informe um CNPJ valido.";
+        if (!isValidCNPJ(unmaskDigits(form.cnpj))) return "Informe um CNPJ valido.";
         if (form.razao_social.trim().length < 3) return "Informe a razao social.";
       }
     }

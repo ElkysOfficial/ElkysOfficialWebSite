@@ -94,6 +94,53 @@ export function unmaskDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+/** Validates CPF using the Receita Federal check-digit algorithm. Expects 11 digits (unmasked). */
+export function isValidCPF(digits: string): boolean {
+  if (digits.length !== 11) return false;
+  // Reject known-invalid sequences (all same digit)
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  const nums = digits.split("").map(Number);
+
+  // First check digit
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += nums[i] * (10 - i);
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  if (remainder !== nums[9]) return false;
+
+  // Second check digit
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += nums[i] * (11 - i);
+  remainder = (sum * 10) % 11;
+  if (remainder === 10) remainder = 0;
+  return remainder === nums[10];
+}
+
+/** Validates CNPJ using the Receita Federal check-digit algorithm. Expects 14 digits (unmasked). */
+export function isValidCNPJ(digits: string): boolean {
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  const nums = digits.split("").map(Number);
+  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+  // First check digit
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += nums[i] * weights1[i];
+  let remainder = sum % 11;
+  const check1 = remainder < 2 ? 0 : 11 - remainder;
+  if (check1 !== nums[12]) return false;
+
+  // Second check digit
+  sum = 0;
+  for (let i = 0; i < 13; i++) sum += nums[i] * weights2[i];
+  remainder = sum % 11;
+  const check2 = remainder < 2 ? 0 : 11 - remainder;
+  return check2 === nums[13];
+}
+
 export function sanitizeInteger(value: string, maxLength = 3) {
   return value.replace(/\D/g, "").slice(0, maxLength);
 }

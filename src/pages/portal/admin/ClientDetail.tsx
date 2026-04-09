@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import {
   formatBRL,
+  isValidCNPJ,
+  isValidCPF,
   maskCEP,
   maskCNPJ,
   maskCPF,
@@ -380,11 +382,11 @@ function GeneralClientForm({
 
     if (form.full_name.trim().length < 3) nextErrors.full_name = "Informe o nome completo.";
     if (!isValidEmail(form.email.trim())) nextErrors.email = "Informe um e-mail válido.";
-    if (cpfDigits.length !== 11) nextErrors.cpf = "CPF inválido.";
+    if (!isValidCPF(cpfDigits)) nextErrors.cpf = "CPF inválido.";
     if (form.phone.trim() && phoneDigits.length < 10) nextErrors.phone = "Telefone inválido.";
 
     if (form.client_type === "pj") {
-      if (cnpjDigits.length !== 14) nextErrors.cnpj = "CNPJ inválido.";
+      if (!isValidCNPJ(cnpjDigits)) nextErrors.cnpj = "CNPJ inválido.";
       if (form.razao_social.trim().length < 3) {
         nextErrors.razao_social = "Razão social obrigatória para cliente PJ.";
       }
