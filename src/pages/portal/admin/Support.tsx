@@ -267,12 +267,15 @@ export default function AdminSupport() {
 
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     setUpdatingId(ticketId);
+    const now = new Date().toISOString();
     const updatePayload: Record<string, unknown> = {
       status: newStatus,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     };
     if (newStatus === "resolvido") {
-      updatePayload.resolved_at = new Date().toISOString();
+      updatePayload.resolved_at = now;
+    } else if (newStatus === "aberto" || newStatus === "em_andamento") {
+      updatePayload.resolved_at = null;
     }
     const { error } = await supabase
       .from("support_tickets")
@@ -285,9 +288,10 @@ export default function AdminSupport() {
       return;
     }
 
+    const resolvedAt = newStatus === "resolvido" ? now : null;
     setTickets((prev) => {
       const nextTickets = prev.map((ticket) =>
-        ticket.id === ticketId ? { ...ticket, status: newStatus } : ticket
+        ticket.id === ticketId ? { ...ticket, status: newStatus, resolved_at: resolvedAt } : ticket
       );
       if (supportOnlyView && newStatus !== "aberto") {
         return nextTickets.filter((ticket) => ticket.id !== ticketId);
