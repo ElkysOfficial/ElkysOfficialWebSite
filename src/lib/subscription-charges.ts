@@ -1,17 +1,38 @@
+/** Build a UTC date clamping dueDay to the last day of the month. */
 function getSafeDueDate(year: number, month: number, dueDay: number) {
-  const maxDay = new Date(year, month + 1, 0).getDate();
+  const maxDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const safeDay = Math.min(dueDay, maxDay);
-  return new Date(year, month, safeDay, 12);
+  return new Date(Date.UTC(year, month, safeDay));
+}
+
+/** Format a UTC Date as YYYY-MM-DD string. */
+function toIsoDate(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
 
 export function computeFirstSubscriptionDueDate(startsOn: string, dueDay: number) {
-  const source = startsOn ? new Date(`${startsOn}T12:00:00`) : new Date();
-  const sameMonth = getSafeDueDate(source.getFullYear(), source.getMonth(), dueDay);
+  let srcYear: number;
+  let srcMonth: number;
+  let srcDay: number;
 
-  if (source.getDate() <= sameMonth.getDate()) return sameMonth.toISOString().slice(0, 10);
+  if (startsOn) {
+    const [y, m, d] = startsOn.split("-").map(Number);
+    srcYear = y;
+    srcMonth = m - 1;
+    srcDay = d;
+  } else {
+    const now = new Date();
+    srcYear = now.getUTCFullYear();
+    srcMonth = now.getUTCMonth();
+    srcDay = now.getUTCDate();
+  }
 
-  const nextMonth = getSafeDueDate(source.getFullYear(), source.getMonth() + 1, dueDay);
-  return nextMonth.toISOString().slice(0, 10);
+  const sameMonth = getSafeDueDate(srcYear, srcMonth, dueDay);
+
+  if (srcDay <= sameMonth.getUTCDate()) return toIsoDate(sameMonth);
+
+  const nextMonth = getSafeDueDate(srcYear, srcMonth + 1, dueDay);
+  return toIsoDate(nextMonth);
 }
 
 export function getSubscriptionCoverageEnd(
@@ -43,14 +64,12 @@ export function listSubscriptionDueDates({
   if (!startsOn || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) return [];
 
   const now = new Date();
+  const nowYear = now.getUTCFullYear();
+  const nowMonth = now.getUTCMonth();
   const hasExplicitEnd = Boolean(endsOn);
 
   // End boundary: explicit date or 12 months from today
-  const effectiveEndsOn =
-    endsOn ??
-    getSafeDueDate(now.getFullYear(), now.getMonth() + 12, dueDay)
-      .toISOString()
-      .slice(0, 10);
+  const effectiveEndsOn = endsOn ?? toIsoDate(getSafeDueDate(nowYear, nowMonth + 12, dueDay));
 
   // Start boundary: with explicit end, start from subscription start.
   // Without explicit end, start from current month to avoid backfilling history.
@@ -59,9 +78,7 @@ export function listSubscriptionDueDates({
     startDate = computeFirstSubscriptionDueDate(startsOn, dueDay);
   } else {
     const subscriptionFirst = computeFirstSubscriptionDueDate(startsOn, dueDay);
-    const currentMonthDue = getSafeDueDate(now.getFullYear(), now.getMonth(), dueDay)
-      .toISOString()
-      .slice(0, 10);
+    const currentMonthDue = toIsoDate(getSafeDueDate(nowYear, nowMonth, dueDay));
     // Use the later of: subscription first due date OR current month due date
     startDate = subscriptionFirst > currentMonthDue ? subscriptionFirst : currentMonthDue;
   }
@@ -69,14 +86,19 @@ export function listSubscriptionDueDates({
   if (startDate > effectiveEndsOn) return [];
 
   const dueDates = [startDate];
-  let cursor = new Date(`${startDate}T12:00:00`);
+  const [sy, sm] = startDate.split("-").map(Number);
+  let cursorYear = sy;
+  let cursorMonth = sm - 1;
 
   while (true) {
-    const nextMonth = getSafeDueDate(cursor.getFullYear(), cursor.getMonth() + 1, dueDay);
-    const nextDueDate = nextMonth.toISOString().slice(0, 10);
+    cursorMonth += 1;
+    if (cursorMonth > 11) {
+      cursorMonth = 0;
+      cursorYear += 1;
+    }
+    const nextDueDate = toIsoDate(getSafeDueDate(cursorYear, cursorMonth, dueDay));
     if (nextDueDate > effectiveEndsOn) break;
     dueDates.push(nextDueDate);
-    cursor = nextMonth;
   }
 
   return dueDates;
