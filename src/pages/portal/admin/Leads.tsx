@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import { formatBRL, maskCurrency, unmaskCurrency, maskPhone } from "@/lib/masks";
+import { formatBRL, maskCurrency, unmaskCurrency, maskPhone, toCents } from "@/lib/masks";
 import { formatPortalDate } from "@/lib/portal";
 import { toast } from "sonner";
 
@@ -189,7 +189,7 @@ export default function Leads() {
     () =>
       leads
         .filter((l) => l.status !== "perdido" && l.status !== "ganho")
-        .reduce((sum, l) => sum + (l.estimated_value ?? 0), 0),
+        .reduce((sum, l) => sum + toCents(l.estimated_value ?? 0), 0) / 100,
     [leads]
   );
 

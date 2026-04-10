@@ -2769,7 +2769,7 @@ export default function AdminProjectDetail() {
             const draft =
               installmentForms[installment.id] ?? getInstallmentFormDefaults(installment);
             const percentage = Number(installment.percentage || 0);
-            const amountValue = Number(((contractAmount * percentage) / 100).toFixed(2));
+            const amountValue = Math.round(contractAmount * percentage) / 100;
             const dueDate = installment.effective_due_date ?? installment.expected_due_date ?? null;
 
             return (

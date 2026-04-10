@@ -291,10 +291,15 @@ export default function AdminSupport() {
       return;
     }
 
-    const resolvedAt = newStatus === "resolvido" ? now : null;
+    const resolvedAtUpdate: Partial<{ resolved_at: string | null }> =
+      newStatus === "resolvido"
+        ? { resolved_at: now }
+        : newStatus === "aberto" || newStatus === "em_andamento"
+          ? { resolved_at: null }
+          : {}; // "fechado": preserve existing resolved_at
     setTickets((prev) => {
       const nextTickets = prev.map((ticket) =>
-        ticket.id === ticketId ? { ...ticket, status: newStatus, resolved_at: resolvedAt } : ticket
+        ticket.id === ticketId ? { ...ticket, status: newStatus, ...resolvedAtUpdate } : ticket
       );
       if (supportOnlyView && newStatus !== "aberto") {
         return nextTickets.filter((ticket) => ticket.id !== ticketId);

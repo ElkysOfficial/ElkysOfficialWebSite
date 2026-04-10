@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PROJECT_STATUS_META, formatPortalDate } from "@/lib/portal";
 import { loadProjectsForClient, resolveClientForUser } from "@/lib/portal-data";
 
-type ProjectListTab = "todos" | "em_curso" | "concluidos" | "pausados";
+type ProjectListTab = "todos" | "em_curso" | "concluidos" | "pausados" | "cancelados";
 
 export default function ClientProjects() {
   const { user } = useAuth();
@@ -80,6 +80,14 @@ export default function ClientProjects() {
         key: "pausados" as const,
         label: `Pausados (${orderedProjects.filter((project) => project.status === "pausado").length})`,
       },
+      ...(orderedProjects.some((project) => project.status === "cancelado")
+        ? [
+            {
+              key: "cancelados" as const,
+              label: `Cancelados (${orderedProjects.filter((project) => project.status === "cancelado").length})`,
+            },
+          ]
+        : []),
     ],
     [orderedProjects]
   );
@@ -94,6 +102,9 @@ export default function ClientProjects() {
     }
     if (tab === "pausados") {
       return orderedProjects.filter((project) => project.status === "pausado");
+    }
+    if (tab === "cancelados") {
+      return orderedProjects.filter((project) => project.status === "cancelado");
     }
     return orderedProjects;
   }, [orderedProjects, tab]);

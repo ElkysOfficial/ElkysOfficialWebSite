@@ -256,7 +256,7 @@ export default function BillingAutomation() {
   const tabs: { key: ActiveTab; label: string }[] = [
     { key: "regras", label: `Regras (${rules.length})` },
     { key: "templates", label: `Templates (${templates.length})` },
-    { key: "log", label: `Log (${logs.length})` },
+    { key: "log", label: `Log (${logs.length >= 50 ? "50+" : logs.length})` },
   ];
 
   return (

@@ -167,5 +167,8 @@ export function formatBRL(value: number): string {
  */
 export function toCents(value: string | number | null | undefined): number {
   if (value == null || value === "") return 0;
-  return Math.round(Number(value) * 100);
+  const str = String(value);
+  const [intPart, fracPart = ""] = str.split(".");
+  const cents = Number(intPart) * 100 + Number(fracPart.padEnd(2, "0").slice(0, 2));
+  return Math.round(cents);
 }

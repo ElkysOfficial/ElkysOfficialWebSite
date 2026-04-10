@@ -22,7 +22,7 @@ import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, toCents } from "@/lib/masks";
-import { getClientDisplayName, isProjectOperationallyOpen } from "@/lib/portal";
+import { getClientDisplayName, isProjectOperationallyOpen, isTicketOpen } from "@/lib/portal";
 
 type DashboardClient = Pick<
   Database["public"]["Tables"]["clients"]["Row"],
@@ -897,17 +897,27 @@ export default function AdminOverview() {
         point.cashOut += toCents(expense.amount);
       });
 
+      const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
+
       charges
-        .filter((charge) => charge.origin_type === "mensalidade" && charge.status !== "cancelado")
+        .filter(
+          (charge) =>
+            charge.origin_type === "mensalidade" &&
+            charge.status !== "cancelado" &&
+            !charge.is_historical
+        )
         .forEach((charge) => {
-          const monthKey = getMonthKeyFromDate(charge.due_date);
+          const isPaid = charge.status === "pago";
+          const monthKey = getMonthKeyFromDate(
+            isPaid ? (charge.paid_at ?? charge.due_date) : charge.due_date
+          );
           if (!monthKey) return;
           const point = monthlyMap.get(monthKey);
           if (!point) return;
+          // For past months, only count paid; for current/future, count all non-cancelled
+          if (monthKey < currentMonthKey && !isPaid) return;
           point.recurringRevenue += toCents(charge.amount);
         });
-
-      const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
       const currentMonthPoint = monthlyMap.get(currentMonthKey);
       if (currentMonthPoint && currentMonthPoint.recurringRevenue < recurringBaseCents) {
         currentMonthPoint.recurringRevenue = recurringBaseCents;
@@ -1152,9 +1162,7 @@ export default function AdminOverview() {
           : null;
 
       // Support tickets
-      const openTickets = tickets.filter(
-        (t) => t.status === "aberto" || t.status === "em_andamento"
-      ).length;
+      const openTickets = tickets.filter((t) => isTicketOpen(t.status)).length;
       const resolvedTicketsThisMonth = tickets.filter((t) => {
         if (t.status !== "resolvido" && t.status !== "fechado") return false;
         const created = parseDateValue(t.created_at);

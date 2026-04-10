@@ -11,21 +11,10 @@ function toIsoDate(d: Date) {
 }
 
 export function computeFirstSubscriptionDueDate(startsOn: string, dueDay: number) {
-  let srcYear: number;
-  let srcMonth: number;
-  let srcDay: number;
-
-  if (startsOn) {
-    const [y, m, d] = startsOn.split("-").map(Number);
-    srcYear = y;
-    srcMonth = m - 1;
-    srcDay = d;
-  } else {
-    const now = new Date();
-    srcYear = now.getUTCFullYear();
-    srcMonth = now.getUTCMonth();
-    srcDay = now.getUTCDate();
-  }
+  const [y, m, d] = startsOn.split("-").map(Number);
+  const srcYear = y;
+  const srcMonth = m - 1;
+  const srcDay = d;
 
   const sameMonth = getSafeDueDate(srcYear, srcMonth, dueDay);
 
@@ -64,8 +53,8 @@ export function listSubscriptionDueDates({
   if (!startsOn || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) return [];
 
   const now = new Date();
-  const nowYear = now.getUTCFullYear();
-  const nowMonth = now.getUTCMonth();
+  const nowYear = now.getFullYear();
+  const nowMonth = now.getMonth();
   const hasExplicitEnd = Boolean(endsOn);
 
   // End boundary: explicit date or 12 months from today

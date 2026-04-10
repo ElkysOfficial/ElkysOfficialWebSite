@@ -4,6 +4,7 @@ import {
   loadProjectsForClient,
   loadSupportTicketsForClient,
 } from "@/lib/portal-data";
+import { isTicketOpen } from "@/lib/portal";
 
 export function useClientOverview(clientId: string | null | undefined) {
   return useQuery({
@@ -26,8 +27,7 @@ export function useClientOverview(clientId: string | null | undefined) {
       return {
         projects: projectsRes.projects,
         charges: chargesRes.charges,
-        openTickets: ticketsRes.tickets.filter((t) => !["resolvido", "fechado"].includes(t.status))
-          .length,
+        openTickets: ticketsRes.tickets.filter((t) => isTicketOpen(t.status)).length,
       };
     },
     enabled: !!clientId,

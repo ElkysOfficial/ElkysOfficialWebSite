@@ -85,7 +85,9 @@ export default function ClientOverview() {
 
   /* ── Derived data ── */
 
-  const activeProjects = projects.filter((project) => project.status !== "cancelado").length;
+  const activeProjects = projects.filter((project) =>
+    ["negociacao", "em_andamento"].includes(project.status)
+  ).length;
   const pausedProjects = projects.filter((project) => project.status === "pausado").length;
   const visibleProjects = projects.slice(0, 3);
 

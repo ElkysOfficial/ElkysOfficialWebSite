@@ -188,6 +188,11 @@ export const TICKET_STATUS_META: Record<
   fechado: { label: "Fechado", tone: "secondary" },
 };
 
+/** Centralized definition: a ticket is "open" if not resolved or closed. */
+export function isTicketOpen(status: string): boolean {
+  return status !== "resolvido" && status !== "fechado";
+}
+
 export const TICKET_PRIORITY_META: Record<
   TicketPriority,
   { label: string; tone: "accent" | "success" | "warning" | "destructive" | "secondary" }
@@ -239,7 +244,9 @@ export function formatPortalDate(date?: string | null) {
 
 export function formatPortalDateTime(date?: string | null) {
   if (!date) return "-";
-  return new Date(date).toLocaleDateString("pt-BR", {
+  // If date-only string (no time component), append T00:00:00 to force local timezone
+  const parsed = date.includes("T") ? new Date(date) : new Date(`${date}T00:00:00`);
+  return parsed.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
     year: "numeric",

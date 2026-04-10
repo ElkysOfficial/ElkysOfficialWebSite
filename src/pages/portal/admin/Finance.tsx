@@ -48,6 +48,7 @@ import {
   getClientDisplayName,
   isProjectOperationallyOpen,
   getProjectEffectiveBucket,
+  isTicketOpen,
 } from "@/lib/portal";
 import { getSubscriptionCoverageEnd, listSubscriptionDueDates } from "@/lib/subscription-charges";
 import {
@@ -1614,9 +1615,7 @@ function FinanceAnaliseTab() {
       return since && since >= startOfMonth && c.is_active;
     }).length;
 
-    const openTickets = tickets.filter(
-      (t) => t.status === "aberto" || t.status === "em_andamento"
-    ).length;
+    const openTickets = tickets.filter((t) => isTicketOpen(t.status)).length;
     const resolvedTicketsThisMonth = tickets.filter((t) => {
       if (t.status !== "resolvido" && t.status !== "fechado") return false;
       const d = parseDateValue(t.created_at);

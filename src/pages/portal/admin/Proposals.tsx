@@ -14,7 +14,7 @@ import { AlertDialog, Button, Card, CardContent, Input, cn } from "@/design-syst
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, toCents } from "@/lib/masks";
 import { formatPortalDate } from "@/lib/portal";
 
 /* ------------------------------------------------------------------ */
@@ -307,9 +307,10 @@ export default function Proposals() {
 
   const metrics = useMemo(() => {
     const total = proposals.length;
-    const emNegociacaoValue = proposals
-      .filter((p) => p.status === "enviada" || p.status === "aprovada")
-      .reduce((sum, p) => sum + p.total_amount, 0);
+    const emNegociacaoValue =
+      proposals
+        .filter((p) => p.status === "enviada" || p.status === "aprovada")
+        .reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
     const aprovadas = proposals.filter((p) => p.status === "aprovada").length;
     const decided = proposals.filter(
       (p) => p.status === "aprovada" || p.status === "rejeitada"
