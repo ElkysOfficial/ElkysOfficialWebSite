@@ -13,7 +13,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { type IconProps, CheckCircle, Phone, Search, Users, Wrench, X, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { buttonVariants, AlertDialog, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,7 +93,6 @@ export default function AdminTeam() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const showLoading = useMinLoading(loading && !hasLoaded);
   const [pageError, setPageError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -349,7 +347,7 @@ export default function AdminTeam() {
 
   const memberToDelete = members.find((m) => m.id === confirmDeleteId);
 
-  if (showLoading) return <PortalLoading />;
+  if (loading && !hasLoaded) return <PortalLoading />;
 
   return (
     <div className="space-y-8">

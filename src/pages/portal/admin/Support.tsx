@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,7 +132,6 @@ export default function AdminSupport() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const showLoading = useMinLoading(loading && !hasLoaded);
   const [pageError, setPageError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -459,7 +457,7 @@ export default function AdminSupport() {
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
 
-  if (showLoading) return <PortalLoading />;
+  if (loading && !hasLoaded) return <PortalLoading />;
 
   return (
     <div className="space-y-8">

@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import { useAdminProjects } from "@/hooks/useAdminProjects";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -251,7 +250,6 @@ export default function AdminProjects() {
     error: queryError,
     refetch: refetchProjects,
   } = useAdminProjects();
-  const showLoading = useMinLoading(loading);
   const pageError = queryError?.message ?? null;
 
   const projects = useMemo(() => (bundle?.projects ?? []) as PortalProject[], [bundle?.projects]);
@@ -369,7 +367,7 @@ export default function AdminProjects() {
     }
   };
 
-  if (showLoading) return <PortalLoading />;
+  if (loading) return <PortalLoading />;
 
   return (
     <div className="space-y-8">

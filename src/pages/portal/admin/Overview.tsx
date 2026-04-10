@@ -16,7 +16,6 @@ import {
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -758,7 +757,6 @@ export default function AdminOverview() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
-  const showLoading = useMinLoading(loading && !hasLoaded);
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = useCallback(
@@ -1414,7 +1412,7 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-4">
-      {showLoading ? (
+      {!hasLoaded ? (
         <PortalLoading />
       ) : error ? (
         <AdminEmptyState

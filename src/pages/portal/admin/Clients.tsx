@@ -7,7 +7,6 @@ import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import { useAdminClients } from "@/hooks/useAdminClients";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { buttonVariants, Button, Input, cn } from "@/design-system";
@@ -268,7 +267,6 @@ export default function AdminClients() {
     refetch: refetchClients,
   } = useAdminClients();
   const hasLoaded = !loading && !queryError;
-  const showLoading = useMinLoading(loading);
   const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -403,7 +401,7 @@ export default function AdminClients() {
     void refetchClients();
   };
 
-  if (showLoading) return <PortalLoading />;
+  if (loading) return <PortalLoading />;
 
   return (
     <div className="space-y-8">

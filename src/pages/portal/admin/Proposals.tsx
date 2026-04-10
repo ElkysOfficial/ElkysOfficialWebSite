@@ -6,7 +6,6 @@ import { useAdminProposals } from "@/hooks/useAdminProposals";
 import { FileText, Search, Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import useMinLoading from "@/hooks/useMinLoading";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
 import ExportMenu from "@/components/portal/ExportMenu";
 import RowActionMenu from "@/components/portal/RowActionMenu";
@@ -225,7 +224,6 @@ export default function Proposals() {
     [bundle?.leads]
   );
   const loading = queryLoading;
-  const showLoading = useMinLoading(loading);
   const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -330,7 +328,7 @@ export default function Proposals() {
 
   const deleteDisplayName = proposalToDelete?.title ?? "";
 
-  if (showLoading) return <PortalLoading />;
+  if (loading) return <PortalLoading />;
 
   return (
     <div className="space-y-8">
