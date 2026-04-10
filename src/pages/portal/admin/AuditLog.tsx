@@ -145,6 +145,8 @@ export default function AuditLog() {
   const [error, setError] = useState<string | null>(null);
   const [entityFilter, setEntityFilter] = useState<EntityFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 10;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -184,6 +186,9 @@ export default function AuditLog() {
     if (entityFilter === "all") return logs;
     return logs.filter((log) => getEntityFilterKey(log.entity_type) === entityFilter);
   }, [logs, entityFilter]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   if (loading) return <Skeleton />;
 
@@ -225,7 +230,10 @@ export default function AuditLog() {
               <button
                 key={f.value}
                 type="button"
-                onClick={() => setEntityFilter(f.value)}
+                onClick={() => {
+                  setEntityFilter(f.value);
+                  setPage(0);
+                }}
                 className={cn(
                   "min-h-[36px] rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
                   entityFilter === f.value
@@ -243,7 +251,7 @@ export default function AuditLog() {
 
       {/* Log entries */}
       <div className="space-y-2">
-        {filtered.map((log) => {
+        {paged.map((log) => {
           const actorName = log.actor_user_id
             ? (actorMap.get(log.actor_user_id) ?? "Usuario desconhecido")
             : "Sistema";
@@ -306,6 +314,39 @@ export default function AuditLog() {
           );
         })}
       </div>
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/92 px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de{" "}
+            {filtered.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Anterior
+            </Button>
+            <span className="text-xs font-medium text-foreground">
+              {page + 1}/{totalPages}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Proximo
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
