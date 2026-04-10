@@ -231,7 +231,12 @@ export default function Proposals() {
       }
 
       const [proposalsRes, clientsRes, leadsRes] = await Promise.all([
-        supabase.from("proposals").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("proposals")
+          .select(
+            "id, title, status, total_amount, valid_until, sent_at, approved_at, created_at, client_id, lead_id"
+          )
+          .order("created_at", { ascending: false }),
         supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
         supabase.from("leads").select("id, name, company"),
       ]);

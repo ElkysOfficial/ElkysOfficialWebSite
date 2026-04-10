@@ -180,7 +180,7 @@ export default function AdminExpenses() {
 
       const { data, error } = await supabase
         .from("expenses")
-        .select("*")
+        .select("id, description, category, amount, expense_date, receipt_url, notes, created_at")
         .order("expense_date", { ascending: false })
         .order("created_at", { ascending: false });
 

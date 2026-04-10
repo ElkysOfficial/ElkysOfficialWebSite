@@ -1318,22 +1318,27 @@ export default function AdminOverview() {
       setHasLoaded(true);
       setLoading(false);
     },
-    [hasLoaded]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   useEffect(() => {
+    let debounceId: ReturnType<typeof setTimeout>;
     const refreshDashboard = () => {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      void loadDashboard(true);
+      // Debounce to prevent double-fire from focus + visibilitychange
+      clearTimeout(debounceId);
+      debounceId = setTimeout(() => void loadDashboard(true), 300);
     };
 
     void loadDashboard();
 
-    const interval = window.setInterval(refreshDashboard, 60000);
+    const interval = window.setInterval(refreshDashboard, 60_000);
     window.addEventListener("focus", refreshDashboard);
     document.addEventListener("visibilitychange", refreshDashboard);
 
     return () => {
+      clearTimeout(debounceId);
       window.clearInterval(interval);
       window.removeEventListener("focus", refreshDashboard);
       document.removeEventListener("visibilitychange", refreshDashboard);

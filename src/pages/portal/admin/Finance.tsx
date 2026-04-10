@@ -1910,8 +1910,13 @@ export default function AdminFinance() {
     setPageError(null);
 
     const [chargesRes, clientsRes] = await Promise.all([
-      supabase.from("charges").select("*").order("due_date", { ascending: true }),
-      supabase.from("clients").select("*"),
+      supabase
+        .from("charges")
+        .select(
+          "id, client_id, project_id, contract_id, subscription_id, installment_id, description, amount, due_date, paid_at, status, origin_type, is_historical, is_blocking"
+        )
+        .order("due_date", { ascending: true }),
+      supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
     ]);
 
     if (chargesRes.error) {

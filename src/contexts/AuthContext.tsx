@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   useCallback,
   useRef,
@@ -193,7 +194,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!state.user) return;
     const events = ["mousedown", "keydown", "scroll", "touchstart"];
-    const handler = () => resetInactivityTimer();
+    let throttled = false;
+    const handler = () => {
+      if (throttled) return;
+      throttled = true;
+      resetInactivityTimer();
+      setTimeout(() => {
+        throttled = false;
+      }, 2000);
+    };
     events.forEach((e) => window.addEventListener(e, handler, { passive: true }));
     resetInactivityTimer();
     return () => {
@@ -257,18 +266,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   }, []);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        ...state,
-        signInWithEmail,
-        signInWithGoogle,
-        signOut: handleSignOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      ...state,
+      signInWithEmail,
+      signInWithGoogle,
+      signOut: handleSignOut,
+    }),
+    [state, signInWithEmail, signInWithGoogle, handleSignOut]
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

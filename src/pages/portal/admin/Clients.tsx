@@ -284,7 +284,9 @@ export default function AdminClients() {
 
       const { data, error } = await supabase
         .from("clients")
-        .select("*")
+        .select(
+          "id, user_id, full_name, nome_fantasia, client_type, email, cpf, phone, is_active, client_since, monthly_value, project_total_value, contract_status, client_origin, tags, created_at"
+        )
         .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
 

@@ -121,7 +121,9 @@ export default function Leads() {
 
     const { data, error: fetchError } = await supabase
       .from("leads")
-      .select("*")
+      .select(
+        "id, name, email, phone, company, source, status, estimated_value, probability, notes, created_at"
+      )
       .order("created_at", { ascending: false });
 
     if (fetchError) {

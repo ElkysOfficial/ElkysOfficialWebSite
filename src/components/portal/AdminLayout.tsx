@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState, useCallback } from "react";
+import { memo, Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import PortalErrorBoundary from "@/components/portal/PortalErrorBoundary";
 import PortalLoading from "@/components/portal/PortalLoading";
@@ -375,6 +375,25 @@ function MenuGlyph({ className }: { className?: string }) {
   );
 }
 
+/** Isolated clock component — its 10s interval only re-renders itself, not the whole layout. */
+const SidebarClock = memo(function SidebarClock({ className }: { className?: string }) {
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  });
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setTime(
+        `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+      );
+    };
+    const id = window.setInterval(tick, 10_000);
+    return () => window.clearInterval(id);
+  }, []);
+  return <p className={className}>{time}</p>;
+});
+
 export default function AdminLayout() {
   const { user, roles, signOut } = useAuth();
   const navSections = useMemo(
@@ -526,20 +545,6 @@ export default function AdminLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mounted]
   );
-  const [clockTime, setClockTime] = useState(() => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  });
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setClockTime(
-        `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
-      );
-    };
-    const id = window.setInterval(tick, 10_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const currentPageMeta = useMemo(
     () =>
@@ -739,9 +744,7 @@ export default function AdminLayout() {
                   <p className="w-full truncate text-center text-[9px] font-semibold leading-tight text-foreground">
                     {profileName}
                   </p>
-                  <p className="text-[9px] font-medium leading-none text-muted-foreground tabular-nums">
-                    {clockTime}
-                  </p>
+                  <SidebarClock className="text-[9px] font-medium leading-none text-muted-foreground tabular-nums" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2.5">
@@ -769,9 +772,7 @@ export default function AdminLayout() {
                     <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
                       {profileName}
                     </p>
-                    <p className="text-[11px] font-medium leading-tight text-muted-foreground tabular-nums">
-                      {clockTime}
-                    </p>
+                    <SidebarClock className="text-[11px] font-medium leading-tight text-muted-foreground tabular-nums" />
                   </div>
                 </div>
               )}

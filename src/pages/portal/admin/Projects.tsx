@@ -268,8 +268,13 @@ export default function AdminProjects() {
       }
 
       const [projectsRes, clientsRes, contractsRes, subscriptionsRes] = await Promise.all([
-        supabase.from("projects").select("*").order("created_at", { ascending: false }),
-        supabase.from("clients").select("*"),
+        supabase
+          .from("projects")
+          .select(
+            "id, client_id, name, status, current_stage, solution_type, started_at, delivered_at, expected_delivery_date, billing_type, tags, created_at"
+          )
+          .order("created_at", { ascending: false }),
+        supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
         supabase
           .from("project_contracts")
           .select("project_id, total_amount, created_at, status")

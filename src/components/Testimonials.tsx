@@ -36,7 +36,7 @@ const Testimonials = () => {
       name: "Guilherme Trindade Duarte",
       role: "CEO",
       company: "Aquele Bar",
-      image: "/imgs/testimonials/guilhermeTrindade.png",
+      image: "/imgs/testimonials/guilhermeTrindade.webp",
       rating: 5,
       quote:
         "Serviço de consultoria e extração de informações realizado com excelente profissionalismo. A entrega ocorreu antes do prazo e os dados vieram precisos, bem estruturados e fáceis de analisar.",
@@ -45,7 +45,7 @@ const Testimonials = () => {
       name: "Lucas Alves",
       role: "Profissional Autônomo",
       company: "",
-      image: "/imgs/testimonials/lucasAlves.png",
+      image: "/imgs/testimonials/lucasAlves.webp",
       rating: 5,
       quote:
         "Muito satisfeito com o serviço de consultoria e extração de dados. Todo o processo foi profissional, ágil e entregue antes do prazo, com resultados organizados que facilitaram minha análise.",
@@ -54,7 +54,7 @@ const Testimonials = () => {
       name: "Ramiro Silva",
       role: "Fundador",
       company: "1UmPrintComunicação",
-      image: "/imgs/testimonials/ramiroSilva.png",
+      image: "/imgs/testimonials/ramiroSilva.webp",
       rating: 5,
       quote:
         "Desenvolvimento do site superou minhas expectativas. Layout moderno, funcional, responsivo e entregue em tempo recorde, com total entendimento da necessidade do cliente e experiência intuitiva.",
@@ -63,7 +63,7 @@ const Testimonials = () => {
       name: "João Pedro Monteiro",
       role: "Profissional Autônomo",
       company: "",
-      image: "/imgs/testimonials/joaoMonteiro.png",
+      image: "/imgs/testimonials/joaoMonteiro.webp",
       rating: 5,
       quote:
         "Empresa de primeira categoria em tecnologia. Acompanham desde a ideia até a entrega, com produtos fáceis de usar, alta qualidade, responsabilidade com prazos e foco total na experiência do cliente.",
@@ -90,7 +90,7 @@ const Testimonials = () => {
       name: "Heliel Souza",
       role: "Proprietário",
       company: "PlansCoop",
-      image: "/imgs/testimonials/helielSouza.png",
+      image: "/imgs/testimonials/helielSouza.webp",
       rating: 5,
       quote:
         "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
