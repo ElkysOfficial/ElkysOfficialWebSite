@@ -5,9 +5,11 @@ import { toast } from "sonner";
 import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import Pagination from "@/components/portal/Pagination";
 import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
 import ProjectTimelineFeed from "@/components/portal/ProjectTimelineFeed";
 import StatusBadge from "@/components/portal/StatusBadge";
+import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
   Button,
   Card,
@@ -398,6 +400,9 @@ export default function AdminProjectDetail() {
     }
     setSearchParams(searchParams, { replace: true });
   };
+  const chargesPageSize = useResponsivePageSize(3, 5, 8);
+  const [chargesPage, setChargesPage] = useState(0);
+  const [docsPage, setDocsPage] = useState(0);
   const [showStageJourney, setShowStageJourney] = useState(false);
   const [projectUpdateOpen, setProjectUpdateOpen] = useState(false);
   const [nextStepsOpen, setNextStepsOpen] = useState(false);
@@ -2619,49 +2624,58 @@ export default function AdminProjectDetail() {
                   {financialItems.length} registro{financialItems.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="max-h-[55vh] space-y-1.5 overflow-y-auto">
-                {financialItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3 sm:grid-cols-[1fr_110px_160px]"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Vence {formatPortalDate(item.dueDate)}
-                      </p>
-                    </div>
-                    <p className="hidden text-right text-sm font-semibold tabular-nums text-foreground sm:block">
-                      {formatBRL(Number(item.amount))}
-                    </p>
-                    <select
-                      value={item.statusKey}
-                      onChange={async (e) => {
-                        const next = e.target.value as typeof item.statusKey;
-                        const paidAt =
-                          next === "pago" ? new Date().toISOString().slice(0, 10) : null;
-                        const { error } = await supabase
-                          .from("charges")
-                          .update({ status: next, paid_at: paidAt })
-                          .eq("id", item.id);
-                        if (error) {
-                          toast.error("Nao foi possivel atualizar o status.");
-                          return;
-                        }
-                        toast.success("Status atualizado.");
-                        void loadProject();
-                      }}
-                      className="h-8 rounded-lg border border-border/60 bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              <div className="space-y-1.5">
+                {financialItems
+                  .slice(chargesPage * chargesPageSize, (chargesPage + 1) * chargesPageSize)
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3 sm:grid-cols-[1fr_110px_160px]"
                     >
-                      {Object.entries(CHARGE_STATUS_META).map(([key, meta]) => (
-                        <option key={key} value={key}>
-                          {meta.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          Vence {formatPortalDate(item.dueDate)}
+                        </p>
+                      </div>
+                      <p className="hidden text-right text-sm font-semibold tabular-nums text-foreground sm:block">
+                        {formatBRL(Number(item.amount))}
+                      </p>
+                      <select
+                        value={item.statusKey}
+                        onChange={async (e) => {
+                          const next = e.target.value as typeof item.statusKey;
+                          const paidAt =
+                            next === "pago" ? new Date().toISOString().slice(0, 10) : null;
+                          const { error } = await supabase
+                            .from("charges")
+                            .update({ status: next, paid_at: paidAt })
+                            .eq("id", item.id);
+                          if (error) {
+                            toast.error("Nao foi possivel atualizar o status.");
+                            return;
+                          }
+                          toast.success("Status atualizado.");
+                          void loadProject();
+                        }}
+                        className="h-8 rounded-lg border border-border/60 bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {Object.entries(CHARGE_STATUS_META).map(([key, meta]) => (
+                          <option key={key} value={key}>
+                            {meta.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
               </div>
+              <Pagination
+                page={chargesPage}
+                totalPages={Math.ceil(financialItems.length / chargesPageSize)}
+                totalItems={financialItems.length}
+                pageSize={chargesPageSize}
+                onPageChange={setChargesPage}
+              />
             </div>
           ) : !contracts[0] && subscriptions.length === 0 ? (
             <div className="p-3 sm:p-5">
@@ -2790,22 +2804,33 @@ export default function AdminProjectDetail() {
             Ainda nao ha anexos vinculados a este projeto.
           </p>
         ) : (
-          <div className="max-h-[65vh] space-y-3 overflow-y-auto pr-1">
-            {documents.map((document) => (
-              <a
-                key={document.id}
-                href={document.external_url ?? document.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-xl border border-border/50 bg-background/60 p-4 transition-colors hover:border-primary/30"
-              >
-                <p className="text-sm font-semibold text-foreground">{document.label}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {DOCUMENT_TYPE_LABEL[document.type]}
-                </p>
-              </a>
-            ))}
-          </div>
+          <>
+            <div className="space-y-3">
+              {documents
+                .slice(docsPage * chargesPageSize, (docsPage + 1) * chargesPageSize)
+                .map((document) => (
+                  <a
+                    key={document.id}
+                    href={document.external_url ?? document.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block rounded-xl border border-border/50 bg-background/60 p-4 transition-colors hover:border-primary/30"
+                  >
+                    <p className="text-sm font-semibold text-foreground">{document.label}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {DOCUMENT_TYPE_LABEL[document.type]}
+                    </p>
+                  </a>
+                ))}
+            </div>
+            <Pagination
+              page={docsPage}
+              totalPages={Math.ceil(documents.length / chargesPageSize)}
+              totalItems={documents.length}
+              pageSize={chargesPageSize}
+              onPageChange={setDocsPage}
+            />
+          </>
         )}
       </CardContent>
     </Card>
@@ -2817,12 +2842,10 @@ export default function AdminProjectDetail() {
         <CardTitle className="text-base">Timeline</CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
-        <div className="max-h-[72vh] overflow-y-auto pr-1">
-          <ProjectTimelineFeed
-            events={timeline}
-            emptyMessage="A timeline ainda nao possui eventos registrados."
-          />
-        </div>
+        <ProjectTimelineFeed
+          events={timeline}
+          emptyMessage="A timeline ainda nao possui eventos registrados."
+        />
       </CardContent>
     </Card>
   );
@@ -2876,7 +2899,7 @@ export default function AdminProjectDetail() {
       </div>
 
       {tab === "detalhes" ? (
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-2 [&>*>*]:h-full">
           <div className="space-y-6">{summaryCard}</div>
           <div className="space-y-6">{detailsWorkspaceCard}</div>
         </div>

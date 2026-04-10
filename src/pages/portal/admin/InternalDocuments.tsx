@@ -195,7 +195,7 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
       <div className={canManageDocuments ? "grid gap-6 xl:grid-cols-[1fr_1fr]" : ""}>
         {/* ── Add form ── */}
         {canManageDocuments ? (
-          <Card className="self-start border-border/60">
+          <Card className="border-border/60">
             <CardHeader className="border-b border-border/50 pb-4">
               <CardTitle className="text-base">Adicionar documento</CardTitle>
             </CardHeader>

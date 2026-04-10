@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { CheckCircle, Clock, FileText, TrendingUp } from "@/assets/icons";
-import { Button, cn } from "@/design-system";
+import Pagination from "@/components/portal/Pagination";
+import { cn } from "@/design-system";
+import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { formatPortalDateTime, type PortalTimelineEvent } from "@/lib/portal";
-
-const PAGE_SIZE = 5;
 
 const EVENT_META: Record<
   string,
@@ -48,14 +48,16 @@ export default function ProjectTimelineFeed({
   events: PortalTimelineEvent[];
   emptyMessage: string;
 }) {
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const pageSize = useResponsivePageSize(3, 4, 5);
+  const [page, setPage] = useState(0);
 
   if (events.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
   }
 
-  const shown = events.slice(0, visible);
-  const hasMore = visible < events.length;
+  const totalPages = Math.ceil(events.length / pageSize);
+  const safeP = Math.min(page, totalPages - 1);
+  const shown = events.slice(safeP * pageSize, (safeP + 1) * pageSize);
 
   return (
     <div className="space-y-4">
@@ -97,19 +99,13 @@ export default function ProjectTimelineFeed({
         })}
       </div>
 
-      {hasMore && (
-        <div className="flex justify-center pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setVisible((v) => v + PAGE_SIZE)}
-          >
-            Carregar mais ({events.length - visible} restante
-            {events.length - visible !== 1 ? "s" : ""})
-          </Button>
-        </div>
-      )}
+      <Pagination
+        page={safeP}
+        totalPages={totalPages}
+        totalItems={events.length}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

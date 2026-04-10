@@ -5,7 +5,9 @@ import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import Pagination from "@/components/portal/Pagination";
 import StatusBadge from "@/components/portal/StatusBadge";
+import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
   Button,
   Card,
@@ -82,6 +84,10 @@ export default function ClientProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [tab, setTab] = useState<ClientProjectTab>("detalhes");
+  const listPageSize = useResponsivePageSize(3, 5, 8);
+  const [chargesPage, setChargesPage] = useState(0);
+  const [docsPage, setDocsPage] = useState(0);
+  const [tlPage, setTlPage] = useState(0);
   const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
   const [respondingId, setRespondingId] = useState<string | null>(null);
 
@@ -580,27 +586,38 @@ export default function ClientProjectDetail() {
                     Nenhuma cobrança vinculada a este projeto.
                   </p>
                 ) : (
-                  <div className="max-h-[50vh] space-y-1.5 overflow-y-auto">
-                    {financialItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {item.label}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            Vence {formatPortalDate(item.dueDate)}
-                          </p>
-                        </div>
-                        <p className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
-                          {formatBRL(Number(item.amount))}
-                        </p>
-                        <StatusBadge label={item.status.label} tone={item.status.tone} />
-                      </div>
-                    ))}
-                  </div>
+                  <>
+                    <div className="space-y-1.5">
+                      {financialItems
+                        .slice(chargesPage * listPageSize, (chargesPage + 1) * listPageSize)
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-foreground">
+                                {item.label}
+                              </p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                Vence {formatPortalDate(item.dueDate)}
+                              </p>
+                            </div>
+                            <p className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
+                              {formatBRL(Number(item.amount))}
+                            </p>
+                            <StatusBadge label={item.status.label} tone={item.status.tone} />
+                          </div>
+                        ))}
+                    </div>
+                    <Pagination
+                      page={chargesPage}
+                      totalPages={Math.ceil(financialItems.length / listPageSize)}
+                      totalItems={financialItems.length}
+                      pageSize={listPageSize}
+                      onPageChange={setChargesPage}
+                    />
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -619,22 +636,33 @@ export default function ClientProjectDetail() {
                 Nenhum anexo disponivel neste projeto.
               </p>
             ) : (
-              <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-                {documents.map((document) => (
-                  <a
-                    key={document.id}
-                    href={document.external_url ?? document.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 transition-all hover:border-primary/25 hover:bg-card"
-                  >
-                    <p className="text-sm font-semibold text-foreground">{document.label}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {DOCUMENT_TYPE_LABEL[document.type]}
-                    </p>
-                  </a>
-                ))}
-              </div>
+              <>
+                <div className="space-y-3">
+                  {documents
+                    .slice(docsPage * listPageSize, (docsPage + 1) * listPageSize)
+                    .map((document) => (
+                      <a
+                        key={document.id}
+                        href={document.external_url ?? document.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 transition-all hover:border-primary/25 hover:bg-card"
+                      >
+                        <p className="text-sm font-semibold text-foreground">{document.label}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {DOCUMENT_TYPE_LABEL[document.type]}
+                        </p>
+                      </a>
+                    ))}
+                </div>
+                <Pagination
+                  page={docsPage}
+                  totalPages={Math.ceil(documents.length / listPageSize)}
+                  totalItems={documents.length}
+                  pageSize={listPageSize}
+                  onPageChange={setDocsPage}
+                />
+              </>
             )}
           </CardContent>
         </Card>
@@ -651,22 +679,33 @@ export default function ClientProjectDetail() {
                 Ainda nao ha eventos relevantes publicados para este projeto.
               </p>
             ) : (
-              <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-                {timeline.map((event) => (
-                  <div
-                    key={event.id}
-                    className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-foreground">{event.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatPortalDateTime(event.occurred_at)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-sm text-foreground">{event.summary}</p>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="space-y-3">
+                  {timeline
+                    .slice(tlPage * listPageSize, (tlPage + 1) * listPageSize)
+                    .map((event) => (
+                      <div
+                        key={event.id}
+                        className="rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-foreground">{event.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatPortalDateTime(event.occurred_at)}
+                          </p>
+                        </div>
+                        <p className="mt-2 text-sm text-foreground">{event.summary}</p>
+                      </div>
+                    ))}
+                </div>
+                <Pagination
+                  page={tlPage}
+                  totalPages={Math.ceil(timeline.length / listPageSize)}
+                  totalItems={timeline.length}
+                  pageSize={listPageSize}
+                  onPageChange={setTlPage}
+                />
+              </>
             )}
           </CardContent>
         </Card>

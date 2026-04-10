@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Clock, Eye, Shield } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import Pagination from "@/components/portal/Pagination";
 import { Button, Card, CardContent, cn } from "@/design-system";
+import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPortalDateTime } from "@/lib/portal";
@@ -146,7 +148,7 @@ export default function AuditLog() {
   const [entityFilter, setEntityFilter] = useState<EntityFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = useResponsivePageSize(5, 8, 10);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -315,38 +317,13 @@ export default function AuditLog() {
         })}
       </div>
 
-      {/* Paginação */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/92 px-4 py-3">
-          <p className="text-xs text-muted-foreground">
-            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de{" "}
-            {filtered.length}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Anterior
-            </Button>
-            <span className="text-xs font-medium text-foreground">
-              {page + 1}/{totalPages}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Proximo
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={filtered.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
