@@ -312,7 +312,7 @@ export default function Leads() {
           </Button>
         </div>
 
-        {showForm && <InlineForm />}
+        {showForm && inlineFormJSX}
 
         <AdminEmptyState
           icon={Users}
@@ -328,113 +328,111 @@ export default function Leads() {
     );
   }
 
-  function InlineForm() {
-    return (
-      <Card className="rounded-2xl border-border/80 bg-card/95">
-        <CardContent className="space-y-4 p-4 sm:p-6">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            Novo Lead
-          </h3>
+  const inlineFormJSX = (
+    <Card className="rounded-2xl border-border/80 bg-card/95">
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+          Novo Lead
+        </h3>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field>
-              <Label htmlFor="lead-name">Nome *</Label>
-              <Input
-                id="lead-name"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="Nome do lead"
-              />
-            </Field>
-
-            <Field>
-              <Label htmlFor="lead-email">Email</Label>
-              <Input
-                id="lead-email"
-                type="email"
-                value={formEmail}
-                onChange={(e) => setFormEmail(e.target.value)}
-                placeholder="email@exemplo.com"
-              />
-            </Field>
-
-            <Field>
-              <Label htmlFor="lead-phone">Telefone</Label>
-              <Input
-                id="lead-phone"
-                value={formPhone}
-                onChange={(e) => setFormPhone(maskPhone(e.target.value))}
-                placeholder="(00) 00000-0000"
-              />
-            </Field>
-
-            <Field>
-              <Label htmlFor="lead-company">Empresa</Label>
-              <Input
-                id="lead-company"
-                value={formCompany}
-                onChange={(e) => setFormCompany(e.target.value)}
-                placeholder="Nome da empresa"
-              />
-            </Field>
-
-            <Field>
-              <Label htmlFor="lead-source">Fonte</Label>
-              <select
-                id="lead-source"
-                value={formSource}
-                onChange={(e) => setFormSource(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {Object.entries(SOURCE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field>
-              <Label htmlFor="lead-value">Valor estimado</Label>
-              <Input
-                id="lead-value"
-                value={formValue}
-                onChange={(e) => setFormValue(maskCurrency(e.target.value))}
-                placeholder="R$ 0,00"
-              />
-            </Field>
-          </div>
-
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field>
-            <Label htmlFor="lead-notes">Observacoes</Label>
-            <Textarea
-              id="lead-notes"
-              value={formNotes}
-              onChange={(e) => setFormNotes(e.target.value)}
-              placeholder="Anotacoes sobre o lead..."
-              rows={3}
+            <Label htmlFor="lead-name">Nome *</Label>
+            <Input
+              id="lead-name"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              placeholder="Nome do lead"
             />
           </Field>
 
-          <div className="flex items-center gap-2">
-            <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar Lead"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setShowForm(false);
-                resetForm();
-              }}
+          <Field>
+            <Label htmlFor="lead-email">Email</Label>
+            <Input
+              id="lead-email"
+              type="email"
+              value={formEmail}
+              onChange={(e) => setFormEmail(e.target.value)}
+              placeholder="email@exemplo.com"
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="lead-phone">Telefone</Label>
+            <Input
+              id="lead-phone"
+              value={formPhone}
+              onChange={(e) => setFormPhone(maskPhone(e.target.value))}
+              placeholder="(00) 00000-0000"
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="lead-company">Empresa</Label>
+            <Input
+              id="lead-company"
+              value={formCompany}
+              onChange={(e) => setFormCompany(e.target.value)}
+              placeholder="Nome da empresa"
+            />
+          </Field>
+
+          <Field>
+            <Label htmlFor="lead-source">Fonte</Label>
+            <select
+              id="lead-source"
+              value={formSource}
+              onChange={(e) => setFormSource(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              Cancelar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+              {Object.entries(SOURCE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field>
+            <Label htmlFor="lead-value">Valor estimado</Label>
+            <Input
+              id="lead-value"
+              value={formValue}
+              onChange={(e) => setFormValue(maskCurrency(e.target.value))}
+              placeholder="R$ 0,00"
+            />
+          </Field>
+        </div>
+
+        <Field>
+          <Label htmlFor="lead-notes">Observacoes</Label>
+          <Textarea
+            id="lead-notes"
+            value={formNotes}
+            onChange={(e) => setFormNotes(e.target.value)}
+            placeholder="Anotacoes sobre o lead..."
+            rows={3}
+          />
+        </Field>
+
+        <div className="flex items-center gap-2">
+          <Button type="button" onClick={() => void handleSave()} disabled={saving}>
+            {saving ? "Salvando..." : "Salvar Lead"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setShowForm(false);
+              resetForm();
+            }}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
@@ -499,7 +497,7 @@ export default function Leads() {
       </div>
 
       {/* Inline form */}
-      {showForm && <InlineForm />}
+      {showForm && inlineFormJSX}
 
       {/* Kanban View */}
       {view === "kanban" && (
