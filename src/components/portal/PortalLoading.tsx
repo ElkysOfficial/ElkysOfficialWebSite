@@ -60,38 +60,52 @@ export default function PortalLoading() {
 }
 
 /**
- * Wrapper that shows PortalLoading for at least `minMs` while `loading` is true.
- * Once data is ready AND min time has passed, renders children.
+ * Wrapper that shows PortalLoading only while `loading` is true.
+ *
+ * - If data loads in under `delayMs` (200ms): no loading shown at all.
+ * - If loading takes longer: spinner appears and stays for at least `minDisplayMs`
+ *   (500ms) to avoid a brief flash.
  */
 export function PortalLoadingGuard({
   loading,
-  minMs = 5_000,
+  delayMs = 200,
+  minDisplayMs = 500,
   children,
 }: {
   loading: boolean;
-  minMs?: number;
+  delayMs?: number;
+  minDisplayMs?: number;
   children: React.ReactNode;
 }) {
-  const mountTime = useRef(Date.now());
-  const [minElapsed, setMinElapsed] = useState(false);
+  const [show, setShow] = useState(false);
+  const showStartTime = useRef<number | null>(null);
+  const wasLoadingOnMount = useRef(loading);
 
   useEffect(() => {
-    const timer = setTimeout(() => setMinElapsed(true), minMs);
-    return () => clearTimeout(timer);
-  }, [minMs]);
+    if (!wasLoadingOnMount.current) return;
 
-  useEffect(() => {
-    if (!loading && !minElapsed) {
-      const remaining = Math.max(0, minMs - (Date.now() - mountTime.current));
-      if (remaining === 0) {
-        setMinElapsed(true);
-        return;
-      }
-      const timer = setTimeout(() => setMinElapsed(true), remaining);
+    if (loading) {
+      const timer = setTimeout(() => {
+        showStartTime.current = Date.now();
+        setShow(true);
+      }, delayMs);
       return () => clearTimeout(timer);
     }
-  }, [loading, minElapsed, minMs]);
 
-  if (loading || !minElapsed) return <PortalLoading />;
+    if (!show) return;
+
+    const elapsed = Date.now() - (showStartTime.current ?? Date.now());
+    const remaining = Math.max(0, minDisplayMs - elapsed);
+
+    if (remaining === 0) {
+      setShow(false);
+      return;
+    }
+
+    const timer = setTimeout(() => setShow(false), remaining);
+    return () => clearTimeout(timer);
+  }, [loading, delayMs, minDisplayMs, show]);
+
+  if (show) return <PortalLoading />;
   return <>{children}</>;
 }

@@ -1,28 +1,43 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Ensures a loading state stays true for at least `minMs` milliseconds,
- * even if the actual data loads faster. Prevents loading flash.
+ * Smart loading hook that avoids both unnecessary loading screens AND brief flashes.
  *
- * If data is already available on mount (e.g. from cache), skips loading entirely.
+ * - If data loads in under `delayMs` (default 200ms): loading is never shown.
+ * - If data takes longer: loading is shown and held for at least `minDisplayMs`
+ *   (default 500ms) so it doesn't flash on screen.
+ * - If data was already available on mount (cache hit): loading is skipped entirely.
  */
-export default function useMinLoading(dataLoading: boolean, minMs = 5_000): boolean {
-  // If data is already loaded on first render (cache hit), never show loading
+export default function useMinLoading(
+  dataLoading: boolean,
+  { delayMs = 200, minDisplayMs = 500 } = {}
+): boolean {
   const wasLoadingOnMount = useRef(dataLoading);
-  const [show, setShow] = useState(dataLoading);
-  const mountTime = useRef(Date.now());
+  const [show, setShow] = useState(false);
+  const showStartTime = useRef<number | null>(null);
 
   useEffect(() => {
     // Cache hit: data was ready on mount — skip loading entirely
-    if (!wasLoadingOnMount.current) {
-      setShow(false);
+    if (!wasLoadingOnMount.current) return;
+
+    if (dataLoading) {
+      // Data is still loading — start delay timer before showing spinner
+      const timer = setTimeout(() => {
+        showStartTime.current = Date.now();
+        setShow(true);
+      }, delayMs);
+      return () => clearTimeout(timer);
+    }
+
+    // Data finished loading
+    if (!show) {
+      // Spinner was never shown (loaded within delayMs) — nothing to do
       return;
     }
 
-    if (dataLoading) return;
-
-    const elapsed = Date.now() - mountTime.current;
-    const remaining = Math.max(0, minMs - elapsed);
+    // Spinner is visible — ensure it stays for minDisplayMs to avoid flash
+    const elapsed = Date.now() - (showStartTime.current ?? Date.now());
+    const remaining = Math.max(0, minDisplayMs - elapsed);
 
     if (remaining === 0) {
       setShow(false);
@@ -31,7 +46,7 @@ export default function useMinLoading(dataLoading: boolean, minMs = 5_000): bool
 
     const timer = setTimeout(() => setShow(false), remaining);
     return () => clearTimeout(timer);
-  }, [dataLoading, minMs]);
+  }, [dataLoading, delayMs, minDisplayMs, show]);
 
   return show;
 }
