@@ -58,7 +58,7 @@ export default function AdminMetricCard({
           <p className={cn("text-xs font-semibold uppercase tracking-wide", styles.label)}>
             {label}
           </p>
-          <p className="break-words text-2xl font-semibold leading-tight tracking-tight text-foreground md:text-[28px]">
+          <p className="whitespace-nowrap text-2xl font-semibold leading-tight tracking-tight text-foreground md:text-[28px]">
             {value}
           </p>
           {hint ? <p className="text-sm leading-relaxed text-muted-foreground">{hint}</p> : null}

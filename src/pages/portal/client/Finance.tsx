@@ -229,7 +229,8 @@ export default function ClientFinance() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatBRL(item.amount)} · vencimento em {formatPortalDate(item.dueDate)}
+                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·
+                      vencimento em {formatPortalDate(item.dueDate)}
                     </p>
                   </div>
                   <StatusBadge label={item.badge.label} tone={item.badge.tone} />
@@ -252,7 +253,8 @@ export default function ClientFinance() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatBRL(item.amount)} · vencimento em {formatPortalDate(item.dueDate)}
+                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·
+                      vencimento em {formatPortalDate(item.dueDate)}
                     </p>
                   </div>
                   <StatusBadge label={item.badge.label} tone={item.badge.tone} />
@@ -275,7 +277,8 @@ export default function ClientFinance() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatBRL(item.amount)} · vencimento em {formatPortalDate(item.dueDate)}
+                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·
+                      vencimento em {formatPortalDate(item.dueDate)}
                     </p>
                   </div>
                   <StatusBadge label={item.badge.label} tone={item.badge.tone} />
@@ -298,7 +301,8 @@ export default function ClientFinance() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">{item.description}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatBRL(item.amount)} · {formatPortalDate(item.dueDate)}
+                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·{" "}
+                      {formatPortalDate(item.dueDate)}
                     </p>
                   </div>
                   <StatusBadge label={item.badge.label} tone={item.badge.tone} />
@@ -323,7 +327,8 @@ export default function ClientFinance() {
                       {item.description}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatBRL(item.amount)} · {formatPortalDate(item.dueDate)}
+                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·{" "}
+                      {formatPortalDate(item.dueDate)}
                     </p>
                   </div>
                   <StatusBadge label={item.badge.label} tone={item.badge.tone} />

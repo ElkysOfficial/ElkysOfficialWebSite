@@ -135,7 +135,7 @@ export default function ClientProposals() {
                 )}
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold tabular-nums text-foreground">
+                <p className="whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
                   {formatBRL(proposal.total_amount)}
                 </p>
                 {proposal.valid_until && (

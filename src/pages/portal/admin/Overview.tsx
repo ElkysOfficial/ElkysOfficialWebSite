@@ -455,7 +455,7 @@ function DashboardTooltip({
                 />
                 <span className="text-xs text-muted-foreground">{item.name}</span>
               </div>
-              <span className="text-xs font-bold tabular-nums text-foreground">
+              <span className="whitespace-nowrap text-xs font-bold tabular-nums text-foreground">
                 {formatter(numericValue)}
               </span>
             </div>
@@ -502,7 +502,7 @@ function ExecutiveKpiCard({
       </p>
       <p
         className={cn(
-          "mt-0.5 text-base font-semibold tracking-tight sm:mt-1 sm:text-lg",
+          "mt-0.5 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-1 sm:text-lg",
           toneStyles[tone]
         )}
       >
@@ -546,7 +546,7 @@ function SurfaceStat({
       </p>
       <p
         className={cn(
-          "mt-1 text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
+          "mt-1 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
           toneStyles[tone]
         )}
       >
@@ -1668,7 +1668,7 @@ export default function AdminOverview() {
                             </p>
                           </div>
                           <div className="shrink-0 text-right">
-                            <p className="text-xs font-semibold tabular-nums text-foreground">
+                            <p className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
                               {formatBRL(charge.amount)}
                             </p>
                             <p className="text-[10px] tabular-nums text-muted-foreground">
@@ -1708,7 +1708,7 @@ export default function AdminOverview() {
                     </div>
                     <div className="space-y-3">
                       <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3">
-                        <p className="text-xl font-bold tabular-nums text-destructive sm:text-2xl">
+                        <p className="whitespace-nowrap text-xl font-semibold tabular-nums text-destructive sm:text-2xl">
                           {formatBRL(summary.overdueReceivables)}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -1725,7 +1725,7 @@ export default function AdminOverview() {
                               <p className="text-[10px] font-semibold uppercase text-muted-foreground">
                                 {bucket.range}
                               </p>
-                              <p className="mt-0.5 text-xs font-bold tabular-nums text-foreground">
+                              <p className="mt-0.5 whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
                                 {formatBRL(bucket.amount)}
                               </p>
                               <p className="text-[10px] text-muted-foreground">

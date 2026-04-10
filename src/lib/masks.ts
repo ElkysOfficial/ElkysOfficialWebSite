@@ -33,7 +33,9 @@ export function maskCurrency(value: string): string {
   const digits = value.replace(/\D/g, "");
   if (!digits) return "";
   const num = parseInt(digits, 10) / 100;
-  return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return num
+    .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    .replace(/\s/g, "\u00A0");
 }
 
 export function maskDate(value: string): string {
@@ -151,7 +153,9 @@ export function unmaskCurrency(value: string): number {
 }
 
 export function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return value
+    .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    .replace(/\s/g, "\u00A0");
 }
 
 /**

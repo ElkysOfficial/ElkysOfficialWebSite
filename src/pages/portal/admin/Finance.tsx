@@ -149,7 +149,7 @@ function MetricTile({
           </p>
           <p
             className={cn(
-              "mt-0.5 text-xl font-bold tabular-nums tracking-tight sm:text-2xl",
+              "mt-0.5 whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight sm:text-2xl",
               t.text
             )}
           >
@@ -915,12 +915,19 @@ function SurfaceStat({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-4 pl-5">
+    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
       <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
         {label}
       </p>
-      <p className={cn("mt-2 text-lg font-semibold tracking-tight", toneStyles[tone])}>{value}</p>
+      <p
+        className={cn(
+          "mt-1 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
+          toneStyles[tone]
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -968,7 +975,7 @@ function AnaliseTooltip({
               />
               <span className="text-xs text-muted-foreground">{item.name}</span>
             </div>
-            <span className="text-xs font-bold tabular-nums text-foreground">
+            <span className="whitespace-nowrap text-xs font-bold tabular-nums text-foreground">
               {formatter(Number(item.value ?? 0))}
             </span>
           </div>

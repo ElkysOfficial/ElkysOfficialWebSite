@@ -340,7 +340,7 @@ export default function Delinquency() {
                     <td className="max-w-[200px] truncate px-4 py-3 text-muted-foreground">
                       {charge.description}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                       {formatBRL(Number(charge.amount))}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -394,7 +394,7 @@ export default function Delinquency() {
                 >
                   Total ({filtered.length} cobrancas)
                 </td>
-                <td className="px-4 py-3 text-right font-bold tabular-nums text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                   {formatBRL(totalAmount)}
                 </td>
                 <td colSpan={4} />

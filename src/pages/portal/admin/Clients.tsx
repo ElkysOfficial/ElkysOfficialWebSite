@@ -184,10 +184,10 @@ function ClientRow({
         <span className="text-xs text-muted-foreground">
           {formatClientSince(client.client_since)}
         </span>
-        <span className="text-xs font-medium text-foreground">
+        <span className="whitespace-nowrap text-xs font-medium text-foreground">
           Mensal {formatBRL(Number(client.monthly_value))}
         </span>
-        <span className="text-xs font-medium text-foreground">
+        <span className="whitespace-nowrap text-xs font-medium text-foreground">
           Projeto {formatBRL(Number(client.project_total_value))}
         </span>
       </div>
@@ -210,12 +210,12 @@ function ClientRow({
       </p>
 
       {/* Col 4 — Mensal (desktop) */}
-      <p className="hidden text-sm font-medium text-foreground md:block">
+      <p className="hidden whitespace-nowrap text-sm font-medium text-foreground md:block">
         {formatBRL(Number(client.monthly_value))}
       </p>
 
       {/* Col 5 — Projeto (desktop) */}
-      <p className="hidden text-sm font-medium text-foreground md:block">
+      <p className="hidden whitespace-nowrap text-sm font-medium text-foreground md:block">
         {formatBRL(Number(client.project_total_value))}
       </p>
 

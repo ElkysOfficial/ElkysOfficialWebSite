@@ -40,7 +40,12 @@ export default function MetricTile({
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
           {label}
         </p>
-        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
+        <p
+          className={cn(
+            "mt-0.5 whitespace-nowrap text-lg font-semibold tracking-tight sm:text-xl",
+            t.text
+          )}
+        >
           {value}
         </p>
       </div>

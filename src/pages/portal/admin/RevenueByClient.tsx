@@ -326,13 +326,13 @@ export default function RevenueByClient() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">
+                  <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                     {formatBRL(row.totalRevenue)}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                     {row.chargeCount}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-muted-foreground">
                     {formatBRL(row.ticketMedio)}
                   </td>
                   <td className="px-4 py-3">
@@ -357,13 +357,13 @@ export default function RevenueByClient() {
                 <td className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
                   Total ({ranking.length} clientes)
                 </td>
-                <td className="px-4 py-3 text-right font-bold tabular-nums text-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                   {formatBRL(grandTotal)}
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
                   {ranking.reduce((sum, r) => sum + r.chargeCount, 0)}
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-muted-foreground">
                   {formatBRL(avgTicket)}
                 </td>
                 <td className="px-4 py-3 text-right text-xs tabular-nums text-muted-foreground">

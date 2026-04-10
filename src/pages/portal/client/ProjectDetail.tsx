@@ -546,7 +546,10 @@ export default function ClientProjectDetail() {
                           {subscription.label}
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
-                          {formatBRL(Number(subscription.amount))} · todo dia {subscription.due_day}
+                          <span className="whitespace-nowrap">
+                            {formatBRL(Number(subscription.amount))}
+                          </span>{" "}
+                          · todo dia {subscription.due_day}
                         </p>
                       </div>
                       <StatusBadge
@@ -591,7 +594,7 @@ export default function ClientProjectDetail() {
                             Vence {formatPortalDate(item.dueDate)}
                           </p>
                         </div>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                        <p className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
                           {formatBRL(Number(item.amount))}
                         </p>
                         <StatusBadge label={item.status.label} tone={item.status.tone} />

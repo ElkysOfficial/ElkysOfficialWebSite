@@ -106,7 +106,7 @@ function LeadCard({ lead }: { lead: LeadRow }) {
 
         <div className="flex flex-wrap items-center gap-1.5">
           {lead.estimated_value > 0 && (
-            <span className="text-xs font-semibold text-foreground">
+            <span className="whitespace-nowrap text-xs font-semibold text-foreground">
               {formatBRL(lead.estimated_value)}
             </span>
           )}
@@ -587,7 +587,7 @@ export default function Leads() {
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{lead.company ?? "-"}</td>
-                      <td className="px-4 py-3 text-foreground">
+                      <td className="whitespace-nowrap px-4 py-3 text-foreground">
                         {lead.estimated_value > 0 ? formatBRL(lead.estimated_value) : "-"}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">

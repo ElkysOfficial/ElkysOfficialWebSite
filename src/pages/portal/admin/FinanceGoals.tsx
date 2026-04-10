@@ -476,7 +476,7 @@ export default function FinanceGoals() {
                     <p className="text-[10px] font-semibold uppercase text-muted-foreground">
                       Meta
                     </p>
-                    <p className="text-sm font-semibold tabular-nums text-foreground">
+                    <p className="whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
                       {formatBRL(goal.target_amount)}
                     </p>
                   </div>
@@ -486,7 +486,7 @@ export default function FinanceGoals() {
                     </p>
                     <p
                       className={cn(
-                        "text-sm font-semibold tabular-nums",
+                        "whitespace-nowrap text-sm font-semibold tabular-nums",
                         getProgressTextTone(goal.percent)
                       )}
                     >
