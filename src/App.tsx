@@ -59,7 +59,22 @@ const ClientProfile = lazy(() => import("./pages/portal/client/Profile"));
 const ChangePassword = lazy(() => import("./pages/portal/client/ChangePassword"));
 const AdminChangePassword = lazy(() => import("./pages/portal/admin/ChangePassword"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Data stays fresh for 2 minutes — no refetch during this window
+      staleTime: 2 * 60 * 1000,
+      // Keep inactive data in memory for 10 minutes
+      gcTime: 10 * 60 * 1000,
+      // Background refetch when user returns to tab (only if stale)
+      refetchOnWindowFocus: "always",
+      // Don't refetch on mount if data is still fresh
+      refetchOnMount: true,
+      // Single retry on failure
+      retry: 1,
+    },
+  },
+});
 
 const LoadingFallback = () => (
   <div className="flex min-h-screen items-center justify-center bg-background">

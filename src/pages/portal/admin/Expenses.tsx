@@ -1,4 +1,5 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useAdminExpenses } from "@/hooks/useAdminExpenses";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import type { ComponentType } from "react";
@@ -155,10 +156,13 @@ function MetricTile({
 
 export default function AdminExpenses() {
   const { isSuperAdmin } = useAuth();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const {
+    data: expenses = [] as Expense[],
+    isLoading: loading,
+    error: queryError,
+    refetch: refetchExpenses,
+  } = useAdminExpenses();
+  const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -170,54 +174,6 @@ export default function AdminExpenses() {
   const [deleteExpenseId, setDeleteExpenseId] = useState<string | null>(null);
   const [removingExpenseId, setRemovingExpenseId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
-
-  const loadExpenses = useCallback(
-    async (background = false) => {
-      if (!background || !hasLoaded) {
-        setLoading(true);
-        setPageError(null);
-      }
-
-      const { data, error } = await supabase
-        .from("expenses")
-        .select("id, description, category, amount, expense_date, receipt_url, notes, created_at")
-        .order("expense_date", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        if (!hasLoaded) {
-          setPageError(error.message);
-          setExpenses([]);
-          setLoading(false);
-        }
-        return;
-      }
-
-      setExpenses(data ?? []);
-      setHasLoaded(true);
-      setLoading(false);
-    },
-    [hasLoaded]
-  );
-
-  useEffect(() => {
-    const refreshExpenses = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      void loadExpenses(true);
-    };
-
-    void loadExpenses();
-
-    const interval = window.setInterval(refreshExpenses, 60000);
-    window.addEventListener("focus", refreshExpenses);
-    document.addEventListener("visibilitychange", refreshExpenses);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshExpenses);
-      document.removeEventListener("visibilitychange", refreshExpenses);
-    };
-  }, [loadExpenses]);
 
   useEffect(() => {
     setPage(0);
@@ -367,7 +323,7 @@ export default function AdminExpenses() {
     }
 
     toast.success("Despesa atualizada.");
-    await loadExpenses();
+    await refetchExpenses();
     stopEditing();
     setSavingExpenseId(null);
   };
@@ -395,7 +351,7 @@ export default function AdminExpenses() {
     toast.success("Despesa removida.");
     setDeleteExpenseId(null);
     setRemovingExpenseId(null);
-    await loadExpenses();
+    await refetchExpenses();
   };
 
   if (loading && !hasLoaded) return <PortalLoading />;
@@ -517,7 +473,7 @@ export default function AdminExpenses() {
           title="Nao foi possivel carregar as despesas"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
-            <Button type="button" onClick={() => void loadExpenses()}>
+            <Button type="button" onClick={() => void refetchExpenses()}>
               Tentar novamente
             </Button>
           }

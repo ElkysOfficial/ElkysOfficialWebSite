@@ -1,6 +1,7 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAdminProposals } from "@/hooks/useAdminProposals";
 
 import { FileText, Search, Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
@@ -207,85 +208,31 @@ function ProposalRow({
 /* ------------------------------------------------------------------ */
 
 export default function Proposals() {
-  const [proposals, setProposals] = useState<ProposalRow[]>([]);
-  const [clientsMap, setClientsMap] = useState<Record<string, ClientRow>>({});
-  const [leadsMap, setLeadsMap] = useState<Record<string, LeadRow>>({});
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const showLoading = useMinLoading(loading && !hasLoaded);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const {
+    data: bundle,
+    isLoading: queryLoading,
+    error: queryError,
+    refetch: refetchData,
+  } = useAdminProposals();
+
+  const proposals = useMemo(() => (bundle?.proposals ?? []) as ProposalRow[], [bundle?.proposals]);
+  const clientsMap = useMemo(
+    () => Object.fromEntries(((bundle?.clients ?? []) as ClientRow[]).map((c) => [c.id, c])),
+    [bundle?.clients]
+  );
+  const leadsMap = useMemo(
+    () => Object.fromEntries(((bundle?.leads ?? []) as LeadRow[]).map((l) => [l.id, l])),
+    [bundle?.leads]
+  );
+  const loading = queryLoading;
+  const showLoading = useMinLoading(loading);
+  const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [proposalToDelete, setProposalToDelete] = useState<ProposalRow | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  /* ── Data fetching ── */
-
-  const loadData = useCallback(
-    async (background = false) => {
-      if (!background || !hasLoaded) {
-        setLoading(true);
-        setPageError(null);
-      }
-
-      const [proposalsRes, clientsRes, leadsRes] = await Promise.all([
-        supabase
-          .from("proposals")
-          .select(
-            "id, title, status, total_amount, valid_until, sent_at, approved_at, created_at, client_id, lead_id"
-          )
-          .order("created_at", { ascending: false }),
-        supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
-        supabase.from("leads").select("id, name, company"),
-      ]);
-
-      const queryError = proposalsRes.error ?? clientsRes.error ?? leadsRes.error;
-
-      if (queryError) {
-        if (!hasLoaded) {
-          setPageError(queryError.message);
-          setLoading(false);
-        }
-        return;
-      }
-
-      setProposals((proposalsRes.data as ProposalRow[] | null) ?? []);
-
-      setClientsMap(
-        Object.fromEntries(((clientsRes.data as ClientRow[] | null) ?? []).map((c) => [c.id, c]))
-      );
-
-      setLeadsMap(
-        Object.fromEntries(((leadsRes.data as LeadRow[] | null) ?? []).map((l) => [l.id, l]))
-      );
-
-      setHasLoaded(true);
-      setLoading(false);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
-  useEffect(() => {
-    const refresh = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      void loadData(true);
-    };
-
-    void loadData();
-
-    const interval = window.setInterval(refresh, 60_000);
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refresh);
-      document.removeEventListener("visibilitychange", refresh);
-    };
-  }, [loadData]);
 
   useEffect(() => {
     setPage(0);
@@ -368,8 +315,8 @@ export default function Proposals() {
 
       if (error) throw error;
 
-      setProposals((prev) => prev.filter((p) => p.id !== proposalToDelete.id));
       toast.success("Proposta excluida com sucesso.");
+      void refetchData();
       setProposalToDelete(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro desconhecido";
@@ -480,7 +427,7 @@ export default function Proposals() {
           title="Nao foi possivel carregar as propostas"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
-            <Button type="button" onClick={() => void loadData()}>
+            <Button type="button" onClick={() => void refetchData()}>
               Tentar novamente
             </Button>
           }

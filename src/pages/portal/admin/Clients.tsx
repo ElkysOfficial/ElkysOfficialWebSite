@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import useMinLoading from "@/hooks/useMinLoading";
+import { useAdminClients } from "@/hooks/useAdminClients";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -260,11 +261,15 @@ function ColumnHeader() {
 /* ------------------------------------------------------------------ */
 
 export default function AdminClients() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const showLoading = useMinLoading(loading && !hasLoaded);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const {
+    data: clients = [],
+    isLoading: loading,
+    error: queryError,
+    refetch: refetchClients,
+  } = useAdminClients();
+  const hasLoaded = !loading && !queryError;
+  const showLoading = useMinLoading(loading);
+  const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -275,77 +280,30 @@ export default function AdminClients() {
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
-  const loadClients = useCallback(
-    async (background = false) => {
-      if (!background || !hasLoaded) {
-        setLoading(true);
-        setPageError(null);
-      }
-
-      const { data, error } = await supabase
-        .from("clients")
-        .select(
-          "id, user_id, full_name, nome_fantasia, client_type, email, cpf, phone, is_active, client_since, monthly_value, project_total_value, contract_status, client_origin, tags, created_at"
-        )
-        .order("is_active", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        if (!hasLoaded) {
-          setPageError(error.message);
-          setClients([]);
-          setLoading(false);
-        }
-        return;
-      }
-
-      setClients(data ?? []);
-      setHasLoaded(true);
-      setLoading(false);
-
-      // Fetch avatar data from profiles
-      const userIds = (data ?? []).map((c) => c.user_id).filter(Boolean) as string[];
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, avatar_url, avatar_zoom, avatar_position_x, avatar_position_y")
-          .in("id", userIds);
-        if (profiles) {
-          const map: Record<string, AvatarInfo> = {};
-          for (const p of profiles) {
-            map[p.id] = {
-              avatar_url: p.avatar_url,
-              avatar_zoom: p.avatar_zoom,
-              avatar_position_x: p.avatar_position_x,
-              avatar_position_y: p.avatar_position_y,
-            };
-          }
-          setAvatarMap(map);
-        }
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
+  // Fetch avatar data from profiles when clients load
   useEffect(() => {
-    const refreshClients = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      void loadClients(true);
-    };
+    if (clients.length === 0) return;
+    const userIds = clients.map((c) => c.user_id).filter(Boolean) as string[];
+    if (userIds.length === 0) return;
 
-    void loadClients();
-
-    const interval = window.setInterval(refreshClients, 60000);
-    window.addEventListener("focus", refreshClients);
-    document.addEventListener("visibilitychange", refreshClients);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshClients);
-      document.removeEventListener("visibilitychange", refreshClients);
-    };
-  }, [loadClients]);
+    supabase
+      .from("profiles")
+      .select("id, avatar_url, avatar_zoom, avatar_position_x, avatar_position_y")
+      .in("id", userIds)
+      .then(({ data: profiles }) => {
+        if (!profiles) return;
+        const map: Record<string, AvatarInfo> = {};
+        for (const p of profiles) {
+          map[p.id] = {
+            avatar_url: p.avatar_url,
+            avatar_zoom: p.avatar_zoom,
+            avatar_position_x: p.avatar_position_x,
+            avatar_position_y: p.avatar_position_y,
+          };
+        }
+        setAvatarMap(map);
+      });
+  }, [clients]);
 
   useEffect(() => {
     setPage(0);
@@ -442,7 +400,7 @@ export default function AdminClients() {
     }
 
     toast.success(next ? "Cliente reativado." : "Cliente inativado.");
-    void loadClients();
+    void refetchClients();
   };
 
   if (showLoading) return <PortalLoading />;
@@ -638,7 +596,7 @@ export default function AdminClients() {
           title="Nao foi possivel carregar a carteira"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
-            <Button type="button" onClick={() => void loadClients()}>
+            <Button type="button" onClick={() => void refetchClients()}>
               Tentar novamente
             </Button>
           }

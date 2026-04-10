@@ -1,6 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { useAdminCharges } from "@/hooks/useAdminCharges";
+import { useAdminClients } from "@/hooks/useAdminClients";
 
 import {
   Bar,
@@ -1895,53 +1897,31 @@ function FinanceAnaliseTab() {
 
 export default function AdminFinance() {
   const location = useLocation();
-  const [charges, setCharges] = useState<PortalCharge[]>([]);
-  const [clientsMap, setClientsMap] = useState<Record<string, PortalClient>>({});
-  const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState<string | null>(null);
+  const {
+    data: chargesData,
+    isLoading: chargesLoading,
+    error: chargesError,
+    refetch: refetchCharges,
+  } = useAdminCharges();
+  const { data: clientsData, isLoading: clientsLoading, error: clientsError } = useAdminClients();
+
+  const charges = useMemo(() => (chargesData ?? []) as PortalCharge[], [chargesData]);
+  const clientsMap = useMemo(
+    () =>
+      Object.fromEntries(
+        ((clientsData ?? []) as PortalClient[]).map((client) => [client.id, client])
+      ),
+    [clientsData]
+  );
+  const loading = chargesLoading || clientsLoading;
+  const pageError = chargesError?.message ?? clientsError?.message ?? null;
+  const loadFinance = refetchCharges;
+
   const requestedTab =
     (location.state as { financeTab?: FinanceTab } | null)?.financeTab ?? "receitas";
   const [activeTab, setActiveTab] = useState<FinanceTab>(
     requestedTab === "despesas" ? "despesas" : requestedTab === "analise" ? "analise" : "receitas"
   );
-
-  const loadFinance = useCallback(async () => {
-    setLoading(true);
-    setPageError(null);
-
-    const [chargesRes, clientsRes] = await Promise.all([
-      supabase
-        .from("charges")
-        .select(
-          "id, client_id, project_id, contract_id, subscription_id, installment_id, description, amount, due_date, paid_at, status, origin_type, is_historical, is_blocking"
-        )
-        .order("due_date", { ascending: true }),
-      supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
-    ]);
-
-    if (chargesRes.error) {
-      setPageError(chargesRes.error.message);
-      setLoading(false);
-      return;
-    }
-
-    if (clientsRes.error) {
-      setPageError(clientsRes.error.message);
-      setLoading(false);
-      return;
-    }
-
-    const nextClientsMap = Object.fromEntries(
-      ((clientsRes.data as PortalClient[] | null) ?? []).map((client) => [client.id, client])
-    );
-    setClientsMap(nextClientsMap);
-    setCharges((chargesRes.data as PortalCharge[] | null) ?? []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void loadFinance();
-  }, [loadFinance]);
 
   useEffect(() => {
     const tab = (location.state as { financeTab?: FinanceTab } | null)?.financeTab;
