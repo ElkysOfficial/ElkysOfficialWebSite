@@ -471,18 +471,18 @@ export default function ClientProjectDetail() {
           {/* Summary metric tiles */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-border/50 bg-card/80 p-4">
-              <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Assinaturas ativas
               </p>
-              <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+              <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
                 {subscriptions.filter((s) => s.status === "ativa").length}
               </p>
             </div>
             <div className="rounded-xl border border-border/50 bg-card/80 p-4">
-              <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Próxima cobrança
               </p>
-              <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+              <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
                 {(() => {
                   const next = charges
                     .filter(
@@ -508,12 +508,12 @@ export default function ClientProjectDetail() {
                     openCount > 0 ? "border-destructive/40" : "border-border/50"
                   )}
                 >
-                  <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Cobranças em aberto
                   </p>
                   <p
                     className={cn(
-                      "mt-2 text-xl font-bold tabular-nums",
+                      "mt-2 text-xl font-semibold tabular-nums",
                       openCount > 0 ? "text-destructive" : "text-foreground"
                     )}
                   >

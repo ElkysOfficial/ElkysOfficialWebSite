@@ -546,7 +546,7 @@ export default function AdminClientCreate() {
           {step === 2 ? (
             <div className="space-y-5">
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Cliente
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -565,7 +565,7 @@ export default function AdminClientCreate() {
               </div>
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Endereco
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

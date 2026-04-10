@@ -1208,7 +1208,7 @@ export default function AdminProjectCreate() {
           {step === 3 ? (
             <div className="space-y-5">
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Projeto
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -1228,7 +1228,7 @@ export default function AdminProjectCreate() {
               </div>
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Contrato e cobranca
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -1255,7 +1255,7 @@ export default function AdminProjectCreate() {
               </div>
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Cliente e proximos passos
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

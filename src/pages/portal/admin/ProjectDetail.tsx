@@ -1382,7 +1382,7 @@ export default function AdminProjectDetail() {
       <CardContent className="space-y-5 pt-5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-border/50 bg-background/60 p-3">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Inicio
             </p>
             <p className="mt-1.5 text-sm font-semibold text-foreground">
@@ -1390,7 +1390,7 @@ export default function AdminProjectDetail() {
             </p>
           </div>
           <div className="rounded-xl border border-border/50 bg-background/60 p-3">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Entrega prevista
             </p>
             <p className="mt-1.5 text-sm font-semibold text-foreground">
@@ -1398,7 +1398,7 @@ export default function AdminProjectDetail() {
             </p>
           </div>
           <div className="rounded-xl border border-border/50 bg-background/60 p-3">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Entrega realizada
             </p>
             <p className="mt-1.5 text-sm font-semibold text-foreground">
@@ -1406,13 +1406,13 @@ export default function AdminProjectDetail() {
             </p>
           </div>
           <div className="rounded-xl border border-border/50 bg-background/60 p-3">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Etapa atual
             </p>
             <p className="mt-1.5 text-sm font-semibold text-foreground">{project.current_stage}</p>
           </div>
           <div className="rounded-xl border border-border/50 bg-background/60 p-3 sm:col-span-2">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Status
             </p>
             <div className="mt-2">
@@ -1514,12 +1514,12 @@ export default function AdminProjectDetail() {
               openNextStepsCount > 0 ? "border-warning/40" : "border-border/50"
             )}
           >
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Pendencias em aberto
             </p>
             <p
               className={cn(
-                "mt-1.5 text-2xl font-bold tabular-nums",
+                "mt-1.5 text-2xl font-semibold tabular-nums",
                 openNextStepsCount > 0 ? "text-warning" : "text-foreground"
               )}
             >
@@ -1530,7 +1530,7 @@ export default function AdminProjectDetail() {
             </p>
           </div>
           <div className="min-w-0 overflow-hidden rounded-xl border border-border/50 bg-background/60 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Ultima leitura para o cliente
             </p>
             <p className="mt-1.5 line-clamp-4 break-words text-sm leading-relaxed text-foreground">
@@ -1541,7 +1541,7 @@ export default function AdminProjectDetail() {
 
         {/* Open pendências */}
         <div>
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Proximas pendencias
           </p>
 
@@ -1599,7 +1599,7 @@ export default function AdminProjectDetail() {
         {nextSteps.filter((s) => s.status === "concluido" || s.status === "cancelado").length >
           0 && (
           <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Historico de pendencias
             </p>
             <div className="space-y-2">
@@ -2202,7 +2202,7 @@ export default function AdminProjectDetail() {
 
             {/* Nova pendencia */}
             <div className="rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Nova pendencia
               </p>
 
@@ -2487,45 +2487,45 @@ export default function AdminProjectDetail() {
       <div className="space-y-5">
         {/* Summary metric tiles */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Valor contratado
             </p>
-            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+            <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
               {contracts[0] ? formatBRL(Number(contracts[0].total_amount)) : "—"}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Total recebido
             </p>
-            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+            <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
               {formatBRL(totalPaid)}
             </p>
           </div>
           <div
             className={cn(
-              "rounded-xl border bg-card/80 p-4",
+              "rounded-xl border bg-background/60 p-4",
               totalOpen > 0 ? "border-destructive/40" : "border-border/50"
             )}
           >
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Em aberto
             </p>
             <p
               className={cn(
-                "mt-2 text-xl font-bold tabular-nums",
+                "mt-2 text-xl font-semibold tabular-nums",
                 totalOpen > 0 ? "text-destructive" : "text-foreground"
               )}
             >
               {formatBRL(totalOpen)}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-card/80 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+          <div className="rounded-xl border border-border/50 bg-background/60 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Parcelas abertas
             </p>
-            <p className="mt-2 text-xl font-bold tabular-nums text-foreground">
+            <p className="mt-2 text-xl font-semibold tabular-nums text-foreground">
               {visibleInstallments.length}
             </p>
           </div>
@@ -2536,12 +2536,12 @@ export default function AdminProjectDetail() {
           {/* Contract section */}
           {contracts[0] ? (
             <div className="p-3 sm:p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Contrato
               </p>
               <div className="mt-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
                 <div>
-                  <p className="text-2xl font-bold tabular-nums text-foreground">
+                  <p className="text-2xl font-semibold tabular-nums text-foreground">
                     {formatBRL(Number(contracts[0].total_amount))}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -2555,7 +2555,7 @@ export default function AdminProjectDetail() {
           {/* Subscriptions section */}
           {subscriptions.length > 0 ? (
             <div className={cn("p-3 sm:p-5", contracts[0] ? "border-t border-border/50" : "")}>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Assinaturas mensais
               </p>
               <div className="mt-3 space-y-2">
@@ -2612,7 +2612,7 @@ export default function AdminProjectDetail() {
               )}
             >
               <div className="mb-3 flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Cobranças
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -2876,7 +2876,7 @@ export default function AdminProjectDetail() {
       </div>
 
       {tab === "detalhes" ? (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_420px]">
+        <div className="grid gap-6 xl:grid-cols-2">
           <div className="space-y-6">{summaryCard}</div>
           <div className="space-y-6">{detailsWorkspaceCard}</div>
         </div>

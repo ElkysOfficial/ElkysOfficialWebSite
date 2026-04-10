@@ -392,7 +392,7 @@ function FinanceRevenueTab({
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Receitas</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {formatRevenueMonthLabel(monthFilter)}
+            {monthFilter === "all" ? "Todos os meses" : formatRevenueMonthLabel(monthFilter)}
           </p>
         </div>
         <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
@@ -439,6 +439,7 @@ function FinanceRevenueTab({
           onChange={(event) => setMonthFilter(event.target.value)}
           className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
         >
+          <option value="all">Todos os meses</option>
           {monthOptions.map((monthKey) => (
             <option key={monthKey} value={monthKey}>
               {formatRevenueMonthLabel(monthKey)}
@@ -856,15 +857,16 @@ const CHART_COLORS = {
 function formatCompactCurrency(value: number) {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
+  const S = "\u00A0";
   if (abs >= 1_000_000) {
     const c = abs >= 10_000_000 ? (abs / 1_000_000).toFixed(0) : (abs / 1_000_000).toFixed(1);
-    return `${sign}R$ ${c.replace(".0", "")}M`;
+    return `${sign}R$${S}${c.replace(".0", "")}M`;
   }
   if (abs >= 1_000) {
     const c = abs >= 10_000 ? (abs / 1_000).toFixed(0) : (abs / 1_000).toFixed(1);
-    return `${sign}R$ ${c.replace(".0", "")}k`;
+    return `${sign}R$${S}${c.replace(".0", "")}k`;
   }
-  return `${sign}R$ ${Math.round(abs)}`;
+  return `${sign}R$${S}${Math.round(abs)}`;
 }
 
 function getSignedCurrency(value: number) {
@@ -933,7 +935,12 @@ function AnaliseTooltip({
               />
               <span className="text-xs text-muted-foreground">{item.name}</span>
             </div>
-            <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
+            <span
+              className={cn(
+                "whitespace-nowrap text-xs font-semibold tabular-nums",
+                Number(item.value ?? 0) < 0 ? "text-destructive" : "text-foreground"
+              )}
+            >
               {formatter(Number(item.value ?? 0))}
             </span>
           </div>
@@ -974,7 +981,7 @@ function RevenueBreakdownChart({ data }: { data: MonthlyPoint[] }) {
             axisLine={false}
           />
           <YAxis
-            width={48}
+            width={62}
             tickFormatter={(v) => formatCompactCurrency(Number(v))}
             tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
             tickLine={false}
@@ -1965,25 +1972,27 @@ export default function AdminFinance() {
         ))}
       </div>
 
-      {activeTab === "receitas" ? (
-        <FinanceRevenueTab
-          charges={charges}
-          clientsMap={clientsMap}
-          loading={loading}
-          pageError={pageError}
-          onReload={loadFinance}
-        />
-      ) : activeTab === "despesas" ? (
-        <AdminExpenses />
-      ) : activeTab === "inadimplencia" ? (
-        <Delinquency />
-      ) : activeTab === "receita-clientes" ? (
-        <RevenueByClient />
-      ) : activeTab === "metas" ? (
-        <FinanceGoals />
-      ) : (
-        <FinanceAnaliseTab />
-      )}
+      <div key={activeTab}>
+        {activeTab === "receitas" ? (
+          <FinanceRevenueTab
+            charges={charges}
+            clientsMap={clientsMap}
+            loading={loading}
+            pageError={pageError}
+            onReload={loadFinance}
+          />
+        ) : activeTab === "despesas" ? (
+          <AdminExpenses />
+        ) : activeTab === "inadimplencia" ? (
+          <Delinquency />
+        ) : activeTab === "receita-clientes" ? (
+          <RevenueByClient />
+        ) : activeTab === "metas" ? (
+          <FinanceGoals />
+        ) : (
+          <FinanceAnaliseTab />
+        )}
+      </div>
     </div>
   );
 }

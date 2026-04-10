@@ -1,156 +1,214 @@
 import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Home, ArrowLeft } from "@/assets/icons";
-import { Button, buttonVariants, cn } from "@/design-system";
+import { buttonVariants, cn } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import hexSrc from "../../public/imgs/icons/hexagonal.webp";
 
-/*
- * Grid positions for each digit.
- * Each digit is drawn on a 5-row × 3-col grid of hexagons.
- * 1 = hex visible, 0 = empty.
- */
-const DIGIT_GRIDS: Record<string, number[][]> = {
+/* ── Pixel grids (7 rows × 5 cols) ── */
+const DIGIT: Record<string, number[][]> = {
   "4": [
-    [1, 0, 1],
-    [1, 0, 1],
-    [1, 1, 1],
-    [0, 0, 1],
-    [0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 1],
   ],
   "0": [
-    [1, 1, 1],
-    [1, 0, 1],
-    [1, 0, 1],
-    [1, 0, 1],
-    [1, 1, 1],
+    [0, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 1, 0, 1, 1],
+    [0, 1, 1, 1, 0],
   ],
 };
 
+/* ── Hexágonos flutuantes decorativos ── */
+const FLOATING_HEXES = Array.from({ length: 12 }, (_, i) => ({
+  id: i,
+  size: 10 + Math.random() * 22,
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+  delay: Math.random() * 4,
+  duration: 6 + Math.random() * 6,
+  opacity: 0.04 + Math.random() * 0.06,
+}));
+
 function HexDigit({ grid, baseDelay }: { grid: number[][]; baseDelay: number }) {
-  const hexes: { row: number; col: number; delay: number }[] = [];
-  grid.forEach((row, r) =>
-    row.forEach((cell, c) => {
-      if (cell) hexes.push({ row: r, col: c, delay: baseDelay + (r * 3 + c) * 0.07 });
-    })
-  );
+  let idx = 0;
+  const cols = grid[0].length;
 
   return (
-    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-      {grid.flat().map((cell, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-center h-8 w-8 sm:h-11 sm:w-11 md:h-14 md:w-14"
-        >
-          {cell ? (
-            <img
-              src={hexSrc}
-              alt=""
-              className="h-full w-full animate-[hex404-pop_0.5s_ease-out_both]"
-              style={{
-                animationDelay: `${hexes.find((h) => h.row * 3 + h.col === i)?.delay ?? 0}s`,
-              }}
-              draggable={false}
-            />
-          ) : null}
-        </div>
-      ))}
+    <div
+      className="inline-grid gap-[2px] sm:gap-1"
+      style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+    >
+      {grid.flat().map((cell, i) => {
+        const delay = cell ? baseDelay + idx++ * 0.035 : 0;
+        return (
+          <div
+            key={i}
+            className="flex items-center justify-center h-[18px] w-[18px] sm:h-7 sm:w-7 md:h-9 md:w-9 lg:h-10 lg:w-10"
+          >
+            {cell ? (
+              <img
+                src={hexSrc}
+                alt=""
+                className="h-full w-full animate-[hex-pop_0.6s_cubic-bezier(0.34,1.56,0.64,1)_both] drop-shadow-[0_3px_8px_rgba(71,38,128,0.4)]"
+                style={{ animationDelay: `${delay}s` }}
+                draggable={false}
+              />
+            ) : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 const NotFound = () => {
   const location = useLocation();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    console.error("404 Error:", location.pathname);
+    setReady(true);
   }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navigation />
 
-      <main id="main-content" className="flex flex-grow items-center justify-center px-4 py-20">
-        <div className="w-full max-w-2xl space-y-10 text-center">
-          {/* 404 com hexágonos */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8">
-            <HexDigit grid={DIGIT_GRIDS["4"]} baseDelay={0.1} />
-            <HexDigit grid={DIGIT_GRIDS["0"]} baseDelay={0.4} />
-            <HexDigit grid={DIGIT_GRIDS["4"]} baseDelay={0.7} />
-          </div>
+      <main className="relative flex flex-grow items-center justify-center overflow-hidden px-4 py-20 sm:py-28">
+        {/* ── Background decorativo ── */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-32 -top-32 h-[500px] w-[500px] rounded-full bg-primary/[0.04] blur-[100px]" />
+          <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-accent/[0.04] blur-[120px]" />
+          <div className="absolute left-1/2 top-1/3 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-secondary/[0.03] blur-[80px]" />
 
-          {/* Mensagem */}
-          <div className="space-y-3">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-              Pagina nao encontrada
-            </h2>
-            <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-              A pagina que voce esta procurando nao existe ou foi movida para outro endereco.
-            </p>
-          </div>
+          {/* Hexágonos flutuantes */}
+          {FLOATING_HEXES.map((hex) => (
+            <img
+              key={hex.id}
+              src={hexSrc}
+              alt=""
+              className="absolute animate-[hex-float_ease-in-out_infinite]"
+              style={{
+                width: hex.size,
+                height: hex.size,
+                left: `${hex.left}%`,
+                top: `${hex.top}%`,
+                opacity: hex.opacity,
+                animationDuration: `${hex.duration}s`,
+                animationDelay: `${hex.delay}s`,
+              }}
+              draggable={false}
+            />
+          ))}
+        </div>
 
-          {/* Ações */}
-          <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row sm:gap-4">
-            <Link
-              to="/"
-              className={cn(
-                buttonVariants({ size: "lg", variant: "gradient" }),
-                "w-full sm:w-auto"
-              )}
-            >
-              <Home className="mr-2 h-5 w-5" />
-              Voltar para Home
-            </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => window.history.back()}
-              className="w-full sm:w-auto"
-            >
-              <ArrowLeft className="mr-2 h-5 w-5" />
-              Pagina Anterior
-            </Button>
-          </div>
+        {ready && (
+          <div className="relative z-10 w-full max-w-4xl text-center">
+            {/* ── Hexágonos formando 404 ── */}
+            <div className="flex items-center justify-center gap-3 sm:gap-5 md:gap-8 lg:gap-10">
+              <HexDigit grid={DIGIT["4"]} baseDelay={0.15} />
+              <HexDigit grid={DIGIT["0"]} baseDelay={0.6} />
+              <HexDigit grid={DIGIT["4"]} baseDelay={1.05} />
+            </div>
 
-          {/* Links rápidos */}
-          <div className="border-t border-border pt-6">
-            <p className="mb-3 text-xs text-muted-foreground">Navegue pelo site:</p>
-            <div className="flex flex-wrap justify-center gap-2">
+            {/* ── Linha decorativa ── */}
+            <div className="mx-auto mt-8 flex items-center gap-3 sm:mt-10">
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+              <img src={hexSrc} alt="" className="h-3 w-3 opacity-30" draggable={false} />
+              <span className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            </div>
+
+            {/* ── Mensagem ── */}
+            <div className="mt-8 space-y-4 animate-[fade-up_0.7s_ease-out_1.5s_both] sm:mt-10">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+                Pagina nao encontrada
+              </h2>
+              <p className="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base">
+                O endereco{" "}
+                <code className="rounded-md border border-border/60 bg-muted/80 px-2 py-0.5 text-xs font-medium text-foreground">
+                  {location.pathname}
+                </code>{" "}
+                nao existe ou foi movido para outro local.
+              </p>
+            </div>
+
+            {/* ── Ações ── */}
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 animate-[fade-up_0.7s_ease-out_1.7s_both] sm:mt-10 sm:flex-row sm:gap-4">
               <Link
-                to="/#services"
-                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                to="/"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "gradient" }),
+                  "w-full gap-2 shadow-primary sm:w-auto"
+                )}
               >
-                Servicos
+                <Home className="h-4 w-4" />
+                Voltar para Home
               </Link>
-              <Link to="/cases" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
-                Cases
-              </Link>
-              <Link to="/#contact" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
-                Contato
+              <Link
+                to="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.history.back();
+                }}
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "w-full gap-2 sm:w-auto"
+                )}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Pagina Anterior
               </Link>
             </div>
+
+            {/* ── Links rápidos ── */}
+            <div className="mt-10 animate-[fade-up_0.7s_ease-out_1.9s_both]">
+              <div className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/80 px-1 py-1">
+                {[
+                  { to: "/#services", label: "Servicos" },
+                  { to: "/cases", label: "Cases" },
+                  { to: "/#contact", label: "Contato" },
+                  { to: "/login", label: "Portal" },
+                ].map((link) => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className="rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       <Footer />
 
-      {/* Keyframe inline para a animação de pop dos hexágonos */}
       <style>{`
-        @keyframes hex404-pop {
-          0% {
-            opacity: 0;
-            transform: scale(0) rotate(-90deg);
-          }
-          60% {
-            opacity: 1;
-            transform: scale(1.15) rotate(8deg);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-          }
+        @keyframes hex-pop {
+          0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+          60% { opacity: 1; transform: scale(1.12) rotate(10deg); }
+          80% { transform: scale(0.95) rotate(-3deg); }
+          100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes hex-float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(15deg); }
         }
       `}</style>
     </div>

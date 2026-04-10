@@ -192,10 +192,10 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
         </span>
       </div>
 
-      <div className={canManageDocuments ? "grid items-stretch gap-6 xl:grid-cols-2" : ""}>
+      <div className={canManageDocuments ? "grid gap-6 xl:grid-cols-[1fr_1fr]" : ""}>
         {/* ── Add form ── */}
         {canManageDocuments ? (
-          <Card className="border-border/60">
+          <Card className="self-start border-border/60">
             <CardHeader className="border-b border-border/50 pb-4">
               <CardTitle className="text-base">Adicionar documento</CardTitle>
             </CardHeader>
@@ -279,7 +279,7 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-[15px] font-semibold leading-snug text-foreground">
+                    <p className="truncate text-sm font-semibold text-foreground">
                       {document.label}
                     </p>
                     <span className="shrink-0 rounded-full border border-border/50 bg-card px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

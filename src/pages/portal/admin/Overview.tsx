@@ -271,18 +271,19 @@ function getSignedCurrency(value: number) {
 function formatCompactCurrency(value: number) {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
+  const S = "\u00A0"; // non-breaking space
 
   if (abs >= 1_000_000) {
     const compact = abs >= 10_000_000 ? (abs / 1_000_000).toFixed(0) : (abs / 1_000_000).toFixed(1);
-    return `${sign}R$ ${compact.replace(".0", "")}M`;
+    return `${sign}R$${S}${compact.replace(".0", "")}M`;
   }
 
   if (abs >= 1_000) {
     const compact = abs >= 10_000 ? (abs / 1_000).toFixed(0) : (abs / 1_000).toFixed(1);
-    return `${sign}R$ ${compact.replace(".0", "")}k`;
+    return `${sign}R$${S}${compact.replace(".0", "")}k`;
   }
 
-  return `${sign}R$ ${Math.round(abs)}`;
+  return `${sign}R$${S}${Math.round(abs)}`;
 }
 
 function roundPercentage(value: number | null) {
@@ -456,7 +457,12 @@ function DashboardTooltip({
                 />
                 <span className="text-xs text-muted-foreground">{item.name}</span>
               </div>
-              <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
+              <span
+                className={cn(
+                  "whitespace-nowrap text-xs font-semibold tabular-nums",
+                  numericValue < 0 ? "text-destructive" : "text-foreground"
+                )}
+              >
                 {formatter(numericValue)}
               </span>
             </div>
@@ -508,7 +514,7 @@ function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
             axisLine={false}
           />
           <YAxis
-            width={48}
+            width={62}
             tickCount={4}
             tickFormatter={(value) => formatCompactCurrency(Number(value))}
             tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
@@ -563,7 +569,7 @@ function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
             axisLine={false}
           />
           <YAxis
-            width={48}
+            width={62}
             tickCount={4}
             tickFormatter={(value) => formatCompactCurrency(Number(value))}
             tick={{ fill: CHART_COLORS.muted, fontSize: 10 }}
