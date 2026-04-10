@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -20,10 +20,12 @@ import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import SurfaceStat from "@/components/portal/SurfaceStat";
-import AdminExpenses from "@/pages/portal/admin/Expenses";
-import Delinquency from "@/pages/portal/admin/Delinquency";
-import RevenueByClient from "@/pages/portal/admin/RevenueByClient";
-import FinanceGoals from "@/pages/portal/admin/FinanceGoals";
+
+// Lazy-load sub-tabs: only the active tab downloads its code
+const AdminExpenses = lazy(() => import("@/pages/portal/admin/Expenses"));
+const Delinquency = lazy(() => import("@/pages/portal/admin/Delinquency"));
+const RevenueByClient = lazy(() => import("@/pages/portal/admin/RevenueByClient"));
+const FinanceGoals = lazy(() => import("@/pages/portal/admin/FinanceGoals"));
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -1981,13 +1983,21 @@ export default function AdminFinance() {
             onReload={loadFinance}
           />
         ) : activeTab === "despesas" ? (
-          <AdminExpenses />
+          <Suspense fallback={<PortalLoading />}>
+            <AdminExpenses />
+          </Suspense>
         ) : activeTab === "inadimplencia" ? (
-          <Delinquency />
+          <Suspense fallback={<PortalLoading />}>
+            <Delinquency />
+          </Suspense>
         ) : activeTab === "receita-clientes" ? (
-          <RevenueByClient />
+          <Suspense fallback={<PortalLoading />}>
+            <RevenueByClient />
+          </Suspense>
         ) : activeTab === "metas" ? (
-          <FinanceGoals />
+          <Suspense fallback={<PortalLoading />}>
+            <FinanceGoals />
+          </Suspense>
         ) : (
           <FinanceAnaliseTab />
         )}

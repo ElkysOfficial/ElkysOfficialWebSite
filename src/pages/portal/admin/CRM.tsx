@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import Leads from "@/pages/portal/admin/Leads";
-import Proposals from "@/pages/portal/admin/Proposals";
-import Pipeline from "@/pages/portal/admin/Pipeline";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { cn } from "@/design-system";
+
+// Lazy-load sub-tabs: only the active tab downloads its code
+const Leads = lazy(() => import("@/pages/portal/admin/Leads"));
+const Proposals = lazy(() => import("@/pages/portal/admin/Proposals"));
+const Pipeline = lazy(() => import("@/pages/portal/admin/Pipeline"));
 
 type CrmTab = "leads" | "propostas" | "pipeline";
 
@@ -39,7 +42,15 @@ export default function CRM() {
         ))}
       </div>
 
-      {activeTab === "leads" ? <Leads /> : activeTab === "propostas" ? <Proposals /> : <Pipeline />}
+      <Suspense fallback={<PortalLoading />}>
+        {activeTab === "leads" ? (
+          <Leads />
+        ) : activeTab === "propostas" ? (
+          <Proposals />
+        ) : (
+          <Pipeline />
+        )}
+      </Suspense>
     </div>
   );
 }

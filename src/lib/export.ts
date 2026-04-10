@@ -5,8 +5,19 @@
  * with the Elkys visual identity (purple header, structured layout).
  */
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+// jsPDF + autotable loaded lazily on first export (~200KB saved from initial bundles)
+let _jsPDFModule: typeof import("jspdf") | null = null;
+let _autoTableModule: typeof import("jspdf-autotable") | null = null;
+
+async function loadPdfDeps() {
+  if (!_jsPDFModule || !_autoTableModule) {
+    [_jsPDFModule, _autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+  }
+  return { jsPDF: _jsPDFModule.default, autoTable: _autoTableModule.default };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -76,8 +87,9 @@ export function exportCSV(config: ExportConfig): void {
 /*  PDF Export with Elkys Branding                                     */
 /* ------------------------------------------------------------------ */
 
-export function exportPDF(config: ExportConfig): void {
+export async function exportPDF(config: ExportConfig): Promise<void> {
   const { title, subtitle, columns, rows, filename, generatedBy } = config;
+  const { jsPDF, autoTable } = await loadPdfDeps();
 
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();

@@ -240,7 +240,9 @@ export default function AdminProjectCreate() {
       setLoadingClients(true);
       const { data, error } = await supabase
         .from("clients")
-        .select("*")
+        .select(
+          "id, full_name, client_type, nome_fantasia, is_active, project_total_value, monthly_value, client_since"
+        )
         .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
 

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import AdminTeam from "@/pages/portal/admin/Team";
-import AdminNotifications from "@/pages/portal/admin/Notifications";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { cn } from "@/design-system";
+
+const AdminTeam = lazy(() => import("@/pages/portal/admin/Team"));
+const AdminNotifications = lazy(() => import("@/pages/portal/admin/Notifications"));
 
 type TeamTab = "membros" | "notificacoes";
 
@@ -37,7 +39,9 @@ export default function TeamHub() {
         ))}
       </div>
 
-      {activeTab === "membros" ? <AdminTeam /> : <AdminNotifications />}
+      <Suspense fallback={<PortalLoading />}>
+        {activeTab === "membros" ? <AdminTeam /> : <AdminNotifications />}
+      </Suspense>
     </div>
   );
 }
