@@ -174,6 +174,7 @@ export default function AdminExpenses() {
   const [deleteExpenseId, setDeleteExpenseId] = useState<string | null>(null);
   const [removingExpenseId, setRemovingExpenseId] = useState<string | null>(null);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
+  const hasLoaded = !loading && !queryError;
 
   useEffect(() => {
     setPage(0);
