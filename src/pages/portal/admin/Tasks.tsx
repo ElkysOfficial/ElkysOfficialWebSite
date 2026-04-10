@@ -1057,7 +1057,7 @@ export default function AdminTasks() {
       supabase
         .from("team_tasks")
         .select(
-          "id, title, description, status, priority, category, assigned_to, role_visibility, due_date, due_time, created_at"
+          "id, title, description, status, priority, category, assigned_to, role_visibility, due_date, starts_at, ends_at, google_event_id, google_meet_link, created_by, created_at"
         )
         .order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, user_id, full_name, system_role, is_active"),
