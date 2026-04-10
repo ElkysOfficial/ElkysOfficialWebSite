@@ -665,10 +665,7 @@ export default function AdminProjectCreate() {
         .insert(timelinePayload);
 
       if (timelineError) {
-        console.warn(
-          "[project-create] timeline insert error (non-blocking):",
-          timelineError.message
-        );
+        throw timelineError;
       }
 
       if (selectedClient) {
