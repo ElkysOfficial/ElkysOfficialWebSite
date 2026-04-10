@@ -183,7 +183,7 @@ async function handleCreate(token: string, input: CreateInput): Promise<Response
     body.attendees = attendees.map((email) => ({ email }));
   }
 
-  const url = `${baseUrl()}/events`;
+  const url = `${baseUrl()}/events?sendUpdates=all`;
   console.log("[google-calendar-sync] creating event:", summary);
 
   const res = await fetch(url, {
@@ -295,7 +295,7 @@ async function handleUpdate(token: string, input: UpdateInput): Promise<Response
     body.attendees = attendees.map((email) => ({ email }));
   }
 
-  const url = `${baseUrl()}/events/${encodeURIComponent(event_id)}`;
+  const url = `${baseUrl()}/events/${encodeURIComponent(event_id)}?sendUpdates=all`;
   console.log("[google-calendar-sync] updating event:", event_id);
 
   const res = await fetch(url, {

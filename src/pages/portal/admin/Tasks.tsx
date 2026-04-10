@@ -698,6 +698,7 @@ const INITIAL_FORM = {
   assign_mode: "person" as AssignMode,
   assigned_to: "",
   role_visibility: [] as string[],
+  attendees: "",
 };
 
 function CreateTaskModal({
@@ -779,6 +780,11 @@ function CreateTaskModal({
     if (computedDueDate) {
       try {
         const headers = await getSupabaseFunctionAuthHeaders();
+        const attendeeEmails = form.attendees
+          .split(",")
+          .map((e) => e.trim().toLowerCase())
+          .filter((e) => e.includes("@"));
+
         const { data: gcalResult } = await supabase.functions.invoke("google-calendar-sync", {
           body: {
             action: "create",
@@ -792,6 +798,7 @@ function CreateTaskModal({
               .join("\n"),
             start_time: `${computedDueDate}T09:00:00-03:00`,
             end_time: `${computedDueDate}T10:00:00-03:00`,
+            ...(attendeeEmails.length > 0 ? { attendees: attendeeEmails } : {}),
           },
           headers,
         });
@@ -985,6 +992,20 @@ function CreateTaskModal({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {computedDueDate && (
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">Convidados (emails)</Label>
+              <Input
+                value={form.attendees}
+                onChange={(e) => set("attendees", e.target.value)}
+                placeholder="email@exemplo.com, outro@exemplo.com"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Separados por virgula. Receberao convite no Google Agenda.
+              </p>
             </div>
           )}
 
