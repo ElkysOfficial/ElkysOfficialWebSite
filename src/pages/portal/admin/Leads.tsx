@@ -73,36 +73,25 @@ function LeadCard({ lead }: { lead: LeadRow }) {
   return (
     <Link
       to={`/portal/admin/leads/${lead.id}`}
-      className="block rounded-xl border border-border/60 bg-background/70 p-3 transition-all hover:border-primary/40 hover:shadow-md"
+      className="flex h-full flex-col rounded-xl border border-border/60 bg-background/70 p-3 transition-all hover:border-primary/40 hover:shadow-md"
     >
-      <div className="space-y-2">
-        <h4 className="text-sm font-semibold leading-tight text-foreground line-clamp-2">
-          {lead.name}
-        </h4>
+      <h4 className="text-sm font-semibold leading-tight text-foreground line-clamp-2">
+        {lead.name}
+      </h4>
 
-        {lead.company && <p className="text-xs text-muted-foreground">{lead.company}</p>}
+      <p className="mt-1 min-h-[1.25rem] truncate text-xs text-muted-foreground">
+        {lead.company || "\u00A0"}
+      </p>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {lead.estimated_value > 0 && (
-            <span className="whitespace-nowrap text-xs font-semibold text-foreground">
-              {formatBRL(lead.estimated_value)}
-            </span>
-          )}
-          {lead.probability > 0 && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {lead.probability}%
-            </span>
-          )}
-        </div>
+      <p className="mt-1 text-xs font-semibold text-foreground">
+        {lead.estimated_value > 0 ? formatBRL(lead.estimated_value) : "\u00A0"}
+      </p>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {meta && <StatusBadge label={meta.label} tone={meta.tone} />}
-          {lead.source && SOURCE_LABELS[lead.source] && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {SOURCE_LABELS[lead.source]}
-            </span>
-          )}
-        </div>
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
+        {meta && <StatusBadge label={meta.label} tone={meta.tone} />}
+        {lead.source && SOURCE_LABELS[lead.source] && (
+          <StatusBadge label={SOURCE_LABELS[lead.source]} tone="muted" />
+        )}
       </div>
     </Link>
   );

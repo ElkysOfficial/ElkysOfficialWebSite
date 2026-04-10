@@ -131,11 +131,7 @@ function ProjectCard({ item }: { item: Extract<PipelineItem, { kind: "project" }
 
         <div className="flex flex-wrap items-center gap-1.5">
           {statusMeta && <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />}
-          {item.solutionType && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {item.solutionType}
-            </span>
-          )}
+          {item.solutionType && <StatusBadge label={item.solutionType} tone="muted" />}
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-muted-foreground">

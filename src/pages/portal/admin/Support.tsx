@@ -454,6 +454,8 @@ export default function AdminSupport() {
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
 
+  if (showLoading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -598,9 +600,7 @@ export default function AdminSupport() {
       </div>
 
       {/* Ticket list */}
-      {showLoading ? (
-        <PortalLoading />
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={Headphones}
           title="Nao foi possivel carregar os tickets"

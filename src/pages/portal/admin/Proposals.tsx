@@ -377,6 +377,8 @@ export default function Proposals() {
 
   const deleteDisplayName = proposalToDelete?.title ?? "";
 
+  if (showLoading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       <AlertDialog
@@ -466,9 +468,7 @@ export default function Proposals() {
       </div>
 
       {/* ── Proposals list ── */}
-      {showLoading ? (
-        <PortalLoading />
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={FileText}
           title="Nao foi possivel carregar as propostas"

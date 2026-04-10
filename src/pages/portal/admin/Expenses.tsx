@@ -8,6 +8,7 @@ import { Clock, FileText, Search, TrendingUp } from "@/assets/icons";
 import ExportMenu from "@/components/portal/ExportMenu";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -397,6 +398,8 @@ export default function AdminExpenses() {
     await loadExpenses();
   };
 
+  if (loading && !hasLoaded) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       {/* ── Header ── */}
@@ -508,16 +511,7 @@ export default function AdminExpenses() {
       </div>
 
       {/* ── Expense list ── */}
-      {loading && !hasLoaded ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-            />
-          ))}
-        </div>
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={TrendingUp}
           title="Nao foi possivel carregar as despesas"

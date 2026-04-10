@@ -428,6 +428,8 @@ export default function AdminProjects() {
     }
   };
 
+  if (showLoading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       <AlertDialog
@@ -544,9 +546,7 @@ export default function AdminProjects() {
       )}
 
       {/* ── Project list ── */}
-      {showLoading ? (
-        <PortalLoading />
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={FileText}
           title="Nao foi possivel carregar os projetos"

@@ -17,6 +17,7 @@ import type { ComponentType } from "react";
 import { Clock, FileText, Receipt, Search } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import SurfaceStat from "@/components/portal/SurfaceStat";
 import AdminExpenses from "@/pages/portal/admin/Expenses";
@@ -386,6 +387,8 @@ function FinanceRevenueTab({
     await onReload();
   };
 
+  if (loading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -469,16 +472,7 @@ function FinanceRevenueTab({
         </select>
       </div>
 
-      {loading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-            />
-          ))}
-        </div>
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={Clock}
           title="Nao foi possivel carregar as cobrancas"
@@ -1672,18 +1666,7 @@ function FinanceAnaliseTab() {
     void loadAnalise();
   }, [loadAnalise]);
 
-  if (loading || !state) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-44 animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading || !state) return <PortalLoading />;
 
   return (
     <div className="space-y-6">

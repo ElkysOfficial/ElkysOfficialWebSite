@@ -443,6 +443,8 @@ export default function AdminClients() {
     void loadClients();
   };
 
+  if (showLoading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       {/* -- Action bar -- */}
@@ -628,9 +630,7 @@ export default function AdminClients() {
       </div>
 
       {/* -- Client list -- */}
-      {showLoading ? (
-        <PortalLoading />
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={Building2}
           title="Nao foi possivel carregar a carteira"

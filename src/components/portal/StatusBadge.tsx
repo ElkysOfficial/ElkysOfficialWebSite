@@ -1,6 +1,6 @@
 import { cn } from "@/design-system";
 
-type Tone = "accent" | "success" | "warning" | "destructive" | "secondary" | "primary";
+type Tone = "accent" | "success" | "warning" | "destructive" | "secondary" | "primary" | "muted";
 
 const toneClassName: Record<Tone, string> = {
   primary: "bg-primary/10 text-primary",
@@ -9,6 +9,7 @@ const toneClassName: Record<Tone, string> = {
   warning: "bg-warning/10 text-warning",
   destructive: "bg-destructive/10 text-destructive",
   secondary: "bg-secondary text-muted-foreground",
+  muted: "bg-muted text-muted-foreground",
 };
 
 export default function StatusBadge({
