@@ -5,12 +5,12 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Scroll to top whenever pathname changes
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "instant", // Use 'instant' for immediate scroll, or 'smooth' for animated
-    });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
+    // Send SPA pageview to Google Analytics
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", { page_path: pathname });
+    }
   }, [pathname]);
 
   return null;
