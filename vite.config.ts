@@ -71,8 +71,6 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             "react-vendor": ["react", "react-dom", "react-router-dom"],
             "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
-            "chart-vendor": ["recharts"],
-            "pdf-vendor": ["jspdf", "jspdf-autotable"],
           },
         },
       },

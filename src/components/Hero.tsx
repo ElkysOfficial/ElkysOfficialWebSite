@@ -98,16 +98,16 @@ const Hero = () => {
               style={{ animationDelay: "0.4s" }}
             >
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
-                <div className="text-xs md:text-sm text-white/60 mt-1">Projetos em produção</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">20+</div>
+                <div className="text-xs md:text-sm text-white/80 mt-1">Projetos em produção</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
-                <div className="text-xs md:text-sm text-white/60 mt-1">Retenção de clientes</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">98%</div>
+                <div className="text-xs md:text-sm text-white/80 mt-1">Retenção de clientes</div>
               </div>
               <div className="text-center col-span-2 sm:col-span-1">
-                <div className="text-2xl md:text-3xl font-bold text-accent">2+</div>
-                <div className="text-xs md:text-sm text-white/60 mt-1">Anos de operação</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">2+</div>
+                <div className="text-xs md:text-sm text-white/80 mt-1">Anos de operação</div>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@ const Hero = () => {
                   <Code className="h-8 w-8 text-accent flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Clean Code</p>
-                    <p className="text-white/60 text-sm">Código limpo e documentado</p>
+                    <p className="text-white/80 text-sm">Código limpo e documentado</p>
                   </div>
                 </div>
                 {/* Feature 2: Entregas Ágeis */}
@@ -135,7 +135,7 @@ const Hero = () => {
                   <Agile className="h-8 w-8 flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Entregas Ágeis</p>
-                    <p className="text-white/60 text-sm">Gestão transparente do projeto</p>
+                    <p className="text-white/80 text-sm">Gestão transparente do projeto</p>
                   </div>
                 </div>
                 {/* Feature 3: Suporte Contínuo */}
@@ -146,7 +146,7 @@ const Hero = () => {
                   <Suporte className="h-8 w-8 flex-shrink-0" />
                   <div>
                     <p className="text-white font-semibold">Suporte Contínuo</p>
-                    <p className="text-white/60 text-sm">Suporte pós-entrega</p>
+                    <p className="text-white/80 text-sm">Suporte pós-entrega</p>
                   </div>
                 </div>
               </div>
