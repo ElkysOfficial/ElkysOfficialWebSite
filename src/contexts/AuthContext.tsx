@@ -8,6 +8,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -39,6 +40,7 @@ const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 min
 const WARNING_BEFORE = 2 * 60 * 1000; // 2 min warning
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<AuthState>({
     user: null,
     session: null,
@@ -106,9 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSignOut = useCallback(async () => {
     clearTimeout(inactivityTimer.current);
     clearTimeout(warningTimer.current);
+    queryClient.clear();
     await supabase.auth.signOut();
     updateState(null, null, []);
-  }, [updateState]);
+  }, [queryClient, updateState]);
 
   const resolveSessionState = useCallback(
     async (session: Session | null) => {
@@ -225,7 +228,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED" && !session) {
+        // Refresh token was invalid — force clean logout
+        queryClient.clear();
+        updateState(null, null, []);
+        return;
+      }
       queueSessionResolution(session);
     });
 
