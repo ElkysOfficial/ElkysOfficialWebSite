@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/design-system";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
@@ -83,42 +83,49 @@ const App = () => (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <ScrollToTop />
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              {/* Public */}
-              <Route path="/" element={<Index />} />
-              <Route path="/cases" element={<Cases />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/cookie-policy" element={<CookiePolicy />} />
-              <Route path="/servicos/:slug" element={<ServiceDetail />} />
-              <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Routes>
+            {/* Public — sem loading, navegação instantânea */}
+            <Route path="/" element={<Index />} />
+            <Route path="/cases" element={<Cases />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/servicos/:slug" element={<ServiceDetail />} />
+            <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* Catch-all /portal → redirect to login (handles OAuth callback) */}
-              <Route path="/portal" element={<Navigate to="/login" replace />} />
+            {/* Catch-all /portal → redirect to login (handles OAuth callback) */}
+            <Route path="/portal" element={<Navigate to="/login" replace />} />
 
-              {/* First-access password change (client only, before portal) */}
-              <Route
-                path="/portal/cliente/alterar-senha"
-                element={
-                  <ProtectedRoute requiredRole="cliente">
-                    <ChangePassword />
-                  </ProtectedRoute>
-                }
-              />
+            {/* First-access password change (client only, before portal) */}
+            <Route
+              path="/portal/cliente/alterar-senha"
+              element={
+                <ProtectedRoute requiredRole="cliente">
+                  <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
 
-              {/* First-access password change (team members, before admin portal) */}
-              <Route
-                path="/portal/admin/alterar-senha"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminChangePassword />
-                  </ProtectedRoute>
-                }
-              />
+            {/* First-access password change (team members, before admin portal) */}
+            <Route
+              path="/portal/admin/alterar-senha"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminChangePassword />
+                </ProtectedRoute>
+              }
+            />
 
+            {/* Portal — com loading branded */}
+            <Route
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Outlet />
+                </Suspense>
+              }
+            >
               {/* Admin / Team Portal */}
               <Route
                 path="/portal/admin"
@@ -427,10 +434,10 @@ const App = () => (
                 <Route path="suporte" element={<ClientSupport />} />
                 <Route path="perfil" element={<ClientProfile />} />
               </Route>
+            </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
           <CookieConsent />
         </AuthProvider>
       </BrowserRouter>
