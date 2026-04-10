@@ -507,7 +507,7 @@ export default function FinanceGoals() {
                   </div>
                   <p
                     className={cn(
-                      "text-right text-xs font-bold tabular-nums",
+                      "text-right text-xs font-semibold tabular-nums",
                       getProgressTextTone(goal.percent)
                     )}
                   >

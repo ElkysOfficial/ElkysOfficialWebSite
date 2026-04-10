@@ -780,8 +780,8 @@ export default function ProposalDetail() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
-        <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
+        <div className="h-8 w-48 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
+        <div className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
       </div>
     );
   }

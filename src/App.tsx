@@ -63,10 +63,15 @@ const AdminChangePassword = lazy(() => import("./pages/portal/admin/ChangePasswo
 const queryClient = new QueryClient();
 
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="space-y-4 text-center">
-      <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-      <p className="text-muted-foreground text-sm">Carregando...</p>
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="relative flex items-center justify-center">
+      <span className="absolute h-16 w-16 animate-portal-ring rounded-full border-2 border-primary/30" />
+      <img
+        src="/imgs/icons/hexagonal.webp"
+        alt=""
+        className="h-10 w-10 animate-portal-spin"
+        draggable={false}
+      />
     </div>
   </div>
 );

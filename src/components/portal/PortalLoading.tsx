@@ -1,12 +1,18 @@
 export default function PortalLoading() {
   return (
     <div className="flex flex-1 items-center justify-center py-32">
-      <img
-        src="/imgs/icons/hexagonal.webp"
-        alt=""
-        className="h-12 w-12 animate-[pulse_1.4s_ease-in-out_infinite] opacity-80"
-        draggable={false}
-      />
+      <div className="relative flex items-center justify-center">
+        {/* Ring pulse */}
+        <span className="absolute h-16 w-16 animate-portal-ring rounded-full border-2 border-primary/30" />
+
+        {/* Hexagon icon */}
+        <img
+          src="/imgs/icons/hexagonal.webp"
+          alt=""
+          className="h-10 w-10 animate-portal-spin"
+          draggable={false}
+        />
+      </div>
     </div>
   );
 }

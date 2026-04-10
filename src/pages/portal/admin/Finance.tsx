@@ -18,6 +18,7 @@ import { Clock, FileText, Receipt, Search } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import RowActionMenu from "@/components/portal/RowActionMenu";
+import SurfaceStat from "@/components/portal/SurfaceStat";
 import AdminExpenses from "@/pages/portal/admin/Expenses";
 import Delinquency from "@/pages/portal/admin/Delinquency";
 import RevenueByClient from "@/pages/portal/admin/RevenueByClient";
@@ -799,8 +800,6 @@ type AnaliseTicket = Pick<
 
 type AgingBucket = { range: string; amount: number; count: number };
 type ProjectBucket = "negociacao" | "em_andamento" | "concluido" | "pausado";
-type Tone = "brand" | "success" | "warning" | "destructive" | "neutral";
-
 type MonthlyPoint = {
   key: string;
   label: string;
@@ -889,48 +888,7 @@ function getMonthKeyFromDate(value?: string | null) {
   return createMonthKey(parsed.getFullYear(), parsed.getMonth());
 }
 
-function SurfaceStat({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  tone?: Tone;
-}) {
-  const toneStyles: Record<Tone, string> = {
-    brand: "text-primary",
-    success: "text-success",
-    warning: "text-warning",
-    destructive: "text-destructive",
-    neutral: "text-foreground",
-  };
-
-  const toneBarStyles: Record<Tone, string> = {
-    brand: "bg-primary",
-    success: "bg-success",
-    warning: "bg-warning",
-    destructive: "bg-destructive",
-    neutral: "bg-border",
-  };
-
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
-      <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-1 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
-          toneStyles[tone]
-        )}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
+/* SurfaceStat now imported from @/components/portal/SurfaceStat */
 
 type TooltipPayloadItem = {
   color?: string;
@@ -958,7 +916,7 @@ function AnaliseTooltip({
       style={{ borderLeftWidth: 2, borderLeftColor: payload[0]?.color }}
     >
       {label ? (
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           {label}
         </p>
       ) : null}
@@ -975,7 +933,7 @@ function AnaliseTooltip({
               />
               <span className="text-xs text-muted-foreground">{item.name}</span>
             </div>
-            <span className="whitespace-nowrap text-xs font-bold tabular-nums text-foreground">
+            <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
               {formatter(Number(item.value ?? 0))}
             </span>
           </div>

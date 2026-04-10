@@ -163,7 +163,7 @@ export default function ClientFinance() {
         {Array.from({ length: 2 }).map((_, index) => (
           <div
             key={index}
-            className="h-16 animate-pulse rounded-xl border border-border/50 bg-background/60"
+            className="h-16 animate-pulse rounded-xl border border-border/50 bg-card/60"
           />
         ))}
       </div>

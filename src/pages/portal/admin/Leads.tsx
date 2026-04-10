@@ -331,7 +331,7 @@ export default function Leads() {
   const inlineFormJSX = (
     <Card className="rounded-2xl border-border/80 bg-card/95">
       <CardContent className="space-y-4 p-4 sm:p-6">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Novo Lead
         </h3>
 
@@ -512,7 +512,7 @@ export default function Leads() {
             >
               {/* Column header */}
               <div className="flex items-center justify-between p-3 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {col.label}
                 </h3>
                 <span
@@ -547,25 +547,25 @@ export default function Leads() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 bg-muted/40">
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Nome
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Empresa
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Valor
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Probabilidade
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Fonte
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Data criacao
                   </th>
                 </tr>

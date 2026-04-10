@@ -103,7 +103,7 @@ export default function ClientProjects() {
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="h-28 animate-pulse rounded-xl border border-border/50 bg-background/60"
+            className="h-28 animate-pulse rounded-xl border border-border/50 bg-card/60"
           />
         ))}
       </div>

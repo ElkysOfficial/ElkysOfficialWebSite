@@ -15,6 +15,7 @@ import {
 
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -434,7 +435,7 @@ function DashboardTooltip({
       style={{ borderLeftWidth: 2, borderLeftColor: payload[0]?.color }}
     >
       {label ? (
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           {label}
         </p>
       ) : null}
@@ -455,7 +456,7 @@ function DashboardTooltip({
                 />
                 <span className="text-xs text-muted-foreground">{item.name}</span>
               </div>
-              <span className="whitespace-nowrap text-xs font-bold tabular-nums text-foreground">
+              <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
                 {formatter(numericValue)}
               </span>
             </div>
@@ -466,95 +467,7 @@ function DashboardTooltip({
   );
 }
 
-function ExecutiveKpiCard({
-  label,
-  value,
-  subInfo,
-  tone = "brand",
-}: {
-  label: string;
-  value: string;
-  subInfo: string;
-  tone?: Tone;
-  change: number | null;
-}) {
-  const toneStyles: Record<Tone, string> = {
-    brand: "text-primary",
-    success: "text-success",
-    warning: "text-warning",
-    destructive: "text-destructive",
-    neutral: "text-foreground",
-  };
-
-  const toneBarStyles: Record<Tone, string> = {
-    brand: "bg-primary",
-    success: "bg-success",
-    warning: "bg-warning",
-    destructive: "bg-destructive",
-    neutral: "bg-border",
-  };
-
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
-      <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-0.5 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-1 sm:text-lg",
-          toneStyles[tone]
-        )}
-      >
-        {value}
-      </p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground sm:mt-1 sm:text-xs">{subInfo}</p>
-    </div>
-  );
-}
-
-function SurfaceStat({
-  label,
-  value,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  tone?: Tone;
-}) {
-  const toneStyles: Record<Tone, string> = {
-    brand: "text-primary",
-    success: "text-success",
-    warning: "text-warning",
-    destructive: "text-destructive",
-    neutral: "text-foreground",
-  };
-
-  const toneBarStyles: Record<Tone, string> = {
-    brand: "bg-primary",
-    success: "bg-success",
-    warning: "bg-warning",
-    destructive: "bg-destructive",
-    neutral: "bg-border",
-  };
-
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-border/60 bg-background/70 p-3 pl-4 sm:p-4 sm:pl-5">
-      <span className={cn("absolute inset-y-0 left-0 w-[3px] rounded-l-xl", toneBarStyles[tone])} />
-      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-        {label}
-      </p>
-      <p
-        className={cn(
-          "mt-1 whitespace-nowrap text-base font-semibold tracking-tight sm:mt-2 sm:text-lg",
-          toneStyles[tone]
-        )}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
+/* SurfaceStat & SurfaceStat now imported from @/components/portal/SurfaceStat */
 
 function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
   const hasValue = data.some((item) => item.cashIn > 0 || item.cashOut > 0);
@@ -1573,23 +1486,21 @@ export default function AdminOverview() {
 
           {/* KPI cards — essentials only */}
           <section className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="MRR"
               value={formatBRL(summary.currentMrr)}
               subInfo={`${summary.recurringClients} com recorrencia`}
               tone="success"
-              change={mrrChange}
             />
 
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="Saldo operacional"
               value={formatBRL(summary.cashBalance)}
               subInfo={`Mes em ${getSignedCurrency(summary.currentMonthNet)}`}
               tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
-              change={cashChange}
             />
 
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="Em atraso"
               value={
                 summary.overdueReceivables > 0
@@ -1602,31 +1513,27 @@ export default function AdminOverview() {
                   : "Nenhum atraso registrado"
               }
               tone={summary.overdueReceivables > 0 ? "destructive" : "neutral"}
-              change={null}
             />
 
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="Clientes ativos"
               value={String(summary.activeClients)}
               subInfo={`${summary.newClientsThisMonth} novo(s) | ${summary.clientsAtRisk} em risco`}
               tone="brand"
-              change={clientChange}
             />
 
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="Projetos ativos"
               value={String(summary.openProjects)}
               subInfo={`${summary.overdueProjects} atrasado(s) | ${summary.projectStatusCounts.pausado} pausados`}
               tone={summary.overdueProjects > 0 ? "warning" : "neutral"}
-              change={projectChange}
             />
 
-            <ExecutiveKpiCard
+            <SurfaceStat
               label="Pipeline"
               value={formatBRL(summary.pipelineValue)}
               subInfo={`${summary.pipelineCount} oportunidade(s) ativas`}
               tone="brand"
-              change={null}
             />
           </section>
 

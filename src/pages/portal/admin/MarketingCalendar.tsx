@@ -1502,7 +1502,7 @@ export default function AdminMarketingCalendar() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-40 animate-pulse rounded-3xl border border-border/60 bg-card/70" />
+        <div className="h-40 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
@@ -1512,10 +1512,10 @@ export default function AdminMarketingCalendar() {
           ))}
         </div>
         <div className="grid gap-4 xl:grid-cols-12">
-          <div className="h-[760px] animate-pulse rounded-3xl border border-border/60 bg-card/70 xl:col-span-8" />
+          <div className="h-[760px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-8" />
           <div className="space-y-4 xl:col-span-4">
-            <div className="h-72 animate-pulse rounded-3xl border border-border/60 bg-card/70" />
-            <div className="h-[460px] animate-pulse rounded-3xl border border-border/60 bg-card/70" />
+            <div className="h-72 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
+            <div className="h-[460px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
           </div>
         </div>
       </div>

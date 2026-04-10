@@ -207,6 +207,21 @@ export default {
         },
 
         /**
+         * ANIMAÇÃO DE LOADING DO PORTAL
+         * Hexágono branded com rotação + pulse suaves
+         */
+        "portal-spin": {
+          "0%": { transform: "rotate(0deg) scale(1)", opacity: "0.7" },
+          "50%": { transform: "rotate(180deg) scale(1.1)", opacity: "1" },
+          "100%": { transform: "rotate(360deg) scale(1)", opacity: "0.7" },
+        },
+        "portal-ring": {
+          "0%": { transform: "scale(0.8)", opacity: "0.5" },
+          "50%": { transform: "scale(1.2)", opacity: "0" },
+          "100%": { transform: "scale(0.8)", opacity: "0.5" },
+        },
+
+        /**
          * ANIMAÇÃO DE CARROSSEL
          * Scroll infinito horizontal para logos de clientes
          */
@@ -225,6 +240,9 @@ export default {
         "hex-spin": "hex-spin 20s ease-in-out infinite",
         // Interação
         "card-pulse": "card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        // Loading portal
+        "portal-spin": "portal-spin 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "portal-ring": "portal-ring 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         // Carrossel
         "clients-scroll": "clients-scroll 60s linear infinite",
       },
