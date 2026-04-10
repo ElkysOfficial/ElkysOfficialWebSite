@@ -1410,11 +1410,11 @@ export default function AdminOverview() {
     return "Operacao estavel neste mes";
   }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
 
+  if (!hasLoaded && !error) return <PortalLoading />;
+
   return (
     <div className="space-y-4">
-      {!hasLoaded ? (
-        <PortalLoading />
-      ) : error ? (
+      {error ? (
         <AdminEmptyState
           icon={TrendingUp}
           title="Nao foi possivel montar o painel"
