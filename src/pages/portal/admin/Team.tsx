@@ -349,6 +349,8 @@ export default function AdminTeam() {
 
   const memberToDelete = members.find((m) => m.id === confirmDeleteId);
 
+  if (showLoading) return <PortalLoading />;
+
   return (
     <div className="space-y-8">
       {/* AlertDialog (modal - unchanged) */}
@@ -432,9 +434,7 @@ export default function AdminTeam() {
       </div>
 
       {/* List */}
-      {showLoading ? (
-        <PortalLoading />
-      ) : pageError ? (
+      {pageError ? (
         <AdminEmptyState
           icon={Wrench}
           title="Não foi possível carregar a equipe"
