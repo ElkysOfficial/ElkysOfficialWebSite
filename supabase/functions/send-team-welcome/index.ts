@@ -40,13 +40,12 @@ serve(async (req) => {
 
     const html = buildEmail({
       preheader: `Bem-vindo à equipe Elkys, ${firstName}! Seu acesso ao painel está pronto.`,
-      title: "Acesso ao Painel Elkys",
-      greeting: `Olá, ${firstName},`,
+      title: "Bem-vindo à equipe Elkys",
+      greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Parabéns, você agora faz parte da Elkys.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Aqui, somos mais do que uma equipe: somos uma família. Atuamos como uma estrutura integrada, orientada a resultados, colaboração e crescimento contínuo. Sua entrada reforça esse compromisso.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seja bem-vindo.</p>
-        <p style="margin:0 0 20px 0;font-size:14px;line-height:22px;color:#333333;">Abaixo, você encontrará suas credenciais de acesso ao painel interno da empresa, onde poderá acompanhar e executar suas atividades com autonomia e organização.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">É com grande satisfação que damos as boas-vindas a você na <strong>Elkys</strong>.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Aqui, somos mais do que uma equipe — somos uma estrutura integrada, orientada a resultados, colaboração e crescimento contínuo. Sua chegada fortalece esse compromisso.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Abaixo estão suas credenciais de acesso ao painel interno. Por segurança, altere sua senha logo após o primeiro login.</p>
       `,
       highlight: {
         title: "Suas credenciais de acesso",
@@ -56,14 +55,14 @@ serve(async (req) => {
         ],
       },
       button: {
-        label: "Ir para o painel",
+        label: "Acessar o painel",
         href: PORTAL_URL,
       },
     });
 
     const result = await sendEmail({
       to: email,
-      subject: `Seu acesso ao Painel Elkys foi criado`,
+      subject: `Bem-vindo à equipe Elkys`,
       html,
     });
 

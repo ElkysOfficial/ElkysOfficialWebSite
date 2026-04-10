@@ -90,28 +90,28 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `A Elkys enviou uma proposta comercial para ${displayName}.`,
       title: "Nova proposta comercial",
-      greeting: `Ola, ${firstName}!`,
+      greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 12px;">Uma nova <strong>proposta comercial</strong> foi enviada para voce pela <strong>Elkys</strong> e ja esta disponivel para avaliacao no seu portal.</p>
-        <p style="margin:0 0 12px;">Acesse o portal para visualizar todos os detalhes, incluindo escopo, condicoes de pagamento e valor. Voce pode aprovar ou solicitar ajustes diretamente pelo portal.</p>
-        <p style="margin:0;">Estamos a disposicao para qualquer duvida.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Uma nova <strong>proposta comercial</strong> foi preparada especialmente para você e já está disponível no seu portal.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acesse para visualizar todos os detalhes, incluindo escopo, condições de pagamento e valor. Você pode aprovar ou solicitar ajustes diretamente pelo portal.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Estamos à disposição para esclarecer qualquer dúvida.</p>
       `,
       highlight: {
         title: "Resumo da proposta",
         rows: [
           { label: "Proposta", value: proposal.title },
           { label: "Valor", value: formattedAmount },
-          ...(validUntilText ? [{ label: "Valida ate", value: validUntilText }] : []),
+          ...(validUntilText ? [{ label: "Válida até", value: validUntilText }] : []),
           ...(proposal.scope_summary
             ? [{ label: "Escopo", value: proposal.scope_summary.slice(0, 200) }]
             : []),
         ],
       },
       button: {
-        label: "Ver proposta no portal",
+        label: "Ver proposta no portal →",
         href: `${PORTAL_URL}/propostas`,
       },
-      note: "Voce pode aprovar ou rejeitar a proposta diretamente pelo portal a qualquer momento.",
+      note: "Você pode aprovar ou solicitar ajustes diretamente pelo portal a qualquer momento.",
     });
 
     const result = await sendEmail({

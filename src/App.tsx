@@ -45,6 +45,7 @@ const AdminCRM = lazy(() => import("./pages/portal/admin/CRM"));
 const AdminLeadDetail = lazy(() => import("./pages/portal/admin/LeadDetail"));
 const AdminProposalDetail = lazy(() => import("./pages/portal/admin/ProposalDetail"));
 const AdminBillingAutomation = lazy(() => import("./pages/portal/admin/BillingAutomation"));
+const AdminTasks = lazy(() => import("./pages/portal/admin/Tasks"));
 const AdminTeamHub = lazy(() => import("./pages/portal/admin/TeamHub"));
 const AdminProfile = lazy(() => import("./pages/portal/admin/Profile"));
 const ClientLayout = lazy(() => import("./components/portal/ClientLayout"));
@@ -137,6 +138,16 @@ const App = () => (
                   element={
                     <PortalRoleGuard allowedRoles={["admin_super", "admin", "marketing"]}>
                       <AdminMarketingCalendar />
+                    </PortalRoleGuard>
+                  }
+                />
+                <Route
+                  path="tarefas"
+                  element={
+                    <PortalRoleGuard
+                      allowedRoles={["admin_super", "admin", "marketing", "developer", "support"]}
+                    >
+                      <AdminTasks />
                     </PortalRoleGuard>
                   }
                 />

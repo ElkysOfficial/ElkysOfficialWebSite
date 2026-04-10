@@ -8,6 +8,7 @@
 
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail } from "./email-template.ts";
+import { formatNotificationBody } from "./validation.ts";
 
 const TYPE_LABELS: Record<string, string> = {
   manutencao: "Manutenção programada",
@@ -141,7 +142,7 @@ export async function processNotification(
       greeting: `Olá, ${firstName},`,
       body: `
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">
-          ${notification.body}
+          ${formatNotificationBody(notification.body, PORTAL_URL)}
         </p>
       `,
       button: {

@@ -27,6 +27,8 @@ import type { Database } from "@/integrations/supabase/types";
 import {
   CHARGE_STATUS_META,
   DOCUMENT_TYPE_LABEL,
+  type NextStepActionType,
+  NEXT_STEP_ACTION_TYPE_LABEL,
   NEXT_STEP_OWNER_LABEL,
   PROJECT_INSTALLMENT_STATUS_LABEL,
   NEXT_STEP_STATUS_LABEL,
@@ -81,6 +83,8 @@ type NextStepFormState = {
   due_date: string;
   client_visible: boolean;
   requires_client_action: boolean;
+  action_type: NextStepActionType;
+  meeting_link: string;
 };
 
 type InstallmentFormState = {
@@ -100,6 +104,8 @@ function getNextStepFormDefaults(
     due_date: formatDateInput(step?.due_date ?? null),
     client_visible: step?.client_visible ?? true,
     requires_client_action: step?.requires_client_action ?? false,
+    action_type: ((step as Record<string, unknown>)?.action_type as NextStepActionType) ?? "geral",
+    meeting_link: ((step as Record<string, unknown>)?.meeting_link as string) ?? "",
   };
 }
 
@@ -1137,8 +1143,13 @@ export default function AdminProjectDetail() {
         due_date: dueDateIso,
         client_visible: newNextStepForm.client_visible,
         requires_client_action: newNextStepForm.requires_client_action,
+        action_type: newNextStepForm.action_type,
+        meeting_link:
+          newNextStepForm.action_type === "reuniao" && newNextStepForm.meeting_link.trim()
+            ? newNextStepForm.meeting_link.trim()
+            : null,
         sort_order: nextSteps.length,
-      })
+      } as Record<string, unknown>)
       .select("id")
       .single();
 
@@ -1187,6 +1198,11 @@ export default function AdminProjectDetail() {
             step_title: newNextStepForm.title.trim(),
             step_description: newNextStepForm.description.trim() || undefined,
             due_date: dueDateIso || undefined,
+            action_type: newNextStepForm.action_type,
+            meeting_link:
+              newNextStepForm.action_type === "reuniao" && newNextStepForm.meeting_link.trim()
+                ? newNextStepForm.meeting_link.trim()
+                : undefined,
           },
           headers: actionHeaders,
         });
@@ -2204,7 +2220,27 @@ export default function AdminProjectDetail() {
                   />
                 </Field>
 
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <Field>
+                    <Label>Tipo</Label>
+                    <select
+                      value={newNextStepForm.action_type}
+                      onChange={(event) =>
+                        setNewNextStepForm((current) => ({
+                          ...current,
+                          action_type: event.target.value as NextStepActionType,
+                        }))
+                      }
+                      className={selectClass}
+                    >
+                      {Object.entries(NEXT_STEP_ACTION_TYPE_LABEL).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
                   <Field>
                     <Label>Responsavel</Label>
                     <select
@@ -2260,6 +2296,25 @@ export default function AdminProjectDetail() {
                     />
                   </Field>
                 </div>
+
+                {newNextStepForm.action_type === "reuniao" && (
+                  <Field>
+                    <Label>Link da reunião (opcional)</Label>
+                    <Input
+                      value={newNextStepForm.meeting_link}
+                      onChange={(event) =>
+                        setNewNextStepForm((current) => ({
+                          ...current,
+                          meeting_link: event.target.value,
+                        }))
+                      }
+                      placeholder="https://calendar.app.google/... ou https://meet.google.com/..."
+                    />
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Se não informar, será usado o link padrão de agendamento da Elkys.
+                    </p>
+                  </Field>
+                )}
 
                 <Field>
                   <Label>Descricao</Label>

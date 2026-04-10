@@ -697,7 +697,7 @@ function AgendaListItem({
 }
 
 export default function AdminMarketingCalendar() {
-  const { user, isMarketing, isSuperAdmin } = useAuth();
+  const { user, isAdmin, isMarketing, isSuperAdmin, roles } = useAuth();
   const hasLoadedCalendarRef = useRef(false);
   const resizeSessionRef = useRef<ResizeSession>(null);
   const resizePreviewRef = useRef<string | null>(null);
@@ -977,7 +977,7 @@ export default function AdminMarketingCalendar() {
       setPageError(null);
 
       const { gridStart, queryEnd } = getCalendarRange(monthCursor);
-      const [eventsRes, clientsRes, projectsRes] = await Promise.all([
+      const [eventsRes, clientsRes, projectsRes, tasksRes] = await Promise.all([
         supabase
           .from("marketing_calendar_events")
           .select("*, clients(id, client_type, full_name, nome_fantasia), projects(id, name)")
@@ -994,11 +994,20 @@ export default function AdminMarketingCalendar() {
           .select("id, client_id, name, status")
           .neq("status", "cancelado")
           .order("created_at", { ascending: false }),
+        // Load team tasks that have dates, to show on calendar
+        supabase
+          .from("team_tasks")
+          .select("*")
+          .not("starts_at", "is", null)
+          .gte("starts_at", gridStart.toISOString())
+          .lt("starts_at", queryEnd.toISOString())
+          .neq("status", "concluida")
+          .order("starts_at", { ascending: true }),
       ]);
 
       if (!active) return;
 
-      const hardError = eventsRes.error ?? clientsRes.error ?? projectsRes.error;
+      const hardError = eventsRes.error ?? clientsRes.error ?? projectsRes.error ?? tasksRes.error;
       if (hardError) {
         if (isInitialLoad) {
           setPageError(hardError.message);
@@ -1026,7 +1035,53 @@ export default function AdminMarketingCalendar() {
         };
       });
 
-      setEvents(mappedEvents);
+      // Convert team_tasks into CalendarEvent shape (virtual events for the calendar)
+      const taskEvents: CalendarEvent[] = (
+        (tasksRes.data as Record<string, unknown>[] | null) ?? []
+      )
+        .filter((t) => {
+          const taskRoles = t["role_visibility"] as string[] | null;
+          const taskAssignedTo = t["assigned_to"] as string | null;
+          // Role-based visibility: admin sees all, others see assigned or role-visible
+          if (isAdmin) return true;
+          if (taskAssignedTo === user?.id) return true;
+          if (taskRoles?.length) {
+            return taskRoles.some((r) => roles.includes(r as never));
+          }
+          return false;
+        })
+        .map((t) => {
+          const startsAt = t["starts_at"] as string;
+          const endsAt = (t["ends_at"] as string | null) ?? startsAt;
+          const categoryLabel: Record<string, string> = {
+            desenvolvimento: "Dev",
+            marketing: "Mkt",
+            suporte: "Suporte",
+            financeiro: "Fin",
+            reuniao: "Reunião",
+            geral: "Geral",
+          };
+          return {
+            id: `task-${t["id"] as string}`,
+            title: `[Tarefa] ${t["title"] as string}`,
+            description: (t["description"] as string | null) ?? "",
+            event_type: "entrega",
+            channel: null,
+            status: "planejado",
+            all_day: false,
+            starts_at: startsAt,
+            ends_at: endsAt,
+            client_id: (t["client_id"] as string | null) ?? null,
+            project_id: (t["project_id"] as string | null) ?? null,
+            created_by: (t["created_by"] as string | null) ?? null,
+            created_at: t["created_at"] as string,
+            updated_at: t["updated_at"] as string,
+            client_name: categoryLabel[(t["category"] as string) ?? "geral"] ?? "Tarefa",
+            project_name: null,
+          } satisfies CalendarEvent;
+        });
+
+      setEvents([...mappedEvents, ...taskEvents]);
       setClients((clientsRes.data as CalendarClient[] | null) ?? []);
       setProjects((projectsRes.data as CalendarProject[] | null) ?? []);
       hasLoadedCalendarRef.current = true;
@@ -1200,6 +1255,11 @@ export default function AdminMarketingCalendar() {
   };
 
   const handleSelectEvent = (event: CalendarEvent) => {
+    // Virtual task events are read-only — manage them in Tarefas page
+    if (event.id.startsWith("task-")) {
+      toast.info("Esta é uma tarefa. Gerencie na página Tarefas.");
+      return;
+    }
     setEditingId(event.id);
     setSelectedDate(createDateKey(new Date(event.starts_at)));
     setForm({
@@ -1401,6 +1461,7 @@ export default function AdminMarketingCalendar() {
 
   const handleDelete = async () => {
     if (!editingId) return;
+    if (editingId.startsWith("task-")) return;
     if (!canRemoveEvent) {
       toast.error("Seu perfil nao pode remover eventos.");
       return;

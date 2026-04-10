@@ -67,18 +67,18 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Seu novo projeto "${project_name}" foi registrado no Portal Elkys.`,
       title: "Novo projeto registrado",
-      greeting: `Ola, ${firstName}!`,
+      greeting: `Olá, ${firstName}!`,
       body: `
-        <p style="margin:0 0 12px;">Um novo projeto foi vinculado a sua conta no <strong>Portal Elkys</strong>.</p>
-        <p style="margin:0 0 12px;">A partir de agora voce pode acompanhar o andamento, etapas, documentos e financeiro diretamente pelo portal.</p>
-        <p style="margin:0;">Confira os detalhes abaixo e acesse o portal para ter a visao completa do projeto.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo projeto foi vinculado à sua conta no <strong>Portal Elkys</strong>.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A partir de agora, você pode acompanhar o andamento, etapas, documentos e financeiro diretamente pelo portal — tudo centralizado e atualizado em tempo real.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Confira os detalhes abaixo e acesse o portal para ter a visão completa do seu projeto.</p>
       `,
       highlight: { title: "Detalhes do projeto", rows: highlightRows },
       button: {
-        label: "Ver meus projetos no Portal →",
+        label: "Ver meus projetos →",
         href: `${PORTAL_URL}/projetos`,
       },
-      note: "Qualquer duvida, abra um ticket de suporte pelo portal.",
+      note: "Qualquer dúvida, nossa equipe está à disposição pelo suporte do portal.",
     });
 
     const result = await sendEmail({

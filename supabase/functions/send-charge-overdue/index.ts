@@ -71,33 +71,34 @@ serve(async (req) => {
     const firstName = client.full_name.split(" ")[0];
 
     const html = buildEmail({
-      preheader: `A cobranca "${charge_description}" esta em atraso.`,
-      title: "Cobranca em atraso",
-      greeting: `Ola, ${firstName}.`,
+      preheader: `A cobrança "${charge_description}" está em atraso.`,
+      title: "Cobrança em atraso",
+      greeting: `Olá, ${firstName}.`,
       body: `
-        <p style="margin:0 0 12px;">Identificamos que a cobranca abaixo ultrapassou a data de vencimento e consta como <strong>em atraso</strong> na sua conta.</p>
-        <p style="margin:0 0 12px;">Pedimos que regularize a situacao o mais breve possivel para evitar impactos no andamento dos seus projetos.</p>
-        <p style="margin:0;">Se ja realizou o pagamento, desconsidere este aviso. Caso precise de suporte, estamos a disposicao pelo portal.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos que a cobrança abaixo ultrapassou a data de vencimento e consta como <strong>em atraso</strong> na sua conta.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Pedimos gentilmente que regularize a situação o mais breve possível para evitar impactos no andamento dos seus projetos.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Se já realizou o pagamento, desconsidere este aviso. Caso precise de suporte, estamos à disposição pelo portal.</p>
       `,
       highlight: {
-        title: "Detalhes da cobranca",
+        title: "Detalhes da cobrança",
         rows: [
-          { label: "Descricao", value: charge_description },
+          { label: "Descrição", value: charge_description },
           { label: "Valor", value: formatBRL(charge_amount) },
           { label: "Vencimento", value: formatDate(due_date) },
-          { label: "Situacao", value: "Em atraso" },
+          { label: "Situação", value: "Em atraso" },
         ],
       },
       button: {
-        label: "Ver financeiro no Portal →",
+        label: "Ver financeiro no portal →",
         href: `${PORTAL_URL}/financeiro`,
       },
-      warning: "Mantenha seus pagamentos em dia para garantir a continuidade dos servicos.",
+      warning:
+        "Mantenha seus pagamentos em dia para garantir a continuidade dos serviços sem interrupção.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Cobranca em atraso: ${charge_description}`,
+      subject: `Cobrança em atraso — ${charge_description}`,
       html,
     });
 

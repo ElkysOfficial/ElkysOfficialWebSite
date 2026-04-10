@@ -197,7 +197,7 @@ const Navigation = () => {
           <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-2">
             <img
               src={useWhiteLogo ? letteringWhite : letteringPurple}
-              alt="elkys"
+              alt="Elkys"
               width={64}
               height={32}
               className="w-16 transition-all duration-500"

@@ -46,7 +46,7 @@ const Footer = () => {
                     ? "/imgs/icons/lettering_elkys.webp"
                     : "/imgs/icons/lettering_elkys_purple.webp"
                 }
-                alt="elkys"
+                alt="Elkys"
                 width={80}
                 height={40}
                 loading="lazy"
@@ -142,7 +142,7 @@ const Footer = () => {
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground text-center md:text-left">
-              © {new Date().getFullYear()} elkys. Todos os direitos reservados.
+              © {new Date().getFullYear()} Elkys. Todos os direitos reservados.
             </div>
 
             <div className="flex flex-wrap justify-center gap-4">

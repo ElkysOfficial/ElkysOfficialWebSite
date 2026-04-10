@@ -40,32 +40,32 @@ const TYPE_OPTIONS = [
 
 const TYPE_TEMPLATES: Record<string, { title: string; body: string }> = {
   manutencao: {
-    title: "Manutenção programada -Seu site ficará temporariamente indisponível",
-    body: `Informamos que será realizada uma manutenção programada no seu site para garantir a estabilidade, segurança e desempenho da plataforma.
+    title: "Manutenção programada — Seu site ficará temporariamente indisponível",
+    body: `Gostaríamos de informar que realizaremos uma **manutenção programada** no seu site para garantir a estabilidade, segurança e desempenho da plataforma.
 
-Durante o período de manutenção, o site poderá apresentar instabilidade ou ficar temporariamente fora do ar. O procedimento está previsto para durar aproximadamente [DURAÇÃO] e será realizado em [DATA/HORÁRIO].
+Durante o período de manutenção, o site poderá apresentar instabilidade ou ficar temporariamente fora do ar. O procedimento está previsto para durar aproximadamente **[DURAÇÃO]** e será realizado em **[DATA/HORÁRIO]**.
 
-Essa ação faz parte do nosso compromisso com a qualidade e continuidade do serviço prestado. Nenhuma ação é necessária da sua parte.
+Essa ação faz parte do nosso compromisso com a qualidade do serviço. Nenhuma ação é necessária da sua parte.
 
-Caso tenha dúvidas, entre em contato pelo portal de suporte.`,
+Se tiver dúvidas, nossa equipe está disponível pelo {Suporte}.`,
   },
   atualizacao: {
-    title: "Novidades no seu projeto -Confira as últimas atualizações",
-    body: `Temos novidades para compartilhar sobre o seu projeto.
+    title: "Novidades no seu projeto — Confira as últimas atualizações",
+    body: `Temos novidades para compartilhar com você.
 
-Realizamos melhorias e atualizações que impactam diretamente a experiência, performance e funcionalidades da sua plataforma. Entre as principais mudanças estão:
+Realizamos melhorias e atualizações que impactam diretamente a experiência, performance e funcionalidades da sua plataforma:
 
 • [Descreva a atualização 1]
 • [Descreva a atualização 2]
 • [Descreva a atualização 3]
 
-Todas as alterações já estão em produção e funcionando normalmente. Você pode acompanhar os detalhes diretamente pelo portal do cliente.
+Todas as alterações já estão em produção e funcionando normalmente. Você pode acompanhar os detalhes pelo {Projetos}.
 
 Seguimos trabalhando para entregar o melhor resultado possível.`,
   },
   otimizacao: {
-    title: "Otimização em andamento -Melhorias de performance no seu site",
-    body: `Informamos que estamos realizando um processo de otimização no seu site com foco em performance, velocidade de carregamento e experiência do usuário.
+    title: "Otimização em andamento — Melhorias de performance no seu site",
+    body: `Gostaríamos de informar que estamos realizando um processo de **otimização no seu site** com foco em performance, velocidade de carregamento e experiência do usuário.
 
 As melhorias incluem:
 
@@ -74,19 +74,19 @@ As melhorias incluem:
 • Melhoria de métricas Core Web Vitals (LCP, CLS, FID)
 • Revisão de cache e compressão de arquivos
 
-Durante esse processo, o site permanece normalmente acessível. Você poderá notar melhorias graduais na velocidade de navegação nos próximos dias.
+Durante esse processo, o site permanece normalmente acessível. Você poderá notar melhorias graduais nos próximos dias.
 
-Nenhuma ação é necessária da sua parte.`,
+Nenhuma ação é necessária da sua parte. Acompanhe pelo {Portal}.`,
   },
   alerta: {
-    title: "Alerta importante -Ação necessária",
-    body: `Identificamos uma situação que requer a sua atenção em relação ao seu projeto na Elkys.
+    title: "Alerta importante — Ação necessária",
+    body: `Identificamos uma situação que requer a sua atenção em relação ao seu projeto.
 
-[Descreva o alerta e a situação identificada]
+**[Descreva o alerta e a situação identificada]**
 
-Recomendamos que você [ação recomendada] o mais breve possível para evitar impactos no funcionamento do seu serviço.
+Recomendamos que você **[ação recomendada]** o mais breve possível para evitar impactos no funcionamento do seu serviço.
 
-Caso precise de suporte, nossa equipe está disponível pelo portal do cliente ou pelos canais de atendimento habituais.
+Nossa equipe está disponível pelo {Suporte} para ajudar no que for necessário.
 
 Estamos acompanhando a situação e manteremos você informado sobre qualquer evolução.`,
   },
@@ -585,6 +585,20 @@ export default function AdminNotifications() {
                   placeholder="Escreva o conteúdo da notificação..."
                   value={watch("body") ?? ""}
                 />
+                <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground/70">Formatação:</span>{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">**texto**</code> para{" "}
+                  <strong>negrito</strong>
+                  {" · Variáveis: "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">
+                    {"{Portal}"}
+                  </code>{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">{"{Financeiro}"}</code>{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">{"{Projetos}"}</code>{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">{"{Suporte}"}</code>{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-[10px]">{"{Documentos}"}</code>
+                  {" viram links clicáveis no e-mail."}
+                </p>
                 <ErrorText className={errors.body ? "" : "invisible"}>
                   {errors.body?.message || "\u00A0"}
                 </ErrorText>
