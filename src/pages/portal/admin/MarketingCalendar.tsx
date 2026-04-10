@@ -710,6 +710,7 @@ export default function AdminMarketingCalendar() {
   const [clients, setClients] = useState<CalendarClient[]>([]);
   const [projects, setProjects] = useState<CalendarProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
