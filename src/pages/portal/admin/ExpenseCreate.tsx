@@ -113,7 +113,6 @@ type ExpenseForm = z.infer<typeof expenseSchema>;
 
 function addMonthsToIsoDate(baseDate: string, monthsToAdd: number) {
   const [year, month, day] = baseDate.split("-").map(Number);
-  const base = new Date(year, month - 1, day);
   const target = new Date(year, month - 1 + monthsToAdd, 1);
   const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
   target.setDate(Math.min(day, lastDay));

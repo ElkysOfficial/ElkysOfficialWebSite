@@ -242,8 +242,6 @@ function FinanceRevenueTab({
     filteredCharges
       .filter((c) => c.status === "pago")
       .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
-  const filteredAverage = filteredCharges.length > 0 ? filteredTotal / filteredCharges.length : 0;
-
   const startEditing = (charge: PortalCharge) => {
     setEditingChargeId(charge.id);
     setEditor(getChargeEditorFromCharge(charge));

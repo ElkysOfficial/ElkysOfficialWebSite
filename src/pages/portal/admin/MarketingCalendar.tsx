@@ -115,7 +115,6 @@ const MAX_TIMELINE_END_HOUR = 23;
 const SLOT_MINUTES = 30;
 const HOUR_HEIGHT = 56;
 const SLOT_HEIGHT = HOUR_HEIGHT / 2;
-const GOOGLE_CALENDAR_CONNECTED = false;
 
 const selectClass =
   "flex h-9 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -711,13 +710,10 @@ export default function AdminMarketingCalendar() {
   const [clients, setClients] = useState<CalendarClient[]>([]);
   const [projects, setProjects] = useState<CalendarProject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [movingEventId, setMovingEventId] = useState<string | null>(null);
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
-  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [resizingEventId, setResizingEventId] = useState<string | null>(null);
   const [resizePreviewEndAt, setResizePreviewEndAt] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);

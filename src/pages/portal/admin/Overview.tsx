@@ -1370,18 +1370,6 @@ export default function AdminOverview() {
     () => getPercentChange(summary.currentMrr, summary.previousMrr),
     [summary.currentMrr, summary.previousMrr]
   );
-  const cashChange = useMemo(
-    () => getPercentChange(summary.cashBalance, summary.previousCashBalance),
-    [summary.cashBalance, summary.previousCashBalance]
-  );
-  const clientChange = useMemo(
-    () => getPercentChange(summary.activeClients, summary.previousActiveClients),
-    [summary.activeClients, summary.previousActiveClients]
-  );
-  const projectChange = useMemo(
-    () => getPercentChange(summary.openProjects, summary.previousOpenProjects),
-    [summary.openProjects, summary.previousOpenProjects]
-  );
 
   const recurringRate = useMemo(() => {
     if (summary.activeClients === 0) return 0;
@@ -1418,9 +1406,6 @@ export default function AdminOverview() {
 
     return "Operacao estavel neste mes";
   }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
-
-  const projectExecutionCount =
-    summary.projectStatusCounts.em_andamento + summary.projectStatusCounts.negociacao;
 
   return (
     <div className="space-y-4">

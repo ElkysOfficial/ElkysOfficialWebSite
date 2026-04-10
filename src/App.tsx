@@ -36,7 +36,6 @@ const AdminProjectDetail = lazy(() => import("./pages/portal/admin/ProjectDetail
 const AdminInternalDocuments = lazy(() => import("./pages/portal/admin/InternalDocuments"));
 const AdminFinance = lazy(() => import("./pages/portal/admin/Finance"));
 const AdminExpenseCreate = lazy(() => import("./pages/portal/admin/ExpenseCreate"));
-const AdminTeam = lazy(() => import("./pages/portal/admin/Team"));
 const AdminTeamCreate = lazy(() => import("./pages/portal/admin/TeamCreate"));
 const AdminTeamEdit = lazy(() => import("./pages/portal/admin/TeamEdit"));
 const AdminSupport = lazy(() => import("./pages/portal/admin/Support"));

@@ -415,7 +415,6 @@ export default function AdminProjectDetail() {
   const [nextStepsOpen, setNextStepsOpen] = useState(false);
   const [nextStepsTab, setNextStepsTab] = useState<"pendencias" | "historico">("pendencias");
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set());
-  const [documentComposerOpen, setDocumentComposerOpen] = useState(false);
   const [projectForm, setProjectForm] = useState({
     name: "",
     solution_type: "",
@@ -1467,36 +1466,6 @@ export default function AdminProjectDetail() {
       </CardContent>
     </Card>
   );
-  const stageJourneyCard = (
-    <Card className="border-border/70 bg-card/92">
-      <CardHeader className="border-b border-border/60">
-        <CardTitle className="text-base">Jornada operacional</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 pt-5">
-        <div className="rounded-xl border border-border/50 bg-background/60 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Etapa atual
-          </p>
-          <p className="mt-1 text-base font-semibold text-foreground">{project.current_stage}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {stageMeta?.summary ??
-              "Defina uma etapa para orientar time e cliente com o mesmo marco operacional."}
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setShowStageJourney((current) => !current)}
-        >
-          {showStageJourney ? "Ocultar jornada completa" : "Ver jornada completa"}
-        </Button>
-
-        {showStageJourney ? <ProjectStageJourney currentStage={project.current_stage} /> : null}
-      </CardContent>
-    </Card>
-  );
-
   const detailsWorkspaceCard = (
     <Card className="border-border/70 bg-card/92">
       <CardHeader className="border-b border-border/60">

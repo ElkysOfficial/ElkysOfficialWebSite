@@ -202,15 +202,6 @@ export const TICKET_PRIORITY_META: Record<
   alta: { label: "Alta", tone: "destructive" },
 };
 
-export const TICKET_CATEGORY_LABEL: Record<TicketCategory, string> = {
-  bug: "Bug",
-  duvida: "Duvida",
-  acesso: "Acesso",
-  financeiro: "Financeiro",
-  conteudo: "Conteudo",
-  outro: "Outro",
-};
-
 /**
  * Maps feminine installment status to the masculine charge status (invoice_status enum).
  * Used when displaying installment data alongside charge data.
@@ -292,10 +283,6 @@ export function getProjectStatusForStage(stage?: string | null): ProjectStatus {
   return "negociacao";
 }
 
-export function getStageStatusLabel(stage?: string | null) {
-  return PROJECT_STATUS_META[getProjectStatusForStage(stage)].label;
-}
-
 export function syncProjectStatusWithStage(
   stage?: string | null,
   currentStatus?: ProjectStatus | null
@@ -305,10 +292,6 @@ export function syncProjectStatusWithStage(
   }
 
   return getProjectStatusForStage(stage);
-}
-
-export function getChargeDisplayDate(charge: Pick<PortalCharge, "due_date">) {
-  return formatPortalDate(charge.due_date);
 }
 
 /**
