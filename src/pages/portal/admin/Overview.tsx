@@ -490,7 +490,7 @@ function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
 
   return (
     <div className="h-[200px] sm:h-[240px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart
           data={data}
           margin={{ top: 12, right: 4, left: -8, bottom: 0 }}
@@ -550,7 +550,7 @@ function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
 
   return (
     <div className="h-[180px] sm:h-[220px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 0 }} barSize={20}>
           <defs>
             <linearGradient id="res-pos" x1="0" y1="0" x2="0" y2="1">
@@ -633,7 +633,7 @@ function ClientDistributionBarChart({
 
   return (
     <div className="h-[170px] sm:h-[200px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="cd-success" x1="0" y1="0" x2="0" y2="1">
@@ -706,7 +706,7 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
 
   return (
     <div className="h-[160px] sm:h-[180px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <BarChart data={data} margin={{ top: 12, right: 4, left: -4, bottom: 0 }} barSize={32}>
           <defs>
             <linearGradient id="ps-accent" x1="0" y1="0" x2="0" y2="1">
