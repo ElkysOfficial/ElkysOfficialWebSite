@@ -28,29 +28,6 @@ type PortalProject = Database["public"]["Tables"]["projects"]["Row"];
 type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
 type StatusFilter = "all" | Database["public"]["Enums"]["project_status"];
 
-function parseDateStart(value?: string | null) {
-  if (!value) return null;
-  const parsed = new Date(`${value}T00:00:00`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function parseDateEnd(value?: string | null) {
-  if (!value) return null;
-  const parsed = new Date(`${value}T23:59:59`);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function isProjectWithinContractWindow(project: PortalProject, referenceDate: Date) {
-  const startedAt = parseDateStart(project.started_at);
-  if (!startedAt || startedAt > referenceDate) return false;
-  if (project.status === "cancelado") return false;
-
-  const deliveredAt = parseDateEnd(project.delivered_at);
-  if (deliveredAt) return deliveredAt >= referenceDate;
-
-  return project.status !== "concluido";
-}
-
 /* ------------------------------------------------------------------ */
 /*  Metric tile — uniform height, Apple-style density                 */
 /* ------------------------------------------------------------------ */
@@ -259,7 +236,6 @@ export default function AdminProjects() {
   );
   const { subscriptionProjectIds, contractedValue } = useMemo(() => {
     if (!bundle) return { subscriptionProjectIds: new Set<string>(), contractedValue: 0 };
-    const projectMap = new Map(projects.map((p) => [p.id, p]));
     const latestContractByProject = new Map<
       string,
       { total_amount: number | string; status: string }
@@ -273,15 +249,9 @@ export default function AdminProjects() {
         latestContractByProject.set(contract.project_id, contract);
       }
     }
-    const today = new Date();
     const cv =
       Array.from(latestContractByProject.entries())
-        .filter(([projectId, contract]) => {
-          if (contract.status === "cancelado") return false;
-          const relatedProject = projectMap.get(projectId);
-          if (!relatedProject) return false;
-          return isProjectWithinContractWindow(relatedProject, today);
-        })
+        .filter(([, contract]) => contract.status !== "cancelado")
         .reduce((sum, [, contract]) => sum + toCents(contract.total_amount), 0) / 100;
     const subs = new Set(
       ((bundle.subscriptions as { project_id: string; status: string }[]) ?? [])
