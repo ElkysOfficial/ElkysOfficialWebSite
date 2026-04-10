@@ -24,9 +24,11 @@ export default function AdminEmptyState({
         <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary-soft text-primary dark:bg-primary/15">
           <Icon size={24} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 mx-auto">
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="max-w-md mx-auto text-sm leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         </div>
         {action}
       </CardContent>

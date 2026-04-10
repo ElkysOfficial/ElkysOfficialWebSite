@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { BarChart, CheckCircle, Clock, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import MetricTile from "@/components/portal/MetricTile";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -149,26 +150,7 @@ export default function ClientFinance() {
   const operationalItems = [...upcomingItems, ...overdueItems, ...futureItems, ...paidItems];
 
   /* ---- Loading skeleton ---- */
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-20 animate-pulse rounded-2xl border border-border/60 bg-card"
-            />
-          ))}
-        </div>
-        {Array.from({ length: 2 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-16 animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   /* ---- Error state ---- */
   if (pageError) {

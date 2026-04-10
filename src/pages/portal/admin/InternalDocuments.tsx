@@ -201,8 +201,10 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
             </CardHeader>
             <CardContent className="space-y-4 pt-5">
               <Field>
-                <Label>Nome</Label>
+                <Label htmlFor="doc_label">Nome</Label>
                 <Input
+                  id="doc_label"
+                  name="doc_label"
                   value={form.label}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, label: event.target.value }))
@@ -212,8 +214,10 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
               </Field>
 
               <Field>
-                <Label>Tipo</Label>
+                <Label htmlFor="doc_type_label">Tipo</Label>
                 <Input
+                  id="doc_type_label"
+                  name="doc_type_label"
                   value={form.type_label}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, type_label: event.target.value }))
@@ -223,8 +227,10 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
               </Field>
 
               <Field>
-                <Label>Link</Label>
+                <Label htmlFor="doc_url">Link</Label>
                 <Input
+                  id="doc_url"
+                  name="doc_url"
                   type="url"
                   value={form.url}
                   onChange={(event) =>
@@ -244,7 +250,7 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
         ) : null}
 
         {/* ── Document list ── */}
-        <div className="space-y-2">
+        <div className="space-y-2 [&>*]:h-full">
           {loading ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, index) => (

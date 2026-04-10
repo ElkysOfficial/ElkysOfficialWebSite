@@ -428,16 +428,22 @@ function FinanceRevenueTab({
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <Input
+            id="revenue_search"
+            name="revenue_search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar cobranca ou cliente..."
             className="pl-9"
+            aria-label="Buscar cobranca ou cliente"
           />
         </div>
         <select
+          id="month_filter"
+          name="month_filter"
           value={monthFilter}
           onChange={(event) => setMonthFilter(event.target.value)}
           className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
+          aria-label="Filtrar por mes"
         >
           <option value="all">Todos os meses</option>
           {monthOptions.map((monthKey) => (
@@ -447,9 +453,12 @@ function FinanceRevenueTab({
           ))}
         </select>
         <select
+          id="status_filter"
+          name="status_filter"
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value)}
           className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
+          aria-label="Filtrar por status"
         >
           <option value="all">Todos os status</option>
           {CHARGE_STATUSES.map((s) => (
@@ -502,8 +511,10 @@ function FinanceRevenueTab({
                   <div className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <Field className="md:col-span-2">
-                        <Label>Descricao</Label>
+                        <Label htmlFor="charge_description">Descricao</Label>
                         <Input
+                          id="charge_description"
+                          name="charge_description"
                           value={editor.description}
                           onChange={(event) =>
                             setEditor((current) =>
@@ -514,8 +525,10 @@ function FinanceRevenueTab({
                       </Field>
 
                       <Field>
-                        <Label>Vencimento</Label>
+                        <Label htmlFor="charge_due_date">Vencimento</Label>
                         <Input
+                          id="charge_due_date"
+                          name="charge_due_date"
                           value={editor.due_date}
                           onChange={(event) =>
                             setEditor((current) =>
@@ -530,8 +543,10 @@ function FinanceRevenueTab({
                       </Field>
 
                       <Field>
-                        <Label>Valor</Label>
+                        <Label htmlFor="charge_amount">Valor</Label>
                         <Input
+                          id="charge_amount"
+                          name="charge_amount"
                           value={editor.amount}
                           onChange={(event) =>
                             setEditor((current) =>
@@ -545,8 +560,10 @@ function FinanceRevenueTab({
                       </Field>
 
                       <Field>
-                        <Label>Status</Label>
+                        <Label htmlFor="charge_status">Status</Label>
                         <select
+                          id="charge_status"
+                          name="charge_status"
                           value={editor.status}
                           onChange={(event) =>
                             setEditor((current) =>

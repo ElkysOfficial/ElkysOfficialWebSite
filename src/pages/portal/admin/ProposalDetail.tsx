@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import {
   Button,
@@ -777,14 +778,7 @@ export default function ProposalDetail() {
 
   /* ── Render ── */
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-        <div className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import PortalLoading from "@/components/portal/PortalLoading";
 import Pagination from "@/components/portal/Pagination";
 import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
 import ProjectTimelineFeed from "@/components/portal/ProjectTimelineFeed";
@@ -266,8 +267,10 @@ function AddProjectDocumentForm({
     <div className="rounded-xl border border-border/50 bg-background/60 p-4">
       <div className="grid gap-3 sm:grid-cols-[1fr_1fr_140px_auto] sm:items-end">
         <Field>
-          <Label>Nome</Label>
+          <Label htmlFor="doc_label">Nome</Label>
           <Input
+            id="doc_label"
+            name="doc_label"
             value={label}
             onChange={(event) => setLabel(event.target.value)}
             placeholder="Ex: Briefing do projeto"
@@ -275,8 +278,10 @@ function AddProjectDocumentForm({
         </Field>
 
         <Field>
-          <Label>Link</Label>
+          <Label htmlFor="doc_url">Link</Label>
           <Input
+            id="doc_url"
+            name="doc_url"
             value={url}
             onChange={(event) => setUrl(event.target.value)}
             placeholder="https://drive.google.com/..."
@@ -284,8 +289,10 @@ function AddProjectDocumentForm({
         </Field>
 
         <Field>
-          <Label>Tipo</Label>
+          <Label htmlFor="doc_type">Tipo</Label>
           <select
+            id="doc_type"
+            name="doc_type"
             value={type}
             onChange={(event) => setType(event.target.value as DocumentType)}
             className={selectClass}
@@ -1324,18 +1331,7 @@ export default function AdminProjectDetail() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (!project || pageError) {
     return (
@@ -1648,8 +1644,10 @@ export default function AdminProjectDetail() {
       </CardHeader>
       <CardContent className="space-y-4 pt-5">
         <Field>
-          <Label>Nome do projeto</Label>
+          <Label htmlFor="proj_name">Nome do projeto</Label>
           <Input
+            id="proj_name"
+            name="proj_name"
             value={projectForm.name}
             onChange={(event) =>
               setProjectForm((current) => ({ ...current, name: event.target.value }))
@@ -1658,8 +1656,10 @@ export default function AdminProjectDetail() {
         </Field>
 
         <Field>
-          <Label>Tipo de solucao</Label>
+          <Label htmlFor="proj_solution_type">Tipo de solucao</Label>
           <Input
+            id="proj_solution_type"
+            name="proj_solution_type"
             value={projectForm.solution_type}
             onChange={(event) =>
               setProjectForm((current) => ({
@@ -1671,8 +1671,10 @@ export default function AdminProjectDetail() {
         </Field>
 
         <Field>
-          <Label>Etapa atual</Label>
+          <Label htmlFor="proj_current_stage">Etapa atual</Label>
           <select
+            id="proj_current_stage"
+            name="proj_current_stage"
             value={projectForm.current_stage}
             onChange={(event) =>
               setProjectForm((current) => ({
@@ -1704,8 +1706,10 @@ export default function AdminProjectDetail() {
         </div>
 
         <Field>
-          <Label>Status</Label>
+          <Label htmlFor="proj_status">Status</Label>
           <select
+            id="proj_status"
+            name="proj_status"
             value={projectForm.status}
             onChange={(event) =>
               setProjectForm((current) => ({
@@ -1725,8 +1729,10 @@ export default function AdminProjectDetail() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
-            <Label>Inicio</Label>
+            <Label htmlFor="proj_started_at">Inicio</Label>
             <Input
+              id="proj_started_at"
+              name="proj_started_at"
               value={projectForm.started_at}
               onChange={(event) =>
                 setProjectForm((current) => ({
@@ -1740,8 +1746,10 @@ export default function AdminProjectDetail() {
           </Field>
 
           <Field>
-            <Label>Entrega prevista</Label>
+            <Label htmlFor="proj_expected_delivery_date">Entrega prevista</Label>
             <Input
+              id="proj_expected_delivery_date"
+              name="proj_expected_delivery_date"
               value={projectForm.expected_delivery_date}
               onChange={(event) =>
                 setProjectForm((current) => ({
@@ -1756,8 +1764,10 @@ export default function AdminProjectDetail() {
         </div>
 
         <Field>
-          <Label>Entrega realizada</Label>
+          <Label htmlFor="proj_delivered_at">Entrega realizada</Label>
           <Input
+            id="proj_delivered_at"
+            name="proj_delivered_at"
             value={projectForm.delivered_at}
             onChange={(event) =>
               setProjectForm((current) => ({
@@ -1818,8 +1828,10 @@ export default function AdminProjectDetail() {
           {projectForm.has_subscription && !hasActiveManagedSubscription ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field>
-                <Label>Nome da manutencao *</Label>
+                <Label htmlFor="proj_subscription_label">Nome da manutencao *</Label>
                 <Input
+                  id="proj_subscription_label"
+                  name="proj_subscription_label"
                   value={projectForm.subscription_label}
                   onChange={(event) =>
                     setProjectForm((current) => ({
@@ -1831,8 +1843,10 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label>Valor mensal *</Label>
+                <Label htmlFor="proj_subscription_amount">Valor mensal *</Label>
                 <Input
+                  id="proj_subscription_amount"
+                  name="proj_subscription_amount"
                   value={projectForm.subscription_amount}
                   onChange={(event) =>
                     setProjectForm((current) => ({
@@ -1846,8 +1860,10 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label>Dia de vencimento *</Label>
+                <Label htmlFor="proj_subscription_due_day">Dia de vencimento *</Label>
                 <Input
+                  id="proj_subscription_due_day"
+                  name="proj_subscription_due_day"
                   type="number"
                   min={1}
                   max={31}
@@ -1862,8 +1878,10 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label>Inicio da manutencao *</Label>
+                <Label htmlFor="proj_subscription_starts_on">Inicio da manutencao *</Label>
                 <Input
+                  id="proj_subscription_starts_on"
+                  name="proj_subscription_starts_on"
                   value={projectForm.subscription_starts_on}
                   onChange={(event) =>
                     setProjectForm((current) => ({
@@ -1877,8 +1895,10 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field className="sm:col-span-2">
-                <Label>Encerramento da manutencao</Label>
+                <Label htmlFor="proj_subscription_ends_on">Encerramento da manutencao</Label>
                 <Input
+                  id="proj_subscription_ends_on"
+                  name="proj_subscription_ends_on"
                   value={projectForm.subscription_ends_on}
                   onChange={(event) =>
                     setProjectForm((current) => ({
@@ -1895,8 +1915,10 @@ export default function AdminProjectDetail() {
         </div>
 
         <Field>
-          <Label>Descricao do projeto</Label>
+          <Label htmlFor="proj_description">Descricao do projeto</Label>
           <Textarea
+            id="proj_description"
+            name="proj_description"
             rows={3}
             value={projectForm.description}
             onChange={(event) =>
@@ -1910,8 +1932,10 @@ export default function AdminProjectDetail() {
         </Field>
 
         <Field>
-          <Label>Resumo visivel para o cliente</Label>
+          <Label htmlFor="proj_client_visible_summary">Resumo visivel para o cliente</Label>
           <Textarea
+            id="proj_client_visible_summary"
+            name="proj_client_visible_summary"
             rows={5}
             value={projectForm.client_visible_summary}
             onChange={(event) =>
@@ -1924,8 +1948,10 @@ export default function AdminProjectDetail() {
         </Field>
 
         <Field>
-          <Label>Notas internas</Label>
+          <Label htmlFor="proj_internal_notes">Notas internas</Label>
           <Textarea
+            id="proj_internal_notes"
+            name="proj_internal_notes"
             rows={3}
             value={projectForm.internal_notes}
             onChange={(event) =>
@@ -2016,6 +2042,9 @@ export default function AdminProjectDetail() {
                   >
                     <div className="flex items-start gap-3">
                       <Input
+                        id={`step_title_${step.id}`}
+                        name="step_title"
+                        aria-label="Titulo da pendencia"
                         value={form.title}
                         onChange={(event) =>
                           setNextStepForms((current) => ({
@@ -2033,8 +2062,10 @@ export default function AdminProjectDetail() {
 
                     <div className="mt-3 grid gap-3 sm:grid-cols-3">
                       <Field>
-                        <Label>Responsavel</Label>
+                        <Label htmlFor={`step_owner_${step.id}`}>Responsavel</Label>
                         <select
+                          id={`step_owner_${step.id}`}
+                          name="step_owner"
                           value={form.owner}
                           onChange={(event) =>
                             setNextStepForms((current) => ({
@@ -2056,8 +2087,10 @@ export default function AdminProjectDetail() {
                       </Field>
 
                       <Field>
-                        <Label>Status</Label>
+                        <Label htmlFor={`step_status_${step.id}`}>Status</Label>
                         <select
+                          id={`step_status_${step.id}`}
+                          name="step_status"
                           value={form.status}
                           onChange={(event) =>
                             setNextStepForms((current) => ({
@@ -2079,8 +2112,10 @@ export default function AdminProjectDetail() {
                       </Field>
 
                       <Field>
-                        <Label>Vencimento</Label>
+                        <Label htmlFor={`step_due_date_${step.id}`}>Vencimento</Label>
                         <Input
+                          id={`step_due_date_${step.id}`}
+                          name="step_due_date"
                           value={form.due_date}
                           onChange={(event) =>
                             setNextStepForms((current) => ({
@@ -2098,8 +2133,10 @@ export default function AdminProjectDetail() {
                     </div>
 
                     <Field className="mt-3">
-                      <Label>Descricao</Label>
+                      <Label htmlFor={`step_description_${step.id}`}>Descricao</Label>
                       <Textarea
+                        id={`step_description_${step.id}`}
+                        name="step_description"
                         rows={2}
                         value={form.description}
                         onChange={(event) =>
@@ -2213,8 +2250,10 @@ export default function AdminProjectDetail() {
 
               <div className="grid gap-3">
                 <Field>
-                  <Label>Titulo</Label>
+                  <Label htmlFor="new_step_title">Titulo</Label>
                   <Input
+                    id="new_step_title"
+                    name="new_step_title"
                     value={newNextStepForm.title}
                     onChange={(event) =>
                       setNewNextStepForm((current) => ({
@@ -2227,8 +2266,10 @@ export default function AdminProjectDetail() {
 
                 <div className="grid gap-3 sm:grid-cols-4">
                   <Field>
-                    <Label>Tipo</Label>
+                    <Label htmlFor="new_step_action_type">Tipo</Label>
                     <select
+                      id="new_step_action_type"
+                      name="new_step_action_type"
                       value={newNextStepForm.action_type}
                       onChange={(event) =>
                         setNewNextStepForm((current) => ({
@@ -2247,8 +2288,10 @@ export default function AdminProjectDetail() {
                   </Field>
 
                   <Field>
-                    <Label>Responsavel</Label>
+                    <Label htmlFor="new_step_owner">Responsavel</Label>
                     <select
+                      id="new_step_owner"
+                      name="new_step_owner"
                       value={newNextStepForm.owner}
                       onChange={(event) =>
                         setNewNextStepForm((current) => ({
@@ -2267,8 +2310,10 @@ export default function AdminProjectDetail() {
                   </Field>
 
                   <Field>
-                    <Label>Status</Label>
+                    <Label htmlFor="new_step_status">Status</Label>
                     <select
+                      id="new_step_status"
+                      name="new_step_status"
                       value={newNextStepForm.status}
                       onChange={(event) =>
                         setNewNextStepForm((current) => ({
@@ -2287,8 +2332,10 @@ export default function AdminProjectDetail() {
                   </Field>
 
                   <Field>
-                    <Label>Vencimento</Label>
+                    <Label htmlFor="new_step_due_date">Vencimento</Label>
                     <Input
+                      id="new_step_due_date"
+                      name="new_step_due_date"
                       value={newNextStepForm.due_date}
                       onChange={(event) =>
                         setNewNextStepForm((current) => ({
@@ -2304,8 +2351,10 @@ export default function AdminProjectDetail() {
 
                 {newNextStepForm.action_type === "reuniao" && (
                   <Field>
-                    <Label>Link da reunião (opcional)</Label>
+                    <Label htmlFor="new_step_meeting_link">Link da reunião (opcional)</Label>
                     <Input
+                      id="new_step_meeting_link"
+                      name="new_step_meeting_link"
                       value={newNextStepForm.meeting_link}
                       onChange={(event) =>
                         setNewNextStepForm((current) => ({
@@ -2322,8 +2371,10 @@ export default function AdminProjectDetail() {
                 )}
 
                 <Field>
-                  <Label>Descricao</Label>
+                  <Label htmlFor="new_step_description">Descricao</Label>
                   <Textarea
+                    id="new_step_description"
+                    name="new_step_description"
                     rows={2}
                     value={newNextStepForm.description}
                     onChange={(event) =>
@@ -2581,6 +2632,9 @@ export default function AdminProjectDetail() {
                       </p>
                     </div>
                     <select
+                      id={`subscription_status_${subscription.id}`}
+                      name="subscription_status"
+                      aria-label="Status da assinatura"
                       value={subscription.status}
                       onChange={async (e) => {
                         const next = e.target.value;
@@ -2642,6 +2696,9 @@ export default function AdminProjectDetail() {
                         {formatBRL(Number(item.amount))}
                       </p>
                       <select
+                        id={`charge_status_${item.id}`}
+                        name="charge_status"
+                        aria-label="Status da cobranca"
                         value={item.statusKey}
                         onChange={async (e) => {
                           const next = e.target.value as typeof item.statusKey;
@@ -2749,6 +2806,9 @@ export default function AdminProjectDetail() {
 
                 <div className="mt-3 flex items-center gap-2">
                   <select
+                    id={`installment_status_${installment.id}`}
+                    name="installment_status"
+                    aria-label="Status da parcela"
                     value={draft.status}
                     onChange={(event) =>
                       setInstallmentForms((current) => ({

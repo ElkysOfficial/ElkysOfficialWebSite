@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { AgileMono, Clock, FileText, Shield, Target } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,23 +101,6 @@ const PROPOSAL_STATUS_TONE: Record<string, "accent" | "success"> = {
   enviada: "accent",
   aprovada: "success",
 };
-
-/* ------------------------------------------------------------------ */
-/*  Skeleton                                                           */
-/* ------------------------------------------------------------------ */
-
-function Skeleton() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70"
-        />
-      ))}
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Card components                                                    */
@@ -338,7 +322,7 @@ export default function Pipeline() {
 
   const totalCount = items.length;
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

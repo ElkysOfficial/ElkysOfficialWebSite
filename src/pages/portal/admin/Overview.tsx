@@ -15,6 +15,8 @@ import {
 
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
+import useMinLoading from "@/hooks/useMinLoading";
 import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -756,6 +758,7 @@ export default function AdminOverview() {
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinLoading(loading && !hasLoaded);
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = useCallback(
@@ -1126,11 +1129,18 @@ export default function AdminOverview() {
         const d = parseDateValue(e.expense_date);
         return d && d >= sixMonthsAgo;
       });
-      const recentMonthCount = Math.min(6, monthlySeries.length || 1);
+      const uniqueExpenseMonths = new Set(
+        recentExpenses
+          .map((e) => {
+            const d = parseDateValue(e.expense_date);
+            return d ? `${d.getFullYear()}-${d.getMonth()}` : null;
+          })
+          .filter(Boolean)
+      );
       const burnRate =
         recentExpenses.reduce((sum, e) => sum + toCents(e.amount), 0) /
         100 /
-        Math.max(recentMonthCount, 1);
+        Math.max(uniqueExpenseMonths.size, 1);
 
       // Operational margin: (cashIn - cashOut) / cashIn for current period
       const currentMonthCashIn = monthlySeries[monthlySeries.length - 1]?.cashIn ?? 0;
@@ -1406,8 +1416,8 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-4">
-      {loading && !hasLoaded ? (
-        <OverviewSkeleton />
+      {showLoading ? (
+        <PortalLoading />
       ) : error ? (
         <AdminEmptyState
           icon={TrendingUp}
@@ -1503,7 +1513,7 @@ export default function AdminOverview() {
               label="Saldo operacional"
               value={formatBRL(summary.cashBalance)}
               subInfo={`Mes em ${getSignedCurrency(summary.currentMonthNet)}`}
-              tone={summary.currentMonthNet >= 0 ? "success" : "destructive"}
+              tone={summary.cashBalance >= 0 ? "success" : "destructive"}
             />
 
             <SurfaceStat

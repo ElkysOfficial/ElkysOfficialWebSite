@@ -3,6 +3,8 @@ import { toast } from "sonner";
 
 import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
+import useMinLoading from "@/hooks/useMinLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,6 +133,7 @@ export default function AdminSupport() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinLoading(loading && !hasLoaded);
   const [pageError, setPageError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -595,15 +598,8 @@ export default function AdminSupport() {
       </div>
 
       {/* Ticket list */}
-      {loading && !hasLoaded ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-            />
-          ))}
-        </div>
+      {showLoading ? (
+        <PortalLoading />
       ) : pageError ? (
         <AdminEmptyState
           icon={Headphones}

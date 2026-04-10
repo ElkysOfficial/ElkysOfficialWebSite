@@ -774,8 +774,10 @@ export default function AdminProjectCreate() {
           {step === 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               <Field className="md:col-span-2">
-                <Label>Cliente *</Label>
+                <Label htmlFor="client_id">Cliente *</Label>
                 <select
+                  id="client_id"
+                  name="client_id"
                   value={form.client_id}
                   onChange={(event) => setField("client_id", event.target.value)}
                   className={selectClass}
@@ -799,8 +801,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Tipo de solucao *</Label>
+                <Label htmlFor="solution_type">Tipo de solucao *</Label>
                 <Input
+                  id="solution_type"
+                  name="solution_type"
                   value={form.solution_type}
                   onChange={(event) => setField("solution_type", event.target.value)}
                   placeholder="Ex: Site institucional, chatbot, landing page"
@@ -818,8 +822,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Etapa atual *</Label>
+                <Label htmlFor="current_stage">Etapa atual *</Label>
                 <select
+                  id="current_stage"
+                  name="current_stage"
                   value={form.current_stage}
                   onChange={(event) =>
                     setForm((current) => ({
@@ -842,8 +848,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Inicio</Label>
+                <Label htmlFor="started_at">Inicio</Label>
                 <Input
+                  id="started_at"
+                  name="started_at"
                   value={form.started_at}
                   onChange={(event) => setField("started_at", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -852,8 +860,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Entrega prevista</Label>
+                <Label htmlFor="expected_delivery_date">Entrega prevista</Label>
                 <Input
+                  id="expected_delivery_date"
+                  name="expected_delivery_date"
                   value={form.expected_delivery_date}
                   onChange={(event) =>
                     setField("expected_delivery_date", maskDate(event.target.value))
@@ -890,8 +900,10 @@ export default function AdminProjectCreate() {
 
               {form.is_retroactive ? (
                 <Field>
-                  <Label>Data real de entrega</Label>
+                  <Label htmlFor="delivered_at">Data real de entrega</Label>
                   <Input
+                    id="delivered_at"
+                    name="delivered_at"
                     value={form.delivered_at}
                     onChange={(event) => setField("delivered_at", maskDate(event.target.value))}
                     placeholder="DD/MM/AAAA"
@@ -930,8 +942,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field className="md:col-span-2">
-                <Label>Resumo interno do projeto</Label>
+                <Label htmlFor="summary">Resumo interno do projeto</Label>
                 <Textarea
+                  id="summary"
+                  name="summary"
                   value={form.summary}
                   onChange={(event) => setField("summary", event.target.value)}
                   rows={4}
@@ -964,8 +978,10 @@ export default function AdminProjectCreate() {
               </div>
 
               <Field>
-                <Label>Valor total do contrato *</Label>
+                <Label htmlFor="total_amount">Valor total do contrato *</Label>
                 <Input
+                  id="total_amount"
+                  name="total_amount"
                   value={form.total_amount}
                   onChange={(event) => setField("total_amount", maskCurrency(event.target.value))}
                   placeholder="R$ 0,00"
@@ -974,8 +990,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Data da assinatura</Label>
+                <Label htmlFor="signed_at">Data da assinatura</Label>
                 <Input
+                  id="signed_at"
+                  name="signed_at"
                   value={form.signed_at}
                   onChange={(event) => setField("signed_at", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -984,8 +1002,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Inicio contratual</Label>
+                <Label htmlFor="contract_starts_at">Inicio contratual</Label>
                 <Input
+                  id="contract_starts_at"
+                  name="contract_starts_at"
                   value={form.contract_starts_at}
                   onChange={(event) => setField("contract_starts_at", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -994,8 +1014,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Fim contratual</Label>
+                <Label htmlFor="contract_ends_at">Fim contratual</Label>
                 <Input
+                  id="contract_ends_at"
+                  name="contract_ends_at"
                   value={form.contract_ends_at}
                   onChange={(event) => setField("contract_ends_at", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -1004,8 +1026,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field className="md:col-span-2">
-                <Label>Escopo resumido</Label>
+                <Label htmlFor="scope_summary">Escopo resumido</Label>
                 <Textarea
+                  id="scope_summary"
+                  name="scope_summary"
                   value={form.scope_summary}
                   onChange={(event) => setField("scope_summary", event.target.value)}
                   rows={4}
@@ -1014,8 +1038,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Percentual de entrada *</Label>
+                <Label htmlFor="entry_percentage">Percentual de entrada *</Label>
                 <Input
+                  id="entry_percentage"
+                  name="entry_percentage"
                   value={form.entry_percentage}
                   onChange={(event) => {
                     const nextEntry = sanitizePercentageValue(event.target.value);
@@ -1033,8 +1059,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Percentual de entrega *</Label>
+                <Label htmlFor="delivery_percentage">Percentual de entrega *</Label>
                 <Input
+                  id="delivery_percentage"
+                  name="delivery_percentage"
                   value={form.delivery_percentage}
                   onChange={(event) => {
                     const nextDelivery = sanitizePercentageValue(event.target.value);
@@ -1052,8 +1080,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Vencimento da entrada *</Label>
+                <Label htmlFor="entry_due_date">Vencimento da entrada *</Label>
                 <Input
+                  id="entry_due_date"
+                  name="entry_due_date"
                   value={form.entry_due_date}
                   onChange={(event) => setField("entry_due_date", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -1062,8 +1092,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Vencimento da entrega *</Label>
+                <Label htmlFor="delivery_due_date">Vencimento da entrega *</Label>
                 <Input
+                  id="delivery_due_date"
+                  name="delivery_due_date"
                   value={form.delivery_due_date}
                   onChange={(event) => setField("delivery_due_date", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -1116,16 +1148,20 @@ export default function AdminProjectCreate() {
               {form.has_subscription ? (
                 <>
                   <Field>
-                    <Label>Nome da assinatura *</Label>
+                    <Label htmlFor="subscription_label">Nome da assinatura *</Label>
                     <Input
+                      id="subscription_label"
+                      name="subscription_label"
                       value={form.subscription_label}
                       onChange={(event) => setField("subscription_label", event.target.value)}
                     />
                   </Field>
 
                   <Field>
-                    <Label>Valor mensal *</Label>
+                    <Label htmlFor="subscription_amount">Valor mensal *</Label>
                     <Input
+                      id="subscription_amount"
+                      name="subscription_amount"
                       value={form.subscription_amount}
                       onChange={(event) =>
                         setField("subscription_amount", maskCurrency(event.target.value))
@@ -1136,8 +1172,10 @@ export default function AdminProjectCreate() {
                   </Field>
 
                   <Field>
-                    <Label>Dia de vencimento *</Label>
+                    <Label htmlFor="subscription_due_day">Dia de vencimento *</Label>
                     <Input
+                      id="subscription_due_day"
+                      name="subscription_due_day"
                       type="number"
                       min={1}
                       max={31}
@@ -1147,8 +1185,10 @@ export default function AdminProjectCreate() {
                   </Field>
 
                   <Field>
-                    <Label>Inicio da assinatura</Label>
+                    <Label htmlFor="subscription_starts_on">Inicio da assinatura</Label>
                     <Input
+                      id="subscription_starts_on"
+                      name="subscription_starts_on"
                       value={form.subscription_starts_on}
                       onChange={(event) =>
                         setField("subscription_starts_on", maskDate(event.target.value))
@@ -1161,8 +1201,10 @@ export default function AdminProjectCreate() {
               ) : null}
 
               <Field className="md:col-span-2">
-                <Label>Resumo visivel para o cliente</Label>
+                <Label htmlFor="client_visible_summary">Resumo visivel para o cliente</Label>
                 <Textarea
+                  id="client_visible_summary"
+                  name="client_visible_summary"
                   value={form.client_visible_summary}
                   onChange={(event) => setField("client_visible_summary", event.target.value)}
                   rows={4}
@@ -1171,8 +1213,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Proximo passo inicial</Label>
+                <Label htmlFor="next_step_title">Proximo passo inicial</Label>
                 <Input
+                  id="next_step_title"
+                  name="next_step_title"
                   value={form.next_step_title}
                   onChange={(event) => setField("next_step_title", event.target.value)}
                   placeholder="Ex: Aguardar briefing final do cliente"
@@ -1180,8 +1224,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Responsavel pelo passo</Label>
+                <Label htmlFor="next_step_owner">Responsavel pelo passo</Label>
                 <select
+                  id="next_step_owner"
+                  name="next_step_owner"
                   value={form.next_step_owner}
                   onChange={(event) =>
                     setField("next_step_owner", event.target.value as NextStepOwner)
@@ -1195,8 +1241,10 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field className="md:col-span-2">
-                <Label>Descricao do proximo passo</Label>
+                <Label htmlFor="next_step_description">Descricao do proximo passo</Label>
                 <Textarea
+                  id="next_step_description"
+                  name="next_step_description"
                   value={form.next_step_description}
                   onChange={(event) => setField("next_step_description", event.target.value)}
                   rows={3}

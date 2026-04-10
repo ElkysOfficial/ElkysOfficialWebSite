@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { Building2, CheckCircle } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
@@ -467,8 +468,10 @@ function GeneralClientForm({
         <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)}>
           <div className="grid gap-4 md:grid-cols-2">
             <Field className="md:col-span-2">
-              <Label>Tipo de cliente</Label>
+              <Label htmlFor="client_type">Tipo de cliente</Label>
               <select
+                id="client_type"
+                name="client_type"
                 value={form.client_type}
                 onChange={(event) => setField("client_type", event.target.value as ClientType)}
                 className={selectClass}
@@ -479,8 +482,10 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>Nome completo / representante</Label>
+              <Label htmlFor="full_name">Nome completo / representante</Label>
               <Input
+                id="full_name"
+                name="full_name"
                 value={form.full_name}
                 onChange={(event) => setField("full_name", event.target.value)}
               />
@@ -490,8 +495,10 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>E-mail</Label>
+              <Label htmlFor="email">E-mail</Label>
               <Input
+                id="email"
+                name="email"
                 type="email"
                 value={form.email}
                 onChange={(event) => setField("email", event.target.value)}
@@ -502,8 +509,10 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>Telefone</Label>
+              <Label htmlFor="phone">Telefone</Label>
               <Input
+                id="phone"
+                name="phone"
                 value={form.phone}
                 onChange={(event) => setField("phone", maskPhone(event.target.value))}
                 placeholder="(31) 99999-9999"
@@ -514,8 +523,10 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>CPF</Label>
+              <Label htmlFor="cpf">CPF</Label>
               <Input
+                id="cpf"
+                name="cpf"
                 value={form.cpf}
                 onChange={(event) => setField("cpf", maskCPF(event.target.value))}
                 placeholder="000.000.000-00"
@@ -528,8 +539,10 @@ function GeneralClientForm({
             {form.client_type === "pj" ? (
               <>
                 <Field>
-                  <Label>CNPJ</Label>
+                  <Label htmlFor="cnpj">CNPJ</Label>
                   <Input
+                    id="cnpj"
+                    name="cnpj"
                     value={form.cnpj}
                     onChange={(event) => setField("cnpj", maskCNPJ(event.target.value))}
                     placeholder="00.000.000/0000-00"
@@ -540,8 +553,10 @@ function GeneralClientForm({
                 </Field>
 
                 <Field>
-                  <Label>Razão social</Label>
+                  <Label htmlFor="razao_social">Razão social</Label>
                   <Input
+                    id="razao_social"
+                    name="razao_social"
                     value={form.razao_social}
                     onChange={(event) => setField("razao_social", event.target.value)}
                   />
@@ -551,16 +566,20 @@ function GeneralClientForm({
                 </Field>
 
                 <Field>
-                  <Label>Nome fantasia</Label>
+                  <Label htmlFor="nome_fantasia">Nome fantasia</Label>
                   <Input
+                    id="nome_fantasia"
+                    name="nome_fantasia"
                     value={form.nome_fantasia}
                     onChange={(event) => setField("nome_fantasia", event.target.value)}
                   />
                 </Field>
 
                 <Field>
-                  <Label>Cargo do representante</Label>
+                  <Label htmlFor="cargo_representante">Cargo do representante</Label>
                   <Input
+                    id="cargo_representante"
+                    name="cargo_representante"
                     value={form.cargo_representante}
                     onChange={(event) => setField("cargo_representante", event.target.value)}
                   />
@@ -571,8 +590,10 @@ function GeneralClientForm({
 
           <div className="grid gap-4 md:grid-cols-2">
             <Field>
-              <Label>CEP{cepLoading ? " - buscando..." : ""}</Label>
+              <Label htmlFor="cep">CEP{cepLoading ? " - buscando..." : ""}</Label>
               <Input
+                id="cep"
+                name="cep"
                 value={form.cep}
                 onChange={(event) => setField("cep", maskCEP(event.target.value))}
                 placeholder="00000-000"
@@ -583,45 +604,60 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>Logradouro</Label>
+              <Label htmlFor="logradouro">Logradouro</Label>
               <Input
+                id="logradouro"
+                name="logradouro"
                 value={form.logradouro}
                 onChange={(event) => setField("logradouro", event.target.value)}
               />
             </Field>
 
             <Field>
-              <Label>Número</Label>
+              <Label htmlFor="numero">Número</Label>
               <Input
+                id="numero"
+                name="numero"
                 value={form.numero}
                 onChange={(event) => setField("numero", event.target.value)}
               />
             </Field>
 
             <Field>
-              <Label>Complemento</Label>
+              <Label htmlFor="complemento">Complemento</Label>
               <Input
+                id="complemento"
+                name="complemento"
                 value={form.complemento}
                 onChange={(event) => setField("complemento", event.target.value)}
               />
             </Field>
 
             <Field>
-              <Label>Bairro</Label>
+              <Label htmlFor="bairro">Bairro</Label>
               <Input
+                id="bairro"
+                name="bairro"
                 value={form.bairro}
                 onChange={(event) => setField("bairro", event.target.value)}
               />
             </Field>
 
             <Field>
-              <Label>Cidade</Label>
-              <Input value={form.city} onChange={(event) => setField("city", event.target.value)} />
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                name="city"
+                value={form.city}
+                onChange={(event) => setField("city", event.target.value)}
+              />
             </Field>
 
             <Field>
-              <Label>Estado</Label>
+              <Label htmlFor="state">Estado</Label>
               <Input
+                id="state"
+                name="state"
                 value={form.state}
                 onChange={(event) => setField("state", event.target.value.toUpperCase())}
                 maxLength={2}
@@ -629,8 +665,10 @@ function GeneralClientForm({
             </Field>
 
             <Field>
-              <Label>País</Label>
+              <Label htmlFor="country">País</Label>
               <Input
+                id="country"
+                name="country"
                 value={form.country}
                 onChange={(event) => setField("country", event.target.value)}
               />
@@ -745,8 +783,10 @@ function ContractClientForm({
         <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)}>
           <div className="grid gap-4 md:grid-cols-2">
             <Field>
-              <Label>Valor mensal</Label>
+              <Label htmlFor="monthly_value">Valor mensal</Label>
               <Input
+                id="monthly_value"
+                name="monthly_value"
                 value={form.monthly_value}
                 onChange={(event) => setField("monthly_value", maskCurrency(event.target.value))}
                 placeholder="R$ 0,00"
@@ -757,8 +797,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Valor total do projeto</Label>
+              <Label htmlFor="project_total_value">Valor total do projeto</Label>
               <Input
+                id="project_total_value"
+                name="project_total_value"
                 value={form.project_total_value}
                 onChange={(event) =>
                   setField("project_total_value", maskCurrency(event.target.value))
@@ -771,8 +813,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Cliente desde</Label>
+              <Label htmlFor="client_since">Cliente desde</Label>
               <Input
+                id="client_since"
+                name="client_since"
                 value={form.client_since}
                 onChange={(event) => setField("client_since", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
@@ -783,8 +827,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Dia de vencimento</Label>
+              <Label htmlFor="payment_due_day">Dia de vencimento</Label>
               <Input
+                id="payment_due_day"
+                name="payment_due_day"
                 type="number"
                 min={1}
                 max={31}
@@ -798,8 +844,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Status do contrato</Label>
+              <Label htmlFor="contract_status">Status do contrato</Label>
               <select
+                id="contract_status"
+                name="contract_status"
                 value={form.contract_status}
                 onChange={(event) =>
                   setField("contract_status", event.target.value as ContractStatus | "")
@@ -814,8 +862,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Tipo de contrato</Label>
+              <Label htmlFor="contract_type">Tipo de contrato</Label>
               <select
+                id="contract_type"
+                name="contract_type"
                 value={form.contract_type}
                 onChange={(event) =>
                   setField("contract_type", event.target.value as ContractType | "")
@@ -830,8 +880,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Origem</Label>
+              <Label htmlFor="client_origin">Origem</Label>
               <select
+                id="client_origin"
+                name="client_origin"
                 value={form.client_origin}
                 onChange={(event) =>
                   setField("client_origin", event.target.value as ClientOrigin | "")
@@ -846,8 +898,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Início do contrato</Label>
+              <Label htmlFor="contract_start">Início do contrato</Label>
               <Input
+                id="contract_start"
+                name="contract_start"
                 value={form.contract_start}
                 onChange={(event) => setField("contract_start", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
@@ -858,8 +912,10 @@ function ContractClientForm({
             </Field>
 
             <Field>
-              <Label>Fim do contrato</Label>
+              <Label htmlFor="contract_end">Fim do contrato</Label>
               <Input
+                id="contract_end"
+                name="contract_end"
                 value={form.contract_end}
                 onChange={(event) => setField("contract_end", maskDate(event.target.value))}
                 placeholder="DD/MM/AAAA"
@@ -870,8 +926,10 @@ function ContractClientForm({
             </Field>
 
             <Field className="md:col-span-2">
-              <Label>Tags</Label>
+              <Label htmlFor="tags_input">Tags</Label>
               <Input
+                id="tags_input"
+                name="tags_input"
                 value={form.tags_input}
                 onChange={(event) => setField("tags_input", event.target.value)}
                 placeholder="vip, recorrente, parceiro estratégico"
@@ -879,8 +937,10 @@ function ContractClientForm({
             </Field>
 
             <Field className="md:col-span-2">
-              <Label>Escopo resumido</Label>
+              <Label htmlFor="scope_summary">Escopo resumido</Label>
               <Textarea
+                id="scope_summary"
+                name="scope_summary"
                 value={form.scope_summary}
                 onChange={(event) => setField("scope_summary", event.target.value)}
                 rows={4}
@@ -1260,18 +1320,7 @@ export default function AdminClientDetail() {
     { key: "timeline", label: "Timeline" },
   ];
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (!client) {
     return (

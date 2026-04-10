@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -101,22 +102,6 @@ function computePeriodDates(
     start: `${year}-01-01`,
     end: `${year}-12-31`,
   };
-}
-
-function Skeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-28 animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-      <div className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-    </div>
-  );
 }
 
 export default function FinanceGoals() {
@@ -289,7 +274,7 @@ export default function FinanceGoals() {
     setShowForm(true);
   };
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

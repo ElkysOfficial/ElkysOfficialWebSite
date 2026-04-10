@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { ArrowLeft, ArrowRight, Clock, Globe, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { Button, Card, CardContent, Field, Input, Label, Textarea, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -1499,28 +1500,7 @@ export default function AdminMarketingCalendar() {
     toast("Google Agenda ainda nao esta configurada neste workspace.");
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-40 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-24 animate-pulse rounded-2xl border border-border/60 bg-card/70"
-            />
-          ))}
-        </div>
-        <div className="grid gap-4 xl:grid-cols-12">
-          <div className="h-[760px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-8" />
-          <div className="space-y-4 xl:col-span-4">
-            <div className="h-72 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-            <div className="h-[460px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (pageError) {
     return (

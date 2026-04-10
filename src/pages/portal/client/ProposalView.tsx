@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { CheckCircle, ExternalLink, FileText, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import {
   Button,
@@ -215,14 +216,7 @@ export default function ProposalView() {
     void loadProposal();
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-12 animate-pulse rounded-xl border border-border/50 bg-card/60" />
-        <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (pageError) {
     return (

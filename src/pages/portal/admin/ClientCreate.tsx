@@ -395,8 +395,10 @@ export default function AdminClientCreate() {
           {step === 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               <Field className="md:col-span-2">
-                <Label>Tipo de cliente</Label>
+                <Label htmlFor="client_type">Tipo de cliente</Label>
                 <select
+                  id="client_type"
+                  name="client_type"
                   value={form.client_type}
                   onChange={(event) => setField("client_type", event.target.value as ClientType)}
                   className={selectClass}
@@ -407,30 +409,38 @@ export default function AdminClientCreate() {
               </Field>
 
               <Field>
-                <Label>Contato principal *</Label>
+                <Label htmlFor="full_name">Contato principal *</Label>
                 <Input
+                  id="full_name"
+                  name="full_name"
                   value={form.full_name}
                   onChange={(event) => setField("full_name", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>E-mail *</Label>
+                <Label htmlFor="email">E-mail *</Label>
                 <Input
+                  id="email"
+                  name="email"
                   type="email"
                   value={form.email}
                   onChange={(event) => setField("email", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Telefone *</Label>
+                <Label htmlFor="phone">Telefone *</Label>
                 <Input
+                  id="phone"
+                  name="phone"
                   value={form.phone}
                   onChange={(event) => setField("phone", maskPhone(event.target.value))}
                 />
               </Field>
               <Field>
-                <Label>CPF do representante *</Label>
+                <Label htmlFor="cpf">CPF do representante *</Label>
                 <Input
+                  id="cpf"
+                  name="cpf"
                   value={form.cpf}
                   onChange={(event) => setField("cpf", maskCPF(event.target.value))}
                 />
@@ -439,29 +449,37 @@ export default function AdminClientCreate() {
               {form.client_type === "pj" ? (
                 <>
                   <Field>
-                    <Label>CNPJ *</Label>
+                    <Label htmlFor="cnpj">CNPJ *</Label>
                     <Input
+                      id="cnpj"
+                      name="cnpj"
                       value={form.cnpj}
                       onChange={(event) => setField("cnpj", maskCNPJ(event.target.value))}
                     />
                   </Field>
                   <Field>
-                    <Label>Razao social *</Label>
+                    <Label htmlFor="razao_social">Razao social *</Label>
                     <Input
+                      id="razao_social"
+                      name="razao_social"
                       value={form.razao_social}
                       onChange={(event) => setField("razao_social", event.target.value)}
                     />
                   </Field>
                   <Field>
-                    <Label>Nome fantasia</Label>
+                    <Label htmlFor="nome_fantasia">Nome fantasia</Label>
                     <Input
+                      id="nome_fantasia"
+                      name="nome_fantasia"
                       value={form.nome_fantasia}
                       onChange={(event) => setField("nome_fantasia", event.target.value)}
                     />
                   </Field>
                   <Field>
-                    <Label>Cargo do representante</Label>
+                    <Label htmlFor="cargo_representante">Cargo do representante</Label>
                     <Input
+                      id="cargo_representante"
+                      name="cargo_representante"
                       value={form.cargo_representante}
                       onChange={(event) => setField("cargo_representante", event.target.value)}
                     />
@@ -474,58 +492,74 @@ export default function AdminClientCreate() {
           {step === 1 ? (
             <div className="grid gap-4 md:grid-cols-2">
               <Field>
-                <Label>CEP{cepLoading ? " - buscando..." : ""}</Label>
+                <Label htmlFor="cep">CEP{cepLoading ? " - buscando..." : ""}</Label>
                 <Input
+                  id="cep"
+                  name="cep"
                   value={form.cep}
                   onChange={(event) => setField("cep", maskCEP(event.target.value))}
                   placeholder="00000-000"
                 />
               </Field>
               <Field>
-                <Label>Logradouro</Label>
+                <Label htmlFor="logradouro">Logradouro</Label>
                 <Input
+                  id="logradouro"
+                  name="logradouro"
                   value={form.logradouro}
                   onChange={(event) => setField("logradouro", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Numero</Label>
+                <Label htmlFor="numero">Numero</Label>
                 <Input
+                  id="numero"
+                  name="numero"
                   value={form.numero}
                   onChange={(event) => setField("numero", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Complemento</Label>
+                <Label htmlFor="complemento">Complemento</Label>
                 <Input
+                  id="complemento"
+                  name="complemento"
                   value={form.complemento}
                   onChange={(event) => setField("complemento", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Bairro</Label>
+                <Label htmlFor="bairro">Bairro</Label>
                 <Input
+                  id="bairro"
+                  name="bairro"
                   value={form.bairro}
                   onChange={(event) => setField("bairro", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Cidade</Label>
+                <Label htmlFor="city">Cidade</Label>
                 <Input
+                  id="city"
+                  name="city"
                   value={form.city}
                   onChange={(event) => setField("city", event.target.value)}
                 />
               </Field>
               <Field>
-                <Label>Estado</Label>
+                <Label htmlFor="state">Estado</Label>
                 <Input
+                  id="state"
+                  name="state"
                   value={form.state}
                   onChange={(event) => setField("state", event.target.value.toUpperCase())}
                 />
               </Field>
               <Field>
-                <Label>Cliente desde</Label>
+                <Label htmlFor="client_since">Cliente desde</Label>
                 <Input
+                  id="client_since"
+                  name="client_since"
                   value={form.client_since}
                   onChange={(event) => setField("client_since", maskDate(event.target.value))}
                   placeholder="DD/MM/AAAA"
@@ -533,8 +567,10 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field className="md:col-span-2">
-                <Label>Observacoes internas</Label>
+                <Label htmlFor="notes_internal">Observacoes internas</Label>
                 <Textarea
+                  id="notes_internal"
+                  name="notes_internal"
                   rows={4}
                   value={form.notes_internal}
                   onChange={(event) => setField("notes_internal", event.target.value)}

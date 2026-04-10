@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,18 +77,7 @@ export default function ClientProposals() {
     };
   }, [user?.id]);
 
-  if (loading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-24 animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (pageError) {
     return (

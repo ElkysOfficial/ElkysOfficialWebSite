@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { Folder } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,18 +98,7 @@ export default function ClientProjects() {
     return orderedProjects;
   }, [orderedProjects, tab]);
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-28 animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (pageError) {
     return (

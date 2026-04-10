@@ -4,6 +4,8 @@ import { toast } from "sonner";
 
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
+import useMinLoading from "@/hooks/useMinLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -248,6 +250,7 @@ export default function AdminProjects() {
   const [contractedValue, setContractedValue] = useState(0);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinLoading(loading && !hasLoaded);
   const [pageError, setPageError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -541,15 +544,8 @@ export default function AdminProjects() {
       )}
 
       {/* ── Project list ── */}
-      {loading && !hasLoaded ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-            />
-          ))}
-        </div>
+      {showLoading ? (
+        <PortalLoading />
       ) : pageError ? (
         <AdminEmptyState
           icon={FileText}

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Shield, Target, TrendingUp, Users, Search } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
+import PortalLoading from "@/components/portal/PortalLoading";
 import ExportMenu from "@/components/portal/ExportMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { Button, Card, CardContent, Input, Field, Label, Textarea, cn } from "@/design-system";
@@ -65,29 +66,6 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 type ViewMode = "kanban" | "lista";
-
-function Skeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-[120px] animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function LeadCard({ lead }: { lead: LeadRow }) {
   const meta = STATUS_MAP[lead.status as LeadStatus];
@@ -286,7 +264,7 @@ export default function Leads() {
       rows: exportRows,
     });
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

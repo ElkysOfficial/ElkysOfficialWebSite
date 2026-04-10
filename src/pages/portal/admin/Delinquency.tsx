@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Clock, ExternalLink, Receipt, Shield } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
+import PortalLoading from "@/components/portal/PortalLoading";
 import ExportMenu from "@/components/portal/ExportMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { Button, Card, CardContent, cn } from "@/design-system";
@@ -54,22 +55,6 @@ function matchesAgingFilter(days: number, filter: AgingFilter): boolean {
   if (filter === "0-30") return days <= 30;
   if (filter === "30-60") return days > 30 && days <= 60;
   return days > 60;
-}
-
-function Skeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-28 animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-      <div className="h-[500px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-    </div>
-  );
 }
 
 export default function Delinquency() {
@@ -185,7 +170,7 @@ export default function Delinquency() {
       rows: exportRows,
     });
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

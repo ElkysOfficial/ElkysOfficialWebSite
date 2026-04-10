@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(npx supabase:*)",
+      "Bash(grep -n \"CREATE POLICY\" /c/Users/lcvsilva/Desktop/ElkysOfficialWebSite/supabase/migrations/*.sql)",
+      "Bash(ls -1d supabase/functions/*/)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(grep -l \"AdminPageHeader\" src/pages/portal/admin/*.tsx)",
+      "Bash(grep -n \"formatBRL\\\\|R\\\\$\\\\|currency\\\\|R\\\\\\\\\\\\$\\\\|\"R\\\\$\"\" \"src\\\\pages\\\\portal\\\\admin\\\\ProjectDetail.tsx\")",
+      "Bash(grep -n \"PAGE_SIZE\\\\|\\\\.slice\\\\|page.*useState\\\\|pagination\" /c/Users/lcvsilva/Desktop/ElkysOfficialWebSite/src/pages/portal/admin/*.tsx)"
+    ]
+  }
+}

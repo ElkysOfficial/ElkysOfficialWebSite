@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
+import useMinLoading from "@/hooks/useMinLoading";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -261,6 +263,7 @@ export default function AdminClients() {
   const [clients, setClients] = useState<Client[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinLoading(loading && !hasLoaded);
   const [pageError, setPageError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -625,15 +628,8 @@ export default function AdminClients() {
       </div>
 
       {/* -- Client list -- */}
-      {loading && !hasLoaded ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-            />
-          ))}
-        </div>
+      {showLoading ? (
+        <PortalLoading />
       ) : pageError ? (
         <AdminEmptyState
           icon={Building2}

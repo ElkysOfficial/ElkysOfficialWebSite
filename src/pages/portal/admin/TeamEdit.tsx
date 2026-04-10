@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import PortalLoading from "@/components/portal/PortalLoading";
 import {
   buttonVariants,
   Button,
@@ -149,18 +150,7 @@ export default function AdminTeamEdit() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-16 animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (loadError) {
     return (

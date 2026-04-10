@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { Bell, Clock, Receipt, Shield, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { Button, Card, CardContent, Input, Field, Label, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -21,15 +22,6 @@ function formatTriggerDays(days: number): string {
   if (days < 0) return `${Math.abs(days)} dia(s) antes`;
   if (days === 0) return "No dia do vencimento";
   return `${days} dia(s) apos vencimento`;
-}
-
-function Skeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="h-14 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-      <div className="h-[400px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-    </div>
-  );
 }
 
 export default function BillingAutomation() {
@@ -259,7 +251,7 @@ export default function BillingAutomation() {
     setTimeout(() => void loadData(), 2000);
   };
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   const tabs: { key: ActiveTab; label: string }[] = [
     { key: "regras", label: `Regras (${rules.length})` },

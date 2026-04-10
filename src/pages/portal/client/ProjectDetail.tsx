@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import Pagination from "@/components/portal/Pagination";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
@@ -241,18 +242,7 @@ export default function ClientProjectDetail() {
     toast.success("Resposta enviada com sucesso!");
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60"
-          />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (!project || pageError) {
     return (
@@ -440,6 +430,8 @@ export default function ClientProjectDetail() {
                       {needsResponse && (
                         <div className="mt-3 space-y-2">
                           <Textarea
+                            id={`response_${stepItem.id}`}
+                            name={`response_${stepItem.id}`}
                             rows={3}
                             value={responseTexts[stepItem.id] ?? ""}
                             onChange={(e) =>
@@ -449,6 +441,7 @@ export default function ClientProjectDetail() {
                               }))
                             }
                             placeholder="Escreva sua resposta aqui..."
+                            aria-label="Resposta ao proximo passo"
                           />
                           <Button
                             type="button"

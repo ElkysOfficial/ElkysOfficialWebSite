@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Clock, Eye, Shield } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import Pagination from "@/components/portal/Pagination";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,15 +132,6 @@ function JsonDiff({ before, after }: { before: unknown; after: unknown }) {
   );
 }
 
-function Skeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="h-14 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-      <div className="h-[500px] animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-    </div>
-  );
-}
-
 export default function AuditLog() {
   const [logs, setLogs] = useState<AuditLogRow[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -192,7 +184,7 @@ export default function AuditLog() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
-  if (loading) return <Skeleton />;
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

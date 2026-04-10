@@ -16,6 +16,7 @@ import { useDroppable } from "@dnd-kit/core";
 
 import { CheckCircle, Clock, ExternalLink, Target, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -1130,21 +1131,7 @@ export default function AdminTasks() {
 
   /* ── Render ─────────────────────────────────────────────────────── */
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-12 animate-pulse rounded-xl bg-card/60" />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-[60dvh] animate-pulse rounded-2xl border border-border/50 bg-card/50"
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (error) {
     return (

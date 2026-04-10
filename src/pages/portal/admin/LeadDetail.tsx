@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { ArrowLeft, Building2, Clock, Mail, Phone, Send, Shield, Users } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -401,21 +402,7 @@ export default function LeadDetail() {
 
   /* ---- Render ---------------------------------------------------- */
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-[72px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
-        <div className="grid gap-6 xl:grid-cols-12">
-          <div className="xl:col-span-5">
-            <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
-          </div>
-          <div className="xl:col-span-7">
-            <div className="h-[400px] animate-pulse rounded-xl border border-border/50 bg-card/60" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PortalLoading />;
 
   if (!lead) {
     return (
