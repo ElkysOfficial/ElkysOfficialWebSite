@@ -1,9 +1,99 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import svgr from "vite-plugin-svgr";
 import path from "path";
+import fs from "fs";
 import { createHtmlPlugin } from "vite-plugin-html";
 import { visualizer } from "rollup-plugin-visualizer";
+
+/**
+ * Extracts critical CSS (custom properties, @font-face, base resets, keyframes)
+ * and inlines it in the HTML. Converts the <link> to async preload so it no
+ * longer blocks rendering (~360 ms saving).
+ */
+function criticalCss(): Plugin {
+  return {
+    name: "vite-plugin-critical-css",
+    apply: "build",
+    enforce: "post",
+    async closeBundle() {
+      const distPath = path.resolve(__dirname, "dist");
+      const htmlPath = path.join(distPath, "index.html");
+      if (!fs.existsSync(htmlPath)) return;
+
+      const html = fs.readFileSync(htmlPath, "utf-8");
+
+      // Find the CSS link tag and its href
+      const linkMatch = html.match(
+        /<link\s+[^>]*href="(\/assets\/[^"]+\.css)"[^>]*rel="stylesheet"[^>]*>/
+      );
+      if (!linkMatch) {
+        // Try alternate attribute order
+        const altMatch = html.match(
+          /<link\s+[^>]*rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/
+        );
+        if (!altMatch) {
+          console.log("⚠️  No CSS link found — skipping critical CSS extraction");
+          return;
+        }
+        return processLink(distPath, htmlPath, html, altMatch[0], altMatch[1]);
+      }
+      return processLink(distPath, htmlPath, html, linkMatch[0], linkMatch[1]);
+    },
+  };
+}
+
+function processLink(
+  distPath: string,
+  htmlPath: string,
+  html: string,
+  linkTag: string,
+  cssHref: string
+) {
+  const cssPath = path.join(distPath, cssHref);
+  if (!fs.existsSync(cssPath)) return;
+
+  const css = fs.readFileSync(cssPath, "utf-8");
+
+  // Extract critical blocks: :root / .dark vars, @font-face, @keyframes,
+  // *, html, body, #root selectors, and @layer base blocks
+  const criticalPatterns = [
+    // :root and .dark custom property blocks
+    /(?::root|\.dark)\s*\{[^}]*\}/g,
+    // @font-face declarations
+    /@font-face\s*\{[^}]*\}/g,
+    // @keyframes blocks
+    /@keyframes\s+[\w-]+\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g,
+    // Universal, html, body, #root base selectors (single-level only)
+    /(?:^|[,}])\s*(?:\*|html|body|#root)(?:\s*,\s*(?:\*|html|body|#root))*\s*\{[^}]*\}/g,
+  ];
+
+  const criticalRules: string[] = [];
+  for (const pattern of criticalPatterns) {
+    const matches = css.matchAll(pattern);
+    for (const m of matches) {
+      criticalRules.push(m[0].trim());
+    }
+  }
+
+  if (criticalRules.length === 0) {
+    console.log("⚠️  No critical CSS rules found — skipping");
+    return;
+  }
+
+  const inlineStyle = `<style>${criticalRules.join("")}</style>`;
+
+  // Convert blocking <link rel="stylesheet"> to async preload with swap fallback
+  const asyncLink =
+    `<link rel="preload" href="${cssHref}" as="style" onload="this.onload=null;this.rel='stylesheet'">` +
+    `<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`;
+
+  const result = html.replace(linkTag, inlineStyle + asyncLink);
+  fs.writeFileSync(htmlPath, result);
+
+  const inlineKB = (Buffer.byteLength(inlineStyle) / 1024).toFixed(1);
+  console.log(`✅ Critical CSS inlined (${inlineKB} KB) — full stylesheet deferred`);
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -55,6 +145,7 @@ export default defineConfig(({ mode }) => {
         gzipSize: true,
         brotliSize: true,
       }),
+      criticalCss(),
     ].filter(Boolean),
     resolve: {
       dedupe: ["react", "react-dom"],
@@ -71,6 +162,8 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             "react-vendor": ["react", "react-dom", "react-router-dom"],
             "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
+            "supabase-vendor": ["@supabase/supabase-js"],
+            "query-vendor": ["@tanstack/react-query"],
           },
         },
       },

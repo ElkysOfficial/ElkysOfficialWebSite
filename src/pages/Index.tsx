@@ -1,13 +1,15 @@
+import { lazy, Suspense } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Services from "@/components/Services";
 import ClientsCarousel from "@/components/ClientsCarousel";
 import Testimonials from "@/components/Testimonials";
-import ContactForm from "@/components/ContactForm";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
+
+const ContactForm = lazy(() => import("@/components/ContactForm"));
 
 const Index = () => {
   const jsonLd = {
@@ -43,7 +45,9 @@ const Index = () => {
           <Services />
           <ClientsCarousel />
           <Testimonials />
-          <ContactForm />
+          <Suspense fallback={null}>
+            <ContactForm />
+          </Suspense>
           <Contact />
         </main>
         <Footer />
