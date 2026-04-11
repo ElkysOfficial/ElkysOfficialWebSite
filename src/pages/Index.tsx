@@ -17,7 +17,7 @@ const Index = () => {
     "@type": "WebPage",
     "@id": "https://elkys.com.br/#webpage",
     url: "https://elkys.com.br/",
-    name: "Elkys - Software Sob Medida para Empresas em Crescimento",
+    name: "Elkys",
     isPartOf: {
       "@id": "https://elkys.com.br/#website",
     },

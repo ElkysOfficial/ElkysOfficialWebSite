@@ -202,6 +202,7 @@ const Navigation = () => {
               height={32}
               className="w-16 transition-all duration-500"
             />
+            <span className="sr-only">Elkys</span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -52,6 +52,7 @@ const Footer = () => {
                 loading="lazy"
                 className="h-14 w-auto transition-all duration-300"
               />
+              <span className="sr-only">Elkys</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Engenharia de software sob demanda com processo, qualidade e previsibilidade. Parceiro
