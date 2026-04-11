@@ -16,7 +16,10 @@ const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ComoTrabalhamos = lazy(() => import("./pages/ComoTrabalhamos"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Portal shell (AuthProvider + Supabase loaded only when needed)
+// Portal shell (AuthProvider loaded only when a portal/auth route matches)
+const PortalShell = lazy(() => import("./pages/PortalShell"));
+const Login = lazy(() => import("./pages/Login"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const PortalRoutes = lazy(() => import("./pages/PortalRoutes"));
 
 const queryClient = new QueryClient({
@@ -52,31 +55,45 @@ const App = () => (
           <Route path="/servicos/:slug" element={<ServiceDetail />} />
           <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
 
-          {/* Portal + Login — Supabase carregado sob demanda */}
+          {/*
+           * Portal shell — pathless layout route.
+           * Renders AuthProvider (+ Supabase) only when a child route matches.
+           * Login and ForgotPassword are direct children so they are NOT
+           * wrapped in a path-consuming <Route>, avoiding the React Router
+           * descendant-Routes path-stripping bug.
+           */}
           <Route
-            path="/login"
             element={
               <Suspense fallback={null}>
-                <PortalRoutes />
+                <PortalShell />
               </Suspense>
             }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <Suspense fallback={null}>
-                <PortalRoutes />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/portal/*"
-            element={
-              <Suspense fallback={null}>
-                <PortalRoutes />
-              </Suspense>
-            }
-          />
+          >
+            <Route
+              path="/login"
+              element={
+                <Suspense fallback={null}>
+                  <Login />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <Suspense fallback={null}>
+                  <ForgotPassword />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/portal/*"
+              element={
+                <Suspense fallback={null}>
+                  <PortalRoutes />
+                </Suspense>
+              }
+            />
+          </Route>
 
           <Route path="*" element={<NotFound />} />
         </Routes>

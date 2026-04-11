@@ -1,13 +1,10 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/portal/ProtectedRoute";
 import MustChangePasswordGuard from "@/components/portal/MustChangePasswordGuard";
 import MustChangePasswordGuardAdmin from "@/components/portal/MustChangePasswordGuardAdmin";
 import PortalRoleGuard from "@/components/portal/PortalRoleGuard";
 
-const Login = lazy(() => import("./Login"));
-const ForgotPassword = lazy(() => import("./ForgotPassword"));
 const AdminLayout = lazy(() => import("@/components/portal/AdminLayout"));
 const AdminPortalHome = lazy(() => import("@/components/portal/AdminPortalHome"));
 const AdminMarketingCalendar = lazy(() => import("./portal/admin/MarketingCalendar"));
@@ -58,342 +55,334 @@ const LoadingFallback = () => (
 );
 
 /**
- * All portal & auth routes, wrapped in AuthProvider.
- * Lazy-loaded from App.tsx so Supabase JS is not in the initial bundle.
+ * Portal routes rendered under <Route path="/portal/*"> in App.tsx.
+ * All paths are relative to /portal/ since the parent already consumed
+ * that prefix.  AuthProvider is provided by the PortalShell layout route.
  */
 const PortalRoutes = () => (
-  <AuthProvider>
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+  <Routes>
+    {/* /portal → redirect to login (handles OAuth callback) */}
+    <Route index element={<Navigate to="/login" replace />} />
 
-      {/* Catch-all /portal → redirect to login (handles OAuth callback) */}
-      <Route path="/portal" element={<Navigate to="/login" replace />} />
+    {/* First-access password change (client only, before portal) */}
+    <Route
+      path="cliente/alterar-senha"
+      element={
+        <ProtectedRoute requiredRole="cliente">
+          <ChangePassword />
+        </ProtectedRoute>
+      }
+    />
 
-      {/* First-access password change (client only, before portal) */}
+    {/* First-access password change (team members, before admin portal) */}
+    <Route
+      path="admin/alterar-senha"
+      element={
+        <ProtectedRoute requiredRole="admin">
+          <AdminChangePassword />
+        </ProtectedRoute>
+      }
+    />
+
+    {/* Portal — com loading branded */}
+    <Route
+      element={
+        <Suspense fallback={<LoadingFallback />}>
+          <Outlet />
+        </Suspense>
+      }
+    >
+      {/* Admin / Team Portal */}
       <Route
-        path="/portal/cliente/alterar-senha"
-        element={
-          <ProtectedRoute requiredRole="cliente">
-            <ChangePassword />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* First-access password change (team members, before admin portal) */}
-      <Route
-        path="/portal/admin/alterar-senha"
+        path="admin"
         element={
           <ProtectedRoute requiredRole="admin">
-            <AdminChangePassword />
+            <MustChangePasswordGuardAdmin>
+              <AdminLayout />
+            </MustChangePasswordGuardAdmin>
           </ProtectedRoute>
         }
-      />
+      >
+        <Route
+          index
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminPortalHome />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="calendario"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "marketing"]}>
+              <AdminMarketingCalendar />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="tarefas"
+          element={
+            <PortalRoleGuard
+              allowedRoles={["admin_super", "admin", "marketing", "developer", "support"]}
+            >
+              <AdminTasks />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="documentos/marketing-design"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "marketing"]}>
+              <AdminInternalDocuments audience="marketing_design" />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="documentos/desenvolvedor"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer"]}>
+              <AdminInternalDocuments audience="developer" />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="clientes"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminClients />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="clientes/novo"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminClientCreate />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="clientes/:id"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminClientDetail />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="projetos"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminProjects />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="projetos/novo"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminProjectCreate />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="projetos/:id"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminProjectDetail />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="financeiro"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminFinance />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="financeiro/nova-despesa"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminExpenseCreate />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="despesas"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <Navigate to="/portal/admin/financeiro" replace state={{ financeTab: "despesas" }} />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="despesas/nova"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <Navigate
+                to="/portal/admin/financeiro/nova-despesa"
+                replace
+                state={{ financeTab: "despesas" }}
+              />
+            </PortalRoleGuard>
+          }
+        />
+        {/* Equipe hub (membros + notificacoes) */}
+        <Route
+          path="equipe"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminTeamHub />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="equipe/novo"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminTeamCreate />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="equipe/:id/editar"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminTeamEdit />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="suporte"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "support"]}>
+              <AdminSupport />
+            </PortalRoleGuard>
+          }
+        />
+        {/* CRM hub (leads + propostas + pipeline) */}
+        <Route
+          path="crm"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminCRM />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="leads/:id"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminLeadDetail />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="propostas/nova"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminProposalDetail />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="propostas/:id"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminProposalDetail />
+            </PortalRoleGuard>
+          }
+        />
+        {/* Financeiro standalone routes */}
+        <Route
+          path="cobranca-automatica"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminBillingAutomation />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="audit-log"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminAuditLog />
+            </PortalRoleGuard>
+          }
+        />
+        {/* Redirects for old standalone URLs */}
+        <Route
+          path="notificacoes"
+          element={
+            <Navigate to="/portal/admin/equipe" replace state={{ teamTab: "notificacoes" }} />
+          }
+        />
+        <Route
+          path="inadimplencia"
+          element={
+            <Navigate
+              to="/portal/admin/financeiro"
+              replace
+              state={{ financeTab: "inadimplencia" }}
+            />
+          }
+        />
+        <Route
+          path="receita-clientes"
+          element={
+            <Navigate
+              to="/portal/admin/financeiro"
+              replace
+              state={{ financeTab: "receita-clientes" }}
+            />
+          }
+        />
+        <Route
+          path="metas"
+          element={
+            <Navigate to="/portal/admin/financeiro" replace state={{ financeTab: "metas" }} />
+          }
+        />
+        <Route
+          path="leads"
+          element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "leads" }} />}
+        />
+        <Route
+          path="propostas"
+          element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "propostas" }} />}
+        />
+        <Route
+          path="pipeline"
+          element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "pipeline" }} />}
+        />
+        <Route path="perfil" element={<AdminProfile />} />
+      </Route>
 
-      {/* Portal — com loading branded */}
+      {/* Client Portal */}
       <Route
+        path="cliente"
         element={
-          <Suspense fallback={<LoadingFallback />}>
-            <Outlet />
-          </Suspense>
+          <ProtectedRoute requiredRole="cliente">
+            <MustChangePasswordGuard>
+              <ClientLayout />
+            </MustChangePasswordGuard>
+          </ProtectedRoute>
         }
       >
-        {/* Admin / Team Portal */}
-        <Route
-          path="/portal/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <MustChangePasswordGuardAdmin>
-                <AdminLayout />
-              </MustChangePasswordGuardAdmin>
-            </ProtectedRoute>
-          }
-        >
-          <Route
-            index
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminPortalHome />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="calendario"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin", "marketing"]}>
-                <AdminMarketingCalendar />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="tarefas"
-            element={
-              <PortalRoleGuard
-                allowedRoles={["admin_super", "admin", "marketing", "developer", "support"]}
-              >
-                <AdminTasks />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="documentos/marketing-design"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin", "marketing"]}>
-                <AdminInternalDocuments audience="marketing_design" />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="documentos/desenvolvedor"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer"]}>
-                <AdminInternalDocuments audience="developer" />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="clientes"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminClients />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="clientes/novo"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminClientCreate />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="clientes/:id"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminClientDetail />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="projetos"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminProjects />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="projetos/novo"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminProjectCreate />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="projetos/:id"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminProjectDetail />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="financeiro"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminFinance />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="financeiro/nova-despesa"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminExpenseCreate />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="despesas"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <Navigate
-                  to="/portal/admin/financeiro"
-                  replace
-                  state={{ financeTab: "despesas" }}
-                />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="despesas/nova"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <Navigate
-                  to="/portal/admin/financeiro/nova-despesa"
-                  replace
-                  state={{ financeTab: "despesas" }}
-                />
-              </PortalRoleGuard>
-            }
-          />
-          {/* Equipe hub (membros + notificacoes) */}
-          <Route
-            path="equipe"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminTeamHub />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="equipe/novo"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminTeamCreate />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="equipe/:id/editar"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminTeamEdit />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="suporte"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin", "support"]}>
-                <AdminSupport />
-              </PortalRoleGuard>
-            }
-          />
-          {/* CRM hub (leads + propostas + pipeline) */}
-          <Route
-            path="crm"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminCRM />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="leads/:id"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminLeadDetail />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="propostas/nova"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminProposalDetail />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="propostas/:id"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminProposalDetail />
-              </PortalRoleGuard>
-            }
-          />
-          {/* Financeiro standalone routes */}
-          <Route
-            path="cobranca-automatica"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminBillingAutomation />
-              </PortalRoleGuard>
-            }
-          />
-          <Route
-            path="audit-log"
-            element={
-              <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
-                <AdminAuditLog />
-              </PortalRoleGuard>
-            }
-          />
-          {/* Redirects for old standalone URLs */}
-          <Route
-            path="notificacoes"
-            element={
-              <Navigate to="/portal/admin/equipe" replace state={{ teamTab: "notificacoes" }} />
-            }
-          />
-          <Route
-            path="inadimplencia"
-            element={
-              <Navigate
-                to="/portal/admin/financeiro"
-                replace
-                state={{ financeTab: "inadimplencia" }}
-              />
-            }
-          />
-          <Route
-            path="receita-clientes"
-            element={
-              <Navigate
-                to="/portal/admin/financeiro"
-                replace
-                state={{ financeTab: "receita-clientes" }}
-              />
-            }
-          />
-          <Route
-            path="metas"
-            element={
-              <Navigate to="/portal/admin/financeiro" replace state={{ financeTab: "metas" }} />
-            }
-          />
-          <Route
-            path="leads"
-            element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "leads" }} />}
-          />
-          <Route
-            path="propostas"
-            element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "propostas" }} />}
-          />
-          <Route
-            path="pipeline"
-            element={<Navigate to="/portal/admin/crm" replace state={{ crmTab: "pipeline" }} />}
-          />
-          <Route path="perfil" element={<AdminProfile />} />
-        </Route>
-
-        {/* Client Portal */}
-        <Route
-          path="/portal/cliente"
-          element={
-            <ProtectedRoute requiredRole="cliente">
-              <MustChangePasswordGuard>
-                <ClientLayout />
-              </MustChangePasswordGuard>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<ClientOverview />} />
-          <Route path="propostas" element={<ClientProposals />} />
-          <Route path="propostas/:id" element={<ClientProposalView />} />
-          <Route path="projetos" element={<ClientProjects />} />
-          <Route path="projetos/:id" element={<ClientProjectDetail />} />
-          <Route path="financeiro" element={<ClientFinance />} />
-          <Route path="documentos" element={<Navigate to="/portal/cliente/projetos" replace />} />
-          <Route path="suporte" element={<ClientSupport />} />
-          <Route path="perfil" element={<ClientProfile />} />
-        </Route>
+        <Route index element={<ClientOverview />} />
+        <Route path="propostas" element={<ClientProposals />} />
+        <Route path="propostas/:id" element={<ClientProposalView />} />
+        <Route path="projetos" element={<ClientProjects />} />
+        <Route path="projetos/:id" element={<ClientProjectDetail />} />
+        <Route path="financeiro" element={<ClientFinance />} />
+        <Route path="documentos" element={<Navigate to="/portal/cliente/projetos" replace />} />
+        <Route path="suporte" element={<ClientSupport />} />
+        <Route path="perfil" element={<ClientProfile />} />
       </Route>
-    </Routes>
-  </AuthProvider>
+    </Route>
+  </Routes>
 );
 
 export default PortalRoutes;
