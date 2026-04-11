@@ -36,8 +36,8 @@ const HexPattern = ({ variant = "banner", className }: HexPatternProps) => (
     src={hexagonalBg}
     alt=""
     aria-hidden="true"
-    width="1189"
-    height="1145"
+    width="80"
+    height="80"
     className={cn(variantStyles[variant], className)}
   />
 );

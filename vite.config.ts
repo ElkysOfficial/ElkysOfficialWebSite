@@ -88,7 +88,19 @@ function processLink(
     `<link rel="preload" href="${cssHref}" as="style" onload="this.onload=null;this.rel='stylesheet'">` +
     `<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`;
 
-  const result = html.replace(linkTag, inlineStyle + asyncLink);
+  let result = html.replace(linkTag, inlineStyle + asyncLink);
+
+  // Add modulepreload for the entry-point JS to start downloading in parallel
+  // with HTML parsing, breaking the critical request chain.
+  const entryMatch = result.match(
+    /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
+  );
+  if (entryMatch) {
+    const preloadTag = `<link rel="modulepreload" crossorigin href="${entryMatch[1]}">`;
+    // Insert before the script tag itself
+    result = result.replace(entryMatch[0], preloadTag + entryMatch[0]);
+  }
+
   fs.writeFileSync(htmlPath, result);
 
   const inlineKB = (Buffer.byteLength(inlineStyle) / 1024).toFixed(1);
