@@ -169,26 +169,6 @@ const NotFound = () => {
                 Pagina Anterior
               </Link>
             </div>
-
-            {/* ── Links rápidos ── */}
-            <div className="mt-10 animate-[fade-up_0.7s_ease-out_1.9s_both]">
-              <div className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/80 px-1 py-1">
-                {[
-                  { to: "/#services", label: "Servicos" },
-                  { to: "/cases", label: "Cases" },
-                  { to: "/#contact", label: "Contato" },
-                  { to: "/login", label: "Portal" },
-                ].map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="rounded-full px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         )}
       </main>
