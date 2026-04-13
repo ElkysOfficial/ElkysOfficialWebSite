@@ -717,6 +717,7 @@ export default function AdminMarketingCalendar() {
   const [dragOverDateKey, setDragOverDateKey] = useState<string | null>(null);
   const [resizingEventId, setResizingEventId] = useState<string | null>(null);
   const [resizePreviewEndAt, setResizePreviewEndAt] = useState<string | null>(null);
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [timelineScrollbarWidth, setTimelineScrollbarWidth] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
