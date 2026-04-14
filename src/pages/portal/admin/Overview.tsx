@@ -878,9 +878,14 @@ export default function AdminOverview() {
           )
           .forEach((charge) => {
             const isPaid = charge.status === "pago";
-            const monthKey = getMonthKeyFromDate(
-              isPaid ? (charge.paid_at ?? charge.due_date) : charge.due_date
-            );
+            // MRR e receita recorrente sao metricas de COMPETENCIA:
+            // o mes de referencia e sempre o due_date (mes em que a
+            // receita foi devida), nunca o paid_at. Usar paid_at aqui
+            // fazia mensalidades antigas pagas no mes corrente inflarem
+            // o MRR do mes atual e zerarem os meses passados, gerando
+            // MoM/3M/6M/12M completamente distorcidos. Fluxo de caixa
+            // (cashIn) continua por paid_at mais acima, como deve ser.
+            const monthKey = getMonthKeyFromDate(charge.due_date);
             if (!monthKey) return;
             const point = monthlyMap.get(monthKey);
             if (!point) return;
