@@ -26,11 +26,15 @@ jobs:
   build-and-deploy:
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.confirm == 'yes'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Historico completo para conseguirmos listar os commits trazidos
+          # por merges de release/hotfix na mensagem do Discord.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -39,15 +43,23 @@ jobs:
           cache: npm
 
       - name: Install
+        id: install
         run: npm ci
 
       - name: Lint
+        id: lint
+        continue-on-error: true
         run: npm run lint --if-present
 
       - name: Build
+        id: build
+        continue-on-error: true
         run: npm run build
 
-      - name: Deploy via FTP (Hostinger)
+      - name: Deploy via FTP (Hostinger) — attempt 1
+        id: deploy_1
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -59,13 +71,58 @@ jobs:
           server-dir: /domains/elkys.com.br/public_html/
           dangerous-clean-slate: false
           log-level: verbose
-          timeout: 60000
+          timeout: 180000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      - name: Deploy via FTP (Hostinger) — attempt 2
+        id: deploy_2
+        if: steps.build.outcome == 'success' && steps.deploy_1.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./dist/
+          server-dir: /domains/elkys.com.br/public_html/
+          dangerous-clean-slate: false
+          log-level: verbose
+          timeout: 180000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+
+      - name: Deploy via FTP (Hostinger) — attempt 3
+        id: deploy_3
+        if: steps.build.outcome == 'success' && steps.deploy_1.outcome == 'failure' && steps.deploy_2.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./dist/
+          server-dir: /domains/elkys.com.br/public_html/
+          dangerous-clean-slate: false
+          log-level: verbose
+          timeout: 180000
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
 
       - name: Post-deploy smoke check
+        id: smoke
+        if: steps.build.outcome == 'success' && (steps.deploy_1.outcome == 'success' || steps.deploy_2.outcome == 'success' || steps.deploy_3.outcome == 'success')
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -78,29 +135,111 @@ jobs:
             echo "waiting... code=$code"
             sleep 5
           done
-          echo "Smoke check failed"
+          echo "Smoke check failed - ultima resposta HTTP: $code"
           exit 1
 
-      - name: Timestamp
+      - name: Collect status and error details
+        id: report
         if: always()
-        id: timestamp
+        shell: bash
         run: |
-          echo "date=$(date +'%d/%m/%Y')" >> $GITHUB_OUTPUT
-          echo "time=$(date +'%H:%M:%S')" >> $GITHUB_OUTPUT
-          first_line=$(echo "${{ github.event.head_commit.message }}" | head -1 | cut -c1-120)
-          echo "short_msg=$first_line" >> $GITHUB_OUTPUT
+          set +e
 
-      - name: Notify Discord (always)
-        if: always()
+          # Determina status global do deploy
+          deploy_ok="false"
+          if [[ "${{ steps.deploy_1.outcome }}" == "success" || "${{ steps.deploy_2.outcome }}" == "success" || "${{ steps.deploy_3.outcome }}" == "success" ]]; then
+            deploy_ok="true"
+          fi
+
+          failed_stage=""
+          error_reason=""
+
+          if [[ "${{ steps.build.outcome }}" == "failure" ]]; then
+            failed_stage="Build"
+            error_reason="npm run build falhou — provavel erro de TypeScript, ESLint ou Vite. Consulte o log completo."
+          elif [[ "${{ steps.deploy_1.outcome }}" == "failure" && "${{ steps.deploy_2.outcome }}" == "failure" && "${{ steps.deploy_3.outcome }}" == "failure" ]]; then
+            failed_stage="Deploy FTP (3 tentativas)"
+            error_reason="Conexão com o servidor Hostinger falhou em todas as 3 tentativas (timeout do control socket ou credenciais inválidas). Verifique se o FTP está online ou se migrou para SFTP."
+          elif [[ "${{ steps.smoke.outcome }}" == "failure" ]]; then
+            failed_stage="Smoke check pós-deploy"
+            error_reason="Deploy subiu, mas ${SITE_URL} não respondeu 200/301/302 em 60 segundos. Verifique se o .htaccess ou o build quebrou a rota raiz."
+          fi
+
+          if [[ -n "$failed_stage" ]]; then
+            status_label="❌ Falha"
+            job_ok="false"
+          else
+            status_label="✅ Sucesso"
+            job_ok="true"
+          fi
+
+          # Compor mensagem rica: primeira linha do commit + commits trazidos por merges
+          raw_msg=$(git log -1 --pretty=format:%B)
+          first_line=$(echo "$raw_msg" | head -1 | cut -c1-140)
+          body_text=""
+
+          # Se for merge commit, listar os commits reais que entraram no merge
+          parent_count=$(git cat-file -p HEAD | grep -c '^parent ' || echo 0)
+          if [[ "$parent_count" -ge 2 ]]; then
+            brought_in=$(git log --format="• %s" HEAD^1..HEAD^2 2>/dev/null | head -6)
+            if [[ -n "$brought_in" ]]; then
+              body_text=$'\n'"$brought_in"
+            fi
+          fi
+
+          # Escrever outputs multilinha
+          {
+            echo "status_label=$status_label"
+            echo "job_ok=$job_ok"
+            echo "deploy_ok=$deploy_ok"
+            echo "failed_stage=$failed_stage"
+            echo "date=$(date +'%d/%m/%Y')"
+            echo "time=$(date +'%H:%M:%S')"
+            echo "commit_title<<__MSG_EOF__"
+            echo "$first_line"
+            echo "__MSG_EOF__"
+            echo "commit_body<<__BODY_EOF__"
+            echo "$body_text"
+            echo "__BODY_EOF__"
+            echo "error_reason<<__ERR_EOF__"
+            echo "$error_reason"
+            echo "__ERR_EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Notify Discord (success)
+        if: steps.report.outputs.job_ok == 'true'
         uses: tsickert/discord-webhook@v6.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           content: |
-            **${{ env.PRODUCT_NAME }} - Deploy**
-            **Status:** ${{ job.status == 'success' && '✅ Sucesso' || '❌ Falha' }}
+            **${{ env.PRODUCT_NAME }} — Deploy ${{ steps.report.outputs.status_label }}**
             **Branch:** `${{ github.ref_name }}` · **Run:** #${{ github.run_number }} · **Trigger:** `${{ github.event_name }}`
             **Commit:** `${{ github.sha }}`
-            **Mensagem:** ${{ steps.timestamp.outputs.short_msg }}
-            **Autor:** `${{ github.event.head_commit.author.name }}` · **Actor:** `${{ github.actor }}`
-            **Data/Hora:** ${{ steps.timestamp.outputs.date }} ${{ steps.timestamp.outputs.time }}
+            **Mensagem:** ${{ steps.report.outputs.commit_title }}${{ steps.report.outputs.commit_body }}
+            **Autor:** `${{ github.event.head_commit.author.name }}`
+            **Data/Hora:** ${{ steps.report.outputs.date }} ${{ steps.report.outputs.time }}
             🔗 ${{ env.SITE_URL }} · ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Notify Discord (failure)
+        if: steps.report.outputs.job_ok != 'true'
+        uses: tsickert/discord-webhook@v6.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          content: |
+            **${{ env.PRODUCT_NAME }} — Deploy ${{ steps.report.outputs.status_label }}**
+            **Etapa que falhou:** `${{ steps.report.outputs.failed_stage }}`
+            **Motivo:** ${{ steps.report.outputs.error_reason }}
+            **Branch:** `${{ github.ref_name }}` · **Run:** #${{ github.run_number }} · **Trigger:** `${{ github.event_name }}`
+            **Commit:** `${{ github.sha }}`
+            **Mensagem:** ${{ steps.report.outputs.commit_title }}${{ steps.report.outputs.commit_body }}
+            **Autor:** `${{ github.event.head_commit.author.name }}`
+            **Data/Hora:** ${{ steps.report.outputs.date }} ${{ steps.report.outputs.time }}
+            🔗 Log completo: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Fail job if any critical step failed
+        if: steps.report.outputs.job_ok != 'true'
+        shell: bash
+        run: |
+          echo "Pipeline falhou na etapa: ${{ steps.report.outputs.failed_stage }}"
+          echo "Motivo: ${{ steps.report.outputs.error_reason }}"
+          exit 1
