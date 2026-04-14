@@ -684,18 +684,15 @@ export default function AdminNotifications() {
               </div>
 
               <div className="flex justify-end pt-2">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      {schedule === "later" ? "Agendando..." : "Enviando..."}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Send size={16} />
-                      {schedule === "later" ? "Agendar notificação" : "Enviar notificação"}
-                    </span>
-                  )}
+                <Button
+                  type="submit"
+                  loading={submitting}
+                  loadingText={schedule === "later" ? "Agendando..." : "Enviando..."}
+                >
+                  <span className="flex items-center gap-2">
+                    <Send size={16} />
+                    {schedule === "later" ? "Agendar notificação" : "Enviar notificação"}
+                  </span>
                 </Button>
               </div>
             </form>

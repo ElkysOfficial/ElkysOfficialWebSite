@@ -58,12 +58,55 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  /**
+   * Quando true, desabilita o botão, substitui os filhos por um spinner
+   * acessível e opcionalmente troca o texto. Preserva o layout original
+   * evitando "saltos" ao entrar em estado de loading.
+   */
+  loading?: boolean;
+  /**
+   * Texto opcional exibido ao lado do spinner enquanto loading=true.
+   * Se omitido, o conteúdo original do botão é escondido visualmente
+   * mas mantido no DOM para preservar largura.
+   */
+  loadingText?: string;
+}
+
+const ButtonSpinner = () => (
+  <span
+    aria-hidden="true"
+    className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+  />
+);
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  (
+    { className, variant, size, loading = false, loadingText, disabled, children, ...props },
+    ref
+  ) => {
+    const isDisabled = disabled || loading;
     return (
-      <button className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        disabled={isDisabled}
+        aria-busy={loading || undefined}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <ButtonSpinner />
+            {loadingText ? (
+              <span>{loadingText}</span>
+            ) : (
+              <span className="invisible">{children}</span>
+            )}
+          </>
+        ) : (
+          children
+        )}
+      </button>
     );
   }
 );
