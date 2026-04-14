@@ -8,7 +8,7 @@ import { Button, Card, CardContent, cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { formatPortalDateTime } from "@/lib/portal";
+import RelativeDate from "@/components/portal/RelativeDate";
 
 type AuditLogRow = Database["public"]["Tables"]["audit_logs"]["Row"];
 
@@ -281,7 +281,7 @@ export default function AuditLog() {
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {formatPortalDateTime(log.created_at)}
+                    <RelativeDate date={log.created_at} />
                     {log.reason ? ` — ${log.reason}` : ""}
                   </p>
                 </div>

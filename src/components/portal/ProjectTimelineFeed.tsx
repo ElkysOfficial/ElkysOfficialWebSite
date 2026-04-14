@@ -3,7 +3,8 @@ import { CheckCircle, Clock, FileText, TrendingUp } from "@/assets/icons";
 import Pagination from "@/components/portal/Pagination";
 import { cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
-import { formatPortalDateTime, type PortalTimelineEvent } from "@/lib/portal";
+import { type PortalTimelineEvent } from "@/lib/portal";
+import RelativeDate from "./RelativeDate";
 
 const EVENT_META: Record<
   string,
@@ -86,9 +87,10 @@ export default function ProjectTimelineFeed({
                       {meta.badge}
                     </p>
                   </div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {formatPortalDateTime(event.occurred_at)}
-                  </p>
+                  <RelativeDate
+                    date={event.occurred_at}
+                    className="text-xs font-medium text-muted-foreground"
+                  />
                 </div>
                 <div className="px-4 py-4">
                   <p className="text-sm leading-relaxed text-foreground">{event.summary}</p>

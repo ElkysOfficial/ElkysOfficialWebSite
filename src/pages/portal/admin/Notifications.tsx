@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { type IconProps, Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import RelativeDate from "@/components/portal/RelativeDate";
 import {
   Button,
   Card,
@@ -776,10 +777,6 @@ export default function AdminNotifications() {
                   const typeBadge = TYPE_BADGES[notif.type] ?? TYPE_BADGES.personalizado;
                   const statusBadge = STATUS_BADGES[notif.status] ?? STATUS_BADGES.enviando;
                   const dateStr = notif.sent_at ?? notif.send_at ?? notif.created_at;
-                  const formattedDate = new Intl.DateTimeFormat("pt-BR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                  }).format(new Date(dateStr));
 
                   return (
                     <article
@@ -847,9 +844,10 @@ export default function AdminNotifications() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground xl:hidden">
                             Data
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground xl:mt-0">
-                            {formattedDate}
-                          </p>
+                          <RelativeDate
+                            date={dateStr}
+                            className="mt-1 block text-sm text-muted-foreground xl:mt-0"
+                          />
                         </div>
                       </div>
                     </article>
