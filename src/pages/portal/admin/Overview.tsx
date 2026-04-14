@@ -807,7 +807,11 @@ export default function AdminOverview() {
 
         const now = new Date();
         const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-        const monthFrames = getRecentMonths(12);
+        // 13 meses: 12 meses passados + mes corrente. Necessario para
+        // rolling 12M honesto (comparar MRR_t com MRR_{t-12}); com 12
+        // meses o start index ficava clampado em 0 e gerava valor
+        // extrapolado em vez de N/A.
+        const monthFrames = getRecentMonths(13);
         const monthlyMap = new Map(
           monthFrames.map((month) => [
             month.key,
@@ -1138,24 +1142,15 @@ export default function AdminOverview() {
         const pipelineValue = projectPipelineValue + proposalPipelineValue;
         const pipelineCount = negociacaoProjectIds.size + pendingProposals.length;
 
-        // Burn rate: average monthly expenses over the last 6 months
-        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-        const recentExpenses = expenses.filter((e) => {
-          const d = parseDateValue(e.expense_date);
-          return d && d >= sixMonthsAgo;
-        });
-        const uniqueExpenseMonths = new Set(
-          recentExpenses
-            .map((e) => {
-              const d = parseDateValue(e.expense_date);
-              return d ? `${d.getFullYear()}-${d.getMonth()}` : null;
-            })
-            .filter(Boolean)
-        );
+        // Burn rate medio mensal = media das saidas dos ultimos 6 meses
+        // (janela inteira como denominador). Antes dividia apenas pelos
+        // meses que TINHAM despesa, o que inflava o burn quando havia
+        // meses vazios e escondia o sinal real de start/gap operacional.
+        const burnWindow = monthlySeries.slice(-6);
         const burnRate =
-          recentExpenses.reduce((sum, e) => sum + toCents(e.amount), 0) /
-          100 /
-          Math.max(uniqueExpenseMonths.size, 1);
+          burnWindow.length > 0
+            ? burnWindow.reduce((sum, m) => sum + m.cashOut, 0) / burnWindow.length
+            : 0;
 
         // Operational margin: (cashIn - cashOut) / cashIn for current period
         const currentMonthCashIn = monthlySeries[monthlySeries.length - 1]?.cashIn ?? 0;
@@ -1237,40 +1232,64 @@ export default function AdminOverview() {
           .sort((a, b) => a.daysUntil - b.daysUntil)
           .slice(0, 5);
 
-        // Forecast computation
+        // Forecast computation — por mes calendario dentro do horizonte.
+        // Para cada mes futuro: receita prevista = max(agendada charges
+        // do mes, base contratual ativa no mes). Nao soma os dois (era
+        // double counting: charges agendada JA sao a materializacao
+        // das subscriptions). A base contratual cobre meses em que o
+        // gerador de charges ainda nao rodou.
         const computeForecast = (months: number) => {
-          const horizonDate = new Date();
-          horizonDate.setMonth(horizonDate.getMonth() + months);
-          const horizonStr = horizonDate.toISOString().slice(0, 10);
+          const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-          // Recurring: active subscriptions projected, respecting ends_on
           let recurringCents = 0;
-          for (const sub of recurringSubscriptions) {
-            if (!activeClientIds.has(sub.client_id)) continue;
-            let activeMonths = months;
-            if (sub.ends_on && sub.ends_on <= horizonStr) {
-              // Count how many whole months remain until ends_on (from today)
-              const endsDate = new Date(sub.ends_on + "T00:00:00Z");
-              const diffMs = endsDate.getTime() - now.getTime();
-              activeMonths = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24 * 30)));
-            }
-            recurringCents += toCents(sub.amount) * activeMonths;
-          }
-          const recurring = recurringCents / 100;
+          let scheduledCents = 0;
+          let totalCents = 0;
 
-          // Scheduled: only future agendada charges within horizon (pendente = already due, not forecast)
-          const scheduled =
-            charges
+          for (let i = 0; i < months; i += 1) {
+            const monthDate = new Date(
+              nextMonthStart.getFullYear(),
+              nextMonthStart.getMonth() + i,
+              1
+            );
+            const y = monthDate.getFullYear();
+            const m = monthDate.getMonth();
+            const monthKey = createMonthKey(y, m);
+            const monthStartIso = `${monthKey}-01`;
+            const lastDay = new Date(y, m + 1, 0).getDate();
+            const monthEndIso = `${monthKey}-${String(lastDay).padStart(2, "0")}`;
+
+            // Base contratual ativa naquele mes (respeita starts_on/ends_on)
+            const monthBaseCents = recurringSubscriptions
+              .filter((sub) => activeClientIds.has(sub.client_id))
+              .filter((sub) => {
+                if (sub.starts_on && sub.starts_on > monthEndIso) return false;
+                if (sub.ends_on && sub.ends_on < monthStartIso) return false;
+                return true;
+              })
+              .reduce((sum, sub) => sum + toCents(sub.amount), 0);
+
+            // Agendada charges devidas naquele mes
+            const monthScheduledCents = charges
               .filter(
                 (c) =>
                   !c.is_historical &&
                   c.status === "agendada" &&
-                  c.due_date > todayStr &&
-                  c.due_date <= horizonStr
+                  c.due_date >= monthStartIso &&
+                  c.due_date <= monthEndIso
               )
-              .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+              .reduce((sum, c) => sum + toCents(c.amount), 0);
 
-          return { recurring, scheduled, total: recurring + scheduled };
+            recurringCents += monthBaseCents;
+            scheduledCents += monthScheduledCents;
+            // Union: usa o maior dos dois para cada mes, evitando double counting
+            totalCents += Math.max(monthBaseCents, monthScheduledCents);
+          }
+
+          return {
+            recurring: recurringCents / 100,
+            scheduled: scheduledCents / 100,
+            total: totalCents / 100,
+          };
         };
 
         const forecast = {
@@ -1391,17 +1410,29 @@ export default function AdminOverview() {
     [periodSeries]
   );
 
-  // Comparacao do MRR no inicio vs fim do periodo selecionado. Ao clicar
-  // 3M/6M/12M, esse valor muda — alimenta tanto o headline quanto o card
-  // "Crescimento do MRR" diretamente abaixo do seletor, dando feedback
-  // visual de que o periodo realmente foi aplicado.
-  const periodMrrChange = useMemo(() => {
+  // Rolling n-month MRR Growth: compara MRR_t (mes atual) com
+  // MRR_{t-n} (n meses atras, dois pontos exatos no tempo).
+  // - kind='na'    -> mes-base fora da janela disponivel -> tile N/A
+  // - kind='new'   -> mes-base existe mas MRR=0 (nasceu do zero) -> tile "Novo"
+  // - kind='value' -> valor numerico calculado
+  // Antes usava `totalMonths - selectedPeriod` (off-by-one) e retornava
+  // apenas null, sem diferenciar N/A real de "Novo". Ver
+  // memory/feedback_financial_metrics.md.
+  const periodMrrChange = useMemo(():
+    | { kind: "value"; value: number }
+    | { kind: "new" }
+    | { kind: "na" } => {
     const totalMonths = summary.monthlySeries.length;
-    if (totalMonths === 0) return null;
-    const startIdx = Math.max(0, totalMonths - selectedPeriod);
+    if (totalMonths === 0) return { kind: "na" };
+    const endIdx = totalMonths - 1;
+    const startIdx = endIdx - selectedPeriod;
+    if (startIdx < 0) return { kind: "na" };
     const startMrr = summary.monthlySeries[startIdx]?.recurringRevenue ?? 0;
-    const endMrr = summary.monthlySeries[totalMonths - 1]?.recurringRevenue ?? 0;
-    return getPercentChange(endMrr, startMrr);
+    const endMrr = summary.monthlySeries[endIdx]?.recurringRevenue ?? 0;
+    if (startMrr === 0) {
+      return endMrr === 0 ? { kind: "value", value: 0 } : { kind: "new" };
+    }
+    return { kind: "value", value: ((endMrr - startMrr) / startMrr) * 100 };
   }, [selectedPeriod, summary.monthlySeries]);
 
   // Label dinamico usado tanto no headline quanto no card de MRR.
@@ -1416,14 +1447,15 @@ export default function AdminOverview() {
   }, [summary.activeClients, summary.recurringClients]);
 
   const insightHeadline = useMemo(() => {
-    const roundedPeriodMrrChange = roundPercentage(periodMrrChange);
+    const rounded =
+      periodMrrChange.kind === "value" ? roundPercentage(periodMrrChange.value) : null;
 
-    if (roundedPeriodMrrChange !== null && roundedPeriodMrrChange <= -5) {
-      return `MRR caiu ${Math.abs(roundedPeriodMrrChange)}% ${periodLabel}`;
+    if (rounded !== null && rounded <= -5) {
+      return `MRR caiu ${Math.abs(rounded)}% ${periodLabel}`;
     }
 
-    if (roundedPeriodMrrChange !== null && roundedPeriodMrrChange >= 5) {
-      return `MRR subiu ${roundedPeriodMrrChange}% ${periodLabel}`;
+    if (rounded !== null && rounded >= 5) {
+      return `MRR subiu ${rounded}% ${periodLabel}`;
     }
 
     if (summary.overdueReceivables > 0) {
@@ -1512,18 +1544,18 @@ export default function AdminOverview() {
                 <SurfaceStat
                   label={`Crescimento do MRR (${selectedPeriod}M)`}
                   value={
-                    roundPercentage(periodMrrChange) === null
-                      ? summary.currentMrr > 0
+                    periodMrrChange.kind === "na"
+                      ? "N/A"
+                      : periodMrrChange.kind === "new"
                         ? "Novo"
-                        : "N/A"
-                      : `${roundPercentage(periodMrrChange)}%`
+                        : `${roundPercentage(periodMrrChange.value)}%`
                   }
                   tone={
-                    periodMrrChange === null
+                    periodMrrChange.kind !== "value"
                       ? "neutral"
-                      : periodMrrChange > 0
+                      : periodMrrChange.value > 0
                         ? "success"
-                        : periodMrrChange < 0
+                        : periodMrrChange.value < 0
                           ? "destructive"
                           : "neutral"
                   }
@@ -1542,7 +1574,7 @@ export default function AdminOverview() {
             />
 
             <SurfaceStat
-              label="Saldo operacional"
+              label="Resultado acumulado"
               value={formatBRL(summary.cashBalance)}
               subInfo={`Mes em ${getSignedCurrency(summary.currentMonthNet)}`}
               tone={summary.cashBalance >= 0 ? "success" : "destructive"}
