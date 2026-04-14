@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProposalExpiryCountdown from "@/components/portal/ProposalExpiryCountdown";
 import StatusBadge from "@/components/portal/StatusBadge";
 import {
   Button,
@@ -218,7 +219,10 @@ function ProposalReadOnly({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Validade
           </p>
-          <p className="mt-1 text-sm text-foreground">{formatPortalDate(proposal.valid_until)}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-foreground">{formatPortalDate(proposal.valid_until)}</p>
+            <ProposalExpiryCountdown validUntil={proposal.valid_until} status={proposal.status} />
+          </div>
         </div>
         {proposal.solution_type ? (
           <div>
