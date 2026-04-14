@@ -306,6 +306,16 @@ export default function AdminProjects() {
   const visibleProjects = filteredProjects.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
 
+  const hasActiveProjectFilters =
+    search.trim() !== "" || statusFilter !== "all" || tagFilter !== null;
+
+  const clearAllProjectFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setTagFilter(null);
+    setPage(0);
+  };
+
   const { totalProjects, activeProjects, pausedProjects } = useMemo(
     () => ({
       totalProjects: projects.length,
@@ -458,9 +468,10 @@ export default function AdminProjects() {
       {/* ── Project list ── */}
       {pageError ? (
         <AdminEmptyState
+          variant="error"
           icon={FileText}
           title="Não foi possível carregar os projetos"
-          description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
+          description={`${pageError} Atualize a página ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchProjects()}>
               Tentar novamente
@@ -468,19 +479,34 @@ export default function AdminProjects() {
           }
         />
       ) : filteredProjects.length === 0 ? (
-        <AdminEmptyState
-          icon={FileText}
-          title="Nenhum projeto encontrado"
-          description="Ajuste os filtros ou crie um novo projeto para um cliente existente."
-          action={
-            <Link
-              to="/portal/admin/projetos/novo"
-              className={buttonVariants({ variant: "default" })}
-            >
-              Criar projeto
-            </Link>
-          }
-        />
+        hasActiveProjectFilters ? (
+          <AdminEmptyState
+            variant="filtered"
+            icon={FileText}
+            title="Nenhum projeto com esses filtros"
+            description="A combinação atual de filtros e busca não retornou resultados. Ajuste os critérios para ampliar a visão da operação."
+            action={
+              <Button type="button" variant="outline" onClick={clearAllProjectFilters}>
+                Limpar filtros
+              </Button>
+            }
+          />
+        ) : (
+          <AdminEmptyState
+            variant="first-time"
+            icon={FileText}
+            title="Comece o primeiro projeto"
+            description="Crie um projeto para começar a acompanhar etapas, parcelas, contratos, pendências e timeline em um só lugar."
+            action={
+              <Link
+                to="/portal/admin/projetos/novo"
+                className={buttonVariants({ variant: "default" })}
+              >
+                Criar projeto
+              </Link>
+            }
+          />
+        )
       ) : (
         <div className="space-y-2">
           <ColumnHeader />
