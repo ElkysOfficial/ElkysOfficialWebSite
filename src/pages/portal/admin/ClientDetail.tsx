@@ -49,6 +49,7 @@ import {
   TICKET_PRIORITY_META,
   formatPortalDate,
   formatPortalDateTime,
+  getClientDisplayName,
 } from "@/lib/portal";
 
 type Client = Database["public"]["Tables"]["clients"]["Row"];
@@ -225,11 +226,6 @@ function normalizeTags(tagsInput: string) {
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function getClientDisplayName(client: Client) {
-  if (client.client_type === "pj" && client.nome_fantasia) return client.nome_fantasia;
-  return client.full_name;
 }
 
 function getGeneralFormDefaults(client: Client): GeneralFormValues {

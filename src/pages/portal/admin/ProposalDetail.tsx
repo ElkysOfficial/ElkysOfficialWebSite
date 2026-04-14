@@ -24,7 +24,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, maskCurrency, unmaskCurrency } from "@/lib/masks";
-import { canTransitionProposal, formatPortalDate, formatPortalDateTime } from "@/lib/portal";
+import {
+  canTransitionProposal,
+  formatPortalDate,
+  formatPortalDateTime,
+  getClientDisplayName,
+} from "@/lib/portal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -68,11 +73,6 @@ type FormState = {
 
 const selectClass =
   "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
-
-function getClientDisplayName(client: ClientRow): string {
-  if (client.client_type === "pj" && client.nome_fantasia) return client.nome_fantasia;
-  return client.full_name;
-}
 
 function formDefaults(proposal?: ProposalRow | null): FormState {
   return {
