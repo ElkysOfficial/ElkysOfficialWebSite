@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { type IconProps, Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import RelativeDate from "@/components/portal/RelativeDate";
+import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import {
   Button,
   Card,
@@ -346,6 +347,18 @@ export default function AdminNotifications() {
   const filterMode = watch("filter_mode");
   const schedule = watch("schedule");
   const selectedClientIds = watch("filter_client_ids") ?? [];
+  const watchedForm = watch();
+
+  // Auto-save do rascunho em localStorage com debounce
+  const {
+    savedAt: draftSavedAt,
+    clearDraft,
+    isPending: draftPending,
+  } = useFormDraftAutoSave<NotificationForm>({
+    storageKey: "elkys:admin:notifications:composer-draft",
+    values: watchedForm,
+    onRestore: (restored) => reset(restored),
+  });
 
   // Auto-fill title and body when type changes
   useEffect(() => {
@@ -476,6 +489,7 @@ export default function AdminNotifications() {
       }
 
       reset();
+      clearDraft();
       setHistoryTick((t) => t + 1);
     } catch (submitError) {
       const message =
@@ -683,7 +697,22 @@ export default function AdminNotifications() {
                 ) : null}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <p className="text-xs text-muted-foreground" aria-live="polite" aria-atomic="true">
+                  {draftPending ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning" />
+                      Salvando rascunho...
+                    </span>
+                  ) : draftSavedAt ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                      Rascunho salvo automaticamente
+                    </span>
+                  ) : (
+                    <span className="invisible">rascunho</span>
+                  )}
+                </p>
                 <Button
                   type="submit"
                   loading={submitting}
