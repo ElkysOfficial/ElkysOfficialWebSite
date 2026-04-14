@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { ArrowLeft, Building2, Clock, Mail, Phone, Send, Shield, Users } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import ContactLinks from "@/components/portal/ContactLinks";
 import NameAvatar from "@/components/portal/NameAvatar";
 import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -575,8 +576,17 @@ export default function LeadDetail() {
               ) : (
                 <div className="space-y-3">
                   <InfoRow label="Nome" value={lead.name} />
-                  <InfoRow label="E-mail" value={lead.email} />
-                  <InfoRow label="Telefone" value={lead.phone ? maskPhone(lead.phone) : null} />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Contato
+                    </span>
+                    <ContactLinks
+                      email={lead.email}
+                      phone={lead.phone}
+                      phoneDisplay={lead.phone ? maskPhone(lead.phone) : null}
+                      whatsappMessage={`Olá ${lead.name.split(" ")[0]}, aqui é da Elkys. Tudo bem?`}
+                    />
+                  </div>
                   <InfoRow label="Empresa" value={lead.company} />
                   <InfoRow label="Origem" value={SOURCE_LABEL[lead.source] ?? lead.source} />
                   <InfoRow

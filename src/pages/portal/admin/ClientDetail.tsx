@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { Building2, CheckCircle } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import ContactLinks from "@/components/portal/ContactLinks";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -1468,8 +1469,17 @@ export default function AdminClientDetail() {
               </CardHeader>
               <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
                 <InfoRow label="Nome" value={client.full_name} />
-                <InfoRow label="E-mail" value={client.email} />
-                <InfoRow label="Telefone" value={client.phone ? maskPhone(client.phone) : null} />
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Contato
+                  </span>
+                  <ContactLinks
+                    email={client.email}
+                    phone={client.phone}
+                    phoneDisplay={client.phone ? maskPhone(client.phone) : null}
+                    whatsappMessage={`Olá ${getClientDisplayName(client).split(" ")[0]}, aqui é da Elkys. Tudo bem?`}
+                  />
+                </div>
                 <InfoRow label="CPF" value={client.cpf ? maskCPF(client.cpf) : null} />
                 {client.client_type === "pj" ? (
                   <>
