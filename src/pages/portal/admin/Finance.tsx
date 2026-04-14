@@ -178,6 +178,17 @@ function MetricTile({
 /*  Receitas tab                                                      */
 /* ------------------------------------------------------------------ */
 
+type PeriodPreset = "mes_atual" | "30d" | "90d" | "ytd" | "all" | "custom";
+
+const PERIOD_PRESETS: { value: PeriodPreset; label: string; hint: string }[] = [
+  { value: "mes_atual", label: "Mês atual", hint: "Do dia 1 até o último dia do mês" },
+  { value: "30d", label: "Últimos 30d", hint: "Janela móvel dos últimos 30 dias" },
+  { value: "90d", label: "Últimos 90d", hint: "Janela móvel dos últimos 90 dias" },
+  { value: "ytd", label: "Ano (YTD)", hint: "1º de janeiro até hoje" },
+  { value: "all", label: "Tudo", hint: "Sem filtro de período" },
+  { value: "custom", label: "Customizado", hint: "Selecione o mês no dropdown" },
+];
+
 function FinanceRevenueTab({
   charges,
   clientsMap,
@@ -196,6 +207,7 @@ function FinanceRevenueTab({
   const [search, setSearch] = useUrlState("q", "");
   const [statusFilter, setStatusFilter] = useUrlState("status", "all");
   const [monthFilter, setMonthFilter] = useUrlState("mes", getCurrentRevenueMonthKey());
+  const [periodPreset, setPeriodPreset] = useUrlState<PeriodPreset>("periodo", "mes_atual");
   const [editingChargeId, setEditingChargeId] = useState<string | null>(null);
   const [editor, setEditor] = useState<ChargeEditor | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
@@ -205,9 +217,38 @@ function FinanceRevenueTab({
 
   const deferredSearch = search.trim().toLowerCase();
 
+  // Calcula o intervalo de datas para o preset ativo. Retorna null quando
+  // o preset e "custom" (o filtro de mes abaixo assume o controle) ou
+  // "all" (sem filtro de periodo, mostra tudo).
+  const periodRange = useMemo<{ from: string; to: string } | null>(() => {
+    if (periodPreset === "custom" || periodPreset === "all") return null;
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    if (periodPreset === "mes_atual") {
+      const first = new Date(today.getFullYear(), today.getMonth(), 1);
+      const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) };
+    }
+    if (periodPreset === "30d") {
+      const past = new Date(today);
+      past.setDate(past.getDate() - 30);
+      return { from: past.toISOString().slice(0, 10), to: todayStr };
+    }
+    if (periodPreset === "90d") {
+      const past = new Date(today);
+      past.setDate(past.getDate() - 90);
+      return { from: past.toISOString().slice(0, 10), to: todayStr };
+    }
+    if (periodPreset === "ytd") {
+      const first = new Date(today.getFullYear(), 0, 1);
+      return { from: first.toISOString().slice(0, 10), to: todayStr };
+    }
+    return null;
+  }, [periodPreset]);
+
   useEffect(() => {
     setPage(0);
-  }, [deferredSearch, statusFilter, monthFilter]);
+  }, [deferredSearch, statusFilter, monthFilter, periodPreset]);
 
   const monthOptions = useMemo(() => {
     const allMonths = new Set([
@@ -228,11 +269,20 @@ function FinanceRevenueTab({
           clientName.includes(deferredSearch);
 
         const matchesStatus = statusFilter === "all" || charge.status === statusFilter;
-        const matchesMonth = monthFilter === "all" || charge.due_date.startsWith(monthFilter);
+        // Logica de periodo: presets de range tem prioridade; quando o
+        // preset e "custom" caimos no dropdown tradicional de mes.
+        let matchesPeriod = true;
+        if (periodPreset === "all") {
+          matchesPeriod = true;
+        } else if (periodPreset === "custom") {
+          matchesPeriod = monthFilter === "all" || charge.due_date.startsWith(monthFilter);
+        } else if (periodRange) {
+          matchesPeriod = charge.due_date >= periodRange.from && charge.due_date <= periodRange.to;
+        }
 
-        return matchesSearch && matchesStatus && matchesMonth;
+        return matchesSearch && matchesStatus && matchesPeriod;
       }),
-    [charges, clientsMap, deferredSearch, statusFilter, monthFilter]
+    [charges, clientsMap, deferredSearch, statusFilter, monthFilter, periodPreset, periodRange]
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredCharges.length / REVENUE_PAGE_SIZE));
@@ -428,7 +478,11 @@ function FinanceRevenueTab({
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-foreground">Receitas</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {monthFilter === "all" ? "Todos os meses" : formatRevenueMonthLabel(monthFilter)}
+            {periodPreset === "custom"
+              ? monthFilter === "all"
+                ? "Todos os meses"
+                : formatRevenueMonthLabel(monthFilter)
+              : (PERIOD_PRESETS.find((p) => p.value === periodPreset)?.label ?? "Mês atual")}
           </p>
         </div>
         <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
@@ -457,6 +511,34 @@ function FinanceRevenueTab({
         />
       </div>
 
+      <div
+        className="flex flex-wrap items-center gap-1.5"
+        role="tablist"
+        aria-label="Preset de período"
+      >
+        {PERIOD_PRESETS.map((preset) => {
+          const isActive = periodPreset === preset.value;
+          return (
+            <button
+              key={preset.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              title={preset.hint}
+              onClick={() => setPeriodPreset(preset.value)}
+              className={cn(
+                "min-h-[36px] rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                isActive
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-background text-muted-foreground hover:border-primary/50 hover:text-primary"
+              )}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search
@@ -473,21 +555,23 @@ function FinanceRevenueTab({
             aria-label="Buscar cobrança ou cliente"
           />
         </div>
-        <select
-          id="month_filter"
-          name="month_filter"
-          value={monthFilter}
-          onChange={(event) => setMonthFilter(event.target.value)}
-          className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
-          aria-label="Filtrar por mes"
-        >
-          <option value="all">Todos os meses</option>
-          {monthOptions.map((monthKey) => (
-            <option key={monthKey} value={monthKey}>
-              {formatRevenueMonthLabel(monthKey)}
-            </option>
-          ))}
-        </select>
+        {periodPreset === "custom" ? (
+          <select
+            id="month_filter"
+            name="month_filter"
+            value={monthFilter}
+            onChange={(event) => setMonthFilter(event.target.value)}
+            className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-48"
+            aria-label="Filtrar por mes"
+          >
+            <option value="all">Todos os meses</option>
+            {monthOptions.map((monthKey) => (
+              <option key={monthKey} value={monthKey}>
+                {formatRevenueMonthLabel(monthKey)}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <select
           id="status_filter"
           name="status_filter"
