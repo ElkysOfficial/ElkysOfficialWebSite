@@ -7,6 +7,8 @@ import { useTheme } from "next-themes";
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
 import AdminNotificationBell from "@/components/portal/AdminNotificationBell";
+import PortalBreadcrumbs from "@/components/portal/PortalBreadcrumbs";
+import { resolveAdminBreadcrumbs } from "@/lib/admin-breadcrumbs";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_PROFILE_AVATAR_TRANSFORM,
@@ -555,6 +557,11 @@ export default function AdminLayout() {
     [location.pathname]
   );
 
+  const breadcrumbTrail = useMemo(
+    () => resolveAdminBreadcrumbs(location.pathname),
+    [location.pathname]
+  );
+
   const closeMobileSidebar = () => setMobileOpen(false);
 
   return (
@@ -836,6 +843,7 @@ export default function AdminLayout() {
 
           <main className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8">
             <div className="mx-auto w-full max-w-[1400px]">
+              <PortalBreadcrumbs trail={breadcrumbTrail} />
               <PortalErrorBoundary key={location.pathname}>
                 <Suspense fallback={<PortalLoading />}>
                   <Outlet />
