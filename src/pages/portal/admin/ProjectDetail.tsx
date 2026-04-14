@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
 import Pagination from "@/components/portal/Pagination";
 import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
@@ -426,6 +427,7 @@ export default function AdminProjectDetail() {
     delivered_at: "",
     expected_delivery_date: "",
     client_visible_summary: "",
+    production_url: "",
     has_subscription: false,
     subscription_id: "",
     subscription_label: "Manutenção e hospedagem",
@@ -704,6 +706,7 @@ export default function AdminProjectDetail() {
       delivered_at: formatDateInput(projectRes.project.delivered_at),
       expected_delivery_date: formatDateInput(projectRes.project.expected_delivery_date),
       client_visible_summary: projectRes.project.client_visible_summary ?? "",
+      production_url: projectRes.project.production_url ?? "",
       has_subscription: Boolean(
         managedProjectSubscription && managedProjectSubscription.status !== "encerrada"
       ),
@@ -839,6 +842,7 @@ export default function AdminProjectDetail() {
           expected_delivery_date: expectedDeliveryIso,
           billing_type: nextBillingType,
           client_visible_summary: projectForm.client_visible_summary.trim() || null,
+          production_url: projectForm.production_url.trim() || null,
           updated_at: nowIso,
         })
         .eq("id", project.id);
@@ -1917,6 +1921,28 @@ export default function AdminProjectDetail() {
         </Field>
 
         <Field>
+          <Label htmlFor="proj_production_url">Link do site / produto do cliente</Label>
+          <Input
+            id="proj_production_url"
+            name="proj_production_url"
+            type="url"
+            inputMode="url"
+            value={projectForm.production_url}
+            onChange={(event) =>
+              setProjectForm((current) => ({
+                ...current,
+                production_url: event.target.value,
+              }))
+            }
+            placeholder="https://akproducoes.com.br"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Aparece como botão de acesso direto tanto no portal admin quanto no portal do cliente.
+            Use a URL pública do site ou produto entregue.
+          </p>
+        </Field>
+
+        <Field>
           <Label htmlFor="proj_internal_notes">Notas internas</Label>
           <Textarea
             id="proj_internal_notes"
@@ -2887,6 +2913,7 @@ export default function AdminProjectDetail() {
         description={`${client ? getClientDisplayName(client) : "Cliente não encontrado"} · ${project.solution_type ?? "Tipo não definido"} · ${project.current_stage}`}
         action={
           <div className="flex flex-col gap-2 sm:flex-row">
+            <ProjectSiteLink url={project.production_url} />
             {client ? (
               <Link
                 to={`/portal/admin/clientes/${client.id}`}

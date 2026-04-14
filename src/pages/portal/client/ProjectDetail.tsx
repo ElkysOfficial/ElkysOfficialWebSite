@@ -7,6 +7,7 @@ import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import Pagination from "@/components/portal/Pagination";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import StatusBadge from "@/components/portal/StatusBadge";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
@@ -297,6 +298,7 @@ export default function ClientProjectDetail() {
                 <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
               </div>
               <p className="text-sm text-muted-foreground">Etapa atual: {project.current_stage}</p>
+              <ProjectSiteLink url={project.production_url} />
             </div>
 
             <Link to="/portal/cliente/projetos" className={buttonVariants({ variant: "outline" })}>
