@@ -912,7 +912,9 @@ export default function ProposalDetail() {
           <CardContent className="space-y-6">
             {/* Title */}
             <Field>
-              <Label htmlFor="title">Titulo *</Label>
+              <Label htmlFor="title" required>
+                Titulo
+              </Label>
               <Input
                 id="title"
                 value={form.title}
@@ -923,7 +925,7 @@ export default function ProposalDetail() {
 
             {/* Destination type */}
             <Field>
-              <Label>Destinatario *</Label>
+              <Label required>Destinatario</Label>
               <div className="mt-2 flex items-center gap-4">
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input

@@ -1801,7 +1801,9 @@ export default function AdminProjectDetail() {
           {projectForm.has_subscription && !hasActiveManagedSubscription ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field>
-                <Label htmlFor="proj_subscription_label">Nome da manutenção *</Label>
+                <Label htmlFor="proj_subscription_label" required>
+                  Nome da manutenção
+                </Label>
                 <Input
                   id="proj_subscription_label"
                   name="proj_subscription_label"
@@ -1816,7 +1818,9 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label htmlFor="proj_subscription_amount">Valor mensal *</Label>
+                <Label htmlFor="proj_subscription_amount" required>
+                  Valor mensal
+                </Label>
                 <Input
                   id="proj_subscription_amount"
                   name="proj_subscription_amount"
@@ -1833,7 +1837,9 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label htmlFor="proj_subscription_due_day">Dia de vencimento *</Label>
+                <Label htmlFor="proj_subscription_due_day" required>
+                  Dia de vencimento
+                </Label>
                 <Input
                   id="proj_subscription_due_day"
                   name="proj_subscription_due_day"
@@ -1851,7 +1857,9 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label htmlFor="proj_subscription_starts_on">Inicio da manutenção *</Label>
+                <Label htmlFor="proj_subscription_starts_on" required>
+                  Inicio da manutenção
+                </Label>
                 <Input
                   id="proj_subscription_starts_on"
                   name="proj_subscription_starts_on"
