@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
 import PortalLoading from "@/components/portal/PortalLoading";
 import ProposalExpiryCountdown from "@/components/portal/ProposalExpiryCountdown";
+import ProposalRejectModal from "@/components/portal/ProposalRejectModal";
 import StatusBadge from "@/components/portal/StatusBadge";
 import {
   Button,
@@ -99,12 +100,14 @@ function ProposalReadOnly({
   destinationLabel,
   onApprove,
   approving,
+  onRequestReject,
   linkedProjectId,
 }: {
   proposal: ProposalRow;
   destinationLabel: string;
   onApprove: () => void;
   approving: boolean;
+  onRequestReject: () => void;
   linkedProjectId: string | null;
 }) {
   const meta =
@@ -112,6 +115,9 @@ function ProposalReadOnly({
 
   const canApprove =
     proposal.status === "enviada" || (proposal.status === "aprovada" && !linkedProjectId);
+
+  // Rejeitar so faz sentido em propostas "enviadas" ainda nao decididas
+  const canReject = proposal.status === "enviada";
 
   return (
     <div className="space-y-6">
@@ -152,7 +158,7 @@ function ProposalReadOnly({
 
       {/* Admin approve action */}
       {canApprove && (
-        <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
           <Button type="button" disabled={approving} onClick={onApprove}>
             {approving
               ? "Criando projeto..."
@@ -160,11 +166,21 @@ function ProposalReadOnly({
                 ? "Criar projeto a partir desta proposta"
                 : "Aprovar e criar projeto"}
           </Button>
-          <span className="text-xs text-muted-foreground">
+          <span className="flex-1 text-xs text-muted-foreground">
             {proposal.status === "aprovada"
               ? "Cliente ja aprovou. Clique para criar o projeto e contrato vinculados."
-              : "Ao aprovar, um projeto será criado automáticamente vinculado a esta proposta."}
+              : "Ao aprovar, um projeto será criado automaticamente vinculado a esta proposta."}
           </span>
+          {canReject ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onRequestReject}
+              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              Rejeitar proposta
+            </Button>
+          ) : null}
         </div>
       )}
 
@@ -780,6 +796,69 @@ export default function ProposalDetail() {
     void loadData();
   }
 
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+
+  async function handleReject(reasonText: string) {
+    if (!proposal) return;
+    if (!canTransitionProposal(proposal.status, "rejeitada")) {
+      toast.error("Esta proposta não pode ser rejeitada no status atual.");
+      return;
+    }
+
+    setRejecting(true);
+    const nowIso = new Date().toISOString();
+    const { error: rejectError } = await supabase
+      .from("proposals")
+      .update({
+        status: "rejeitada",
+        rejected_at: nowIso,
+        rejection_reason: reasonText,
+        updated_at: nowIso,
+      })
+      .eq("id", proposal.id);
+
+    if (rejectError) {
+      setRejecting(false);
+      toast.error("Erro ao rejeitar proposta.", { description: rejectError.message });
+      return;
+    }
+
+    // Timeline event (silencioso em falha para nao bloquear o fluxo)
+    try {
+      await supabase.from("timeline_events").insert({
+        client_id: proposal.client_id,
+        project_id: null,
+        actor_user_id: user?.id ?? null,
+        event_type: "proposta_rejeitada",
+        title: "Proposta rejeitada",
+        summary: `Proposta "${proposal.title}" marcada como rejeitada. Motivo: ${reasonText}`,
+        visibility: "ambos",
+        source_table: "proposals",
+        source_id: proposal.id,
+      });
+    } catch {
+      /* silencioso */
+    }
+
+    // Se vinculada a lead, avanca status pra perdido
+    if (proposal.lead_id) {
+      void supabase
+        .from("leads")
+        .update({
+          status: "perdido",
+          lost_reason: reasonText,
+          updated_at: nowIso,
+        })
+        .eq("id", proposal.lead_id);
+    }
+
+    setRejecting(false);
+    setRejectModalOpen(false);
+    toast.success("Proposta rejeitada.", { description: reasonText });
+    void loadData();
+  }
+
   /* ── Render ── */
 
   if (loading) return <PortalLoading />;
@@ -819,6 +898,7 @@ export default function ProposalDetail() {
               destinationLabel={destinationLabel}
               onApprove={() => void handleApprove()}
               approving={approving}
+              onRequestReject={() => setRejectModalOpen(true)}
               linkedProjectId={linkedProjectId}
             />
           </CardContent>
@@ -1056,6 +1136,15 @@ export default function ProposalDetail() {
           </CardContent>
         </Card>
       )}
+
+      <ProposalRejectModal
+        open={rejectModalOpen}
+        submitting={rejecting}
+        onCancel={() => {
+          if (!rejecting) setRejectModalOpen(false);
+        }}
+        onConfirm={(reasonText) => void handleReject(reasonText)}
+      />
     </div>
   );
 }
