@@ -15,7 +15,7 @@ import {
 
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
+import OverviewSkeleton from "@/components/portal/OverviewSkeleton";
 import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -1410,7 +1410,7 @@ export default function AdminOverview() {
     return "Operação estável neste mes";
   }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
 
-  if (!hasLoaded && !error) return <PortalLoading />;
+  if (!hasLoaded && !error) return <OverviewSkeleton />;
 
   return (
     <div className="space-y-4">
