@@ -14,6 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { Shield, Target, TrendingUp, Users, Search } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import NameAvatar from "@/components/portal/NameAvatar";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
 import PortalLoading from "@/components/portal/PortalLoading";
 import ExportMenu from "@/components/portal/ExportMenu";
@@ -86,15 +87,19 @@ function LeadCard({ lead }: { lead: LeadRow }) {
       to={`/portal/admin/leads/${lead.id}`}
       className="flex h-full flex-col rounded-xl border border-border/60 bg-background/70 p-3 transition-all hover:border-primary/40 hover:shadow-md"
     >
-      <h4 className="text-sm font-semibold leading-tight text-foreground line-clamp-2">
-        {lead.name}
-      </h4>
+      <div className="flex items-start gap-2.5">
+        <NameAvatar size="sm" name={lead.name} className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <h4 className="text-sm font-semibold leading-tight text-foreground line-clamp-2">
+            {lead.name}
+          </h4>
+          <p className="mt-1 min-h-[1.25rem] truncate text-xs text-muted-foreground">
+            {lead.company || "\u00A0"}
+          </p>
+        </div>
+      </div>
 
-      <p className="mt-1 min-h-[1.25rem] truncate text-xs text-muted-foreground">
-        {lead.company || "\u00A0"}
-      </p>
-
-      <p className="mt-1 text-xs font-semibold text-foreground">
+      <p className="mt-2 text-xs font-semibold text-foreground">
         {lead.estimated_value > 0 ? formatBRL(lead.estimated_value) : "\u00A0"}
       </p>
 
@@ -647,9 +652,10 @@ export default function Leads() {
                       <td className="px-4 py-3">
                         <Link
                           to={`/portal/admin/leads/${lead.id}`}
-                          className="font-medium text-foreground hover:text-primary hover:underline"
+                          className="flex items-center gap-2.5 font-medium text-foreground hover:text-primary hover:underline"
                         >
-                          {lead.name}
+                          <NameAvatar size="sm" name={lead.name} className="shrink-0" />
+                          <span>{lead.name}</span>
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{lead.company ?? "-"}</td>
