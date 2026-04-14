@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { Building2, CheckCircle } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import CollapsibleSection from "@/components/portal/CollapsibleSection";
 import ContactLinks from "@/components/portal/ContactLinks";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
@@ -466,222 +467,234 @@ function GeneralClientForm({
         <CardTitle className="text-base">Editar dados gerais</CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
-        <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)}>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field className="md:col-span-2">
-              <Label htmlFor="client_type">Tipo de cliente</Label>
-              <select
-                id="client_type"
-                name="client_type"
-                value={form.client_type}
-                onChange={(event) => setField("client_type", event.target.value as ClientType)}
-                className={selectClass}
-              >
-                <option value="pf">Pessoa Física</option>
-                <option value="pj">Pessoa Jurídica</option>
-              </select>
-            </Field>
+        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <CollapsibleSection
+            title="Identificação e contato"
+            description="Tipo de cliente, nome, e-mail, telefone e documentos."
+            defaultOpen
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field className="md:col-span-2">
+                <Label htmlFor="client_type">Tipo de cliente</Label>
+                <select
+                  id="client_type"
+                  name="client_type"
+                  value={form.client_type}
+                  onChange={(event) => setField("client_type", event.target.value as ClientType)}
+                  className={selectClass}
+                >
+                  <option value="pf">Pessoa Física</option>
+                  <option value="pj">Pessoa Jurídica</option>
+                </select>
+              </Field>
 
-            <Field>
-              <Label htmlFor="full_name">Nome completo / representante</Label>
-              <Input
-                id="full_name"
-                name="full_name"
-                value={form.full_name}
-                onChange={(event) => setField("full_name", event.target.value)}
-              />
-              <ErrorText className={errors.full_name ? "" : "invisible"}>
-                {errors.full_name || "\u00A0"}
-              </ErrorText>
-            </Field>
+              <Field>
+                <Label htmlFor="full_name">Nome completo / representante</Label>
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  value={form.full_name}
+                  onChange={(event) => setField("full_name", event.target.value)}
+                />
+                <ErrorText className={errors.full_name ? "" : "invisible"}>
+                  {errors.full_name || "\u00A0"}
+                </ErrorText>
+              </Field>
 
-            <Field>
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={(event) => setField("email", event.target.value)}
-              />
-              <ErrorText className={errors.email ? "" : "invisible"}>
-                {errors.email || "\u00A0"}
-              </ErrorText>
-            </Field>
+              <Field>
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => setField("email", event.target.value)}
+                />
+                <ErrorText className={errors.email ? "" : "invisible"}>
+                  {errors.email || "\u00A0"}
+                </ErrorText>
+              </Field>
 
-            <Field>
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={form.phone}
-                onChange={(event) => setField("phone", maskPhone(event.target.value))}
-                placeholder="(31) 99999-9999"
-              />
-              <ErrorText className={errors.phone ? "" : "invisible"}>
-                {errors.phone || "\u00A0"}
-              </ErrorText>
-            </Field>
+              <Field>
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={form.phone}
+                  onChange={(event) => setField("phone", maskPhone(event.target.value))}
+                  placeholder="(31) 99999-9999"
+                />
+                <ErrorText className={errors.phone ? "" : "invisible"}>
+                  {errors.phone || "\u00A0"}
+                </ErrorText>
+              </Field>
 
-            <Field>
-              <Label htmlFor="cpf">CPF</Label>
-              <Input
-                id="cpf"
-                name="cpf"
-                value={form.cpf}
-                onChange={(event) => setField("cpf", maskCPF(event.target.value))}
-                placeholder="000.000.000-00"
-              />
-              <ErrorText className={errors.cpf ? "" : "invisible"}>
-                {errors.cpf || "\u00A0"}
-              </ErrorText>
-            </Field>
+              <Field>
+                <Label htmlFor="cpf">CPF</Label>
+                <Input
+                  id="cpf"
+                  name="cpf"
+                  value={form.cpf}
+                  onChange={(event) => setField("cpf", maskCPF(event.target.value))}
+                  placeholder="000.000.000-00"
+                />
+                <ErrorText className={errors.cpf ? "" : "invisible"}>
+                  {errors.cpf || "\u00A0"}
+                </ErrorText>
+              </Field>
 
-            {form.client_type === "pj" ? (
-              <>
-                <Field>
-                  <Label htmlFor="cnpj">CNPJ</Label>
-                  <Input
-                    id="cnpj"
-                    name="cnpj"
-                    value={form.cnpj}
-                    onChange={(event) => setField("cnpj", maskCNPJ(event.target.value))}
-                    placeholder="00.000.000/0000-00"
-                  />
-                  <ErrorText className={errors.cnpj ? "" : "invisible"}>
-                    {errors.cnpj || "\u00A0"}
-                  </ErrorText>
-                </Field>
+              {form.client_type === "pj" ? (
+                <>
+                  <Field>
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Input
+                      id="cnpj"
+                      name="cnpj"
+                      value={form.cnpj}
+                      onChange={(event) => setField("cnpj", maskCNPJ(event.target.value))}
+                      placeholder="00.000.000/0000-00"
+                    />
+                    <ErrorText className={errors.cnpj ? "" : "invisible"}>
+                      {errors.cnpj || "\u00A0"}
+                    </ErrorText>
+                  </Field>
 
-                <Field>
-                  <Label htmlFor="razao_social">Razão social</Label>
-                  <Input
-                    id="razao_social"
-                    name="razao_social"
-                    value={form.razao_social}
-                    onChange={(event) => setField("razao_social", event.target.value)}
-                  />
-                  <ErrorText className={errors.razao_social ? "" : "invisible"}>
-                    {errors.razao_social || "\u00A0"}
-                  </ErrorText>
-                </Field>
+                  <Field>
+                    <Label htmlFor="razao_social">Razão social</Label>
+                    <Input
+                      id="razao_social"
+                      name="razao_social"
+                      value={form.razao_social}
+                      onChange={(event) => setField("razao_social", event.target.value)}
+                    />
+                    <ErrorText className={errors.razao_social ? "" : "invisible"}>
+                      {errors.razao_social || "\u00A0"}
+                    </ErrorText>
+                  </Field>
 
-                <Field>
-                  <Label htmlFor="nome_fantasia">Nome fantasia</Label>
-                  <Input
-                    id="nome_fantasia"
-                    name="nome_fantasia"
-                    value={form.nome_fantasia}
-                    onChange={(event) => setField("nome_fantasia", event.target.value)}
-                  />
-                </Field>
+                  <Field>
+                    <Label htmlFor="nome_fantasia">Nome fantasia</Label>
+                    <Input
+                      id="nome_fantasia"
+                      name="nome_fantasia"
+                      value={form.nome_fantasia}
+                      onChange={(event) => setField("nome_fantasia", event.target.value)}
+                    />
+                  </Field>
 
-                <Field>
-                  <Label htmlFor="cargo_representante">Cargo do representante</Label>
-                  <Input
-                    id="cargo_representante"
-                    name="cargo_representante"
-                    value={form.cargo_representante}
-                    onChange={(event) => setField("cargo_representante", event.target.value)}
-                  />
-                </Field>
-              </>
-            ) : null}
-          </div>
+                  <Field>
+                    <Label htmlFor="cargo_representante">Cargo do representante</Label>
+                    <Input
+                      id="cargo_representante"
+                      name="cargo_representante"
+                      value={form.cargo_representante}
+                      onChange={(event) => setField("cargo_representante", event.target.value)}
+                    />
+                  </Field>
+                </>
+              ) : null}
+            </div>
+          </CollapsibleSection>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field>
-              <Label htmlFor="cep">CEP{cepLoading ? " - buscando..." : ""}</Label>
-              <Input
-                id="cep"
-                name="cep"
-                value={form.cep}
-                onChange={(event) => setField("cep", maskCEP(event.target.value))}
-                placeholder="00000-000"
-              />
-              <ErrorText className={errors.cep ? "" : "invisible"}>
-                {errors.cep || "\u00A0"}
-              </ErrorText>
-            </Field>
+          <CollapsibleSection
+            title="Endereço"
+            description="CEP, logradouro, cidade, estado e país. O CEP preenche os demais automaticamente."
+            defaultOpen
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field>
+                <Label htmlFor="cep">CEP{cepLoading ? " - buscando..." : ""}</Label>
+                <Input
+                  id="cep"
+                  name="cep"
+                  value={form.cep}
+                  onChange={(event) => setField("cep", maskCEP(event.target.value))}
+                  placeholder="00000-000"
+                />
+                <ErrorText className={errors.cep ? "" : "invisible"}>
+                  {errors.cep || "\u00A0"}
+                </ErrorText>
+              </Field>
 
-            <Field>
-              <Label htmlFor="logradouro">Logradouro</Label>
-              <Input
-                id="logradouro"
-                name="logradouro"
-                value={form.logradouro}
-                onChange={(event) => setField("logradouro", event.target.value)}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="logradouro">Logradouro</Label>
+                <Input
+                  id="logradouro"
+                  name="logradouro"
+                  value={form.logradouro}
+                  onChange={(event) => setField("logradouro", event.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="numero">Número</Label>
-              <Input
-                id="numero"
-                name="numero"
-                value={form.numero}
-                onChange={(event) => setField("numero", event.target.value)}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="numero">Número</Label>
+                <Input
+                  id="numero"
+                  name="numero"
+                  value={form.numero}
+                  onChange={(event) => setField("numero", event.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="complemento">Complemento</Label>
-              <Input
-                id="complemento"
-                name="complemento"
-                value={form.complemento}
-                onChange={(event) => setField("complemento", event.target.value)}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="complemento">Complemento</Label>
+                <Input
+                  id="complemento"
+                  name="complemento"
+                  value={form.complemento}
+                  onChange={(event) => setField("complemento", event.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="bairro">Bairro</Label>
-              <Input
-                id="bairro"
-                name="bairro"
-                value={form.bairro}
-                onChange={(event) => setField("bairro", event.target.value)}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  name="bairro"
+                  value={form.bairro}
+                  onChange={(event) => setField("bairro", event.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="city">Cidade</Label>
-              <Input
-                id="city"
-                name="city"
-                value={form.city}
-                onChange={(event) => setField("city", event.target.value)}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="city">Cidade</Label>
+                <Input
+                  id="city"
+                  name="city"
+                  value={form.city}
+                  onChange={(event) => setField("city", event.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="state">Estado</Label>
-              <Input
-                id="state"
-                name="state"
-                value={form.state}
-                onChange={(event) => setField("state", event.target.value.toUpperCase())}
-                maxLength={2}
-              />
-            </Field>
+              <Field>
+                <Label htmlFor="state">Estado</Label>
+                <Input
+                  id="state"
+                  name="state"
+                  value={form.state}
+                  onChange={(event) => setField("state", event.target.value.toUpperCase())}
+                  maxLength={2}
+                />
+              </Field>
 
-            <Field>
-              <Label htmlFor="country">País</Label>
-              <Input
-                id="country"
-                name="country"
-                value={form.country}
-                onChange={(event) => setField("country", event.target.value)}
-              />
-            </Field>
-          </div>
+              <Field>
+                <Label htmlFor="country">País</Label>
+                <Input
+                  id="country"
+                  name="country"
+                  value={form.country}
+                  onChange={(event) => setField("country", event.target.value)}
+                />
+              </Field>
+            </div>
+          </CollapsibleSection>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar dados gerais"}
+            <Button type="submit" loading={saving} loadingText="Salvando...">
+              Salvar dados gerais
             </Button>
           </div>
         </form>
