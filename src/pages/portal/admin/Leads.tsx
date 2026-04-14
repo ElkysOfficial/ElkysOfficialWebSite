@@ -566,47 +566,68 @@ export default function Leads() {
           onDragEnd={(e) => void handleDragEnd(e)}
         >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-            {STATUS_META.map((col) => (
-              <div
-                key={col.key}
-                className={cn(
-                  "flex flex-col rounded-2xl border border-border/70 border-t-[3px] bg-card/60",
-                  COLUMN_ACCENT[col.key]
-                )}
-              >
-                {/* Column header */}
-                <div className="flex items-center justify-between p-3 pb-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {col.label}
-                  </h3>
-                  <span
-                    className={cn(
-                      "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-                      COLUMN_COUNT_BG[col.key]
-                    )}
-                  >
-                    {grouped[col.key].length}
-                  </span>
-                </div>
-
-                {/* Cards — sortable + droppable column */}
-                <SortableContext
-                  id={col.key}
-                  items={grouped[col.key].map((l) => l.id)}
-                  strategy={verticalListSortingStrategy}
+            {STATUS_META.map((col) => {
+              const columnLeads = grouped[col.key];
+              const columnTotal = columnLeads.reduce(
+                (sum, lead) => sum + (lead.estimated_value ?? 0),
+                0
+              );
+              return (
+                <div
+                  key={col.key}
+                  className={cn(
+                    "flex flex-col rounded-2xl border border-border/70 border-t-[3px] bg-card/60",
+                    COLUMN_ACCENT[col.key]
+                  )}
                 >
-                  <DroppableLeadColumn status={col.key}>
-                    {grouped[col.key].length === 0 ? (
-                      <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
-                        <p className="text-center text-xs text-muted-foreground">Nenhum lead</p>
-                      </div>
+                  {/* Column header */}
+                  <div className="flex flex-col gap-1.5 p-3 pb-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {col.label}
+                      </h3>
+                      <span
+                        className={cn(
+                          "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+                          COLUMN_COUNT_BG[col.key]
+                        )}
+                      >
+                        {columnLeads.length}
+                      </span>
+                    </div>
+                    {columnTotal > 0 ? (
+                      <p
+                        className="text-xs font-semibold text-foreground"
+                        title={`Soma de estimated_value dos ${columnLeads.length} leads nesta coluna`}
+                      >
+                        {formatBRL(columnTotal)}
+                      </p>
                     ) : (
-                      grouped[col.key].map((lead) => <SortableLeadCard key={lead.id} lead={lead} />)
+                      <p className="text-[11px] text-muted-foreground/70">Sem valor estimado</p>
                     )}
-                  </DroppableLeadColumn>
-                </SortableContext>
-              </div>
-            ))}
+                  </div>
+
+                  {/* Cards — sortable + droppable column */}
+                  <SortableContext
+                    id={col.key}
+                    items={grouped[col.key].map((l) => l.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <DroppableLeadColumn status={col.key}>
+                      {grouped[col.key].length === 0 ? (
+                        <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
+                          <p className="text-center text-xs text-muted-foreground">Nenhum lead</p>
+                        </div>
+                      ) : (
+                        grouped[col.key].map((lead) => (
+                          <SortableLeadCard key={lead.id} lead={lead} />
+                        ))
+                      )}
+                    </DroppableLeadColumn>
+                  </SortableContext>
+                </div>
+              );
+            })}
           </div>
         </DndContext>
       )}
