@@ -245,6 +245,8 @@ function FinanceRevenueTab({
     filteredCharges
       .filter((c) => c.status === "pago")
       .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+  const filteredPending = Math.max(0, filteredTotal - filteredPaid);
+  const paidPercentage = filteredTotal > 0 ? Math.round((filteredPaid / filteredTotal) * 100) : 0;
   const startEditing = (charge: PortalCharge) => {
     setEditingChargeId(charge.id);
     setEditor(getChargeEditorFromCharge(charge));
@@ -708,6 +710,49 @@ function FinanceRevenueTab({
               </article>
             );
           })}
+
+          {filteredCharges.length > 0 ? (
+            <div className="mt-4 grid gap-3 rounded-xl border border-border/60 bg-muted/25 px-4 py-3 sm:grid-cols-[1.2fr_1fr_1fr_auto] sm:items-center sm:gap-5">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Total filtrado
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {formatBRL(filteredTotal)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {filteredCharges.length} lançamento{filteredCharges.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Recebido
+                </span>
+                <span className="text-sm font-semibold text-success">
+                  {formatBRL(filteredPaid)}
+                </span>
+                <span className="text-xs text-muted-foreground">{paidPercentage}% do total</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Em aberto
+                </span>
+                <span className="text-sm font-semibold text-warning">
+                  {formatBRL(filteredPending)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {Math.max(0, 100 - paidPercentage)}% do total
+                </span>
+              </div>
+              <div className="hidden h-2 w-full overflow-hidden rounded-full bg-muted sm:block sm:w-32">
+                <div
+                  className="h-full rounded-full bg-success transition-all"
+                  style={{ width: `${paidPercentage}%` }}
+                  aria-label={`${paidPercentage}% do total recebido`}
+                />
+              </div>
+            </div>
+          ) : null}
 
           {totalPages > 1 ? (
             <div className="flex items-center justify-between pt-4">
