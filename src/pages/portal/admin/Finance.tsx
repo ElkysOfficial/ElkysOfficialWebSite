@@ -49,6 +49,7 @@ import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import {
   CHARGE_STATUS_META,
+  chargeStatusToInstallmentStatus,
   formatPortalDate,
   getClientDisplayName,
   isProjectOperationallyOpen,
@@ -282,6 +283,7 @@ function FinanceRevenueTab({
     setEditorError(null);
 
     const isPaidNow = editor.status === "pago";
+    const paidAt = isPaidNow ? new Date().toISOString().slice(0, 10) : null;
     const { error } = await supabase
       .from("charges")
       .update({
@@ -289,7 +291,7 @@ function FinanceRevenueTab({
         amount: unmaskCurrency(editor.amount),
         due_date: parsedDate,
         status: editor.status as PortalCharge["status"],
-        ...(isPaidNow ? { paid_at: new Date().toISOString().slice(0, 10) } : {}),
+        ...(isPaidNow ? { paid_at: paidAt } : {}),
       })
       .eq("id", chargeId);
 
@@ -301,6 +303,31 @@ function FinanceRevenueTab({
 
     const originalCharge = charges.find((c) => c.id === chargeId);
     const sideEffectWarnings: string[] = [];
+
+    // Sincroniza o status da parcela do projeto quando a cobrança for
+    // originada de um contrato (installment_id preenchido). Antes, marcar
+    // uma cobrança como "paga" em Finance deixava a project_installments
+    // vinculada com status desatualizado, criando divergência entre o
+    // Financeiro e o ProjectDetail. Agora o fluxo é bidirecional.
+    if (originalCharge?.installment_id) {
+      const nextInstallmentStatus = chargeStatusToInstallmentStatus(
+        editor.status as PortalCharge["status"]
+      );
+      const { error: installmentSyncError } = await supabase
+        .from("project_installments")
+        .update({
+          status: nextInstallmentStatus,
+          paid_at: paidAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", originalCharge.installment_id);
+
+      if (installmentSyncError) {
+        sideEffectWarnings.push(
+          "Parcela do projeto não foi sincronizada — corrija manualmente em ProjectDetail."
+        );
+      }
+    }
 
     // Notify client when charge becomes overdue
     if (editor.status === "atrasado" && originalCharge && originalCharge.status !== "atrasado") {
