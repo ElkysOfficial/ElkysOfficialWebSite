@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProjectStageProgressDots from "@/components/portal/ProjectStageProgressDots";
 import { useAdminProjects } from "@/hooks/useAdminProjects";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -155,13 +156,15 @@ function ProjectRow({
       </div>
 
       {/* Mobile: secondary info in a compact layout */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 md:hidden">
-        <StatusBadge label={meta.label} tone={meta.tone} />
-        {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
-        <span className="text-xs text-muted-foreground">{project.current_stage || "—"}</span>
-        <span className="text-xs font-medium text-foreground">
-          {formatPortalDate(project.expected_delivery_date)}
-        </span>
+      <div className="flex flex-col gap-2 md:hidden">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <StatusBadge label={meta.label} tone={meta.tone} />
+          {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
+          <span className="text-xs font-medium text-foreground">
+            {formatPortalDate(project.expected_delivery_date)}
+          </span>
+        </div>
+        <ProjectStageProgressDots currentStage={project.current_stage} />
       </div>
 
       {/* Col 2 — Status (desktop) */}
@@ -171,9 +174,9 @@ function ProjectRow({
       </div>
 
       {/* Col 3 — Stage (desktop) */}
-      <p className="hidden text-sm text-muted-foreground md:block">
-        {project.current_stage || "—"}
-      </p>
+      <div className="hidden md:block">
+        <ProjectStageProgressDots currentStage={project.current_stage} />
+      </div>
 
       {/* Col 4 — Dates (desktop) */}
       <div className="hidden md:block">
