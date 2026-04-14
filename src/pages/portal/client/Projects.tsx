@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Folder } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,6 +187,7 @@ export default function ClientProjects() {
                       {project.name}
                     </p>
                     <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+                    <ProjectSiteLink url={project.production_url} />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Etapa atual: {project.current_stage}
