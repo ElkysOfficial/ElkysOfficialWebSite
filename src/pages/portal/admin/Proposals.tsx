@@ -297,7 +297,7 @@ export default function Proposals() {
     });
   const handleExportPDF = () =>
     exportPDF({
-      title: "Relatorio de Propostas",
+      title: "Relatório de Propostas",
       subtitle: `${filteredProposals.length} propostas | Em negociacao: ${formatBRL(metrics.emNegociacaoValue)}`,
       filename: "propostas",
       columns: exportColumns,
@@ -313,7 +313,7 @@ export default function Proposals() {
 
       if (error) throw error;
 
-      toast.success("Proposta excluida com sucesso.");
+      toast.success("Proposta excluída com sucesso.");
       void refetchData();
       setProposalToDelete(null);
     } catch (err: unknown) {
@@ -335,7 +335,7 @@ export default function Proposals() {
       <AlertDialog
         open={proposalToDelete !== null}
         title="Excluir proposta"
-        description={`Tem certeza que deseja excluir "${deleteDisplayName}"? Esta acao nao pode ser desfeita.`}
+        description={`Tem certeza que deseja excluir "${deleteDisplayName}"? Esta ação não pode ser desfeita.`}
         confirmLabel="Excluir"
         destructive
         loading={deleteLoading}
@@ -422,7 +422,7 @@ export default function Proposals() {
       {pageError ? (
         <AdminEmptyState
           icon={FileText}
-          title="Nao foi possivel carregar as propostas"
+          title="Não foi possível carregar as propostas"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchData()}>

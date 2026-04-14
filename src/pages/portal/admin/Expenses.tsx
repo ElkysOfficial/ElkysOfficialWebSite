@@ -236,11 +236,11 @@ export default function AdminExpenses() {
   }, [filteredExpenses, filteredTotal]);
 
   const expExportColumns: ExportColumn[] = [
-    { key: "description", label: "Descricao" },
+    { key: "description", label: "Descrição" },
     { key: "category", label: "Categoria" },
     { key: "amount", label: "Valor", align: "right" },
     { key: "date", label: "Data" },
-    { key: "notes", label: "Observacoes" },
+    { key: "notes", label: "Observações" },
   ];
 
   const expExportRows = filteredExpenses.map((e) => ({
@@ -260,7 +260,7 @@ export default function AdminExpenses() {
     });
   const handleExpPDF = () =>
     exportPDF({
-      title: "Relatorio de Despesas",
+      title: "Relatório de Despesas",
       subtitle: `${filteredExpenses.length} lancamentos | Total: ${formatBRL(filteredTotal)}`,
       filename: "despesas",
       columns: expExportColumns,
@@ -289,7 +289,7 @@ export default function AdminExpenses() {
     }
 
     if (editor.description.trim().length < 3) {
-      setEditorError("A descricao precisa ter ao menos 3 caracteres.");
+      setEditorError("A descrição precisa ter ao menos 3 caracteres.");
       return;
     }
 
@@ -342,7 +342,7 @@ export default function AdminExpenses() {
     const { error } = await supabase.from("expenses").delete().eq("id", deleteExpenseId);
 
     if (error) {
-      toast.error("Nao foi possivel remover a despesa.", {
+      toast.error("Não foi possível remover a despesa.", {
         description: error.message,
       });
       setRemovingExpenseId(null);
@@ -471,7 +471,7 @@ export default function AdminExpenses() {
       {pageError ? (
         <AdminEmptyState
           icon={TrendingUp}
-          title="Nao foi possivel carregar as despesas"
+          title="Não foi possível carregar as despesas"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchExpenses()}>
@@ -498,7 +498,7 @@ export default function AdminExpenses() {
           {/* Column headers */}
           <div className="hidden md:grid md:grid-cols-[1fr_160px_140px_120px_auto] gap-x-6 px-5 pb-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Descricao
+              Descrição
             </p>
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Categoria
@@ -524,7 +524,7 @@ export default function AdminExpenses() {
                   <div className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <Field className="md:col-span-2">
-                        <Label>Descricao</Label>
+                        <Label>Descrição</Label>
                         <Input
                           value={editor.description}
                           onChange={(event) =>
@@ -735,7 +735,7 @@ export default function AdminExpenses() {
       <AlertDialog
         open={isSuperAdmin && Boolean(deleteExpenseId)}
         title="Remover despesa"
-        description="Essa acao remove o lancamento financeiro selecionado. Voce podera cadastrar novamente depois, se precisar."
+        description="Essa acao remove o lancamento financeiro selecionado. Você podera cadastrar novamente depois, se precisar."
         confirmLabel="Remover despesa"
         cancelLabel="Cancelar"
         destructive

@@ -43,7 +43,7 @@ export default function ClientFinance() {
       const clientRes = await resolveClientForUser(user.id);
       if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
-        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
         setLoading(false);
         return;
       }
@@ -157,7 +157,7 @@ export default function ClientFinance() {
     return (
       <AdminEmptyState
         icon={BarChart}
-        title="Nao foi possivel carregar seu financeiro"
+        title="Não foi possível carregar seu financeiro"
         description={pageError}
       />
     );
@@ -192,8 +192,8 @@ export default function ClientFinance() {
       {operationalItems.length === 0 && historicalItems.length === 0 ? (
         <AdminEmptyState
           icon={BarChart}
-          title="Nenhuma cobranca registrada"
-          description="Quando houver cobrancas vinculadas a sua conta, elas aparecerao nesta area."
+          title="Nenhuma cobrança registrada"
+          description="Quando houver cobranças vinculadas a sua conta, elas aparecerao nesta area."
         />
       ) : (
         <div className="space-y-8">
@@ -269,11 +269,11 @@ export default function ClientFinance() {
             </section>
           )}
 
-          {/* Historico pago */}
+          {/* Histórico pago */}
           {paidItems.length > 0 && (
             <section className="space-y-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Historico pago
+                Histórico pago
               </p>
               {paidItems.map((item) => (
                 <article

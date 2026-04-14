@@ -606,7 +606,7 @@ export default function AdminSupport() {
       {pageError ? (
         <AdminEmptyState
           icon={Headphones}
-          title="Nao foi possivel carregar os tickets"
+          title="Não foi possível carregar os tickets"
           description={pageError}
           action={
             <Button type="button" onClick={() => void loadTickets()}>
@@ -621,8 +621,8 @@ export default function AdminSupport() {
           description={
             tickets.length === 0
               ? supportOnlyView
-                ? "Quando houver novo ticket aberto, ele aparecera aqui para o suporte."
-                : "Quando clientes abrirem solicitacoes de suporte, elas aparecerao aqui."
+                ? "Quando houver novo ticket aberto, ele aparecerá aqui para o suporte."
+                : "Quando clientes abrirem solicitações de suporte, elas aparecerão aqui."
               : "Ajuste o filtro ou o termo de busca."
           }
         />

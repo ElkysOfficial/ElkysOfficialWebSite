@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               window.dispatchEvent(
                 new CustomEvent("auth-no-access", {
                   detail:
-                    "Nao foi possivel carregar suas permissoes. Verifique sua conexao e tente novamente.",
+                    "Não foi possível carregar suas permissões. Verifique sua conexão e tente novamente.",
                 })
               );
               return;

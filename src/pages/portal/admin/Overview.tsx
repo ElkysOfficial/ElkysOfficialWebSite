@@ -198,7 +198,7 @@ const initialState: OverviewState = {
   projectStatusCounts: {
     negociacao: 0,
     em_andamento: 0,
-    concluido: 0,
+    concluído: 0,
     pausado: 0,
   },
   averageRecurringRevenuePerClient: 0,
@@ -543,7 +543,7 @@ function ResultBarChart({ data }: { data: MonthlyPoint[] }) {
     return (
       <ChartEmptyState
         title="Sem resultado consolidado no periodo"
-        description="Os meses selecionados ainda nao possuem entradas pagas ou despesas lancadas suficientes para comparar resultado."
+        description="Os meses selecionados ainda não possuem entradas pagas ou despesas lançadas suficientes para comparar resultado."
       />
     );
   }
@@ -695,7 +695,7 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
       gradId: "ps-accent",
     },
     {
-      name: "Concluido",
+      name: "Concluído",
       value: counts.concluido,
       color: CHART_COLORS.success,
       gradId: "ps-success",
@@ -953,7 +953,7 @@ export default function AdminOverview() {
       const projectStatusCounts: Record<ProjectBucket, number> = {
         negociacao: 0,
         em_andamento: 0,
-        concluido: 0,
+        concluído: 0,
         pausado: 0,
       };
 
@@ -1404,10 +1404,10 @@ export default function AdminOverview() {
     }
 
     if (summary.clientsAtRisk > 0) {
-      return `${summary.clientsAtRisk} cliente(s) pedem atencao`;
+      return `${summary.clientsAtRisk} cliente(s) pedem atenção`;
     }
 
-    return "Operacao estavel neste mes";
+    return "Operação estável neste mes";
   }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
 
   if (!hasLoaded && !error) return <PortalLoading />;
@@ -1417,8 +1417,8 @@ export default function AdminOverview() {
       {error ? (
         <AdminEmptyState
           icon={TrendingUp}
-          title="Nao foi possivel montar o painel"
-          description={`${error} Verifique a conexao com o Supabase e tente carregar novamente.`}
+          title="Não foi possível montar o painel"
+          description={`${error} Verifique a conexão com o Supabase e tente carregar novamente.`}
           action={
             <Button type="button" onClick={() => void loadDashboard()}>
               Tentar novamente
@@ -1428,7 +1428,7 @@ export default function AdminOverview() {
       ) : !summary.hasAnyData ? (
         <AdminEmptyState
           icon={Shield}
-          title="Dashboard pronto para receber operacao"
+          title="Dashboard pronto para receber operação"
           description="Cadastre clientes, projetos, cobranças e despesas para transformar esta tela em um resumo executivo com leitura imediata."
           action={
             <Button type="button" onClick={() => void loadDashboard()}>
@@ -1631,7 +1631,7 @@ export default function AdminOverview() {
                           {formatBRL(summary.overdueReceivables)}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {summary.overdueClients} cliente(s) com cobranca(s) em atraso
+                          {summary.overdueClients} cliente(s) com cobrança(s) em atraso
                         </p>
                       </div>
                       {summary.agingBuckets.some((b) => b.count > 0) && (

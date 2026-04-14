@@ -181,7 +181,7 @@ export default function LeadDetail() {
     ]);
 
     if (leadRes.error || !leadRes.data) {
-      toast.error("Lead nao encontrado.");
+      toast.error("Lead não encontrado.");
       navigate("/portal/admin/leads");
       return;
     }
@@ -252,7 +252,7 @@ export default function LeadDetail() {
     setSaving(false);
 
     if (error) {
-      toast.error("Erro ao salvar alteracoes.");
+      toast.error("Erro ao salvar alterações.");
       return;
     }
 
@@ -408,8 +408,8 @@ export default function LeadDetail() {
     return (
       <AdminEmptyState
         icon={Users}
-        title="Lead nao encontrado"
-        description="O lead solicitado nao existe ou foi removido."
+        title="Lead não encontrado"
+        description="O lead solicitado não existe ou foi removido."
         action={
           <Link
             to="/portal/admin/leads"
@@ -605,7 +605,7 @@ export default function LeadDetail() {
         <div className="xl:col-span-7 space-y-6">
           <Card className="border-border/70 bg-card/92">
             <CardHeader>
-              <CardTitle className="text-base">Interacoes ({interactions.length})</CardTitle>
+              <CardTitle className="text-base">Interações ({interactions.length})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add interaction form */}

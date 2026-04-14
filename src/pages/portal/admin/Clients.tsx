@@ -393,7 +393,7 @@ export default function AdminClients() {
       .eq("id", client.id);
 
     if (error) {
-      toast.error("Nao foi possivel alterar o status.", { description: error.message });
+      toast.error("Não foi possível alterar o status.", { description: error.message });
       return;
     }
 
@@ -591,7 +591,7 @@ export default function AdminClients() {
       {pageError ? (
         <AdminEmptyState
           icon={Building2}
-          title="Nao foi possivel carregar a carteira"
+          title="Não foi possível carregar a carteira"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchClients()}>

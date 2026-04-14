@@ -12,7 +12,7 @@ type AdminNotification = Database["public"]["Tables"]["admin_notifications"]["Ro
 const SEVERITY_STYLES: Record<string, { label: string; color: string }> = {
   info: { label: "Info", color: "bg-accent/15 text-accent" },
   success: { label: "Sucesso", color: "bg-success/15 text-success" },
-  warning: { label: "Atencao", color: "bg-warning/15 text-warning" },
+  warning: { label: "Atenção", color: "bg-warning/15 text-warning" },
   action_required: { label: "Acao necessaria", color: "bg-destructive/15 text-destructive" },
 };
 
@@ -159,7 +159,7 @@ export default function AdminNotificationBell() {
           if (!open) void fetchNotifications();
         }}
         className="relative flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label="Notificacoes"
+        aria-label="Notificações"
       >
         <Bell size={20} />
         {unreadCount > 0 ? (
@@ -172,7 +172,7 @@ export default function AdminNotificationBell() {
       {open ? (
         <div className="absolute right-0 top-full z-50 mt-2 w-[380px] max-w-[calc(100vw-32px)] rounded-xl border border-border/80 bg-card shadow-lg">
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
-            <h3 className="text-sm font-semibold text-foreground">Notificacoes</h3>
+            <h3 className="text-sm font-semibold text-foreground">Notificações</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 ? (
                 <Button
@@ -204,7 +204,7 @@ export default function AdminNotificationBell() {
             ) : notifications.length === 0 ? (
               <div className="py-8 text-center">
                 <Bell size={28} className="mx-auto mb-2 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Nenhuma notificacao</p>
+                <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
               </div>
             ) : (
               notifications.map((item) => {

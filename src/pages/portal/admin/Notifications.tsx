@@ -31,7 +31,7 @@ type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 const PAGE_SIZE = 10;
 
 const TYPE_OPTIONS = [
-  { value: "manutencao", label: "Manutenção programada" },
+  { value: "manutenção", label: "Manutenção programada" },
   { value: "atualizacao", label: "Atualização / Novidade" },
   { value: "otimizacao", label: "Otimização em andamento" },
   { value: "alerta", label: "Alerta importante" },
@@ -39,7 +39,7 @@ const TYPE_OPTIONS = [
 ] as const;
 
 const TYPE_TEMPLATES: Record<string, { title: string; body: string }> = {
-  manutencao: {
+  manutenção: {
     title: "Manutenção programada — Seu site ficará temporariamente indisponível",
     body: `Gostaríamos de informar que realizaremos uma **manutenção programada** no seu site para garantir a estabilidade, segurança e desempenho da plataforma.
 
@@ -117,7 +117,7 @@ const STATUS_BADGES: Record<string, { label: string; className: string }> = {
 };
 
 const TYPE_BADGES: Record<string, { label: string; className: string }> = {
-  manutencao: { label: "Manutenção", className: "bg-warning/15 text-warning" },
+  manutenção: { label: "Manutenção", className: "bg-warning/15 text-warning" },
   atualizacao: { label: "Atualização", className: "bg-accent/15 text-accent" },
   otimizacao: { label: "Otimização", className: "bg-primary-soft text-primary" },
   alerta: { label: "Alerta", className: "bg-destructive/15 text-destructive" },
@@ -178,7 +178,7 @@ const notificationSchema = z
   .object({
     title: z.string().min(3, "Título obrigatório (mín. 3 caracteres)"),
     body: z.string().min(10, "Mensagem obrigatória (mín. 10 caracteres)"),
-    type: z.enum(["manutencao", "atualizacao", "otimizacao", "alerta", "personalizado"]),
+    type: z.enum(["manutenção", "atualizacao", "otimizacao", "alerta", "personalizado"]),
     filter_mode: z.enum(["all", "tags", "contract_status", "individual"]),
     filter_contract_status: z.string().optional(),
     filter_tags_input: z.string().optional(),

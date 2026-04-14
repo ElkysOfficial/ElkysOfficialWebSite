@@ -284,7 +284,7 @@ export default function AdminTeam() {
 
           if (rollbackError) {
             toast.error("Erro ao remover acesso do membro.", {
-              description: `${authDeleteError.message} O registro da equipe nao pode ser restaurado automaticamente.`,
+              description: `${authDeleteError.message} O registro da equipe não pode ser restaurado automáticamente.`,
             });
             return;
           }
@@ -299,7 +299,7 @@ export default function AdminTeam() {
       setMembers((prev) => prev.filter((m) => m.id !== id));
       toast.success("Membro removido.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Nao foi possivel remover o membro.";
+      const message = error instanceof Error ? error.message : "Não foi possível remover o membro.";
       toast.error("Erro ao remover membro.", { description: message });
     } finally {
       setActionLoadingId(null);

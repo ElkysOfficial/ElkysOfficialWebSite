@@ -266,7 +266,7 @@ function FinanceRevenueTab({
     }
 
     if (editor.description.trim().length < 3) {
-      setEditorError("A descricao precisa ter ao menos 3 caracteres.");
+      setEditorError("A descrição precisa ter ao menos 3 caracteres.");
       return;
     }
 
@@ -310,9 +310,9 @@ function FinanceRevenueTab({
             due_date: parsedDate,
           },
         });
-        if (overdueError) sideEffectWarnings.push("Notificacao de atraso nao enviada.");
+        if (overdueError) sideEffectWarnings.push("Notificação de atraso não enviada.");
       } catch {
-        sideEffectWarnings.push("Notificacao de atraso nao enviada.");
+        sideEffectWarnings.push("Notificação de atraso não enviada.");
       }
     }
 
@@ -324,14 +324,14 @@ function FinanceRevenueTab({
           project_id: originalCharge.project_id ?? null,
           event_type: "pagamento_recebido",
           title: "Pagamento recebido",
-          summary: `Cobranca "${editor.description.trim()}" marcada como paga.`,
+          summary: `Cobrança "${editor.description.trim()}" marcada como paga.`,
           visibility: "ambos",
           source_table: "charges",
           source_id: chargeId,
         });
-        if (timelineError) sideEffectWarnings.push("Evento de timeline nao registrado.");
+        if (timelineError) sideEffectWarnings.push("Evento de timeline não registrado.");
       } catch {
-        sideEffectWarnings.push("Evento de timeline nao registrado.");
+        sideEffectWarnings.push("Evento de timeline não registrado.");
       }
 
       try {
@@ -345,19 +345,19 @@ function FinanceRevenueTab({
           headers,
         });
         if (billingError)
-          sideEffectWarnings.push("Confirmacao de pagamento nao enviada ao cliente.");
+          sideEffectWarnings.push("Confirmação de pagamento não enviada ao cliente.");
       } catch {
-        sideEffectWarnings.push("Confirmacao de pagamento nao enviada ao cliente.");
+        sideEffectWarnings.push("Confirmação de pagamento não enviada ao cliente.");
       }
     }
 
     if (sideEffectWarnings.length > 0) {
-      toast.warning("Cobranca atualizada com pendencias.", {
+      toast.warning("Cobrança atualizada com pendências.", {
         description: sideEffectWarnings.join(" "),
         duration: 8000,
       });
     } else {
-      toast.success("Cobranca atualizada.");
+      toast.success("Cobrança atualizada.");
     }
     await onReload();
     stopEditing();
@@ -367,7 +367,7 @@ function FinanceRevenueTab({
   const handleRemoveCharge = async () => {
     if (!deleteChargeId || removingChargeId) return;
     if (!isSuperAdmin) {
-      toast.error("Somente o super admin pode remover cobrancas.");
+      toast.error("Somente o super admin pode remover cobranças.");
       setDeleteChargeId(null);
       return;
     }
@@ -377,14 +377,14 @@ function FinanceRevenueTab({
     const { error } = await supabase.from("charges").delete().eq("id", deleteChargeId);
 
     if (error) {
-      toast.error("Nao foi possivel remover a cobranca.", {
+      toast.error("Não foi possível remover a cobrança.", {
         description: error.message,
       });
       setRemovingChargeId(null);
       return;
     }
 
-    toast.success("Cobranca removida.");
+    toast.success("Cobrança removida.");
     setDeleteChargeId(null);
     setRemovingChargeId(null);
     await onReload();
@@ -438,9 +438,9 @@ function FinanceRevenueTab({
             name="revenue_search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar cobranca ou cliente..."
+            placeholder="Buscar cobrança ou cliente..."
             className="pl-9"
-            aria-label="Buscar cobranca ou cliente"
+            aria-label="Buscar cobrança ou cliente"
           />
         </div>
         <select
@@ -478,7 +478,7 @@ function FinanceRevenueTab({
       {pageError ? (
         <AdminEmptyState
           icon={Clock}
-          title="Nao foi possivel carregar as cobrancas"
+          title="Não foi possível carregar as cobranças"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void onReload()}>
@@ -489,8 +489,8 @@ function FinanceRevenueTab({
       ) : filteredCharges.length === 0 ? (
         <AdminEmptyState
           icon={Clock}
-          title="Nenhuma cobranca encontrada"
-          description="Ajuste os filtros ou registre uma nova cobranca para alimentar o controle financeiro."
+          title="Nenhuma cobrança encontrada"
+          description="Ajuste os filtros ou registre uma nova cobrança para alimentar o controle financeiro."
         />
       ) : (
         <div className="space-y-4">
@@ -508,7 +508,7 @@ function FinanceRevenueTab({
                   <div className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <Field className="md:col-span-2">
-                        <Label htmlFor="charge_description">Descricao</Label>
+                        <Label htmlFor="charge_description">Descrição</Label>
                         <Input
                           id="charge_description"
                           name="charge_description"
@@ -593,7 +593,7 @@ function FinanceRevenueTab({
                         onClick={() => void handleSaveCharge(charge.id)}
                         disabled={savingChargeId === charge.id}
                       >
-                        {savingChargeId === charge.id ? "Salvando..." : "Salvar alteracoes"}
+                        {savingChargeId === charge.id ? "Salvando..." : "Salvar alterações"}
                       </Button>
                     </div>
                   </div>
@@ -606,7 +606,7 @@ function FinanceRevenueTab({
                           {charge.description}
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
-                          {client ? getClientDisplayName(client) : "Cliente nao encontrado"}
+                          {client ? getClientDisplayName(client) : "Cliente não encontrado"}
                         </p>
                       </div>
 
@@ -644,7 +644,7 @@ function FinanceRevenueTab({
                       </span>
                       <StatusBadge label={meta.label} tone={meta.tone} />
                       <span className="text-xs text-muted-foreground">
-                        {charge.is_historical ? "Historico" : "Operacional"}
+                        {charge.is_historical ? "Histórico" : "Operacional"}
                       </span>
                     </div>
 
@@ -681,7 +681,7 @@ function FinanceRevenueTab({
                         Tipo
                       </p>
                       <p className="mt-2 text-sm font-medium text-foreground">
-                        {charge.is_historical ? "Historico" : "Operacional"}
+                        {charge.is_historical ? "Histórico" : "Operacional"}
                       </p>
                     </div>
 
@@ -740,9 +740,9 @@ function FinanceRevenueTab({
 
       <AlertDialog
         open={isSuperAdmin && Boolean(deleteChargeId)}
-        title="Remover cobranca"
-        description="Essa acao remove a cobranca selecionada. Voce podera cadastrar novamente depois, se precisar."
-        confirmLabel="Remover cobranca"
+        title="Remover cobrança"
+        description="Essa acao remove a cobrança selecionada. Você podera cadastrar novamente depois, se precisar."
+        confirmLabel="Remover cobrança"
         cancelLabel="Cancelar"
         destructive
         loading={Boolean(removingChargeId)}
@@ -1105,7 +1105,7 @@ function ProjectStatusChart({ counts }: { counts: Record<ProjectBucket, number> 
       gradId: "fps-accent",
     },
     {
-      name: "Concluido",
+      name: "Concluído",
       value: counts.concluido,
       color: CHART_COLORS.success,
       gradId: "fps-success",
@@ -1508,7 +1508,7 @@ function FinanceAnaliseTab() {
     const projectStatusCounts: Record<ProjectBucket, number> = {
       negociacao: 0,
       em_andamento: 0,
-      concluido: 0,
+      concluído: 0,
       pausado: 0,
     };
     projects.forEach((p) => {
@@ -1725,7 +1725,7 @@ function FinanceAnaliseTab() {
       {/* Receivables + Aging */}
       <section>
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Recebiveis e cobranca
+          Recebiveis e cobrança
         </h3>
         <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           <SurfaceStat
@@ -1777,7 +1777,7 @@ function FinanceAnaliseTab() {
                       : "bg-muted/50 text-muted-foreground"
                   )}
                 >
-                  {bucket.count} cobranca(s)
+                  {bucket.count} cobrança(s)
                 </span>
               </div>
             ))}
@@ -1851,7 +1851,7 @@ function FinanceAnaliseTab() {
           <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:col-span-5">
             <SurfaceStat label="Ativos" value={`${state.openProjects}`} tone="brand" />
             <SurfaceStat
-              label="Concluidos no mes"
+              label="Concluídos no mes"
               value={`${state.completedThisMonth}`}
               tone="success"
             />
