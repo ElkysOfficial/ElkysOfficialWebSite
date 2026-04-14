@@ -311,10 +311,6 @@ function wasProjectOpenAt(project: DashboardProject, snapshotDate: Date) {
   return deliveredAt ? deliveredAt > snapshotDate : false;
 }
 
-function getCurrentMonthName() {
-  return new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date());
-}
-
 function TrendPill({ change, className }: { change: number | null; className?: string }) {
   const rounded = roundPercentage(change);
   const tone = getTrendTone(change);
@@ -1361,9 +1357,23 @@ export default function AdminOverview() {
     [periodSeries]
   );
 
-  const mrrChange = useMemo(
-    () => getPercentChange(summary.currentMrr, summary.previousMrr),
-    [summary.currentMrr, summary.previousMrr]
+  // Comparacao do MRR no inicio vs fim do periodo selecionado. Ao clicar
+  // 3M/6M/12M, esse valor muda — alimenta tanto o headline quanto o card
+  // "Crescimento do MRR" diretamente abaixo do seletor, dando feedback
+  // visual de que o periodo realmente foi aplicado.
+  const periodMrrChange = useMemo(() => {
+    const totalMonths = summary.monthlySeries.length;
+    if (totalMonths === 0) return null;
+    const startIdx = Math.max(0, totalMonths - selectedPeriod);
+    const startMrr = summary.monthlySeries[startIdx]?.recurringRevenue ?? 0;
+    const endMrr = summary.monthlySeries[totalMonths - 1]?.recurringRevenue ?? 0;
+    return getPercentChange(endMrr, startMrr);
+  }, [selectedPeriod, summary.monthlySeries]);
+
+  // Label dinamico usado tanto no headline quanto no card de MRR.
+  const periodLabel = useMemo(
+    () => (selectedPeriod === 1 ? "neste mês" : `nos últimos ${selectedPeriod} meses`),
+    [selectedPeriod]
   );
 
   const recurringRate = useMemo(() => {
@@ -1372,25 +1382,25 @@ export default function AdminOverview() {
   }, [summary.activeClients, summary.recurringClients]);
 
   const insightHeadline = useMemo(() => {
-    const roundedMrrChange = roundPercentage(mrrChange);
+    const roundedPeriodMrrChange = roundPercentage(periodMrrChange);
 
-    if (roundedMrrChange !== null && roundedMrrChange <= -5) {
-      return `MRR caiu ${Math.abs(roundedMrrChange)}% em ${getCurrentMonthName()}`;
+    if (roundedPeriodMrrChange !== null && roundedPeriodMrrChange <= -5) {
+      return `MRR caiu ${Math.abs(roundedPeriodMrrChange)}% ${periodLabel}`;
     }
 
-    if (roundedMrrChange !== null && roundedMrrChange >= 5) {
-      return `MRR subiu ${roundedMrrChange}% em ${getCurrentMonthName()}`;
+    if (roundedPeriodMrrChange !== null && roundedPeriodMrrChange >= 5) {
+      return `MRR subiu ${roundedPeriodMrrChange}% ${periodLabel}`;
     }
 
     if (summary.overdueReceivables > 0) {
       return `${formatBRL(summary.overdueReceivables)} em cobranças atrasadas`;
     }
 
-    if (summary.currentMonthNet < 0) {
+    if (periodNet < 0) {
       return (
         <>
-          Fluxo do mes em{" "}
-          <span className="text-destructive">{getSignedCurrency(summary.currentMonthNet)}</span>
+          Saldo {periodLabel} em{" "}
+          <span className="text-destructive">{getSignedCurrency(periodNet)}</span>
         </>
       );
     }
@@ -1399,8 +1409,8 @@ export default function AdminOverview() {
       return `${summary.clientsAtRisk} cliente(s) pedem atenção`;
     }
 
-    return "Operação estável neste mes";
-  }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
+    return `Operação estável ${periodLabel}`;
+  }, [periodMrrChange, periodLabel, periodNet, summary.clientsAtRisk, summary.overdueReceivables]);
 
   if (!hasLoaded && !error) return <PortalLoading />;
 
@@ -1466,20 +1476,20 @@ export default function AdminOverview() {
                   tone={periodNet >= 0 ? "success" : "destructive"}
                 />
                 <SurfaceStat
-                  label="Crescimento do MRR"
+                  label={`Crescimento do MRR (${selectedPeriod}M)`}
                   value={
-                    roundPercentage(mrrChange) === null
+                    roundPercentage(periodMrrChange) === null
                       ? summary.currentMrr > 0
                         ? "Novo"
                         : "N/A"
-                      : `${roundPercentage(mrrChange)}%`
+                      : `${roundPercentage(periodMrrChange)}%`
                   }
                   tone={
-                    mrrChange === null
+                    periodMrrChange === null
                       ? "neutral"
-                      : mrrChange > 0
+                      : periodMrrChange > 0
                         ? "success"
-                        : mrrChange < 0
+                        : periodMrrChange < 0
                           ? "destructive"
                           : "neutral"
                   }
