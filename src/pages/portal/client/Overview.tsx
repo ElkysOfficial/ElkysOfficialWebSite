@@ -77,7 +77,7 @@ export default function ClientOverview() {
     return (
       <AdminEmptyState
         icon={Folder}
-        title="Nao foi possivel carregar sua visao geral"
+        title="Não foi possível carregar sua visão geral"
         description={pageError instanceof Error ? pageError.message : String(pageError)}
       />
     );
@@ -108,7 +108,7 @@ export default function ClientOverview() {
           tone={pausedProjects > 0 ? "warning" : "success"}
         />
         <MetricTile
-          label="Proxima cobranca"
+          label="Proxima cobrança"
           value={nextCharge ? formatBRL(Number(nextCharge.amount)) : "—"}
           icon={Receipt}
           tone={nextCharge ? "warning" : "secondary"}
@@ -125,7 +125,7 @@ export default function ClientOverview() {
       {nextCharge && (
         <div className="rounded-xl border border-border/60 bg-card px-4 py-3 sm:px-5 sm:py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            Detalhe da proxima cobranca
+            Detalhe da proxima cobrança
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Vencimento dia {formatPortalDateLong(nextCharge.due_date)}.
@@ -152,7 +152,7 @@ export default function ClientOverview() {
           <AdminEmptyState
             icon={Folder}
             title="Nenhum projeto vinculado"
-            description="Quando um projeto for associado a sua conta, ele aparecera aqui com andamento e proximos passos."
+            description="Quando um projeto for associado a sua conta, ele aparecerá aqui com andamento e próximos passos."
           />
         ) : (
           <div className="space-y-3">

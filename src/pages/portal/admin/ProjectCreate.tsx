@@ -83,12 +83,12 @@ const STEPS = [
   },
   {
     label: "Recorrencia",
-    description: "Mensalidade opcional, visao do cliente e proximos passos.",
+    description: "Mensalidade opcional, visão do cliente e próximos passos.",
     icon: Home,
   },
   {
     label: "Revisao",
-    description: "Conferencia antes de criar projeto, contrato e cobrancas.",
+    description: "Conferencia antes de criar projeto, contrato e cobranças.",
     icon: CheckCircle,
   },
 ] as const;
@@ -223,7 +223,7 @@ export default function AdminProjectCreate() {
     delivery_due_date: "",
     contract_already_paid: false,
     has_subscription: false,
-    subscription_label: "Manutencao e hospedagem",
+    subscription_label: "Manutenção e hospedagem",
     subscription_amount: "",
     subscription_due_day: "10",
     subscription_starts_on: today,
@@ -300,7 +300,7 @@ export default function AdminProjectCreate() {
         const startIso = parseFormDate(form.started_at);
         const deliveryIso = parseFormDate(form.expected_delivery_date);
         if (startIso && deliveryIso && deliveryIso < startIso) {
-          return "A entrega prevista nao pode ser anterior ao inicio do projeto.";
+          return "A entrega prevista não pode ser anterior ao início do projeto.";
         }
       }
     }
@@ -326,14 +326,14 @@ export default function AdminProjectCreate() {
       }
       if (!parseFormDate(form.signed_at)) return "Informe uma data valida para assinatura.";
       if (!parseFormDate(form.contract_starts_at))
-        return "Informe uma data valida para inicio contratual.";
+        return "Informe uma data valida para início contratual.";
       if (form.contract_ends_at && !parseFormDate(form.contract_ends_at)) {
         return "Informe uma data valida para fim contratual.";
       }
       const contractStartsAt = parseFormDate(form.contract_starts_at);
       const contractEndsAt = parseFormDate(form.contract_ends_at);
       if (contractStartsAt && contractEndsAt && contractEndsAt < contractStartsAt) {
-        return "O fim contratual nao pode ser anterior ao inicio contratual.";
+        return "O fim contratual não pode ser anterior ao início contratual.";
       }
       if (!parseFormDate(form.entry_due_date)) return "Informe o vencimento da entrada.";
       if (!parseFormDate(form.delivery_due_date)) return "Informe o vencimento da entrega.";
@@ -584,7 +584,7 @@ export default function AdminProjectCreate() {
           .single();
 
         if (nextStepError || !nextStepData) {
-          throw nextStepError ?? new Error("Falha ao registrar a primeira pendencia.");
+          throw nextStepError ?? new Error("Falha ao registrar a primeira pendência.");
         }
 
         nextStepId = nextStepData.id;
@@ -651,7 +651,7 @@ export default function AdminProjectCreate() {
           client_id: form.client_id,
           project_id: projectData.id,
           event_type: "next_step_created",
-          title: "Primeira pendencia registrada",
+          title: "Primeira pendência registrada",
           summary: `${form.next_step_title.trim()} foi adicionada ao plano de acao do projeto.`,
           visibility: "ambos",
           source_table: "project_next_steps",
@@ -708,7 +708,7 @@ export default function AdminProjectCreate() {
       }
 
       toast.success("Projeto criado com sucesso.", {
-        description: "Contrato, cobrancas e estrutura inicial foram registrados.",
+        description: "Contrato, cobranças e estrutura inicial foram registrados.",
       });
 
       navigate(`/portal/admin/projetos/${projectData.id}`, { replace: true });
@@ -731,12 +731,12 @@ export default function AdminProjectCreate() {
         if (rollbackError) {
           console.warn("[project-create] rollback error:", rollbackError.message);
           setFormError(
-            `Nao foi possivel criar o projeto. A limpeza automatica falhou — projeto parcial (ID: ${createdProjectId}) pode precisar de remocao manual.`
+            `Não foi possível criar o projeto. A limpeza automática falhou — projeto parcial (ID: ${createdProjectId}) pode precisar de remoção manual.`
           );
           return;
         }
       }
-      const message = error instanceof Error ? error.message : "Nao foi possivel criar o projeto.";
+      const message = error instanceof Error ? error.message : "Não foi possível criar o projeto.";
       setFormError(message);
     } finally {
       setSubmitting(false);
@@ -819,7 +819,7 @@ export default function AdminProjectCreate() {
                   <p className="text-sm font-semibold text-foreground">{derivedStatusMeta.label}</p>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  A etapa selecionada define automaticamente o status inicial do projeto.
+                  A etapa selecionada define automáticamente o status inicial do projeto.
                 </p>
               </Field>
 
@@ -893,8 +893,8 @@ export default function AdminProjectCreate() {
                       Projeto retroativo (cadastro de cliente antigo)
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Use para registrar projetos ja concluidos antes do sistema existir. O status
-                      sera definido como Concluido automaticamente.
+                      Use para registrar projetos ja concluídos antes do sistema existir. O status
+                      será definido como Concluído automáticamente.
                     </p>
                   </div>
                 </label>
@@ -969,10 +969,10 @@ export default function AdminProjectCreate() {
                   />
                   <div>
                     <p className="text-sm font-semibold text-foreground">
-                      Contrato ja quitado (pagamentos ja realizados)
+                      Contrato já quitado (pagamentos ja realizados)
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Marca todas as parcelas e cobranças como pagas e historicas. Nao entram em
+                      Marca todas as parcelas e cobranças como pagas e históricas. Não entram em
                       contas a receber nem afetam o fluxo de caixa operacional.
                     </p>
                   </div>
@@ -1137,10 +1137,10 @@ export default function AdminProjectCreate() {
                   />
                   <div>
                     <p className="text-sm font-semibold text-foreground">
-                      Este projeto possui manutencao/hospedagem recorrente
+                      Este projeto possui manutenção/hospedagem recorrente
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Se marcado, o sistema tenta criar assinatura mensal e a primeira cobranca
+                      Se marcado, o sistema tenta criar assinatura mensal e a primeira cobrança
                       recorrente.
                     </p>
                   </div>
@@ -1215,7 +1215,7 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="next_step_title">Proximo passo inicial</Label>
+                <Label htmlFor="next_step_title">Próximo passo inicial</Label>
                 <Input
                   id="next_step_title"
                   name="next_step_title"
@@ -1243,7 +1243,7 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field className="md:col-span-2">
-                <Label htmlFor="next_step_description">Descricao do proximo passo</Label>
+                <Label htmlFor="next_step_description">Descrição do próximo passo</Label>
                 <Textarea
                   id="next_step_description"
                   name="next_step_description"
@@ -1279,7 +1279,7 @@ export default function AdminProjectCreate() {
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Contrato e cobranca
+                  Contrato e cobrança
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <ReviewRow
@@ -1297,20 +1297,20 @@ export default function AdminProjectCreate() {
                   <ReviewRow label="Fim contratual" value={form.contract_ends_at || "Renovavel"} />
                   <ReviewRow label="Vencimento entrada" value={form.entry_due_date} />
                   <ReviewRow label="Vencimento entrega" value={form.delivery_due_date} />
-                  <ReviewRow label="Assinatura" value={form.has_subscription ? "Sim" : "Nao"} />
+                  <ReviewRow label="Assinatura" value={form.has_subscription ? "Sim" : "Não"} />
                   {form.contract_already_paid ? (
-                    <ReviewRow label="Cobrancas" value="Historico (ja quitado)" />
+                    <ReviewRow label="Cobranças" value="Histórico (já quitado)" />
                   ) : null}
                 </div>
               </div>
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Cliente e proximos passos
+                  Cliente e próximos passos
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <ReviewRow label="Resumo cliente" value={form.client_visible_summary} />
-                  <ReviewRow label="Proximo passo" value={form.next_step_title} />
+                  <ReviewRow label="Próximo passo" value={form.next_step_title} />
                   <ReviewRow label="Responsavel" value={form.next_step_owner} />
                   {form.has_subscription ? (
                     <>

@@ -205,7 +205,7 @@ function AddProjectDocumentForm({
     if (error || !data) {
       setSubmitting(false);
       toast.error("Erro ao adicionar documento.", {
-        description: error?.message ?? "Nao foi possivel salvar o documento.",
+        description: error?.message ?? "Não foi possível salvar o documento.",
       });
       return;
     }
@@ -243,7 +243,7 @@ function AddProjectDocumentForm({
       });
 
       if (notifyError) {
-        toast.error("Documento salvo, mas o e-mail nao foi enviado.", {
+        toast.error("Documento salvo, mas o e-mail não foi enviado.", {
           description: notifyError.message,
         });
       }
@@ -251,8 +251,8 @@ function AddProjectDocumentForm({
       const message =
         notifyError instanceof Error
           ? notifyError.message
-          : "Nao foi possivel enviar a notificacao por e-mail.";
-      toast.error("Documento salvo, mas o e-mail nao foi enviado.", { description: message });
+          : "Não foi possível enviar a notificação por e-mail.";
+      toast.error("Documento salvo, mas o e-mail não foi enviado.", { description: message });
     }
 
     setLabel("");
@@ -413,7 +413,7 @@ export default function AdminProjectDetail() {
   const [showStageJourney, setShowStageJourney] = useState(false);
   const [projectUpdateOpen, setProjectUpdateOpen] = useState(false);
   const [nextStepsOpen, setNextStepsOpen] = useState(false);
-  const [nextStepsTab, setNextStepsTab] = useState<"pendencias" | "historico">("pendencias");
+  const [nextStepsTab, setNextStepsTab] = useState<"pendências" | "historico">("pendências");
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set());
   const [projectForm, setProjectForm] = useState({
     name: "",
@@ -428,7 +428,7 @@ export default function AdminProjectDetail() {
     client_visible_summary: "",
     has_subscription: false,
     subscription_id: "",
-    subscription_label: "Manutencao e hospedagem",
+    subscription_label: "Manutenção e hospedagem",
     subscription_amount: "",
     subscription_due_day: "10",
     subscription_starts_on: "",
@@ -485,7 +485,7 @@ export default function AdminProjectDetail() {
           value: projectForm.current_stage,
           label: `${projectForm.current_stage} (legado)`,
           duration: "Sem referencia padrao",
-          summary: "Etapa anterior mantida para compatibilidade com o historico do projeto.",
+          summary: "Etapa anterior mantida para compatibilidade com o histórico do projeto.",
         },
       ];
     }
@@ -609,7 +609,7 @@ export default function AdminProjectDetail() {
     const projectRes = await loadProjectById(id);
 
     if (projectRes.error || !projectRes.project) {
-      setPageError(projectRes.error?.message ?? "Projeto nao encontrado.");
+      setPageError(projectRes.error?.message ?? "Projeto não encontrado.");
       setLoading(false);
       return;
     }
@@ -708,7 +708,7 @@ export default function AdminProjectDetail() {
         managedProjectSubscription && managedProjectSubscription.status !== "encerrada"
       ),
       subscription_id: managedProjectSubscription?.id ?? "",
-      subscription_label: managedProjectSubscription?.label ?? "Manutencao e hospedagem",
+      subscription_label: managedProjectSubscription?.label ?? "Manutenção e hospedagem",
       subscription_amount: managedProjectSubscription
         ? formatBRL(Number(managedProjectSubscription.amount))
         : "",
@@ -761,7 +761,7 @@ export default function AdminProjectDetail() {
     }
 
     if (expectedDeliveryIso && expectedDeliveryIso < startedAtIso) {
-      toast.error("A entrega prevista nao pode ser anterior ao inicio do projeto.");
+      toast.error("A entrega prevista não pode ser anterior ao início do projeto.");
       return;
     }
 
@@ -771,13 +771,13 @@ export default function AdminProjectDetail() {
     }
 
     if (deliveredAtIso && deliveredAtIso < startedAtIso) {
-      toast.error("A entrega realizada nao pode ser anterior ao inicio do projeto.");
+      toast.error("A entrega realizada não pode ser anterior ao início do projeto.");
       return;
     }
 
     if (!hasActiveManagedSubscription && projectForm.has_subscription) {
       if (!projectForm.subscription_label.trim()) {
-        toast.error("Informe o nome da manutencao/hospedagem.");
+        toast.error("Informe o nome da manutenção/hospedagem.");
         return;
       }
 
@@ -785,7 +785,7 @@ export default function AdminProjectDetail() {
         !projectForm.subscription_amount ||
         unmaskCurrency(projectForm.subscription_amount) <= 0
       ) {
-        toast.error("Informe um valor mensal valido para manutencao/hospedagem.");
+        toast.error("Informe um valor mensal valido para manutenção/hospedagem.");
         return;
       }
 
@@ -796,17 +796,17 @@ export default function AdminProjectDetail() {
       }
 
       if (!subscriptionStartsOnIso) {
-        toast.error("Informe a data de inicio da manutencao/hospedagem.");
+        toast.error("Informe a data de inicio da manutenção/hospedagem.");
         return;
       }
 
       if (projectForm.subscription_ends_on && !subscriptionEndsOnIso) {
-        toast.error("Informe uma data valida para encerramento da manutencao/hospedagem.");
+        toast.error("Informe uma data valida para encerramento da manutenção/hospedagem.");
         return;
       }
 
       if (subscriptionEndsOnIso && subscriptionEndsOnIso < subscriptionStartsOnIso) {
-        toast.error("O encerramento da manutencao/hospedagem nao pode ser anterior ao inicio.");
+        toast.error("O encerramento da manutenção/hospedagem não pode ser anterior ao início.");
         return;
       }
     }
@@ -866,7 +866,7 @@ export default function AdminProjectDetail() {
           .single();
 
         if (subscriptionError || !createdSubscription) {
-          throw subscriptionError ?? new Error("Nao foi possivel ativar a manutencao/hospedagem.");
+          throw subscriptionError ?? new Error("Não foi possível ativar a manutenção/hospedagem.");
         }
 
         timelineEvents.push({
@@ -874,7 +874,7 @@ export default function AdminProjectDetail() {
           project_id: project.id,
           actor_user_id: user?.id ?? null,
           event_type: "subscription_created",
-          title: "Manutencao/hospedagem ativada",
+          title: "Manutenção/hospedagem ativada",
           summary: `${projectForm.subscription_label.trim()} foi ativada para continuidade do projeto apos a entrega.`,
           visibility: "ambos",
           source_table: "project_subscriptions",
@@ -910,9 +910,9 @@ export default function AdminProjectDetail() {
           project_id: project.id,
           actor_user_id: user?.id ?? null,
           event_type: "subscription_updated",
-          title: "Manutencao/hospedagem encerrada",
+          title: "Manutenção/hospedagem encerrada",
           summary:
-            "A continuidade recorrente de manutencao/hospedagem deste projeto foi encerrada.",
+            "A continuidade recorrente de manutenção/hospedagem deste projeto foi encerrada.",
           visibility: "ambos",
           source_table: "project_subscriptions",
           source_id: currentManagedSubscription.id,
@@ -968,7 +968,7 @@ export default function AdminProjectDetail() {
           title: "Entrega do projeto atualizada",
           summary: deliveredAtIso
             ? `A entrega realizada do projeto foi registrada para ${formatDateInput(deliveredAtIso)}.`
-            : "A data de entrega realizada foi removida da operacao do projeto.",
+            : "A data de entrega realizada foi removida da operação do projeto.",
           visibility: "ambos",
           source_table: "projects",
           source_id: project.id,
@@ -985,7 +985,7 @@ export default function AdminProjectDetail() {
         actor_user_id: user?.id ?? null,
         event_type: "project_updated",
         title: "Projeto atualizado",
-        summary: "Informacoes principais do projeto foram revisadas e atualizadas pela Elkys.",
+        summary: "Informações principais do projeto foram revisadas e atualizadas pela Elkys.",
         visibility: "ambos",
         source_table: "projects",
         source_id: project.id,
@@ -1046,8 +1046,8 @@ export default function AdminProjectDetail() {
       setProjectUpdateOpen(false);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Nao foi possivel atualizar o projeto.";
-      toast.error("Nao foi possivel atualizar o projeto.", { description: message });
+        error instanceof Error ? error.message : "Não foi possível atualizar o projeto.";
+      toast.error("Não foi possível atualizar o projeto.", { description: message });
     } finally {
       setSaving(false);
     }
@@ -1057,7 +1057,7 @@ export default function AdminProjectDetail() {
     if (!project || !client) return;
     const form = nextStepForms[stepId];
     if (!form || form.title.trim().length < 3) {
-      toast.error("Informe um titulo valido para a pendencia.");
+      toast.error("Informe um titulo valido para a pendência.");
       return;
     }
 
@@ -1080,7 +1080,7 @@ export default function AdminProjectDetail() {
 
     if (error) {
       setStepSavingId(null);
-      toast.error("Nao foi possivel atualizar a pendencia.", { description: error.message });
+      toast.error("Não foi possível atualizar a pendência.", { description: error.message });
       return;
     }
 
@@ -1090,7 +1090,7 @@ export default function AdminProjectDetail() {
         project_id: project.id,
         actor_user_id: user?.id ?? null,
         event_type: "next_step_updated",
-        title: "Pendencia atualizada",
+        title: "Pendência atualizada",
         summary: `${form.title.trim()} agora esta como ${NEXT_STEP_STATUS_LABEL[form.status].toLowerCase()}.`,
         visibility: form.client_visible ? "ambos" : "interno",
         source_table: "project_next_steps",
@@ -1105,7 +1105,7 @@ export default function AdminProjectDetail() {
     }
 
     setStepSavingId(null);
-    toast.success("Pendencia atualizada.");
+    toast.success("Pendência atualizada.");
     await loadProject();
   };
 
@@ -1123,19 +1123,19 @@ export default function AdminProjectDetail() {
 
     if (error) {
       setStepSavingId(null);
-      toast.error("Nao foi possivel concluir a pendencia.", { description: error.message });
+      toast.error("Não foi possível concluir a pendência.", { description: error.message });
       return;
     }
 
     setStepSavingId(null);
-    toast.success("Pendencia concluida.");
+    toast.success("Pendência concluida.");
     await loadProject();
   };
 
   const handleCreateNextStep = async () => {
     if (!project || !client) return;
     if (newNextStepForm.title.trim().length < 3) {
-      toast.error("Informe um titulo valido para a pendencia.");
+      toast.error("Informe um titulo valido para a pendência.");
       return;
     }
 
@@ -1166,7 +1166,7 @@ export default function AdminProjectDetail() {
 
     if (error || !data) {
       setCreatingStep(false);
-      toast.error("Nao foi possivel criar a pendencia.", {
+      toast.error("Não foi possível criar a pendência.", {
         description: error?.message ?? "Falha ao salvar o registro.",
       });
       return;
@@ -1179,10 +1179,10 @@ export default function AdminProjectDetail() {
         actor_user_id: user?.id ?? null,
         event_type: "next_step_created",
         title: newNextStepForm.requires_client_action
-          ? "Solicitacao enviada ao cliente"
-          : "Nova pendencia registrada",
+          ? "Solicitação enviada ao cliente"
+          : "Nova pendência registrada",
         summary: newNextStepForm.requires_client_action
-          ? `Solicitacao "${newNextStepForm.title.trim()}" enviada ao cliente para acao.`
+          ? `Solicitação "${newNextStepForm.title.trim()}" enviada ao cliente para acao.`
           : `${newNextStepForm.title.trim()} foi adicionada ao plano de acao do projeto.`,
         visibility: newNextStepForm.client_visible ? "ambos" : "interno",
         source_table: "project_next_steps",
@@ -1225,8 +1225,8 @@ export default function AdminProjectDetail() {
     setCreatingStep(false);
     toast.success(
       newNextStepForm.requires_client_action
-        ? "Solicitacao criada e cliente notificado."
-        : "Pendencia criada."
+        ? "Solicitação criada e cliente notificado."
+        : "Pendência criada."
     );
     await loadProject();
   };
@@ -1316,8 +1316,8 @@ export default function AdminProjectDetail() {
         error instanceof Error
           ? error.message
           : targetInstallmentId
-            ? "Nao foi possivel atualizar a parcela."
-            : "Nao foi possivel atualizar as parcelas.";
+            ? "Não foi possível atualizar a parcela."
+            : "Não foi possível atualizar as parcelas.";
       toast.error(
         targetInstallmentId ? "Erro ao atualizar parcela." : "Erro ao atualizar parcelas.",
         {
@@ -1336,7 +1336,7 @@ export default function AdminProjectDetail() {
     return (
       <AdminEmptyState
         icon={Search}
-        title="Projeto nao encontrado"
+        title="Projeto não encontrado"
         description={pageError ?? "O projeto pode ter sido removido ou o link esta incorreto."}
         action={
           <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "default" })}>
@@ -1428,7 +1428,7 @@ export default function AdminProjectDetail() {
           {hasActiveManagedSubscription && managedSubscription ? (
             <>
               <p className="mt-1 text-sm font-semibold text-foreground">
-                Manutencao/hospedagem ativa
+                Manutenção/hospedagem ativa
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {managedSubscription.label} · {formatBRL(Number(managedSubscription.amount))} por
@@ -1470,9 +1470,9 @@ export default function AdminProjectDetail() {
     <Card className="border-border/70 bg-card/92">
       <CardHeader className="border-b border-border/60">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base">Acoes operacionais</CardTitle>
+          <CardTitle className="text-base">Ações operacionais</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={() => setNextStepsOpen(true)}>
-            Gerenciar pendencias
+            Gerenciar pendências
           </Button>
         </div>
       </CardHeader>
@@ -1485,7 +1485,7 @@ export default function AdminProjectDetail() {
             )}
           >
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Pendencias em aberto
+              Pendências em aberto
             </p>
             <p
               className={cn(
@@ -1512,12 +1512,12 @@ export default function AdminProjectDetail() {
         {/* Open pendências */}
         <div>
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Proximas pendencias
+            Próximas pendências
           </p>
 
           {nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado").length ===
           0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma pendencia em aberto.</p>
+            <p className="text-sm text-muted-foreground">Nenhuma pendência em aberto.</p>
           ) : (
             <div className="space-y-2">
               {nextSteps
@@ -1558,7 +1558,7 @@ export default function AdminProjectDetail() {
                     nextSteps.filter((s) => s.status !== "concluido" && s.status !== "cancelado")
                       .length
                   }{" "}
-                  pendencias →
+                  pendências →
                 </button>
               ) : null}
             </div>
@@ -1570,7 +1570,7 @@ export default function AdminProjectDetail() {
           0 && (
           <div>
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Historico de pendencias
+              Histórico de pendências
             </p>
             <div className="space-y-2">
               {nextSteps
@@ -1768,11 +1768,11 @@ export default function AdminProjectDetail() {
             />
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Continua com manutencao/hospedagem apos a entrega
+                Continua com manutenção/hospedagem apos a entrega
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Use esta opcao quando o projeto ja foi entregue, mas continua com recorrencia de
-                sustentacao, manutencao ou hospedagem.
+                sustentacao, manutenção ou hospedagem.
               </p>
             </div>
           </label>
@@ -1797,7 +1797,7 @@ export default function AdminProjectDetail() {
           {projectForm.has_subscription && !hasActiveManagedSubscription ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field>
-                <Label htmlFor="proj_subscription_label">Nome da manutencao *</Label>
+                <Label htmlFor="proj_subscription_label">Nome da manutenção *</Label>
                 <Input
                   id="proj_subscription_label"
                   name="proj_subscription_label"
@@ -1847,7 +1847,7 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field>
-                <Label htmlFor="proj_subscription_starts_on">Inicio da manutencao *</Label>
+                <Label htmlFor="proj_subscription_starts_on">Inicio da manutenção *</Label>
                 <Input
                   id="proj_subscription_starts_on"
                   name="proj_subscription_starts_on"
@@ -1864,7 +1864,7 @@ export default function AdminProjectDetail() {
               </Field>
 
               <Field className="sm:col-span-2">
-                <Label htmlFor="proj_subscription_ends_on">Encerramento da manutencao</Label>
+                <Label htmlFor="proj_subscription_ends_on">Encerramento da manutenção</Label>
                 <Input
                   id="proj_subscription_ends_on"
                   name="proj_subscription_ends_on"
@@ -1884,7 +1884,7 @@ export default function AdminProjectDetail() {
         </div>
 
         <Field>
-          <Label htmlFor="proj_description">Descricao do projeto</Label>
+          <Label htmlFor="proj_description">Descrição do projeto</Label>
           <Textarea
             id="proj_description"
             name="proj_description"
@@ -1896,7 +1896,7 @@ export default function AdminProjectDetail() {
                 description: event.target.value,
               }))
             }
-            placeholder="Descricao geral do projeto (escopo, objetivos, contexto)..."
+            placeholder="Descrição geral do projeto (escopo, objetivos, contexto)..."
           />
         </Field>
 
@@ -1956,7 +1956,7 @@ export default function AdminProjectDetail() {
     <Card className="border-border/70 bg-card/92">
       <CardHeader className="border-b border-border/60">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base">Pendencias do projeto</CardTitle>
+          <CardTitle className="text-base">Pendências do projeto</CardTitle>
           {nextSteps.length > 0 && (
             <span className="text-xs text-muted-foreground">{openSteps.length} em aberto</span>
           )}
@@ -1965,15 +1965,15 @@ export default function AdminProjectDetail() {
         <div className="mt-3 flex gap-1">
           <button
             type="button"
-            onClick={() => setNextStepsTab("pendencias")}
+            onClick={() => setNextStepsTab("pendências")}
             className={cn(
               "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-              nextStepsTab === "pendencias"
+              nextStepsTab === "pendências"
                 ? "bg-primary/15 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            Pendencias ({openSteps.length})
+            Pendências ({openSteps.length})
           </button>
           <button
             type="button"
@@ -1985,7 +1985,7 @@ export default function AdminProjectDetail() {
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            Historico ({closedSteps.length})
+            Histórico ({closedSteps.length})
           </button>
         </div>
       </CardHeader>
@@ -1994,12 +1994,12 @@ export default function AdminProjectDetail() {
         <div
           className={cn(
             "space-y-3",
-            nextStepsTab !== "pendencias" && "invisible h-0 overflow-hidden"
+            nextStepsTab !== "pendências" && "invisible h-0 overflow-hidden"
           )}
         >
           <>
             {openSteps.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma pendencia em aberto.</p>
+              <p className="text-sm text-muted-foreground">Nenhuma pendência em aberto.</p>
             ) : (
               openSteps.map((step) => {
                 const form = nextStepForms[step.id] ?? getNextStepFormDefaults(step);
@@ -2013,7 +2013,7 @@ export default function AdminProjectDetail() {
                       <Input
                         id={`step_title_${step.id}`}
                         name="step_title"
-                        aria-label="Titulo da pendencia"
+                        aria-label="Titulo da pendência"
                         value={form.title}
                         onChange={(event) =>
                           setNextStepForms((current) => ({
@@ -2102,7 +2102,7 @@ export default function AdminProjectDetail() {
                     </div>
 
                     <Field className="mt-3">
-                      <Label htmlFor={`step_description_${step.id}`}>Descricao</Label>
+                      <Label htmlFor={`step_description_${step.id}`}>Descrição</Label>
                       <Textarea
                         id={`step_description_${step.id}`}
                         name="step_description"
@@ -2139,7 +2139,7 @@ export default function AdminProjectDetail() {
                             disabled={stepSavingId === step.id}
                             onClick={() => void handleCloseNextStep(step.id)}
                           >
-                            {stepSavingId === step.id ? "Concluindo..." : "Concluir pendencia"}
+                            {stepSavingId === step.id ? "Concluindo..." : "Concluir pendência"}
                           </Button>
                         </div>
                       </div>
@@ -2211,10 +2211,10 @@ export default function AdminProjectDetail() {
               })
             )}
 
-            {/* Nova pendencia */}
+            {/* Nova pendência */}
             <div className="rounded-xl border border-dashed border-border/60 bg-background/40 p-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Nova pendencia
+                Nova pendência
               </p>
 
               <div className="grid gap-3">
@@ -2340,7 +2340,7 @@ export default function AdminProjectDetail() {
                 )}
 
                 <Field>
-                  <Label htmlFor="new_step_description">Descricao</Label>
+                  <Label htmlFor="new_step_description">Descrição</Label>
                   <Textarea
                     id="new_step_description"
                     name="new_step_description"
@@ -2398,7 +2398,7 @@ export default function AdminProjectDetail() {
                       disabled={creatingStep}
                       onClick={() => void handleCreateNextStep()}
                     >
-                      {creatingStep ? "Adicionando..." : "Adicionar pendencia"}
+                      {creatingStep ? "Adicionando..." : "Adicionar pendência"}
                     </Button>
                   </div>
                 </div>
@@ -2416,7 +2416,7 @@ export default function AdminProjectDetail() {
         >
           <>
             {closedSteps.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma pendencia concluida ainda.</p>
+              <p className="text-sm text-muted-foreground">Nenhuma pendência concluida ainda.</p>
             ) : (
               closedSteps.map((step) => {
                 const isExpanded = expandedHistoryIds.has(step.id);
@@ -2612,7 +2612,7 @@ export default function AdminProjectDetail() {
                           .update({ status: next })
                           .eq("id", subscription.id);
                         if (error) {
-                          toast.error("Nao foi possivel atualizar o status.");
+                          toast.error("Não foi possível atualizar o status.");
                           return;
                         }
                         toast.success("Status da assinatura atualizado.");
@@ -2667,7 +2667,7 @@ export default function AdminProjectDetail() {
                       <select
                         id={`charge_status_${item.id}`}
                         name="charge_status"
-                        aria-label="Status da cobranca"
+                        aria-label="Status da cobrança"
                         value={item.statusKey}
                         onChange={async (e) => {
                           const next = e.target.value as typeof item.statusKey;
@@ -2678,7 +2678,7 @@ export default function AdminProjectDetail() {
                             .update({ status: next, paid_at: paidAt })
                             .eq("id", item.id);
                           if (error) {
-                            toast.error("Nao foi possivel atualizar o status.");
+                            toast.error("Não foi possível atualizar o status.");
                             return;
                           }
                           toast.success("Status atualizado.");
@@ -2830,7 +2830,7 @@ export default function AdminProjectDetail() {
 
         {documents.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Ainda nao ha anexos vinculados a este projeto.
+            Ainda não há anexos vinculados a este projeto.
           </p>
         ) : (
           <>
@@ -2873,7 +2873,7 @@ export default function AdminProjectDetail() {
       <CardContent className="pt-5">
         <ProjectTimelineFeed
           events={timeline}
-          emptyMessage="A timeline ainda nao possui eventos registrados."
+          emptyMessage="A timeline ainda não possui eventos registrados."
         />
       </CardContent>
     </Card>
@@ -2884,7 +2884,7 @@ export default function AdminProjectDetail() {
       <AdminPageHeader
         eyebrow="Projeto"
         title={project.name}
-        description={`${client ? getClientDisplayName(client) : "Cliente nao encontrado"} · ${project.solution_type ?? "Tipo nao definido"} · ${project.current_stage}`}
+        description={`${client ? getClientDisplayName(client) : "Cliente não encontrado"} · ${project.solution_type ?? "Tipo não definido"} · ${project.current_stage}`}
         action={
           <div className="flex flex-col gap-2 sm:flex-row">
             {client ? (
@@ -2958,7 +2958,7 @@ export default function AdminProjectDetail() {
 
       <OverlayPanel
         open={nextStepsOpen}
-        title="Pendencias do projeto"
+        title="Pendências do projeto"
         description="Atualize responsavel, status e visibilidade do cliente em um painel dedicado."
         onClose={() => setNextStepsOpen(false)}
         widthClass="max-w-4xl"

@@ -37,7 +37,7 @@ export default function ClientProjects() {
       const clientRes = await resolveClientForUser(user.id);
       if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
-        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
         setLoading(false);
         return;
       }
@@ -74,7 +74,7 @@ export default function ClientProjects() {
       },
       {
         key: "concluidos" as const,
-        label: `Concluidos (${orderedProjects.filter((project) => project.status === "concluido").length})`,
+        label: `Concluídos (${orderedProjects.filter((project) => project.status === "concluido").length})`,
       },
       {
         key: "pausados" as const,
@@ -115,7 +115,7 @@ export default function ClientProjects() {
     return (
       <AdminEmptyState
         icon={Folder}
-        title="Nao foi possivel carregar seus projetos"
+        title="Não foi possível carregar seus projetos"
         description={pageError}
       />
     );
@@ -126,7 +126,7 @@ export default function ClientProjects() {
       <AdminEmptyState
         icon={Folder}
         title="Nenhum projeto vinculado"
-        description="Quando novos projetos forem vinculados a sua conta, eles aparecerao aqui com status, andamento e proximos passos."
+        description="Quando novos projetos forem vinculados a sua conta, eles aparecerão aqui com status, andamento e próximos passos."
       />
     );
   }
@@ -167,7 +167,7 @@ export default function ClientProjects() {
         <AdminEmptyState
           icon={Folder}
           title="Nenhum projeto nesta guia"
-          description="Quando houver projetos nesta categoria, eles aparecerao aqui."
+          description="Quando houver projetos nesta categoria, eles aparecerão aqui."
         />
       ) : (
         <div className="space-y-3">

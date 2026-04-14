@@ -246,6 +246,40 @@ export function formatPortalDateTime(date?: string | null) {
   });
 }
 
+/**
+ * Formata uma data em português relativo ao momento atual.
+ * Ex: "agora mesmo", "há 5 min", "há 3 h", "ontem", "há 4 dias", "há 2 meses".
+ * Para datas futuras retorna "em N ...".
+ * Para datas > 1 ano retorna a data absoluta formatada.
+ */
+export function formatRelativePortal(date?: string | null): string {
+  if (!date) return "-";
+  const parsed = date.includes("T") ? new Date(date) : new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "-";
+
+  const diffMs = parsed.getTime() - Date.now();
+  const absMs = Math.abs(diffMs);
+  const future = diffMs > 0;
+  const prefix = future ? "em " : "há ";
+
+  const SEC = 1000;
+  const MIN = 60 * SEC;
+  const HOUR = 60 * MIN;
+  const DAY = 24 * HOUR;
+
+  if (absMs < 45 * SEC) return future ? "em instantes" : "agora mesmo";
+  if (absMs < 90 * SEC) return future ? "em 1 min" : "há 1 min";
+  if (absMs < 45 * MIN) return `${prefix}${Math.round(absMs / MIN)} min`;
+  if (absMs < 90 * MIN) return future ? "em 1 h" : "há 1 h";
+  if (absMs < 22 * HOUR) return `${prefix}${Math.round(absMs / HOUR)} h`;
+  if (absMs < 36 * HOUR) return future ? "amanhã" : "ontem";
+  if (absMs < 26 * DAY) return `${prefix}${Math.round(absMs / DAY)} dias`;
+  if (absMs < 45 * DAY) return future ? "em 1 mês" : "há 1 mês";
+  if (absMs < 320 * DAY) return `${prefix}${Math.round(absMs / (30 * DAY))} meses`;
+  // Acima de 1 ano, volta para a data absoluta
+  return formatPortalDate(date);
+}
+
 export function getProjectSummary(
   project: Pick<PortalProject, "solution_type" | "client_visible_summary" | "description">
 ) {

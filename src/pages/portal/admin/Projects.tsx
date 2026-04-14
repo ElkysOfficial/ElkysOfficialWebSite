@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import { toast } from "sonner";
 
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
@@ -261,9 +262,9 @@ export default function AdminProjects() {
     return { subscriptionProjectIds: subs, contractedValue: cv };
   }, [bundle, projects]);
   const [page, setPage] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
+  const [tagFilter, setTagFilter] = useUrlStateNullable<string>("tag");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [projectToDelete, setProjectToDelete] = useState<PortalProject | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -322,7 +323,7 @@ export default function AdminProjects() {
       const { error } = await supabase.from("projects").delete().eq("id", projectToDelete.id);
 
       if (error) {
-        toast.error("Nao foi possivel excluir o projeto.", { description: error.message });
+        toast.error("Não foi possível excluir o projeto.", { description: error.message });
         return;
       }
 
@@ -330,7 +331,7 @@ export default function AdminProjects() {
       setProjectToDelete(null);
       void refetchProjects();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Nao foi possivel excluir o projeto.";
+      const message = err instanceof Error ? err.message : "Não foi possível excluir o projeto.";
       toast.error("Erro ao excluir projeto.", { description: message });
     } finally {
       setDeleteLoading(false);
@@ -344,7 +345,7 @@ export default function AdminProjects() {
       <AlertDialog
         open={projectToDelete !== null}
         title="Excluir projeto"
-        description={`Tem certeza que deseja excluir "${projectToDelete?.name ?? ""}"? Esta acao nao pode ser desfeita. Contratos, parcelas, mensalidades, documentos e toda a timeline vinculada serao removidos permanentemente.`}
+        description={`Tem certeza que deseja excluir "${projectToDelete?.name ?? ""}"? Esta ação não pode ser desfeita. Contratos, parcelas, mensalidades, documentos e toda a timeline vinculada serao removidos permanentemente.`}
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
         destructive
@@ -458,7 +459,7 @@ export default function AdminProjects() {
       {pageError ? (
         <AdminEmptyState
           icon={FileText}
-          title="Nao foi possivel carregar os projetos"
+          title="Não foi possível carregar os projetos"
           description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchProjects()}>

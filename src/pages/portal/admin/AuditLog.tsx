@@ -8,7 +8,7 @@ import { Button, Card, CardContent, cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { formatPortalDateTime } from "@/lib/portal";
+import RelativeDate from "@/components/portal/RelativeDate";
 
 type AuditLogRow = Database["public"]["Tables"]["audit_logs"]["Row"];
 
@@ -23,7 +23,7 @@ const ENTITY_FILTERS: { value: EntityFilter; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "client", label: "Clientes" },
   { value: "project", label: "Projetos" },
-  { value: "charge", label: "Cobrancas" },
+  { value: "charge", label: "Cobranças" },
   { value: "ticket", label: "Tickets" },
   { value: "document", label: "Documentos" },
   { value: "other", label: "Outros" },
@@ -108,7 +108,7 @@ function JsonDiff({ before, after }: { before: unknown; after: unknown }) {
   }
 
   if (changes.length === 0) {
-    return <p className="text-xs text-muted-foreground">Sem alteracoes detectadas.</p>;
+    return <p className="text-xs text-muted-foreground">Sem alterações detectadas.</p>;
   }
 
   return (
@@ -206,7 +206,7 @@ export default function AuditLog() {
       <AdminEmptyState
         icon={Eye}
         title="Nenhum registro de auditoria"
-        description="Quando acoes forem realizadas no painel, o historico aparecera aqui."
+        description="Quando ações forem realizadas no painel, o histórico aparecerá aqui."
       />
     );
   }
@@ -281,7 +281,7 @@ export default function AuditLog() {
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {formatPortalDateTime(log.created_at)}
+                    <RelativeDate date={log.created_at} />
                     {log.reason ? ` — ${log.reason}` : ""}
                   </p>
                 </div>

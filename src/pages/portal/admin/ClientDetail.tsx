@@ -1552,7 +1552,7 @@ export default function AdminClientDetail() {
             <CardContent className="space-y-4 pt-5">
               {!client.payment_due_day && subscriptions.length > 0 ? (
                 <div className="rounded-lg border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
-                  Alguns dados desta leitura foram preenchidos automaticamente com base nas
+                  Alguns dados desta leitura foram preenchidos automáticamente com base nas
                   assinaturas e contratos já vinculados ao cliente.
                 </div>
               ) : null}
@@ -1756,7 +1756,7 @@ export default function AdminClientDetail() {
                 {operationalCharges.length === 0 ? (
                   <Card className="border-dashed border-border/70 bg-card/80">
                     <CardContent className="flex min-h-[160px] items-center justify-center py-8 text-center">
-                      <p className="text-sm text-muted-foreground">Nenhuma cobranca registrada.</p>
+                      <p className="text-sm text-muted-foreground">Nenhuma cobrança registrada.</p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -1766,7 +1766,7 @@ export default function AdminClientDetail() {
                         <thead>
                           <tr className="border-b border-border/60 bg-muted/30">
                             <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                              Descricao
+                              Descrição
                             </th>
                             <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                               Valor

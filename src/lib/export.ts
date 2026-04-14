@@ -181,7 +181,7 @@ export async function exportPDF(config: ExportConfig): Promise<void> {
       const pageNum = `Pagina ${(data as { pageNumber?: number }).pageNumber ?? doc.getNumberOfPages()}`;
       doc.text(pageNum, pageWidth - 12, footerY, { align: "right" });
 
-      doc.text(generatedBy ?? "Elkys — Relatorio gerado automaticamente", 12, footerY);
+      doc.text(generatedBy ?? "Elkys — Relatório gerado automáticamente", 12, footerY);
     },
   });
 

@@ -5,6 +5,7 @@ import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUrlState } from "@/hooks/useUrlState";
 import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { TicketStatus } from "@/lib/portal";
@@ -133,8 +134,8 @@ export default function AdminSupport() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const supportOnlyView = isSupport && !isAdmin;
@@ -606,7 +607,7 @@ export default function AdminSupport() {
       {pageError ? (
         <AdminEmptyState
           icon={Headphones}
-          title="Nao foi possivel carregar os tickets"
+          title="Não foi possível carregar os tickets"
           description={pageError}
           action={
             <Button type="button" onClick={() => void loadTickets()}>
@@ -621,8 +622,8 @@ export default function AdminSupport() {
           description={
             tickets.length === 0
               ? supportOnlyView
-                ? "Quando houver novo ticket aberto, ele aparecera aqui para o suporte."
-                : "Quando clientes abrirem solicitacoes de suporte, elas aparecerao aqui."
+                ? "Quando houver novo ticket aberto, ele aparecerá aqui para o suporte."
+                : "Quando clientes abrirem solicitações de suporte, elas aparecerão aqui."
               : "Ajuste o filtro ou o termo de busca."
           }
         />

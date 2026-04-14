@@ -48,7 +48,7 @@ export default function ClientProposals() {
       const clientRes = await resolveClientForUser(user.id);
       if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
-        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
         setLoading(false);
         return;
       }
@@ -90,7 +90,7 @@ export default function ClientProposals() {
       <AdminEmptyState
         icon={FileText}
         title="Nenhuma proposta disponivel"
-        description="Quando uma proposta for enviada pela Elkys, ela aparecera aqui para sua avaliacao."
+        description="Quando uma proposta for enviada pela Elkys, ela aparecerá aqui para sua avaliacao."
       />
     );
   }

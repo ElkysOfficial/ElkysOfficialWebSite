@@ -104,7 +104,7 @@ function TicketForm({
     setSubmitting(false);
 
     if (error) {
-      toast.error("Nao foi possivel enviar a solicitacao.", { description: error.message });
+      toast.error("Não foi possível enviar a solicitação.", { description: error.message });
       return;
     }
 
@@ -129,7 +129,7 @@ function TicketForm({
       action_url: "/portal/admin/suporte",
     });
 
-    toast.success("Solicitacao enviada!", {
+    toast.success("Solicitação enviada!", {
       description: "Nossa equipe de suporte recebera sua mensagem e entrara em contato em breve.",
     });
     setSent(true);
@@ -146,7 +146,7 @@ function TicketForm({
           <Send size={20} className="text-success" />
         </div>
         <p className="text-base font-semibold tracking-tight text-foreground">
-          Solicitacao enviada com sucesso!
+          Solicitação enviada com sucesso!
         </p>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Nossa equipe entrara em contato em breve.
@@ -156,7 +156,7 @@ function TicketForm({
           onClick={() => setSent(false)}
           className="mt-6 text-sm font-medium text-primary hover:underline"
         >
-          Abrir nova solicitacao
+          Abrir nova solicitação
         </button>
       </div>
     );
@@ -198,7 +198,7 @@ function TicketForm({
           value={body}
           onChange={(event) => setBody(event.target.value)}
           rows={5}
-          placeholder="Descreva sua solicitacao com o maximo de detalhes possivel..."
+          placeholder="Descreva sua solicitação com o maximo de detalhes possivel..."
           className="flex min-h-[120px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         />
       </Field>
@@ -206,7 +206,7 @@ function TicketForm({
       <div className="flex justify-end pt-2">
         <Button type="submit" disabled={submitting} className="gap-2">
           <Send size={15} />
-          {submitting ? "Enviando..." : "Enviar solicitacao"}
+          {submitting ? "Enviando..." : "Enviar solicitação"}
         </Button>
       </div>
     </form>
@@ -475,7 +475,7 @@ export default function ClientSupport() {
     description: string;
     icon: React.ComponentType<{ size?: number; className?: string }>;
   }[] = [
-    { key: "ticket", label: "Abrir ticket", description: "Registre sua solicitacao", icon: Send },
+    { key: "ticket", label: "Abrir ticket", description: "Registre sua solicitação", icon: Send },
     { key: "whatsapp", label: "WhatsApp", description: "Resposta mais rapida", icon: Phone },
     { key: "email", label: "E-mail", description: "Detalhes e anexos", icon: Mail },
   ];
@@ -539,7 +539,7 @@ export default function ClientSupport() {
             <div className="space-y-5">
               <div>
                 <h3 className="text-base font-semibold tracking-tight text-foreground">
-                  Abrir solicitacao de suporte
+                  Abrir solicitação de suporte
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Sua mensagem sera registrada e, quando fizer sentido, pode ficar vinculada ao
@@ -559,7 +559,7 @@ export default function ClientSupport() {
                 />
               ) : (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  Nao foi possivel identificar seu cadastro. Entre em contato pelo e-mail.
+                  Não foi possível identificar seu cadastro. Entre em contato pelo e-mail.
                 </p>
               )}
             </div>
@@ -589,13 +589,13 @@ export default function ClientSupport() {
               <div>
                 <h3 className="text-base font-semibold tracking-tight text-foreground">E-mail</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Indicado para solicitacoes que precisam de contexto detalhado ou anexos.
+                  Indicado para solicitações que precisam de contexto detalhado ou anexos.
                 </p>
               </div>
 
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Envie sua mensagem para o e-mail abaixo com o maximo de detalhes. Respondemos em ate
-                1 dia util.
+                1 dia útil.
               </p>
 
               <a href={`mailto:${CONTACT.email}?subject=Suporte - Portal do Cliente`}>
@@ -626,8 +626,8 @@ export default function ClientSupport() {
           {tickets.length === 0 ? (
             <AdminEmptyState
               icon={Headphones}
-              title="Nenhuma solicitacao aberta"
-              description="Quando voce abrir um ticket, ele aparecera aqui com o historico da conversa."
+              title="Nenhuma solicitação aberta"
+              description="Quando você abrir um ticket, ele aparecerá aqui com o histórico da conversa."
             />
           ) : (
             <div className="space-y-3">
@@ -700,7 +700,7 @@ export default function ClientSupport() {
                         {/* Original message */}
                         <div className="space-y-1">
                           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            Sua solicitacao
+                            Sua solicitação
                           </p>
                           <div className="rounded-lg border border-border/50 bg-muted/30 p-4">
                             <p className="mb-1 text-xs text-muted-foreground">

@@ -58,8 +58,8 @@ type ClientForm = {
 };
 
 const STEPS = [
-  { label: "Identificacao", description: "Dados da empresa e do contato principal.", icon: Users },
-  { label: "Endereco", description: "Dados institucionais e de localizacao.", icon: Home },
+  { label: "Identificação", description: "Dados da empresa e do contato principal.", icon: Users },
+  { label: "Endereço", description: "Dados institucionais e de localização.", icon: Home },
   {
     label: "Revisao",
     description: "Conferencia antes de criar o acesso e o cadastro.",
@@ -273,7 +273,7 @@ export default function AdminClientCreate() {
 
       if (createError) throw new Error(`create-user: ${createError.message}`);
       if (createData?.error) throw new Error(String(createData.error));
-      if (!createData?.user_id) throw new Error("Nao foi possivel criar o acesso do cliente.");
+      if (!createData?.user_id) throw new Error("Não foi possível criar o acesso do cliente.");
 
       createdUserId = createData.user_id as string;
       shouldRollbackUser = true;
@@ -362,7 +362,7 @@ export default function AdminClientCreate() {
         }
       }
 
-      setFormError(error instanceof Error ? error.message : "Nao foi possivel criar o cliente.");
+      setFormError(error instanceof Error ? error.message : "Não foi possível criar o cliente.");
     } finally {
       setSubmitting(false);
     }
@@ -567,7 +567,7 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field className="md:col-span-2">
-                <Label htmlFor="notes_internal">Observacoes internas</Label>
+                <Label htmlFor="notes_internal">Observações internas</Label>
                 <Textarea
                   id="notes_internal"
                   name="notes_internal"
@@ -602,7 +602,7 @@ export default function AdminClientCreate() {
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Endereco
+                  Endereço
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <ReviewRow label="CEP" value={form.cep} />

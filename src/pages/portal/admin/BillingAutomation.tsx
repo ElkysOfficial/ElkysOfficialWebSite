@@ -36,7 +36,7 @@ export default function BillingAutomation() {
   const [editingRule, setEditingRule] = useState<RuleRow | null>(null);
   const [ruleName, setRuleName] = useState("");
   const [ruleTriggerDays, setRuleTriggerDays] = useState("0");
-  const [ruleActionType, setRuleActionType] = useState<"email" | "notificacao">("email");
+  const [ruleActionType, setRuleActionType] = useState<"email" | "notificação">("email");
   const [ruleTemplateId, setRuleTemplateId] = useState<string>("");
   const [ruleSaving, setRuleSaving] = useState(false);
 
@@ -46,7 +46,7 @@ export default function BillingAutomation() {
   const [tplName, setTplName] = useState("");
   const [tplSubject, setTplSubject] = useState("");
   const [tplBody, setTplBody] = useState("");
-  const [tplType, setTplType] = useState<"cobranca" | "lembrete" | "agradecimento">("cobranca");
+  const [tplType, setTplType] = useState<"cobrança" | "lembrete" | "agradecimento">("cobrança");
   const [tplSaving, setTplSaving] = useState(false);
 
   const [executingManual, setExecutingManual] = useState(false);
@@ -92,7 +92,7 @@ export default function BillingAutomation() {
     setEditingRule(rule);
     setRuleName(rule.name);
     setRuleTriggerDays(String(rule.trigger_days));
-    setRuleActionType(rule.action_type as "email" | "notificacao");
+    setRuleActionType(rule.action_type as "email" | "notificação");
     setRuleTemplateId(rule.template_id ?? "");
     setShowRuleForm(true);
   };
@@ -168,7 +168,7 @@ export default function BillingAutomation() {
     setTplName("");
     setTplSubject("");
     setTplBody("");
-    setTplType("cobranca");
+    setTplType("cobrança");
     setEditingTemplate(null);
     setShowTemplateForm(false);
   };
@@ -178,7 +178,7 @@ export default function BillingAutomation() {
     setTplName(tpl.name);
     setTplSubject(tpl.subject);
     setTplBody(tpl.body);
-    setTplType(tpl.type as "cobranca" | "lembrete" | "agradecimento");
+    setTplType(tpl.type as "cobrança" | "lembrete" | "agradecimento");
     setShowTemplateForm(true);
   };
 
@@ -243,9 +243,9 @@ export default function BillingAutomation() {
         headers,
       });
       if (error) throw error;
-      toast.success("Regua executada com sucesso. Verifique o log.");
+      toast.success("Régua executada com sucesso. Verifique o log.");
     } catch {
-      toast.error("Erro ao executar regua. Verifique se a edge function esta configurada.");
+      toast.error("Erro ao executar régua. Verifique se a edge function esta configurada.");
     }
     setExecutingManual(false);
     setTimeout(() => void loadData(), 2000);
@@ -282,7 +282,7 @@ export default function BillingAutomation() {
         </div>
         <Button type="button" onClick={() => void executeManually()} disabled={executingManual}>
           <Zap size={14} className="mr-1.5" />
-          {executingManual ? "Executando..." : "Executar regua agora"}
+          {executingManual ? "Executando..." : "Executar régua agora"}
         </Button>
       </div>
 
@@ -329,11 +329,11 @@ export default function BillingAutomation() {
                     <Label>Tipo de acao</Label>
                     <select
                       value={ruleActionType}
-                      onChange={(e) => setRuleActionType(e.target.value as "email" | "notificacao")}
+                      onChange={(e) => setRuleActionType(e.target.value as "email" | "notificação")}
                       className={selectClass}
                     >
                       <option value="email">Email</option>
-                      <option value="notificacao">Notificacao</option>
+                      <option value="notificação">Notificação</option>
                     </select>
                   </Field>
                   <Field>
@@ -368,7 +368,7 @@ export default function BillingAutomation() {
             <AdminEmptyState
               icon={Zap}
               title="Nenhuma regra configurada"
-              description="Crie regras para automatizar lembretes e cobrancas."
+              description="Crie regras para automatizar lembretes e cobranças."
             />
           ) : (
             <div className="space-y-2">
@@ -399,7 +399,7 @@ export default function BillingAutomation() {
                         </div>
                         <p className="text-xs text-muted-foreground">
                           {formatTriggerDays(rule.trigger_days)} ·{" "}
-                          {rule.action_type === "email" ? "Email" : "Notificacao"}
+                          {rule.action_type === "email" ? "Email" : "Notificação"}
                           {tpl ? ` · Template: ${tpl.name}` : ""}
                         </p>
                       </div>
@@ -476,7 +476,7 @@ export default function BillingAutomation() {
                       onChange={(e) => setTplType(e.target.value as typeof tplType)}
                       className={selectClass}
                     >
-                      <option value="cobranca">Cobranca</option>
+                      <option value="cobrança">Cobrança</option>
                       <option value="lembrete">Lembrete</option>
                       <option value="agradecimento">Agradecimento</option>
                     </select>
@@ -496,7 +496,7 @@ export default function BillingAutomation() {
                     value={tplBody}
                     onChange={(e) => setTplBody(e.target.value)}
                     rows={5}
-                    placeholder="Ola {{client_name}}, sua cobranca..."
+                    placeholder="Ola {{client_name}}, sua cobrança..."
                   />
                 </Field>
                 <div className="flex gap-2">
@@ -515,7 +515,7 @@ export default function BillingAutomation() {
             <AdminEmptyState
               icon={Receipt}
               title="Nenhum template"
-              description="Crie templates de email para as regras de cobranca."
+              description="Crie templates de email para as regras de cobrança."
             />
           ) : (
             <div className="space-y-2">
@@ -563,7 +563,7 @@ export default function BillingAutomation() {
             <AdminEmptyState
               icon={Clock}
               title="Nenhuma execucao registrada"
-              description="Quando a regua for executada, o historico aparecera aqui."
+              description="Quando a régua for executada, o histórico aparecerá aqui."
             />
           ) : (
             <Card className="overflow-hidden rounded-2xl border-border/80 bg-card/95">

@@ -1031,7 +1031,7 @@ export default function AdminMarketingCalendar() {
         if (isInitialLoad) {
           setPageError(hardError.message);
         } else {
-          toast.error("Nao foi possivel atualizar o calendario.", {
+          toast.error("Não foi possível atualizar o calendario.", {
             description: hardError.message,
           });
         }
@@ -1191,7 +1191,7 @@ export default function AdminMarketingCalendar() {
         setMovingEventId(null);
 
         if (error) {
-          toast.error("Nao foi possivel ajustar a duracao do evento.", {
+          toast.error("Não foi possível ajustar a duracao do evento.", {
             description: error.message,
           });
           return;
@@ -1393,7 +1393,7 @@ export default function AdminMarketingCalendar() {
     setDragOverDateKey(null);
 
     if (error) {
-      toast.error("Nao foi possivel mover o evento.", { description: error.message });
+      toast.error("Não foi possível mover o evento.", { description: error.message });
       return;
     }
 
@@ -1446,7 +1446,7 @@ export default function AdminMarketingCalendar() {
     }
 
     if (endsAt < startsAt) {
-      toast.error("O fim precisa ser posterior ao inicio.");
+      toast.error("O fim precisa ser posterior ao início.");
       return;
     }
 
@@ -1478,7 +1478,7 @@ export default function AdminMarketingCalendar() {
     setSaving(false);
 
     if (error) {
-      toast.error("Nao foi possivel salvar o evento.", { description: error.message });
+      toast.error("Não foi possível salvar o evento.", { description: error.message });
       return;
     }
 
@@ -1494,7 +1494,7 @@ export default function AdminMarketingCalendar() {
     if (!editingId) return;
     if (editingId.startsWith("task-")) return;
     if (!canRemoveEvent) {
-      toast.error("Seu perfil nao pode remover eventos.");
+      toast.error("Seu perfil não pode remover eventos.");
       return;
     }
 
@@ -1503,7 +1503,7 @@ export default function AdminMarketingCalendar() {
     setSaving(false);
 
     if (error) {
-      toast.error("Nao foi possivel remover o evento.", { description: error.message });
+      toast.error("Não foi possível remover o evento.", { description: error.message });
       return;
     }
 
@@ -1527,7 +1527,7 @@ export default function AdminMarketingCalendar() {
   };
 
   const handleGoogleAction = () => {
-    toast("Google Agenda ainda nao esta configurada neste workspace.");
+    toast("Google Agenda ainda não está configurada neste workspace.");
   };
 
   if (loading) return <PortalLoading />;
@@ -1536,7 +1536,7 @@ export default function AdminMarketingCalendar() {
     return (
       <AdminEmptyState
         icon={Clock}
-        title="Nao foi possivel carregar o calendario"
+        title="Não foi possível carregar o calendario"
         description={pageError}
       />
     );
@@ -2251,14 +2251,14 @@ export default function AdminMarketingCalendar() {
               </div>
 
               <Field>
-                <Label>Descricao</Label>
+                <Label>Descrição</Label>
                 <Textarea
                   rows={5}
                   value={form.description}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, description: event.target.value }))
                   }
-                  placeholder="Briefing rapido, CTA, responsavel e observacoes."
+                  placeholder="Briefing rapido, CTA, responsavel e observações."
                 />
               </Field>
 
@@ -2289,7 +2289,7 @@ export default function AdminMarketingCalendar() {
                     Fechar
                   </Button>
                   <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-                    {saving ? "Salvando..." : editingId ? "Salvar alteracoes" : "Criar evento"}
+                    {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar evento"}
                   </Button>
                 </div>
               </div>

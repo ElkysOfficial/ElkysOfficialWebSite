@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { type IconProps, Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import RelativeDate from "@/components/portal/RelativeDate";
 import {
   Button,
   Card,
@@ -31,7 +32,7 @@ type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 const PAGE_SIZE = 10;
 
 const TYPE_OPTIONS = [
-  { value: "manutencao", label: "Manutenção programada" },
+  { value: "manutenção", label: "Manutenção programada" },
   { value: "atualizacao", label: "Atualização / Novidade" },
   { value: "otimizacao", label: "Otimização em andamento" },
   { value: "alerta", label: "Alerta importante" },
@@ -39,7 +40,7 @@ const TYPE_OPTIONS = [
 ] as const;
 
 const TYPE_TEMPLATES: Record<string, { title: string; body: string }> = {
-  manutencao: {
+  manutenção: {
     title: "Manutenção programada — Seu site ficará temporariamente indisponível",
     body: `Gostaríamos de informar que realizaremos uma **manutenção programada** no seu site para garantir a estabilidade, segurança e desempenho da plataforma.
 
@@ -117,7 +118,7 @@ const STATUS_BADGES: Record<string, { label: string; className: string }> = {
 };
 
 const TYPE_BADGES: Record<string, { label: string; className: string }> = {
-  manutencao: { label: "Manutenção", className: "bg-warning/15 text-warning" },
+  manutenção: { label: "Manutenção", className: "bg-warning/15 text-warning" },
   atualizacao: { label: "Atualização", className: "bg-accent/15 text-accent" },
   otimizacao: { label: "Otimização", className: "bg-primary-soft text-primary" },
   alerta: { label: "Alerta", className: "bg-destructive/15 text-destructive" },
@@ -178,7 +179,7 @@ const notificationSchema = z
   .object({
     title: z.string().min(3, "Título obrigatório (mín. 3 caracteres)"),
     body: z.string().min(10, "Mensagem obrigatória (mín. 10 caracteres)"),
-    type: z.enum(["manutencao", "atualizacao", "otimizacao", "alerta", "personalizado"]),
+    type: z.enum(["manutenção", "atualizacao", "otimizacao", "alerta", "personalizado"]),
     filter_mode: z.enum(["all", "tags", "contract_status", "individual"]),
     filter_contract_status: z.string().optional(),
     filter_tags_input: z.string().optional(),
@@ -776,10 +777,6 @@ export default function AdminNotifications() {
                   const typeBadge = TYPE_BADGES[notif.type] ?? TYPE_BADGES.personalizado;
                   const statusBadge = STATUS_BADGES[notif.status] ?? STATUS_BADGES.enviando;
                   const dateStr = notif.sent_at ?? notif.send_at ?? notif.created_at;
-                  const formattedDate = new Intl.DateTimeFormat("pt-BR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                  }).format(new Date(dateStr));
 
                   return (
                     <article
@@ -847,9 +844,10 @@ export default function AdminNotifications() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground xl:hidden">
                             Data
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground xl:mt-0">
-                            {formattedDate}
-                          </p>
+                          <RelativeDate
+                            date={dateStr}
+                            className="mt-1 block text-sm text-muted-foreground xl:mt-0"
+                          />
                         </div>
                       </div>
                     </article>

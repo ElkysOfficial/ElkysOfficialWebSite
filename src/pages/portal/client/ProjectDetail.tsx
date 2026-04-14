@@ -121,7 +121,7 @@ export default function ClientProjectDetail() {
       const clientRes = await resolveClientForUser(user.id);
       if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
-        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
         setLoading(false);
         return;
       }
@@ -133,7 +133,7 @@ export default function ClientProjectDetail() {
         !projectRes.project ||
         projectRes.project.client_id !== clientRes.client.id
       ) {
-        setPageError(projectRes.error?.message ?? "Projeto nao encontrado.");
+        setPageError(projectRes.error?.message ?? "Projeto não encontrado.");
         setLoading(false);
         return;
       }
@@ -217,7 +217,7 @@ export default function ClientProjectDetail() {
         client_id: project.client_id,
         project_id: project.id,
         event_type: "next_step_updated",
-        title: "Cliente respondeu a solicitacao",
+        title: "Cliente respondeu a solicitação",
         summary: `Resposta enviada para "${step.title}".`,
         visibility: "ambos",
         source_table: "project_next_steps",
@@ -227,9 +227,9 @@ export default function ClientProjectDetail() {
 
       // Notify admin team about client response
       void supabase.from("admin_notifications").insert({
-        type: "pendencia_respondida",
-        title: `Cliente respondeu pendencia`,
-        body: `O cliente respondeu a pendencia "${step.title}" no projeto "${project.name}".`,
+        type: "pendência_respondida",
+        title: `Cliente respondeu pendência`,
+        body: `O cliente respondeu a pendência "${step.title}" no projeto "${project.name}".`,
         severity: "action_required",
         target_roles: ["admin_super", "admin"],
         entity_type: "project_next_step",
@@ -248,8 +248,8 @@ export default function ClientProjectDetail() {
     return (
       <AdminEmptyState
         icon={FileText}
-        title="Projeto nao encontrado"
-        description={pageError ?? "Nao foi possivel localizar este projeto no seu portal."}
+        title="Projeto não encontrado"
+        description={pageError ?? "Não foi possível localizar este projeto no seu portal."}
         action={
           <Link to="/portal/cliente/projetos" className={buttonVariants({ variant: "default" })}>
             Voltar para projetos
@@ -265,7 +265,7 @@ export default function ClientProjectDetail() {
     { key: "detalhes", label: "Detalhes" },
     { key: "pagamentos", label: "Pagamentos" },
     { key: "documentos", label: `Anexos (${documents.length})` },
-    { key: "historico", label: `Historico (${timeline.length})` },
+    { key: "historico", label: `Histórico (${timeline.length})` },
   ];
 
   return (
@@ -275,10 +275,10 @@ export default function ClientProjectDetail() {
         <div className="flex items-center gap-3 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3">
           <span className="text-sm font-medium text-warning">Projeto pausado</span>
           <span className="text-sm text-muted-foreground">
-            {project.pause_reason === "dependencia_cliente"
-              ? "Aguardando informacoes ou acao do cliente."
+            {project.pause_reason === "dependência_cliente"
+              ? "Aguardando informações ou acao do cliente."
               : project.pause_reason === "financeiro"
-                ? "Pendencia financeira em aberto."
+                ? "Pendência financeira em aberto."
                 : project.pause_reason === "escopo"
                   ? "Aguardando definicao de escopo."
                   : project.pause_reason === "interno"
@@ -371,12 +371,12 @@ export default function ClientProjectDetail() {
 
           <Card className="border-border/70 bg-card/92">
             <CardHeader className="border-b border-border/60">
-              <CardTitle className="text-base">Proximos passos</CardTitle>
+              <CardTitle className="text-base">Próximos passos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-5">
               {nextSteps.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Nenhum proximo passo compartilhado no momento.
+                  Nenhum próximo passo compartilhado no momento.
                 </p>
               ) : (
                 nextSteps.map((stepItem) => {
@@ -441,7 +441,7 @@ export default function ClientProjectDetail() {
                               }))
                             }
                             placeholder="Escreva sua resposta aqui..."
-                            aria-label="Resposta ao proximo passo"
+                            aria-label="Resposta ao próximo passo"
                           />
                           <Button
                             type="button"
@@ -664,12 +664,12 @@ export default function ClientProjectDetail() {
       {tab === "historico" ? (
         <Card className="border-border/70 bg-card/92">
           <CardHeader className="border-b border-border/60">
-            <CardTitle className="text-base">Historico resumido</CardTitle>
+            <CardTitle className="text-base">Histórico resumido</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-5">
             {timeline.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Ainda nao ha eventos relevantes publicados para este projeto.
+                Ainda não há eventos relevantes publicados para este projeto.
               </p>
             ) : (
               <>
