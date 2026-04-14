@@ -10,6 +10,7 @@ import PortalLoading from "@/components/portal/PortalLoading";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
 import ExportMenu from "@/components/portal/ExportMenu";
 import RowActionMenu from "@/components/portal/RowActionMenu";
+import ProposalExpiryCountdown from "@/components/portal/ProposalExpiryCountdown";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { AlertDialog, Button, Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,9 +168,11 @@ function ProposalRow({
         <span className="text-xs font-medium text-foreground">
           {formatBRL(proposal.total_amount)}
         </span>
-        <span className="text-xs text-muted-foreground">
-          {formatPortalDate(proposal.valid_until)}
-        </span>
+        <ProposalExpiryCountdown
+          validUntil={proposal.valid_until}
+          status={proposal.status}
+          compact
+        />
       </div>
 
       {/* Col 2 — Title (desktop) */}
@@ -186,9 +189,9 @@ function ProposalRow({
       </div>
 
       {/* Col 5 — Validade (desktop) */}
-      <p className="hidden text-sm text-muted-foreground md:block">
-        {formatPortalDate(proposal.valid_until)}
-      </p>
+      <div className="hidden md:block">
+        <ProposalExpiryCountdown validUntil={proposal.valid_until} status={proposal.status} />
+      </div>
 
       {/* Col 6 — Criada em (desktop) */}
       <p className="hidden text-sm text-muted-foreground md:block">
