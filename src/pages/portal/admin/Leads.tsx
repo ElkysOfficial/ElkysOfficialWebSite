@@ -1,5 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import {
+  DndContext,
+  PointerSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { Shield, Target, TrendingUp, Users, Search } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
@@ -97,12 +108,86 @@ function LeadCard({ lead }: { lead: LeadRow }) {
   );
 }
 
+function SortableLeadCard({ lead }: { lead: LeadRow }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: lead.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <LeadCard lead={lead} />
+    </div>
+  );
+}
+
+function DroppableLeadColumn({ status, children }: { status: LeadStatus; children: ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex flex-1 flex-col gap-2 px-2 pb-3 transition-colors",
+        isOver && "bg-primary/5"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function Leads() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("kanban");
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const leadId = active.id as string;
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+
+    // Resolve target column: either dropped on the column container or on a card.
+    let targetStatus: LeadStatus | null = null;
+    if (STATUS_META.some((s) => s.key === over.id)) {
+      targetStatus = over.id as LeadStatus;
+    } else {
+      const overLead = leads.find((l) => l.id === over.id);
+      if (overLead) targetStatus = overLead.status as LeadStatus;
+    }
+
+    if (!targetStatus || targetStatus === lead.status) return;
+
+    const previousStatus = lead.status as LeadStatus;
+
+    // Optimistic update
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: targetStatus! } : l)));
+
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({ status: targetStatus })
+      .eq("id", leadId);
+
+    if (updateError) {
+      // Revert on failure
+      setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: previousStatus } : l)));
+      toast.error("Erro ao mover lead.", { description: updateError.message });
+      return;
+    }
+
+    toast.success(`Lead movido para ${STATUS_MAP[targetStatus].label}.`);
+  };
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -470,43 +555,55 @@ export default function Leads() {
 
       {/* Kanban View */}
       {view === "kanban" && (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          {STATUS_META.map((col) => (
-            <div
-              key={col.key}
-              className={cn(
-                "flex flex-col rounded-2xl border border-border/70 border-t-[3px] bg-card/60",
-                COLUMN_ACCENT[col.key]
-              )}
-            >
-              {/* Column header */}
-              <div className="flex items-center justify-between p-3 pb-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {col.label}
-                </h3>
-                <span
-                  className={cn(
-                    "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
-                    COLUMN_COUNT_BG[col.key]
-                  )}
-                >
-                  {grouped[col.key].length}
-                </span>
-              </div>
-
-              {/* Cards */}
-              <div className="flex flex-1 flex-col gap-2 px-2 pb-3">
-                {grouped[col.key].length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
-                    <p className="text-center text-xs text-muted-foreground">Nenhum lead</p>
-                  </div>
-                ) : (
-                  grouped[col.key].map((lead) => <LeadCard key={lead.id} lead={lead} />)
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragEnd={(e) => void handleDragEnd(e)}
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+            {STATUS_META.map((col) => (
+              <div
+                key={col.key}
+                className={cn(
+                  "flex flex-col rounded-2xl border border-border/70 border-t-[3px] bg-card/60",
+                  COLUMN_ACCENT[col.key]
                 )}
+              >
+                {/* Column header */}
+                <div className="flex items-center justify-between p-3 pb-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {col.label}
+                  </h3>
+                  <span
+                    className={cn(
+                      "inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold",
+                      COLUMN_COUNT_BG[col.key]
+                    )}
+                  >
+                    {grouped[col.key].length}
+                  </span>
+                </div>
+
+                {/* Cards — sortable + droppable column */}
+                <SortableContext
+                  id={col.key}
+                  items={grouped[col.key].map((l) => l.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <DroppableLeadColumn status={col.key}>
+                    {grouped[col.key].length === 0 ? (
+                      <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
+                        <p className="text-center text-xs text-muted-foreground">Nenhum lead</p>
+                      </div>
+                    ) : (
+                      grouped[col.key].map((lead) => <SortableLeadCard key={lead.id} lead={lead} />)
+                    )}
+                  </DroppableLeadColumn>
+                </SortableContext>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </DndContext>
       )}
 
       {/* List View */}
