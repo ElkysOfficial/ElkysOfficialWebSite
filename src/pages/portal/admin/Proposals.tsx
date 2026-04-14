@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import { formatBRL, toCents } from "@/lib/masks";
-import { formatPortalDate } from "@/lib/portal";
+import { formatPortalDate, getClientDisplayName } from "@/lib/portal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -58,11 +58,6 @@ const PAGE_SIZE = 10;
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function getClientDisplayName(client: ClientRow): string {
-  if (client.client_type === "pj" && client.nome_fantasia) return client.nome_fantasia;
-  return client.full_name;
-}
 
 function getDestinationName(
   proposal: ProposalRow,
