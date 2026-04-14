@@ -182,7 +182,7 @@ export default function AdminTeamEdit() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field>
-              <Label>Nome completo *</Label>
+              <Label required>Nome completo</Label>
               <Input {...register("full_name")} placeholder="Nome do membro" />
               <ErrorText className={errors.full_name ? "" : "invisible"}>
                 {errors.full_name?.message || "\u00A0"}
@@ -216,7 +216,7 @@ export default function AdminTeamEdit() {
             </Field>
 
             <Field>
-              <Label>Cargo / Nível de acesso *</Label>
+              <Label required>Cargo / Nível de acesso</Label>
               <select {...register("system_role")} className={selectClass}>
                 {ROLE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -233,7 +233,7 @@ export default function AdminTeamEdit() {
             </Field>
 
             <Field>
-              <Label>Status *</Label>
+              <Label required>Status</Label>
               <select {...register("status")} className={selectClass}>
                 <option value="active">Ativo</option>
                 <option value="inactive">Inativo</option>

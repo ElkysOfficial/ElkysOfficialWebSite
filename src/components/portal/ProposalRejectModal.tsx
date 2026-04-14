@@ -194,8 +194,8 @@ export default function ProposalRejectModal({
             </Field>
 
             <Field>
-              <Label htmlFor="rejection_details">
-                Detalhes {requiresDetails ? "*" : "(opcional)"}
+              <Label htmlFor="rejection_details" required={requiresDetails}>
+                Detalhes{requiresDetails ? "" : " (opcional)"}
               </Label>
               <Textarea
                 id="rejection_details"

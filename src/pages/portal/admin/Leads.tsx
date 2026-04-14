@@ -396,7 +396,9 @@ export default function Leads() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field>
-            <Label htmlFor="lead-name">Nome *</Label>
+            <Label htmlFor="lead-name" required>
+              Nome
+            </Label>
             <Input
               id="lead-name"
               value={formName}
