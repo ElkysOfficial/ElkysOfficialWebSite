@@ -7,6 +7,7 @@ import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons"
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import ProjectStageProgressDots from "@/components/portal/ProjectStageProgressDots";
+import RecurringBadge from "@/components/portal/RecurringBadge";
 import { useAdminProjects } from "@/hooks/useAdminProjects";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -159,7 +160,7 @@ function ProjectRow({
       <div className="flex flex-col gap-2 md:hidden">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <StatusBadge label={meta.label} tone={meta.tone} />
-          {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
+          {hasSubscription ? <RecurringBadge /> : null}
           <span className="text-xs font-medium text-foreground">
             {formatPortalDate(project.expected_delivery_date)}
           </span>
