@@ -56,7 +56,13 @@ jobs:
         continue-on-error: true
         run: npm run build
 
-      - name: Deploy via FTP (Hostinger) — attempt 1
+      # IMPORTANTE: attempt 1 usa dangerous-clean-slate: true para garantir
+      # reset completo do state file do FTP. Isso corrige o drift de estado
+      # que deixou chunks órfãos em produção (404 em AdminPortalHome,
+      # BillingAutomation, TeamHub, MarketingCalendar, etc) após retries
+      # parciais de deploys anteriores. Attempts 2 e 3 usam false para
+      # retomar sem apagar em caso de falha no meio do primeiro upload.
+      - name: Deploy via FTP (Hostinger) — attempt 1 (clean slate)
         id: deploy_1
         if: steps.build.outcome == 'success'
         continue-on-error: true
@@ -69,7 +75,7 @@ jobs:
           protocol: ftp
           local-dir: ./dist/
           server-dir: /domains/elkys.com.br/public_html/
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
           log-level: verbose
           timeout: 180000
           exclude: |
