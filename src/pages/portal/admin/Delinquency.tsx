@@ -138,7 +138,7 @@ export default function Delinquency() {
 
   const exportColumns: ExportColumn[] = [
     { key: "client", label: "Cliente" },
-    { key: "description", label: "Descricao" },
+    { key: "description", label: "Descrição" },
     { key: "amount", label: "Valor", align: "right" },
     { key: "dueDate", label: "Vencimento" },
     { key: "daysOverdue", label: "Dias em Atraso", align: "right" },
@@ -163,8 +163,8 @@ export default function Delinquency() {
     });
   const handleExportPDF = () =>
     exportPDF({
-      title: "Relatorio de Inadimplencia",
-      subtitle: `${filtered.length} cobrancas | Total: ${formatBRL(totalAmount)}`,
+      title: "Relatório de Inadimplencia",
+      subtitle: `${filtered.length} cobranças | Total: ${formatBRL(totalAmount)}`,
       filename: "inadimplencia",
       columns: exportColumns,
       rows: exportRows,
@@ -191,8 +191,8 @@ export default function Delinquency() {
     return (
       <AdminEmptyState
         icon={Shield}
-        title="Nenhuma cobranca em atraso"
-        description="Parabens! Todas as cobrancas estao em dia. Continue acompanhando para manter a saude financeira."
+        title="Nenhuma cobrança em atraso"
+        description="Parabens! Todas as cobranças estao em dia. Continue acompanhando para manter a saude financeira."
       />
     );
   }
@@ -206,7 +206,7 @@ export default function Delinquency() {
           value={formatBRL(totalAmount)}
           icon={Receipt}
           tone="destructive"
-          hint={`${filtered.length} cobranca(s)`}
+          hint={`${filtered.length} cobrança(s)`}
         />
         <AdminMetricCard
           label="Clientes afetados"
@@ -288,7 +288,7 @@ export default function Delinquency() {
                   Cliente
                 </th>
                 <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                  Descricao
+                  Descrição
                 </th>
                 <th className="px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   Valor
@@ -303,7 +303,7 @@ export default function Delinquency() {
                   Status
                 </th>
                 <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                  Acoes
+                  Ações
                 </th>
               </tr>
             </thead>
@@ -377,7 +377,7 @@ export default function Delinquency() {
                   className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground"
                   colSpan={2}
                 >
-                  Total ({filtered.length} cobrancas)
+                  Total ({filtered.length} cobranças)
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                   {formatBRL(totalAmount)}

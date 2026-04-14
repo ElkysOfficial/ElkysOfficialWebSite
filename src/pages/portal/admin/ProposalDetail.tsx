@@ -162,7 +162,7 @@ function ProposalReadOnly({
           <span className="text-xs text-muted-foreground">
             {proposal.status === "aprovada"
               ? "Cliente ja aprovou. Clique para criar o projeto e contrato vinculados."
-              : "Ao aprovar, um projeto sera criado automaticamente vinculado a esta proposta."}
+              : "Ao aprovar, um projeto será criado automáticamente vinculado a esta proposta."}
           </span>
         </div>
       )}
@@ -255,7 +255,7 @@ function ProposalReadOnly({
       {proposal.observations ? (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Observacoes
+            Observações
           </p>
           <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
             {proposal.observations}
@@ -395,7 +395,7 @@ export default function ProposalDetail() {
       };
 
       if (proposalRes.error || !proposalRes.data) {
-        toast.error("Proposta nao encontrada.");
+        toast.error("Proposta não encontrada.");
         navigate("/portal/admin/propostas");
         return;
       }
@@ -508,7 +508,7 @@ export default function ProposalDetail() {
   async function handleSend() {
     if (saving || sending) return;
     if (isEditing && proposal && !canTransitionProposal(proposal.status, "enviada")) {
-      toast.error("Esta proposta nao pode ser enviada no status atual.");
+      toast.error("Esta proposta não pode ser enviada no status atual.");
       return;
     }
 
@@ -530,7 +530,7 @@ export default function ProposalDetail() {
     if (form.valid_until) {
       const today = new Date().toISOString().slice(0, 10);
       if (form.valid_until < today) {
-        toast.error("A data de validade nao pode estar no passado.");
+        toast.error("A data de validade não pode estar no passado.");
         return;
       }
     }
@@ -655,7 +655,7 @@ export default function ProposalDetail() {
     // Allow if already approved (by client) — just needs project creation.
     // Otherwise validate the transition.
     if (proposal.status !== "aprovada" && !canTransitionProposal(proposal.status, "aprovada")) {
-      toast.error("Esta proposta nao pode ser aprovada no status atual.");
+      toast.error("Esta proposta não pode ser aprovada no status atual.");
       return;
     }
 
@@ -697,10 +697,10 @@ export default function ProposalDetail() {
 
     if (!clientId) {
       setApproving(false);
-      toast.error("Nao e possivel criar o projeto.", {
+      toast.error("Não é possível criar o projeto.", {
         description: proposal.lead_id
-          ? "O lead desta proposta ainda nao foi convertido em cliente. Converta o lead primeiro e tente novamente."
-          : "A proposta nao possui um cliente vinculado.",
+          ? "O lead desta proposta ainda não foi convertido em cliente. Converta o lead primeiro e tente novamente."
+          : "A proposta não possui um cliente vinculado.",
       });
       return;
     }
@@ -970,7 +970,7 @@ export default function ProposalDetail() {
 
             {/* Observations */}
             <Field>
-              <Label htmlFor="observations">Observacoes</Label>
+              <Label htmlFor="observations">Observações</Label>
               <Textarea
                 id="observations"
                 value={form.observations}

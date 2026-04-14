@@ -55,7 +55,7 @@ export default function ProposalView() {
 
     const clientRes = await resolveClientForUser(user.id);
     if (clientRes.error || !clientRes.client) {
-      setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+      setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
       setLoading(false);
       return;
     }
@@ -92,7 +92,7 @@ export default function ProposalView() {
       const clientRes = await resolveClientForUser(user.id);
       if (cancelled) return;
       if (clientRes.error || !clientRes.client) {
-        setPageError(clientRes.error?.message ?? "Cadastro do cliente nao encontrado.");
+        setPageError(clientRes.error?.message ?? "Cadastro do cliente não encontrado.");
         setLoading(false);
         return;
       }
@@ -128,7 +128,7 @@ export default function ProposalView() {
   const handleApprove = async () => {
     if (!proposal || !clientId) return;
     if (!canTransitionProposal(proposal.status, "aprovada")) {
-      toast.error("Esta proposta nao pode ser aprovada no status atual.");
+      toast.error("Esta proposta não pode ser aprovada no status atual.");
       return;
     }
     setActionLoading(true);
@@ -189,7 +189,7 @@ export default function ProposalView() {
   const handleReject = async () => {
     if (!proposal || !clientId) return;
     if (!canTransitionProposal(proposal.status, "rejeitada")) {
-      toast.error("Esta proposta nao pode ser rejeitada no status atual.");
+      toast.error("Esta proposta não pode ser rejeitada no status atual.");
       return;
     }
     setActionLoading(true);
@@ -237,7 +237,7 @@ export default function ProposalView() {
     return (
       <AdminEmptyState
         icon={FileText}
-        title="Proposta nao encontrada"
+        title="Proposta não encontrada"
         description="A proposta pode ter sido removida ou o link esta incorreto."
         action={
           <Link to="/portal/cliente/propostas" className={buttonVariants({ variant: "default" })}>
@@ -330,7 +330,7 @@ export default function ProposalView() {
             {proposal.observations && (
               <div>
                 <p className="text-[10px] font-semibold uppercase text-muted-foreground">
-                  Observacoes
+                  Observações
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
                   {proposal.observations}
