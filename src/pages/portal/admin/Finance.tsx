@@ -594,9 +594,10 @@ function FinanceRevenueTab({
                       <Button
                         type="button"
                         onClick={() => void handleSaveCharge(charge.id)}
-                        disabled={savingChargeId === charge.id}
+                        loading={savingChargeId === charge.id}
+                        loadingText="Salvando..."
                       >
-                        {savingChargeId === charge.id ? "Salvando..." : "Salvar alterações"}
+                        Salvar alterações
                       </Button>
                     </div>
                   </div>

@@ -1030,19 +1030,23 @@ export default function ProposalDetail() {
                 type="button"
                 variant="outline"
                 onClick={() => void handleSaveDraft()}
-                disabled={saving || sending}
+                disabled={sending}
+                loading={saving}
+                loadingText="Salvando..."
               >
-                {saving ? "Salvando..." : "Salvar rascunho"}
+                Salvar rascunho
               </Button>
               <Button
                 type="button"
                 onClick={() => void handleSend()}
-                disabled={saving || sending || !canSend}
+                disabled={saving || !canSend}
+                loading={sending}
+                loadingText="Enviando..."
                 title={
                   !canSend ? "Preencha o destinatario e o link do documento para enviar" : undefined
                 }
               >
-                {sending ? "Enviando..." : "Enviar para cliente"}
+                Enviar para cliente
               </Button>
             </div>
           </CardContent>
