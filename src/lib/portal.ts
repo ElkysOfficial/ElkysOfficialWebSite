@@ -217,6 +217,25 @@ export function installmentStatusToChargeStatus(status: ProjectInstallmentStatus
   return map[status];
 }
 
+/**
+ * Mapeamento inverso: dado o status de uma charge (masculino do enum
+ * invoice_status), retorna o equivalente no enum feminino usado pelas
+ * parcelas de projeto (project_installments.status). Útil para
+ * sincronizar de Finance.tsx → project_installments quando o admin
+ * marca uma cobrança vinculada a uma parcela como paga, evitando que
+ * as duas entidades fiquem com status divergentes.
+ */
+export function chargeStatusToInstallmentStatus(status: InvoiceStatus): ProjectInstallmentStatus {
+  const map: Record<InvoiceStatus, ProjectInstallmentStatus> = {
+    agendada: "agendada",
+    pendente: "pendente",
+    pago: "paga",
+    atrasado: "atrasada",
+    cancelado: "cancelada",
+  };
+  return map[status];
+}
+
 export function getClientDisplayName(
   client: Pick<PortalClient, "client_type" | "nome_fantasia" | "full_name">
 ) {
