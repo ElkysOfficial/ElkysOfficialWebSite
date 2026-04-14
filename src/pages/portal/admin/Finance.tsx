@@ -17,7 +17,7 @@ import {
 } from "recharts";
 
 import type { ComponentType } from "react";
-import { Clock, FileText, Receipt, Search } from "@/assets/icons";
+import { CheckCircle, Clock, FileText, Receipt, Search } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
@@ -308,6 +308,98 @@ function FinanceRevenueTab({
     setEditingChargeId(null);
     setEditor(null);
     setEditorError(null);
+  };
+
+  const [quickPayingId, setQuickPayingId] = useState<string | null>(null);
+
+  /**
+   * Atalho de 1 clique para marcar uma cobranca como paga sem abrir o
+   * editor completo. Atualiza status + paid_at na charge, sincroniza
+   * a project_installment vinculada (se houver) e oferece toast com
+   * undo que reverte ambos se o admin clicar por engano.
+   */
+  const handleQuickMarkPaid = async (charge: PortalCharge) => {
+    if (quickPayingId) return;
+    if (charge.status === "pago") return;
+    setQuickPayingId(charge.id);
+
+    const paidAt = new Date().toISOString().slice(0, 10);
+    const previousStatus = charge.status;
+    const previousPaidAt = charge.paid_at;
+
+    const { error } = await supabase
+      .from("charges")
+      .update({ status: "pago", paid_at: paidAt })
+      .eq("id", charge.id);
+
+    if (error) {
+      setQuickPayingId(null);
+      toast.error("Não foi possível marcar como paga.", { description: error.message });
+      return;
+    }
+
+    // Sincroniza installment vinculada (mesmo bloco do handleSaveCharge)
+    if (charge.installment_id) {
+      const { error: installmentSyncError } = await supabase
+        .from("project_installments")
+        .update({
+          status: "paga",
+          paid_at: paidAt,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", charge.installment_id);
+      if (installmentSyncError) {
+        console.warn("[Finance.handleQuickMarkPaid] sync de parcela falhou", installmentSyncError);
+      }
+    }
+
+    // Evento na timeline, sem bloquear em caso de falha
+    try {
+      await supabase.from("timeline_events").insert({
+        client_id: charge.client_id,
+        project_id: charge.project_id ?? null,
+        event_type: "pagamento_recebido",
+        title: "Pagamento recebido",
+        summary: `Cobrança "${charge.description}" marcada como paga.`,
+        visibility: "ambos",
+        source_table: "charges",
+        source_id: charge.id,
+      });
+    } catch {
+      /* silencioso — falha de timeline nao bloqueia o fluxo principal */
+    }
+
+    setQuickPayingId(null);
+    await onReload();
+
+    toast.success("Cobrança marcada como paga.", {
+      description: `${charge.description} · ${formatBRL(Number(charge.amount))}`,
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const { error: undoError } = await supabase
+            .from("charges")
+            .update({ status: previousStatus, paid_at: previousPaidAt })
+            .eq("id", charge.id);
+          if (undoError) {
+            toast.error("Não foi possível desfazer.", { description: undoError.message });
+            return;
+          }
+          if (charge.installment_id) {
+            await supabase
+              .from("project_installments")
+              .update({
+                status: chargeStatusToInstallmentStatus(previousStatus),
+                paid_at: previousPaidAt,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", charge.installment_id);
+          }
+          await onReload();
+          toast.success("Cobrança revertida ao status anterior.");
+        },
+      },
+    });
   };
 
   const handleSaveCharge = async (chargeId: string) => {
@@ -726,7 +818,22 @@ function FinanceRevenueTab({
                       </div>
 
                       {/* Mobile actions */}
-                      <div className="shrink-0 lg:hidden">
+                      <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
+                        {charge.status !== "pago" && charge.status !== "cancelado" ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void handleQuickMarkPaid(charge)}
+                            loading={quickPayingId === charge.id}
+                            loadingText="..."
+                            className="h-8 border-success/40 px-2 text-xs text-success hover:bg-success/10 hover:text-success"
+                            title="Marcar cobrança como paga"
+                            aria-label={`Marcar "${charge.description}" como paga`}
+                          >
+                            <CheckCircle size={14} /> Pago
+                          </Button>
+                        ) : null}
                         <RowActionMenu
                           actions={[
                             { label: "Editar", onClick: () => startEditing(charge) },
@@ -801,7 +908,22 @@ function FinanceRevenueTab({
                     </div>
 
                     {/* Desktop actions */}
-                    <div className="hidden lg:block">
+                    <div className="hidden items-center gap-1.5 lg:flex">
+                      {charge.status !== "pago" && charge.status !== "cancelado" ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void handleQuickMarkPaid(charge)}
+                          loading={quickPayingId === charge.id}
+                          loadingText="..."
+                          className="h-9 border-success/40 px-2.5 text-xs text-success hover:bg-success/10 hover:text-success"
+                          title="Marcar cobrança como paga"
+                          aria-label={`Marcar "${charge.description}" como paga`}
+                        >
+                          <CheckCircle size={14} /> Pago
+                        </Button>
+                      ) : null}
                       <RowActionMenu
                         actions={[
                           { label: "Editar", onClick: () => startEditing(charge) },
