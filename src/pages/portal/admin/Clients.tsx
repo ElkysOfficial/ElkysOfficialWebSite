@@ -10,7 +10,7 @@ import PortalLoading from "@/components/portal/PortalLoading";
 import { useAdminClients } from "@/hooks/useAdminClients";
 import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import RowActionMenu from "@/components/portal/RowActionMenu";
-import { buttonVariants, Button, Input, cn } from "@/design-system";
+import { AlertDialog, buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL } from "@/lib/masks";
@@ -275,10 +275,12 @@ export default function AdminClients() {
   const [clientTypeFilter, setClientTypeFilter] = useUrlState<ClientTypeFilter>("tipo", "all");
   const [contractStatusFilter, setContractStatusFilter] = useUrlState<ContractStatusFilter>(
     "contrato",
-    "all",
+    "all"
   );
   const [originFilter, setOriginFilter] = useUrlState<OriginFilter>("origem", "all");
   const [tagFilter, setTagFilter] = useUrlStateNullable<string>("tag");
+  const [deactivateTarget, setDeactivateTarget] = useState<Client | null>(null);
+  const [deactivateLoading, setDeactivateLoading] = useState(false);
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
@@ -389,19 +391,61 @@ export default function AdminClients() {
 
   const totalClients = clients.length;
 
-  const handleToggleActive = async (client: Client) => {
-    const next = !client.is_active;
+  const persistActiveFlag = async (client: Client, next: boolean) => {
     const { error } = await supabase
       .from("clients")
       .update({ is_active: next })
       .eq("id", client.id);
+    return error;
+  };
 
+  const showUndoToast = (client: Client, previous: boolean) => {
+    const label = previous ? "Cliente reativado." : "Cliente inativado.";
+    toast.success(label, {
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const err = await persistActiveFlag(client, previous);
+          if (err) {
+            toast.error("Não foi possível desfazer.", { description: err.message });
+            return;
+          }
+          toast.success(previous ? "Cliente reativado." : "Cliente inativado.");
+          void refetchClients();
+        },
+      },
+    });
+  };
+
+  const handleToggleActive = async (client: Client) => {
+    if (client.is_active) {
+      // Inativar: exige confirmação explícita
+      setDeactivateTarget(client);
+      return;
+    }
+    // Reativar: acao reversivel, executa direto e oferece undo
+    const previous = client.is_active;
+    const error = await persistActiveFlag(client, true);
     if (error) {
       toast.error("Não foi possível alterar o status.", { description: error.message });
       return;
     }
+    showUndoToast(client, previous);
+    void refetchClients();
+  };
 
-    toast.success(next ? "Cliente reativado." : "Cliente inativado.");
+  const confirmDeactivate = async () => {
+    if (!deactivateTarget) return;
+    setDeactivateLoading(true);
+    const previous = deactivateTarget.is_active;
+    const error = await persistActiveFlag(deactivateTarget, false);
+    setDeactivateLoading(false);
+    if (error) {
+      toast.error("Não foi possível inativar o cliente.", { description: error.message });
+      return;
+    }
+    showUndoToast(deactivateTarget, previous);
+    setDeactivateTarget(null);
     void refetchClients();
   };
 
@@ -660,6 +704,23 @@ export default function AdminClients() {
           ) : null}
         </div>
       )}
+
+      <AlertDialog
+        open={deactivateTarget !== null}
+        destructive
+        title="Inativar cliente?"
+        description={
+          deactivateTarget
+            ? `O cliente "${deactivateTarget.full_name}" deixará de aparecer em listagens ativas, relatórios operacionais e filtros padrão. Projetos, contratos, cobranças e histórico continuam preservados. Você pode reativar a qualquer momento.`
+            : ""
+        }
+        confirmLabel="Inativar"
+        cancelLabel="Cancelar"
+        loading={deactivateLoading}
+        loadingLabel="Inativando..."
+        onConfirm={confirmDeactivate}
+        onCancel={() => setDeactivateTarget(null)}
+      />
     </div>
   );
 }
