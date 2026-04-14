@@ -1662,27 +1662,36 @@ function FinanceAnaliseTab() {
       ])
     );
 
-    // Accumulate in centavos (integers) to avoid floating-point errors
+    // Accumulate in centavos (integers) to avoid floating-point errors.
+    // cashIn usa paid_at (fluxo de caixa = regime de caixa).
+    // projectRevenue usa due_date (receita = regime de competencia).
     charges
       .filter((c) => c.status === "pago" && !c.is_historical)
       .forEach((c) => {
-        const mk = getMonthKeyFromDate(c.paid_at ?? c.due_date);
-        if (!mk) return;
-        const p = monthlyMap.get(mk);
-        if (!p) return;
-        p.cashIn += toCents(c.amount);
-        if (c.origin_type === "parcela_projeto") p.projectRevenue += toCents(c.amount);
+        const cashKey = getMonthKeyFromDate(c.paid_at ?? c.due_date);
+        if (cashKey) {
+          const cashPoint = monthlyMap.get(cashKey);
+          if (cashPoint) cashPoint.cashIn += toCents(c.amount);
+        }
+        if (c.origin_type === "parcela_projeto") {
+          const compKey = getMonthKeyFromDate(c.due_date);
+          if (compKey) {
+            const compPoint = monthlyMap.get(compKey);
+            if (compPoint) compPoint.projectRevenue += toCents(c.amount);
+          }
+        }
       });
 
-    // Recurring revenue: count paid mensalidades for past months,
-    // but include pending/agendada for current+future to show expected revenue
+    // Receita recorrente = metrica de COMPETENCIA. Bucket por due_date
+    // sempre (nunca paid_at). Usar paid_at fazia mensalidades antigas
+    // pagas no mes corrente inflarem o MRR e zerarem os meses passados.
     charges
       .filter(
         (c) => c.origin_type === "mensalidade" && c.status !== "cancelado" && !c.is_historical
       )
       .forEach((c) => {
         const isPaid = c.status === "pago";
-        const mk = getMonthKeyFromDate(isPaid ? (c.paid_at ?? c.due_date) : c.due_date);
+        const mk = getMonthKeyFromDate(c.due_date);
         if (!mk) return;
         const p = monthlyMap.get(mk);
         if (!p) return;
@@ -1699,15 +1708,36 @@ function FinanceAnaliseTab() {
       p.cashOut += toCents(e.amount);
     });
 
-    // Subscription base floor for current month
+    // Fallback retroativo por mes: se as charges pagas de mensalidade
+    // somarem menos que a base contratual ativa NAQUELE mes, usar a base.
+    // Evita que meses passados mostrem MRR=0 so porque o admin nao
+    // marcou as cobrancas como "pago". Respeita starts_on/ends_on de
+    // cada subscription para nao inflar meses anteriores ao inicio ou
+    // posteriores ao fim.
     const recurringSubscriptions = subs.filter((s) => ["agendada", "ativa"].includes(s.status));
     const recurringBaseCents = recurringSubscriptions.reduce(
       (sum, s) => sum + toCents(s.amount),
       0
     );
-    const curPt = monthlyMap.get(curKey);
-    if (curPt && curPt.recurringRevenue < recurringBaseCents)
-      curPt.recurringRevenue = recurringBaseCents;
+    for (const frame of monthFrames) {
+      const [y, m] = frame.key.split("-").map(Number);
+      const monthStartIso = `${frame.key}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      const monthEndIso = `${frame.key}-${String(lastDay).padStart(2, "0")}`;
+
+      const baseForMonthCents = recurringSubscriptions
+        .filter((sub) => {
+          if (sub.starts_on && sub.starts_on > monthEndIso) return false;
+          if (sub.ends_on && sub.ends_on < monthStartIso) return false;
+          return true;
+        })
+        .reduce((sum, sub) => sum + toCents(sub.amount), 0);
+
+      const point = monthlyMap.get(frame.key);
+      if (point && point.recurringRevenue < baseForMonthCents) {
+        point.recurringRevenue = baseForMonthCents;
+      }
+    }
 
     // Convert centavos back to reais for the public series
     const recurringBase = recurringBaseCents / 100;
@@ -1841,17 +1871,17 @@ function FinanceAnaliseTab() {
       pendingProposals.reduce((s, p) => s + toCents(p.total_amount), 0) / 100;
     const pipelineValue = projectPipelineValue + proposalPipelineValue;
 
-    // Burn rate — average monthly expenses over the last 6 months
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-    const recentExp = expenses.filter((e) => {
-      const d = parseDateValue(e.expense_date);
-      return d && d >= sixMonthsAgo;
-    });
-    const recentMonthsWithExpenses = monthlySeries.slice(-6).filter((m) => m.cashOut > 0).length;
+    // Burn rate medio = media das saidas dos ultimos 6 meses, usando
+    // SEMPRE a mesma janela para numerador e denominador (fatia do
+    // monthlySeries). Antes numerador e denominador divergiam em 1 mes
+    // porque sixMonthsAgo era calculado a parte, gerando burn inflado
+    // caso houvesse despesa exatamente no mes limite.
+    const lastSixMonths = monthlySeries.slice(-6);
+    const burnMonthsWithExpenses = lastSixMonths.filter((m) => m.cashOut > 0).length;
     const burnRate =
-      recentExp.reduce((s, e) => s + toCents(e.amount), 0) /
-      100 /
-      Math.max(recentMonthsWithExpenses, 1);
+      burnMonthsWithExpenses > 0
+        ? lastSixMonths.reduce((s, m) => s + m.cashOut, 0) / burnMonthsWithExpenses
+        : 0;
 
     // Cash, receivables, margin
     const cashBalance =
@@ -1887,9 +1917,16 @@ function FinanceAnaliseTab() {
     const currentMonthNet = curMonth?.net ?? 0;
     const currentMrr = curMonth?.recurringRevenue ?? recurringBase;
     const currentProjectRevenue = curMonth?.projectRevenue ?? 0;
+    // Margem operacional por COMPETENCIA: receita reconhecida do mes
+    // (recorrente contratada + projeto com parcela devida no mes) menos
+    // despesas do mes. Usar cashIn/cashOut aqui dava "margem de caixa",
+    // inflada quando mensalidades antigas eram pagas retroativamente no
+    // mes corrente e mostrando verde quando a operacao estava no vermelho.
+    const currentMonthRevenue = currentMrr + currentProjectRevenue;
+    const currentMonthExpenses = curMonth?.cashOut ?? 0;
     const operationalMargin =
-      curMonth && curMonth.cashIn > 0
-        ? ((curMonth.cashIn - curMonth.cashOut) / curMonth.cashIn) * 100
+      currentMonthRevenue > 0
+        ? ((currentMonthRevenue - currentMonthExpenses) / currentMonthRevenue) * 100
         : null;
 
     const newClientsThisMonth = clients.filter((c) => {
@@ -1968,11 +2005,11 @@ function FinanceAnaliseTab() {
             tone={state.currentProjectRevenue > 0 ? "brand" : "neutral"}
           />
           <SurfaceStat
-            label="Receita prevista"
+            label="Receita prevista (agendada)"
             value={
               state.forecastRevenue > 0 ? formatBRL(state.forecastRevenue) : "Sem agendamentos"
             }
-            tone={state.forecastRevenue > 0 ? "neutral" : "neutral"}
+            tone="neutral"
           />
           <SurfaceStat
             label="Margem operacional"
