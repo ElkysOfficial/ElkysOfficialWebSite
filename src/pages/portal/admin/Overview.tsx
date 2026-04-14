@@ -15,7 +15,7 @@ import {
 
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import OverviewSkeleton from "@/components/portal/OverviewSkeleton";
+import PortalLoading from "@/components/portal/PortalLoading";
 import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -342,33 +342,6 @@ function TrendPill({ change, className }: { change: number | null; className?: s
     >
       {text}
     </span>
-  );
-}
-
-function OverviewSkeleton() {
-  return (
-    <div className="space-y-4">
-      <div className="h-44 animate-pulse rounded-2xl border border-border/70 bg-card/70" />
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-44 animate-pulse rounded-2xl border border-border/70 bg-card/70"
-          />
-        ))}
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-12">
-        <div className="h-[480px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-8" />
-        <div className="h-[480px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-4" />
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-12">
-        <div className="h-[380px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-5" />
-        <div className="h-[380px] animate-pulse rounded-2xl border border-border/70 bg-card/70 xl:col-span-7" />
-      </div>
-    </div>
   );
 }
 
@@ -1429,7 +1402,7 @@ export default function AdminOverview() {
     return "Operação estável neste mes";
   }, [mrrChange, summary.clientsAtRisk, summary.currentMonthNet, summary.overdueReceivables]);
 
-  if (!hasLoaded && !error) return <OverviewSkeleton />;
+  if (!hasLoaded && !error) return <PortalLoading />;
 
   return (
     <div className="space-y-4">
