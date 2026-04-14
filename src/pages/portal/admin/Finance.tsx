@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useUrlState } from "@/hooks/useUrlState";
 import { toast } from "sonner";
 import { useAdminCharges } from "@/hooks/useAdminCharges";
 import { useAdminClients } from "@/hooks/useAdminClients";
@@ -191,9 +192,9 @@ function FinanceRevenueTab({
 }) {
   const { isSuperAdmin } = useAuth();
   const [page, setPage] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [monthFilter, setMonthFilter] = useState(getCurrentRevenueMonthKey());
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState("status", "all");
+  const [monthFilter, setMonthFilter] = useUrlState("mes", getCurrentRevenueMonthKey());
   const [editingChargeId, setEditingChargeId] = useState<string | null>(null);
   const [editor, setEditor] = useState<ChargeEditor | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);

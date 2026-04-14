@@ -5,6 +5,7 @@ import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUrlState } from "@/hooks/useUrlState";
 import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { TicketStatus } from "@/lib/portal";
@@ -133,8 +134,8 @@ export default function AdminSupport() {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const supportOnlyView = isSupport && !isAdmin;

@@ -8,6 +8,7 @@ import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAdminClients } from "@/hooks/useAdminClients";
+import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -269,12 +270,15 @@ export default function AdminClients() {
   const hasLoaded = !loading && !queryError;
   const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [clientTypeFilter, setClientTypeFilter] = useState<ClientTypeFilter>("all");
-  const [contractStatusFilter, setContractStatusFilter] = useState<ContractStatusFilter>("all");
-  const [originFilter, setOriginFilter] = useState<OriginFilter>("all");
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
+  const [clientTypeFilter, setClientTypeFilter] = useUrlState<ClientTypeFilter>("tipo", "all");
+  const [contractStatusFilter, setContractStatusFilter] = useUrlState<ContractStatusFilter>(
+    "contrato",
+    "all",
+  );
+  const [originFilter, setOriginFilter] = useUrlState<OriginFilter>("origem", "all");
+  const [tagFilter, setTagFilter] = useUrlStateNullable<string>("tag");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [avatarMap, setAvatarMap] = useState<Record<string, AvatarInfo>>({});
 
