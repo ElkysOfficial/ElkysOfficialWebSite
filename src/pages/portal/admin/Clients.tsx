@@ -449,6 +449,24 @@ export default function AdminClients() {
     void refetchClients();
   };
 
+  const hasActiveFilters =
+    search.trim() !== "" ||
+    statusFilter !== "all" ||
+    clientTypeFilter !== "all" ||
+    contractStatusFilter !== "all" ||
+    originFilter !== "all" ||
+    tagFilter !== null;
+
+  const clearAllFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setClientTypeFilter("all");
+    setContractStatusFilter("all");
+    setOriginFilter("all");
+    setTagFilter(null);
+    setPage(0);
+  };
+
   if (loading) return <PortalLoading />;
 
   return (
@@ -638,9 +656,10 @@ export default function AdminClients() {
       {/* -- Client list -- */}
       {pageError ? (
         <AdminEmptyState
+          variant="error"
           icon={Building2}
           title="Não foi possível carregar a carteira"
-          description={`${pageError} Atualize a pagina ou tente novamente em instantes.`}
+          description={`${pageError} Atualize a página ou tente novamente em instantes.`}
           action={
             <Button type="button" onClick={() => void refetchClients()}>
               Tentar novamente
@@ -648,19 +667,34 @@ export default function AdminClients() {
           }
         />
       ) : filteredClients.length === 0 ? (
-        <AdminEmptyState
-          icon={Building2}
-          title="Nenhum cliente encontrado"
-          description="Ajuste os filtros ou cadastre um novo cliente para alimentar a carteira."
-          action={
-            <Link
-              to="/portal/admin/clientes/novo"
-              className={buttonVariants({ variant: "default" })}
-            >
-              Cadastrar cliente
-            </Link>
-          }
-        />
+        hasActiveFilters ? (
+          <AdminEmptyState
+            variant="filtered"
+            icon={Building2}
+            title="Nenhum cliente com esses filtros"
+            description="A combinação atual de filtros e busca não retornou resultados. Ajuste os critérios para ampliar a carteira visível."
+            action={
+              <Button type="button" variant="outline" onClick={clearAllFilters}>
+                Limpar filtros
+              </Button>
+            }
+          />
+        ) : (
+          <AdminEmptyState
+            variant="first-time"
+            icon={Building2}
+            title="Comece sua carteira de clientes"
+            description="Cadastre o primeiro cliente para começar a acompanhar contratos, cobranças, projetos e histórico em um só lugar."
+            action={
+              <Link
+                to="/portal/admin/clientes/novo"
+                className={buttonVariants({ variant: "default" })}
+              >
+                Cadastrar cliente
+              </Link>
+            }
+          />
+        )
       ) : (
         <div className="space-y-2">
           <ColumnHeader />
