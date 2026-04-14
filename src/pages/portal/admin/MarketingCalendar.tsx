@@ -8,6 +8,7 @@ import { Button, Card, CardContent, Field, Input, Label, Textarea, cn } from "@/
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { CreateTaskModal, TaskDetailModal, type TeamMember, type TeamTask } from "./Tasks";
 
 type CalendarEvent = Database["public"]["Tables"]["marketing_calendar_events"]["Row"] & {
   client_name: string | null;
@@ -719,6 +720,25 @@ export default function AdminMarketingCalendar() {
   const [resizePreviewEndAt, setResizePreviewEndAt] = useState<string | null>(null);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+
+  // Task integration state (edit/create tasks directly from the calendar)
+  const [taskMembers, setTaskMembers] = useState<TeamMember[]>([]);
+  const [taskMemberMap, setTaskMemberMap] = useState<Map<string, TeamMember>>(new Map());
+  const [openTask, setOpenTask] = useState<TeamTask | null>(null);
+  const [showCreateTask, setShowCreateTask] = useState(false);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      const { data, error } = await supabase
+        .from("team_members")
+        .select("id, user_id, full_name, system_role, is_active");
+      if (error || !data) return;
+      const list = data as unknown as TeamMember[];
+      setTaskMembers(list);
+      setTaskMemberMap(new Map(list.filter((m) => m.user_id).map((m) => [m.user_id, m])));
+    };
+    void loadMembers();
+  }, []);
   const [timelineScrollbarWidth, setTimelineScrollbarWidth] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -1253,10 +1273,22 @@ export default function AdminMarketingCalendar() {
     focusTitleField();
   };
 
-  const handleSelectEvent = (event: CalendarEvent) => {
-    // Virtual task events are read-only — manage them in Tarefas page
+  const handleSelectEvent = async (event: CalendarEvent) => {
+    // Task virtual events: open the same detail modal used on the Tasks page.
     if (event.id.startsWith("task-")) {
-      toast.info("Esta é uma tarefa. Gerencie na página Tarefas.");
+      const taskId = event.id.slice("task-".length);
+      const { data, error } = await supabase
+        .from("team_tasks")
+        .select("*")
+        .eq("id", taskId)
+        .maybeSingle();
+      if (error || !data) {
+        toast.error("Não foi possível carregar a tarefa.", {
+          description: error?.message,
+        });
+        return;
+      }
+      setOpenTask(data as unknown as TeamTask);
       return;
     }
     setEditingId(event.id);
@@ -1638,6 +1670,9 @@ export default function AdminMarketingCalendar() {
 
         <Button type="button" size="sm" onClick={() => handleCreateForSlot(selectedDate)}>
           + Novo evento
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => setShowCreateTask(true)}>
+          + Nova tarefa
         </Button>
       </div>
 
@@ -2262,6 +2297,34 @@ export default function AdminMarketingCalendar() {
           </Card>
         </div>
       ) : null}
+
+      {showCreateTask && (
+        <CreateTaskModal
+          members={taskMembers}
+          onClose={() => setShowCreateTask(false)}
+          onCreated={() => {
+            setShowCreateTask(false);
+            setReloadToken((n) => n + 1);
+          }}
+        />
+      )}
+
+      {openTask && (
+        <TaskDetailModal
+          task={openTask}
+          members={taskMembers}
+          memberMap={taskMemberMap}
+          onClose={() => setOpenTask(null)}
+          onUpdated={() => {
+            setOpenTask(null);
+            setReloadToken((n) => n + 1);
+          }}
+          onDeleted={() => {
+            setOpenTask(null);
+            setReloadToken((n) => n + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

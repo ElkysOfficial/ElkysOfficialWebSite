@@ -26,7 +26,7 @@ import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-interface TeamTask {
+export interface TeamTask {
   id: string;
   assigned_to: string | null;
   created_by: string | null;
@@ -48,7 +48,7 @@ interface TeamTask {
   updated_at: string;
 }
 
-interface TeamMember {
+export interface TeamMember {
   id: string;
   user_id: string;
   full_name: string;
@@ -155,6 +155,20 @@ function addDays(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+function toDateTimeInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromDateTimeInput(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 function daysRemaining(dueDate: string | null): string | null {
@@ -387,7 +401,7 @@ function KanbanColumn({
 /*  Task Detail/Edit Modal                                             */
 /* ------------------------------------------------------------------ */
 
-function TaskDetailModal({
+export function TaskDetailModal({
   task,
   members,
   memberMap,
@@ -409,6 +423,9 @@ function TaskDetailModal({
   const [priority, setPriority] = useState(task.priority);
   const [category, setCategory] = useState(task.category);
   const [status, setStatus] = useState(task.status);
+  const [dueDate, setDueDate] = useState(task.due_date ?? "");
+  const [startsAt, setStartsAt] = useState(toDateTimeInput(task.starts_at));
+  const [endsAt, setEndsAt] = useState(toDateTimeInput(task.ends_at));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -419,6 +436,15 @@ function TaskDetailModal({
   const remaining = daysRemaining(task.due_date);
 
   const handleSave = async () => {
+    if (startsAt && endsAt) {
+      const s = new Date(startsAt).getTime();
+      const e = new Date(endsAt).getTime();
+      if (!Number.isNaN(s) && !Number.isNaN(e) && e < s) {
+        toast.error("Data final não pode ser anterior à inicial.");
+        return;
+      }
+    }
+
     setSaving(true);
     const { error } = await supabase
       .from("team_tasks")
@@ -429,6 +455,9 @@ function TaskDetailModal({
         priority,
         category,
         status,
+        due_date: dueDate || null,
+        starts_at: fromDateTimeInput(startsAt),
+        ends_at: fromDateTimeInput(endsAt),
       } as never)
       .eq("id", task.id);
     setSaving(false);
@@ -566,6 +595,25 @@ function TaskDetailModal({
                   </select>
                 </Field>
               </div>
+              <Field label="Prazo">
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Início">
+                  <Input
+                    type="datetime-local"
+                    value={startsAt}
+                    onChange={(e) => setStartsAt(e.target.value)}
+                  />
+                </Field>
+                <Field label="Fim">
+                  <Input
+                    type="datetime-local"
+                    value={endsAt}
+                    onChange={(e) => setEndsAt(e.target.value)}
+                  />
+                </Field>
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setEditing(false)}>
                   Cancelar
@@ -701,7 +749,7 @@ const INITIAL_FORM = {
   attendees: "",
 };
 
-function CreateTaskModal({
+export function CreateTaskModal({
   members,
   onClose,
   onCreated,
