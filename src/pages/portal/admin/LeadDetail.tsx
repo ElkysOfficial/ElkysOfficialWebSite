@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { ArrowLeft, Building2, Clock, Mail, Phone, Send, Shield, Users } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import NameAvatar from "@/components/portal/NameAvatar";
 import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -443,6 +444,7 @@ export default function LeadDetail() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
+          <NameAvatar size="md" name={lead.name} className="shrink-0" />
           <div>
             <h1 className="text-xl font-bold text-foreground">{lead.name}</h1>
             {lead.company && (
