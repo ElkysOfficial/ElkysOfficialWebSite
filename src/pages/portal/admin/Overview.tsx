@@ -123,6 +123,12 @@ interface OverviewState {
   openTickets: number;
   resolvedTicketsThisMonth: number;
   monthlySeries: MonthlyPoint[];
+  // Primeiro mes (YYYY-MM) com dado consolidado real — derivado do
+  // menor due_date entre as charges nao historicas. Usado pelo
+  // calculo de MRR Growth para retornar N/A quando a janela rolling
+  // exige um mes-base anterior a essa fronteira (nao extrapolar
+  // apenas com fallback contratual).
+  earliestDataMonth: string | null;
   projectStatusCounts: Record<ProjectBucket, number>;
   averageRecurringRevenuePerClient: number;
   upcomingCharges: UpcomingCharge[];
@@ -195,6 +201,7 @@ const initialState: OverviewState = {
   openTickets: 0,
   resolvedTicketsThisMonth: 0,
   monthlySeries: [],
+  earliestDataMonth: null,
   projectStatusCounts: {
     negociacao: 0,
     em_andamento: 0,
@@ -929,6 +936,20 @@ export default function AdminOverview() {
           }
         }
 
+        // Primeiro mes com dado consolidado real = menor due_date entre
+        // as charges nao historicas, truncado para YYYY-MM. Qualquer
+        // janela rolling de MRR Growth que exija mes-base anterior a
+        // isso vai retornar N/A (regra do feedback financeiro).
+        let earliestDataMonth: string | null = null;
+        for (const charge of charges) {
+          if (charge.is_historical || !charge.due_date) continue;
+          const mk = getMonthKeyFromDate(charge.due_date);
+          if (!mk) continue;
+          if (!earliestDataMonth || mk < earliestDataMonth) {
+            earliestDataMonth = mk;
+          }
+        }
+
         // Convert centavos back to reais for the public series
         const monthlySeries = monthFrames.map((frame) => {
           const point = monthlyMap.get(frame.key) ?? {
@@ -1331,6 +1352,7 @@ export default function AdminOverview() {
           openTickets,
           resolvedTicketsThisMonth,
           monthlySeries,
+          earliestDataMonth,
           projectStatusCounts,
           averageRecurringRevenuePerClient:
             recurringClientIds.size > 0 ? recurringBase / recurringClientIds.size : 0,
@@ -1427,13 +1449,22 @@ export default function AdminOverview() {
     const endIdx = totalMonths - 1;
     const startIdx = endIdx - selectedPeriod;
     if (startIdx < 0) return { kind: "na" };
-    const startMrr = summary.monthlySeries[startIdx]?.recurringRevenue ?? 0;
-    const endMrr = summary.monthlySeries[endIdx]?.recurringRevenue ?? 0;
+    const startPoint = summary.monthlySeries[startIdx];
+    const endPoint = summary.monthlySeries[endIdx];
+    if (!startPoint || !endPoint) return { kind: "na" };
+    // Se o mes-base precede o primeiro mes com dado consolidado real
+    // (primeiro due_date registrado), retorna N/A. Nao extrapola o
+    // crescimento apenas com fallback contratual de subscription.
+    if (summary.earliestDataMonth && startPoint.key < summary.earliestDataMonth) {
+      return { kind: "na" };
+    }
+    const startMrr = startPoint.recurringRevenue;
+    const endMrr = endPoint.recurringRevenue;
     if (startMrr === 0) {
       return endMrr === 0 ? { kind: "value", value: 0 } : { kind: "new" };
     }
     return { kind: "value", value: ((endMrr - startMrr) / startMrr) * 100 };
-  }, [selectedPeriod, summary.monthlySeries]);
+  }, [selectedPeriod, summary.monthlySeries, summary.earliestDataMonth]);
 
   // Label dinamico usado tanto no headline quanto no card de MRR.
   const periodLabel = useMemo(
