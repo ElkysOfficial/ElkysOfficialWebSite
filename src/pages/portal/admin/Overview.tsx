@@ -39,7 +39,7 @@ type DashboardProject = Pick<
 >;
 type DashboardSubscription = Pick<
   Database["public"]["Tables"]["project_subscriptions"]["Row"],
-  "id" | "client_id" | "amount" | "status" | "ends_on"
+  "id" | "client_id" | "amount" | "status" | "ends_on" | "starts_on"
 >;
 type DashboardCharge = Pick<
   Database["public"]["Tables"]["charges"]["Row"],
@@ -759,7 +759,9 @@ export default function AdminOverview() {
             .select(
               "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, description"
             ),
-          supabase.from("project_subscriptions").select("id, client_id, amount, status, ends_on"),
+          supabase
+            .from("project_subscriptions")
+            .select("id, client_id, amount, status, ends_on, starts_on"),
           supabase.from("expenses").select("id, amount, expense_date"),
           supabase
             .from("project_contracts")
@@ -886,9 +888,36 @@ export default function AdminOverview() {
             if (monthKey < currentMonthKey && !isPaid) return;
             point.recurringRevenue += toCents(charge.amount);
           });
-        const currentMonthPoint = monthlyMap.get(currentMonthKey);
-        if (currentMonthPoint && currentMonthPoint.recurringRevenue < recurringBaseCents) {
-          currentMonthPoint.recurringRevenue = recurringBaseCents;
+        // Fallback retroativo: para cada mês, se as charges pagas de
+        // mensalidade somarem menos que a base recorrente que estava
+        // ativa NAQUELE mês, usar a base como linha teórica. Isso evita
+        // que meses passados mostrem MRR=0 só porque o admin não marcou
+        // as cobranças como "pago" (o sync de subscriptions cria como
+        // "pendente" e o status real só muda no clique manual). O cálculo
+        // respeita starts_on e ends_on de cada subscription para não
+        // inflar meses anteriores ao início ou posteriores ao fim.
+        for (const frame of monthFrames) {
+          const monthStartIso = `${frame.key}-01`;
+          const lastDay = new Date(
+            frame.start.getFullYear(),
+            frame.start.getMonth() + 1,
+            0
+          ).getDate();
+          const monthEndIso = `${frame.key}-${String(lastDay).padStart(2, "0")}`;
+
+          const baseForMonthCents = subscriptions
+            .filter((sub) => {
+              if (!["agendada", "ativa"].includes(sub.status)) return false;
+              if (sub.starts_on && sub.starts_on > monthEndIso) return false;
+              if (sub.ends_on && sub.ends_on < monthStartIso) return false;
+              return true;
+            })
+            .reduce((sum, sub) => sum + toCents(sub.amount), 0);
+
+          const point = monthlyMap.get(frame.key);
+          if (point && point.recurringRevenue < baseForMonthCents) {
+            point.recurringRevenue = baseForMonthCents;
+          }
         }
 
         // Convert centavos back to reais for the public series
