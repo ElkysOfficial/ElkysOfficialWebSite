@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import ClientRowIndicators from "@/components/portal/ClientRowIndicators";
 import PortalLoading from "@/components/portal/PortalLoading";
-import { useAdminClients } from "@/hooks/useAdminClients";
+import { useAdminClients, type AdminClientIndicators } from "@/hooks/useAdminClients";
 import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import RowActionMenu from "@/components/portal/RowActionMenu";
 import { AlertDialog, buttonVariants, Button, Input, cn } from "@/design-system";
@@ -22,7 +23,9 @@ import {
 
 const PAGE_SIZE = 8;
 
-type Client = Database["public"]["Tables"]["clients"]["Row"];
+type Client = Database["public"]["Tables"]["clients"]["Row"] & {
+  indicators?: AdminClientIndicators;
+};
 type StatusFilter = "all" | "active" | "inactive";
 
 interface AvatarInfo {
@@ -165,6 +168,7 @@ function ClientRow({
             <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
               {client.email}
             </p>
+            <ClientRowIndicators indicators={client.indicators} className="mt-1.5" />
           </div>
         </Link>
 
