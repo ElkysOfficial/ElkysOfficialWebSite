@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import ProjectStageProgressDots from "@/components/portal/ProjectStageProgressDots";
 import RecurringBadge from "@/components/portal/RecurringBadge";
 import { useAdminProjects } from "@/hooks/useAdminProjects";
@@ -128,27 +129,28 @@ function ProjectRow({
     <div className="group grid grid-cols-1 items-center gap-x-6 gap-y-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 transition-all hover:border-primary/25 hover:bg-card sm:px-5 sm:py-4 md:grid-cols-[1fr_140px_140px_160px_40px] md:gap-y-3">
       {/* Col 1 — Project info + actions (mobile: same row) */}
       <div className="flex items-start justify-between gap-2 md:contents">
-        <Link to={`/portal/admin/projetos/${project.id}`} className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
-            {project.name}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
-            {client ? getClientDisplayName(client) : "—"}
-            {project.solution_type ? ` · ${project.solution_type}` : ""}
-          </p>
-          {(project.tags ?? []).length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
-              {project.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </Link>
+        <div className="min-w-0">
+          <Link to={`/portal/admin/projetos/${project.id}`} className="block">
+            <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+              {project.name}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+              {client ? getClientDisplayName(client) : "—"}
+              {project.solution_type ? ` · ${project.solution_type}` : ""}
+            </p>
+          </Link>
+          <div className="mt-1 flex flex-wrap items-center gap-1">
+            {(project.tags ?? []).map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
+              >
+                {tag}
+              </span>
+            ))}
+            <ProjectSiteLink url={project.production_url} />
+          </div>
+        </div>
 
         {/* Mobile actions */}
         <div className="shrink-0 md:hidden">

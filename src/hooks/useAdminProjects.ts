@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const PROJECTS_SELECT =
-  "id, client_id, name, status, current_stage, solution_type, started_at, delivered_at, expected_delivery_date, billing_type, tags, created_at";
+  "id, client_id, name, status, current_stage, solution_type, started_at, delivered_at, expected_delivery_date, billing_type, tags, created_at, production_url";
 
 async function fetchProjectsBundle() {
   const [projectsRes, clientsRes, contractsRes, subscriptionsRes] = await Promise.all([
