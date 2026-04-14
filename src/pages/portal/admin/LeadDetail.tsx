@@ -505,7 +505,7 @@ export default function LeadDetail() {
               {editing && form ? (
                 <div className="space-y-4">
                   <Field>
-                    <Label>Nome *</Label>
+                    <Label required>Nome</Label>
                     <Input
                       value={form.name}
                       onChange={(e) => updateField("name", e.target.value)}

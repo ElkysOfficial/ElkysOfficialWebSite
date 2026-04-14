@@ -776,7 +776,9 @@ export default function AdminProjectCreate() {
           {step === 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
               <Field className="md:col-span-2">
-                <Label htmlFor="client_id">Cliente *</Label>
+                <Label htmlFor="client_id" required>
+                  Cliente
+                </Label>
                 <select
                   id="client_id"
                   name="client_id"
@@ -795,7 +797,7 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label>Nome do projeto *</Label>
+                <Label required>Nome do projeto</Label>
                 <Input
                   value={form.name}
                   onChange={(event) => setField("name", event.target.value)}
@@ -803,7 +805,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="solution_type">Tipo de solucao *</Label>
+                <Label htmlFor="solution_type" required>
+                  Tipo de solucao
+                </Label>
                 <Input
                   id="solution_type"
                   name="solution_type"
@@ -824,7 +828,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="current_stage">Etapa atual *</Label>
+                <Label htmlFor="current_stage" required>
+                  Etapa atual
+                </Label>
                 <select
                   id="current_stage"
                   name="current_stage"
@@ -980,7 +986,9 @@ export default function AdminProjectCreate() {
               </div>
 
               <Field>
-                <Label htmlFor="total_amount">Valor total do contrato *</Label>
+                <Label htmlFor="total_amount" required>
+                  Valor total do contrato
+                </Label>
                 <Input
                   id="total_amount"
                   name="total_amount"
@@ -1040,7 +1048,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="entry_percentage">Percentual de entrada *</Label>
+                <Label htmlFor="entry_percentage" required>
+                  Percentual de entrada
+                </Label>
                 <Input
                   id="entry_percentage"
                   name="entry_percentage"
@@ -1061,7 +1071,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="delivery_percentage">Percentual de entrega *</Label>
+                <Label htmlFor="delivery_percentage" required>
+                  Percentual de entrega
+                </Label>
                 <Input
                   id="delivery_percentage"
                   name="delivery_percentage"
@@ -1082,7 +1094,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="entry_due_date">Vencimento da entrada *</Label>
+                <Label htmlFor="entry_due_date" required>
+                  Vencimento da entrada
+                </Label>
                 <Input
                   id="entry_due_date"
                   name="entry_due_date"
@@ -1094,7 +1108,9 @@ export default function AdminProjectCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="delivery_due_date">Vencimento da entrega *</Label>
+                <Label htmlFor="delivery_due_date" required>
+                  Vencimento da entrega
+                </Label>
                 <Input
                   id="delivery_due_date"
                   name="delivery_due_date"
@@ -1150,7 +1166,9 @@ export default function AdminProjectCreate() {
               {form.has_subscription ? (
                 <>
                   <Field>
-                    <Label htmlFor="subscription_label">Nome da assinatura *</Label>
+                    <Label htmlFor="subscription_label" required>
+                      Nome da assinatura
+                    </Label>
                     <Input
                       id="subscription_label"
                       name="subscription_label"
@@ -1160,7 +1178,9 @@ export default function AdminProjectCreate() {
                   </Field>
 
                   <Field>
-                    <Label htmlFor="subscription_amount">Valor mensal *</Label>
+                    <Label htmlFor="subscription_amount" required>
+                      Valor mensal
+                    </Label>
                     <Input
                       id="subscription_amount"
                       name="subscription_amount"
@@ -1174,7 +1194,9 @@ export default function AdminProjectCreate() {
                   </Field>
 
                   <Field>
-                    <Label htmlFor="subscription_due_day">Dia de vencimento *</Label>
+                    <Label htmlFor="subscription_due_day" required>
+                      Dia de vencimento
+                    </Label>
                     <Input
                       id="subscription_due_day"
                       name="subscription_due_day"

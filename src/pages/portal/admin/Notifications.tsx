@@ -574,7 +574,7 @@ export default function AdminNotifications() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Field>
-                  <Label>Título *</Label>
+                  <Label required>Título</Label>
                   <Input {...register("title")} placeholder="Ex: Manutenção programada dia 10/04" />
                   <ErrorText className={errors.title ? "" : "invisible"}>
                     {errors.title?.message || "\u00A0"}
@@ -582,7 +582,7 @@ export default function AdminNotifications() {
                 </Field>
 
                 <Field>
-                  <Label>Tipo *</Label>
+                  <Label required>Tipo</Label>
                   <select {...register("type")} className={selectClass}>
                     {TYPE_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -594,7 +594,7 @@ export default function AdminNotifications() {
               </div>
 
               <Field>
-                <Label>Mensagem *</Label>
+                <Label required>Mensagem</Label>
                 <AutoResizeTextarea
                   {...register("body")}
                   placeholder="Escreva o conteúdo da notificação..."
@@ -621,7 +621,7 @@ export default function AdminNotifications() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Field>
-                  <Label>Destinatários *</Label>
+                  <Label required>Destinatários</Label>
                   <select {...register("filter_mode")} className={selectClass}>
                     {FILTER_MODE_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -633,7 +633,7 @@ export default function AdminNotifications() {
 
                 {filterMode === "contract_status" ? (
                   <Field>
-                    <Label>Status do contrato *</Label>
+                    <Label required>Status do contrato</Label>
                     <select {...register("filter_contract_status")} className={selectClass}>
                       <option value="">Selecione...</option>
                       {CONTRACT_STATUS_OPTIONS.map((opt) => (
@@ -679,7 +679,7 @@ export default function AdminNotifications() {
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <Field>
-                  <Label>Quando enviar *</Label>
+                  <Label required>Quando enviar</Label>
                   <select {...register("schedule")} className={selectClass}>
                     <option value="now">Enviar agora</option>
                     <option value="later">Agendar envio</option>
@@ -688,7 +688,7 @@ export default function AdminNotifications() {
 
                 {schedule === "later" ? (
                   <Field>
-                    <Label>Data e hora *</Label>
+                    <Label required>Data e hora</Label>
                     <Input {...register("send_at")} type="datetime-local" />
                     <ErrorText className={errors.send_at ? "" : "invisible"}>
                       {errors.send_at?.message || "\u00A0"}

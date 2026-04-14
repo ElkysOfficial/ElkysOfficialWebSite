@@ -183,7 +183,7 @@ function TicketForm({
       ) : null}
 
       <Field>
-        <Label>Assunto *</Label>
+        <Label required>Assunto</Label>
         <Input
           value={subject}
           onChange={(event) => setSubject(event.target.value)}
@@ -193,7 +193,7 @@ function TicketForm({
       </Field>
 
       <Field>
-        <Label>Mensagem *</Label>
+        <Label required>Mensagem</Label>
         <textarea
           value={body}
           onChange={(event) => setBody(event.target.value)}

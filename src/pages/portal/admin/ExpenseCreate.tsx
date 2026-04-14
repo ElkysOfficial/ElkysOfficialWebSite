@@ -266,7 +266,7 @@ export default function AdminExpenseCreate() {
               className="grid grid-cols-1 gap-4 md:grid-cols-2"
             >
               <Field className="md:col-span-2">
-                <Label>Formato do lançamento *</Label>
+                <Label required>Formato do lançamento</Label>
                 <Controller
                   name="entry_mode"
                   control={control}
@@ -296,7 +296,7 @@ export default function AdminExpenseCreate() {
               </Field>
 
               <Field className="md:col-span-2">
-                <Label>Descrição *</Label>
+                <Label required>Descrição</Label>
                 <Input {...register("description")} placeholder="Ex: Servidor AWS" />
                 <ErrorText className={errors.description ? "" : "invisible"}>
                   {errors.description?.message || "\u00A0"}
@@ -304,7 +304,7 @@ export default function AdminExpenseCreate() {
               </Field>
 
               <Field>
-                <Label>Categoria *</Label>
+                <Label required>Categoria</Label>
                 <select
                   {...register("category")}
                   className="flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -322,7 +322,7 @@ export default function AdminExpenseCreate() {
               </Field>
 
               <Field>
-                <Label>Data *</Label>
+                <Label required>Data</Label>
                 <Controller
                   name="expense_date"
                   control={control}
@@ -341,7 +341,7 @@ export default function AdminExpenseCreate() {
               </Field>
 
               <Field className={entryMode === "unica" ? "md:col-span-2" : ""}>
-                <Label>{entryMode === "parcelada" ? "Valor total *" : "Valor *"}</Label>
+                <Label required>{entryMode === "parcelada" ? "Valor total" : "Valor"}</Label>
                 <Controller
                   name="amount"
                   control={control}
@@ -361,7 +361,7 @@ export default function AdminExpenseCreate() {
 
               {entryMode === "parcelada" ? (
                 <Field>
-                  <Label>Quantidade de parcelas *</Label>
+                  <Label required>Quantidade de parcelas</Label>
                   <Controller
                     name="installments_count"
                     control={control}
@@ -387,7 +387,7 @@ export default function AdminExpenseCreate() {
 
               {entryMode === "recorrente" ? (
                 <Field>
-                  <Label>Quantidade de meses *</Label>
+                  <Label required>Quantidade de meses</Label>
                   <Controller
                     name="recurrence_months"
                     control={control}

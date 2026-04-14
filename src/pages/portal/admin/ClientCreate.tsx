@@ -409,7 +409,9 @@ export default function AdminClientCreate() {
               </Field>
 
               <Field>
-                <Label htmlFor="full_name">Contato principal *</Label>
+                <Label htmlFor="full_name" required>
+                  Contato principal
+                </Label>
                 <Input
                   id="full_name"
                   name="full_name"
@@ -418,7 +420,9 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field>
-                <Label htmlFor="email">E-mail *</Label>
+                <Label htmlFor="email" required>
+                  E-mail
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -428,7 +432,9 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field>
-                <Label htmlFor="phone">Telefone *</Label>
+                <Label htmlFor="phone" required>
+                  Telefone
+                </Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -437,7 +443,9 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field>
-                <Label htmlFor="cpf">CPF do representante *</Label>
+                <Label htmlFor="cpf" required>
+                  CPF do representante
+                </Label>
                 <Input
                   id="cpf"
                   name="cpf"
@@ -449,7 +457,9 @@ export default function AdminClientCreate() {
               {form.client_type === "pj" ? (
                 <>
                   <Field>
-                    <Label htmlFor="cnpj">CNPJ *</Label>
+                    <Label htmlFor="cnpj" required>
+                      CNPJ
+                    </Label>
                     <Input
                       id="cnpj"
                       name="cnpj"
@@ -458,7 +468,9 @@ export default function AdminClientCreate() {
                     />
                   </Field>
                   <Field>
-                    <Label htmlFor="razao_social">Razao social *</Label>
+                    <Label htmlFor="razao_social" required>
+                      Razao social
+                    </Label>
                     <Input
                       id="razao_social"
                       name="razao_social"
