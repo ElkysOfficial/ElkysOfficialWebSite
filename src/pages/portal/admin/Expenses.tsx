@@ -180,6 +180,39 @@ export default function AdminExpenses() {
     setPage(0);
   }, [deferredSearch, categoryFilter, monthFilter]);
 
+  /**
+   * Calcula o impacto que a remocao de uma despesa especifica teria no
+   * mes ao qual ela pertence. Retorna objeto com mes formatado,
+   * numero de outras despesas no mesmo mes, total atual, total apos
+   * remocao e percentual de reducao — usado para enriquecer o dialog
+   * de confirmacao e evitar deletes as cegas de lancamentos que podem
+   * mudar significativamente a DRE daquele periodo.
+   */
+  const deleteImpact = useMemo(() => {
+    if (!deleteExpenseId) return null;
+    const target = expenses.find((expense) => expense.id === deleteExpenseId);
+    if (!target) return null;
+    const targetMonth = target.expense_date.slice(0, 7);
+    const sameMonthExpenses = expenses.filter(
+      (expense) => expense.expense_date.slice(0, 7) === targetMonth
+    );
+    const totalBefore = sameMonthExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+    const totalAfter = totalBefore - Number(target.amount);
+    const reductionPct = totalBefore > 0 ? (Number(target.amount) / totalBefore) * 100 : 0;
+    const monthLabel = new Date(`${targetMonth}-15T00:00:00`).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
+    return {
+      target,
+      monthLabel,
+      othersCount: sameMonthExpenses.length - 1,
+      totalBefore,
+      totalAfter,
+      reductionPct,
+    };
+  }, [deleteExpenseId, expenses]);
+
   const categories = useMemo(
     () =>
       Array.from(new Set(expenses.map((expense) => expense.category))).sort((a, b) =>
@@ -735,7 +768,16 @@ export default function AdminExpenses() {
       <AlertDialog
         open={isSuperAdmin && Boolean(deleteExpenseId)}
         title="Remover despesa"
-        description="Essa acao remove o lancamento financeiro selecionado. Você podera cadastrar novamente depois, se precisar."
+        description={
+          deleteImpact
+            ? [
+                `Vai remover "${deleteImpact.target.description}" (${formatBRL(Number(deleteImpact.target.amount))}) lançada em ${deleteImpact.monthLabel}.`,
+                `Antes: ${formatBRL(deleteImpact.totalBefore)} em despesas neste mês (${deleteImpact.othersCount + 1} lançamento${deleteImpact.othersCount + 1 === 1 ? "" : "s"}).`,
+                `Depois: ${formatBRL(deleteImpact.totalAfter)} em despesas (${deleteImpact.othersCount} restante${deleteImpact.othersCount === 1 ? "" : "s"}).`,
+                `Impacto: redução de ${deleteImpact.reductionPct.toFixed(1)}% no total de despesas do mês. A DRE, metas financeiras e relatórios agregados serão recalculados automaticamente.`,
+              ].join(" ")
+            : "Essa ação remove o lançamento financeiro selecionado. Você poderá cadastrar novamente depois, se precisar."
+        }
         confirmLabel="Remover despesa"
         cancelLabel="Cancelar"
         destructive
