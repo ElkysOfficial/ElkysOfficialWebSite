@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUrlState } from "@/hooks/useUrlState";
 import { toast } from "sonner";
 import { useAdminProposals } from "@/hooks/useAdminProposals";
 
@@ -226,8 +227,8 @@ export default function Proposals() {
   const loading = queryLoading;
   const pageError = queryError?.message ?? null;
   const [page, setPage] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [proposalToDelete, setProposalToDelete] = useState<ProposalRow | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);

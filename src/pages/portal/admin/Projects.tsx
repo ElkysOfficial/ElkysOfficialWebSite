@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import { toast } from "sonner";
 
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
@@ -261,9 +262,9 @@ export default function AdminProjects() {
     return { subscriptionProjectIds: subs, contractedValue: cv };
   }, [bundle, projects]);
   const [page, setPage] = useState(0);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [search, setSearch] = useUrlState("q", "");
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
+  const [tagFilter, setTagFilter] = useUrlStateNullable<string>("tag");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [projectToDelete, setProjectToDelete] = useState<PortalProject | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
