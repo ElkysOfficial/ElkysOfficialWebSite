@@ -417,6 +417,7 @@ export default function AdminProjectDetail() {
   const chargesPageSize = useResponsivePageSize(3, 5, 8);
   const [chargesPage, setChargesPage] = useState(0);
   const [docsPage, setDocsPage] = useState(0);
+  const [docsTypeFilter, setDocsTypeFilter] = useState<"all" | DocumentType>("all");
   const [showStageJourney, setShowStageJourney] = useState(false);
   const [projectUpdateOpen, setProjectUpdateOpen] = useState(false);
   const [nextStepsOpen, setNextStepsOpen] = useState(false);
@@ -2820,33 +2821,80 @@ export default function AdminProjectDetail() {
             Ainda não há anexos vinculados a este projeto.
           </p>
         ) : (
-          <>
-            <div className="space-y-3">
-              {documents
-                .slice(docsPage * chargesPageSize, (docsPage + 1) * chargesPageSize)
-                .map((document) => (
-                  <a
-                    key={document.id}
-                    href={document.external_url ?? document.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block rounded-xl border border-border/50 bg-background/60 p-4 transition-colors hover:border-primary/30"
-                  >
-                    <p className="text-sm font-semibold text-foreground">{document.label}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {DOCUMENT_TYPE_LABEL[document.type]}
-                    </p>
-                  </a>
-                ))}
-            </div>
-            <Pagination
-              page={docsPage}
-              totalPages={Math.ceil(documents.length / chargesPageSize)}
-              totalItems={documents.length}
-              pageSize={chargesPageSize}
-              onPageChange={setDocsPage}
-            />
-          </>
+          (() => {
+            // PA15: filtro por tipo de documento (contrato, proposta etc).
+            // Pills sobre a lista — padrao identico ao filtro de status em
+            // Contracts.tsx. 'Todos' quando sem filtro.
+            const filteredDocs =
+              docsTypeFilter === "all"
+                ? documents
+                : documents.filter((d) => d.type === docsTypeFilter);
+            const totalPages = Math.max(1, Math.ceil(filteredDocs.length / chargesPageSize));
+            const currentPage = Math.min(docsPage, totalPages - 1);
+            return (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    ["all", ...(Object.keys(DOCUMENT_TYPE_LABEL) as DocumentType[])] as Array<
+                      "all" | DocumentType
+                    >
+                  ).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => {
+                        setDocsTypeFilter(t);
+                        setDocsPage(0);
+                      }}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                        docsTypeFilter === t
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
+                      )}
+                    >
+                      {t === "all" ? "Todos" : DOCUMENT_TYPE_LABEL[t]}
+                    </button>
+                  ))}
+                </div>
+
+                {filteredDocs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum anexo desse tipo neste projeto.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredDocs
+                      .slice(currentPage * chargesPageSize, (currentPage + 1) * chargesPageSize)
+                      .map((document) => (
+                        <a
+                          key={document.id}
+                          href={document.external_url ?? document.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded-xl border border-border/50 bg-background/60 p-4 transition-colors hover:border-primary/30"
+                        >
+                          <p className="text-sm font-semibold text-foreground">{document.label}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {DOCUMENT_TYPE_LABEL[document.type]}
+                          </p>
+                        </a>
+                      ))}
+                  </div>
+                )}
+
+                {filteredDocs.length > chargesPageSize ? (
+                  <Pagination
+                    page={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredDocs.length}
+                    pageSize={chargesPageSize}
+                    onPageChange={setDocsPage}
+                  />
+                ) : null}
+              </>
+            );
+          })()
         )}
       </CardContent>
     </Card>
