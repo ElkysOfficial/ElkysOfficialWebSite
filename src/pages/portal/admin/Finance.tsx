@@ -1587,6 +1587,7 @@ function FinanceAnaliseTab() {
           startsOn: sub.starts_on,
           dueDay: sub.due_day,
           endsOn: coverageEnd,
+          mode: "sync",
         });
 
         for (const dd of dueDates) {

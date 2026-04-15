@@ -545,6 +545,7 @@ export default function AdminProjectDetail() {
           startsOn: subscription.starts_on,
           dueDay: subscription.due_day,
           endsOn: coverageEnd,
+          mode: "sync",
         });
 
         const existingDueDates = new Set(
