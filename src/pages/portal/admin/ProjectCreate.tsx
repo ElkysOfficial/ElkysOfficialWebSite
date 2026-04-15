@@ -577,6 +577,7 @@ export default function AdminProjectCreate() {
           startsOn: subscriptionStartsOnIso ?? "",
           dueDay,
           endsOn: subscriptionEndsOn,
+          mode: "create",
         });
 
         const { data: subscriptionData, error: subscriptionError } = await supabase
