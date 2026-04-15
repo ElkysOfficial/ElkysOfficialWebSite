@@ -46,7 +46,6 @@ import {
   installmentStatusToChargeStatus,
   syncProjectStatusWithStage,
 } from "@/lib/portal";
-import { getSubscriptionCoverageEnd, listSubscriptionDueDates } from "@/lib/subscription-charges";
 import {
   loadChargesForProject,
   loadContractsForProject,
@@ -515,95 +514,6 @@ export default function AdminProjectDetail() {
     managedSubscription && managedSubscription.status !== "encerrada"
   );
 
-  const syncSubscriptionCharges = useCallback(
-    async ({
-      projectId,
-      clientId,
-      subscriptionsToSync,
-      currentContracts,
-      currentCharges,
-    }: {
-      projectId: string;
-      clientId: string;
-      subscriptionsToSync: Database["public"]["Tables"]["project_subscriptions"]["Row"][];
-      currentContracts: Database["public"]["Tables"]["project_contracts"]["Row"][];
-      currentCharges: Database["public"]["Tables"]["charges"]["Row"][];
-    }) => {
-      const syncableSubscriptions = subscriptionsToSync.filter((subscription) =>
-        ["agendada", "ativa"].includes(subscription.status)
-      );
-
-      if (syncableSubscriptions.length === 0) return currentCharges;
-
-      const latestContract = currentContracts[0] ?? null;
-      const missingCharges = syncableSubscriptions.flatMap((subscription) => {
-        const coverageEnd = getSubscriptionCoverageEnd(
-          subscription.ends_on,
-          latestContract?.ends_at ?? null
-        );
-        const dueDates = listSubscriptionDueDates({
-          startsOn: subscription.starts_on,
-          dueDay: subscription.due_day,
-          endsOn: coverageEnd,
-          mode: "sync",
-        });
-
-        const existingDueDates = new Set(
-          currentCharges
-            .filter((charge) => charge.subscription_id === subscription.id)
-            .map((charge) => charge.due_date)
-        );
-
-        const todayIso = new Date().toISOString().slice(0, 10);
-        return dueDates
-          .filter((dueDate) => !existingDueDates.has(dueDate))
-          .map((dueDate) => ({
-            client_id: clientId,
-            project_id: projectId,
-            contract_id: latestContract?.id ?? null,
-            subscription_id: subscription.id,
-            origin_type: "mensalidade" as const,
-            description: subscription.label,
-            amount: Number(subscription.amount),
-            due_date: dueDate,
-            status: (dueDate > todayIso ? "agendada" : "pendente") as "agendada" | "pendente",
-            is_blocking: subscription.is_blocking,
-          }));
-      });
-
-      if (missingCharges.length === 0) return currentCharges;
-
-      // Double-check against DB to prevent duplicates (handles partial index edge cases)
-      const subIds = [...new Set(missingCharges.map((c) => c.subscription_id))];
-      const { data: dbExisting } = await supabase
-        .from("charges")
-        .select("subscription_id, due_date")
-        .in("subscription_id", subIds);
-
-      const dbKeys = new Set(
-        (dbExisting ?? []).map(
-          (r: { subscription_id: string; due_date: string }) =>
-            `${r.subscription_id}__${r.due_date}`
-        )
-      );
-
-      const safeInserts = missingCharges.filter(
-        (c) => !dbKeys.has(`${c.subscription_id}__${c.due_date}`)
-      );
-
-      if (safeInserts.length === 0) return currentCharges;
-
-      const { error: insertError } = await supabase.from("charges").insert(safeInserts);
-      if (insertError) throw insertError;
-
-      const refreshedChargesRes = await loadChargesForProject(projectId, clientId);
-      if (refreshedChargesRes.error) throw refreshedChargesRes.error;
-
-      return refreshedChargesRes.charges;
-    },
-    []
-  );
-
   const loadProject = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -657,19 +567,10 @@ export default function AdminProjectDetail() {
       return;
     }
 
-    let nextCharges = chargesRes.charges;
-
-    try {
-      nextCharges = await syncSubscriptionCharges({
-        projectId: projectRes.project.id,
-        clientId: projectRes.project.client_id,
-        subscriptionsToSync: subscriptionsRes.subscriptions,
-        currentContracts: contractsRes.contracts,
-        currentCharges: chargesRes.charges,
-      });
-    } catch {
-      // sync is non-critical
-    }
+    // Auditoria 2026-04-15: REMOVIDO auto-sync de mensalidades em load.
+    // Sync agora e exclusivamente disparado pela tela Financeira via botao
+    // manual. Abrir o detalhe do projeto e operacao 100% READ ONLY.
+    const nextCharges = chargesRes.charges;
 
     const managedProjectSubscription = getManagedSubscription(subscriptionsRes.subscriptions);
 
@@ -724,7 +625,7 @@ export default function AdminProjectDetail() {
       subscription_status: managedProjectSubscription?.status ?? "ativa",
     });
     setLoading(false);
-  }, [id, syncSubscriptionCharges]);
+  }, [id]);
 
   useEffect(() => {
     void loadProject();
