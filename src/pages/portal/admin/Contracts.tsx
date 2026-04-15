@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
+import AddContractLinkForm from "@/components/portal/AddContractLinkForm";
 import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import PortalLoading from "@/components/portal/PortalLoading";
@@ -313,11 +314,21 @@ export default function Contracts() {
                     </button>
                   </div>
 
-                  <ContractActionsButtons
-                    contractId={contract.id}
-                    status={contract.status}
-                    onTransitioned={() => void loadAll()}
-                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <ContractActionsButtons
+                      contractId={contract.id}
+                      status={contract.status}
+                      onTransitioned={() => void loadAll()}
+                    />
+                    <AddContractLinkForm
+                      contractId={contract.id}
+                      projectId={contract.project_id}
+                      clientId={contract.client_id}
+                      versionNo={contract.version_no}
+                      existingUrl={contractDocUrl ?? null}
+                      onSaved={() => void loadAll()}
+                    />
+                  </div>
 
                   {isExpanded ? <ContractVersionHistory contractId={contract.id} /> : null}
                 </CardContent>
