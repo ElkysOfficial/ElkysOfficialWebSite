@@ -431,7 +431,6 @@ export default function AdminProjectCreate() {
 
     setSubmitting(true);
     setFormError(null);
-    let createdProjectId: string | null = null;
     const startedAtIso = parseFormDate(form.started_at);
     const expectedDeliveryIso = parseFormDate(form.expected_delivery_date);
     const signedAtIso = parseFormDate(form.signed_at);
@@ -443,133 +442,12 @@ export default function AdminProjectCreate() {
     const todayIso = getLocalDateIso();
 
     try {
-      const { data: projectData, error: projectError } = await supabase
-        .from("projects")
-        .insert({
-          client_id: form.client_id,
-          name: form.name.trim(),
-          description: form.summary.trim() || null,
-          status: derivedStatus,
-          current_stage: form.current_stage.trim(),
-          billing_type: form.has_subscription ? "mensal" : "projeto",
-          started_at: startedAtIso,
-          solution_type: form.solution_type.trim(),
-          expected_delivery_date: expectedDeliveryIso,
-          client_visible_summary: form.client_visible_summary.trim() || null,
-          tags: form.tags,
-          ...(deliveredAtIso ? { delivered_at: deliveredAtIso } : {}),
-        })
-        .select("*")
-        .single();
-
-      if (projectError || !projectData) throw projectError ?? new Error("Falha ao criar projeto.");
-      createdProjectId = projectData.id;
-
-      let contractId: string | null = null;
-      let subscriptionId: string | null = null;
-      let nextStepId: string | null = null;
-
-      const { data: contractData, error: contractError } = await supabase
-        .from("project_contracts")
-        .insert({
-          client_id: form.client_id,
-          project_id: projectData.id,
-          total_amount: unmaskCurrency(form.total_amount),
-          signed_at: signedAtIso,
-          starts_at: contractStartsAtIso,
-          ends_at: contractEndsAtIso,
-          scope_summary: form.scope_summary.trim() || form.summary.trim() || null,
-          ...(form.contract_already_paid ? { status: "encerrado" as const } : {}),
-        })
-        .select("*")
-        .single();
-
-      if (contractError || !contractData) {
-        throw contractError ?? new Error("Falha ao criar contrato do projeto.");
-      }
-      contractId = contractData.id;
-
-      const { data: installmentsData, error: installmentsError } = await supabase
-        .from("project_installments")
-        .insert([
-          {
-            client_id: form.client_id,
-            contract_id: contractId,
-            project_id: projectData.id,
-            installment_type: "entrada",
-            percentage: Number(form.entry_percentage),
-            amount: installmentPreview.entry,
-            trigger_type: "assinatura",
-            expected_due_date: entryDueDateIso,
-            effective_due_date: entryDueDateIso,
-            status: form.contract_already_paid ? ("paga" as const) : ("pendente" as const),
-            paid_at: form.contract_already_paid ? (entryDueDateIso ?? todayIso) : null,
-            is_blocking: true,
-          },
-          {
-            client_id: form.client_id,
-            contract_id: contractId,
-            project_id: projectData.id,
-            installment_type: "entrega",
-            percentage: Number(form.delivery_percentage),
-            amount: installmentPreview.delivery,
-            trigger_type: "conclusao",
-            expected_due_date: deliveryDueDateIso,
-            effective_due_date: deliveryDueDateIso,
-            status: form.contract_already_paid ? ("paga" as const) : ("agendada" as const),
-            paid_at: form.contract_already_paid ? (deliveryDueDateIso ?? todayIso) : null,
-            is_blocking: true,
-          },
-        ])
-        .select("id, installment_type");
-
-      if (installmentsError) {
-        throw installmentsError;
-      }
-
-      const entryInstallmentId =
-        installmentsData?.find((installment) => installment.installment_type === "entrada")?.id ??
-        null;
-      const deliveryInstallmentId =
-        installmentsData?.find((installment) => installment.installment_type === "entrega")?.id ??
-        null;
-
-      const { error: chargesError } = await supabase.from("charges").insert([
-        {
-          client_id: form.client_id,
-          project_id: projectData.id,
-          contract_id: contractId,
-          installment_id: entryInstallmentId,
-          origin_type: "parcela_projeto",
-          description: `Entrada ${form.entry_percentage}% - ${form.name.trim()}`,
-          amount: installmentPreview.entry,
-          due_date: entryDueDateIso,
-          status: form.contract_already_paid ? ("pago" as const) : ("pendente" as const),
-          paid_at: form.contract_already_paid ? (entryDueDateIso ?? todayIso) : null,
-          is_blocking: true,
-          is_historical: form.contract_already_paid,
-        },
-        {
-          client_id: form.client_id,
-          project_id: projectData.id,
-          contract_id: contractId,
-          installment_id: deliveryInstallmentId,
-          origin_type: "parcela_projeto",
-          description: `Entrega ${form.delivery_percentage}% - ${form.name.trim()}`,
-          amount: installmentPreview.delivery,
-          due_date: deliveryDueDateIso,
-          status: form.contract_already_paid ? ("pago" as const) : ("pendente" as const),
-          paid_at: form.contract_already_paid ? (deliveryDueDateIso ?? todayIso) : null,
-          is_blocking: true,
-          is_historical: form.contract_already_paid,
-        },
-      ]);
-
-      if (chargesError) {
-        throw chargesError;
-      }
-
-      if (form.has_subscription) {
+      // Auditoria P-001: criacao agora e atomica via RPC. Toda a estrutura
+      // (project + contract + installments + charges + opcional subscription/
+      // next_step + timeline) entra em uma unica transacao Postgres. Se
+      // qualquer passo falhar, nada e persistido — sem rollback manual.
+      const subscriptionPayload = (() => {
+        if (!form.has_subscription) return null;
         const amount = unmaskCurrency(form.subscription_amount);
         const dueDay = Number(form.subscription_due_day);
         const subscriptionStartsOnIso = parseFormDate(form.subscription_starts_on);
@@ -580,159 +458,167 @@ export default function AdminProjectCreate() {
           endsOn: subscriptionEndsOn,
           mode: "create",
         });
-
-        const { data: subscriptionData, error: subscriptionError } = await supabase
-          .from("project_subscriptions")
-          .insert({
-            client_id: form.client_id,
-            project_id: projectData.id,
-            label: form.subscription_label.trim(),
-            amount,
-            due_day: dueDay,
-            starts_on: subscriptionStartsOnIso,
-            ends_on: subscriptionEndsOn,
-            status: "ativa",
-            is_blocking: true,
-          })
-          .select("*")
-          .single();
-
-        if (subscriptionError || !subscriptionData) {
-          throw subscriptionError ?? new Error("Falha ao criar assinatura mensal.");
-        }
-        subscriptionId = subscriptionData.id;
-
-        const recurringChargesPayload = recurringDueDates.map((dueDate) => ({
-          client_id: form.client_id,
-          project_id: projectData.id,
-          subscription_id: subscriptionId,
-          origin_type: "mensalidade" as const,
-          description: form.subscription_label.trim(),
+        return {
+          label: form.subscription_label.trim(),
           amount,
-          due_date: dueDate,
-          status: (dueDate > todayIso ? "agendada" : "pendente") as "agendada" | "pendente",
+          due_day: dueDay,
+          starts_on: subscriptionStartsOnIso,
+          ends_on: subscriptionEndsOn,
+          status: "ativa",
           is_blocking: true,
-        }));
+          recurring_charges: recurringDueDates.map((dueDate) => ({
+            due_date: dueDate,
+            status: dueDate > todayIso ? "agendada" : "pendente",
+          })),
+        };
+      })();
 
-        const { error: recurringChargeError } = await supabase
-          .from("charges")
-          .insert(recurringChargesPayload);
-
-        if (recurringChargeError) {
-          throw recurringChargeError;
-        }
-      }
-
-      if (form.next_step_title.trim()) {
-        const { data: nextStepData, error: nextStepError } = await supabase
-          .from("project_next_steps")
-          .insert({
-            client_id: form.client_id,
-            project_id: projectData.id,
+      const nextStepPayload = form.next_step_title.trim()
+        ? {
             title: form.next_step_title.trim(),
             description: form.next_step_description.trim() || null,
             owner: form.next_step_owner,
             client_visible: true,
             sort_order: 0,
-          })
-          .select("id")
-          .single();
+          }
+        : null;
 
-        if (nextStepError || !nextStepData) {
-          throw nextStepError ?? new Error("Falha ao registrar a primeira pendência.");
-        }
-
-        nextStepId = nextStepData.id;
-      }
-
-      const timelinePayload = [
+      const timelineEvents: Array<{
+        event_type: string;
+        title: string;
+        summary: string;
+        visibility: string;
+        source_kind: "project" | "contract" | "subscription" | "next_step";
+        metadata?: Record<string, unknown>;
+      }> = [
         {
-          client_id: form.client_id,
-          project_id: projectData.id,
           event_type: "project_created",
           title: "Projeto criado",
           summary: `Projeto ${form.name.trim()} cadastrado no portal.`,
           visibility: "ambos",
-          source_table: "projects",
-          source_id: projectData.id,
-          metadata: {},
+          source_kind: "project",
         },
         {
-          client_id: form.client_id,
-          project_id: projectData.id,
           event_type: "project_stage_changed",
           title: "Etapa inicial definida",
           summary: `O projeto foi iniciado em ${form.current_stage.trim()}.`,
           visibility: "ambos",
-          source_table: "projects",
-          source_id: projectData.id,
-          metadata: {
-            to_stage: form.current_stage.trim(),
-            derived_status: derivedStatus,
-          },
+          source_kind: "project",
+          metadata: { to_stage: form.current_stage.trim(), derived_status: derivedStatus },
         },
-      ];
-
-      if (contractId) {
-        timelinePayload.push({
-          client_id: form.client_id,
-          project_id: projectData.id,
+        {
           event_type: "contract_created",
           title: "Estrutura contratual criada",
           summary: "Contrato e parcelas iniciais foram estruturados no sistema.",
           visibility: "interno",
-          source_table: "project_contracts",
-          source_id: contractId,
-          metadata: {},
-        });
-      }
-
-      if (subscriptionId) {
-        timelinePayload.push({
-          client_id: form.client_id,
-          project_id: projectData.id,
+          source_kind: "contract",
+        },
+      ];
+      if (subscriptionPayload) {
+        timelineEvents.push({
           event_type: "subscription_created",
           title: "Mensalidade configurada",
           summary: "Assinatura mensal vinculada ao projeto.",
           visibility: "interno",
-          source_table: "project_subscriptions",
-          source_id: subscriptionId,
-          metadata: {},
+          source_kind: "subscription",
         });
       }
-
-      if (nextStepId) {
-        timelinePayload.push({
-          client_id: form.client_id,
-          project_id: projectData.id,
+      if (nextStepPayload) {
+        timelineEvents.push({
           event_type: "next_step_created",
           title: "Primeira pendência registrada",
-          summary: `${form.next_step_title.trim()} foi adicionada ao plano de acao do projeto.`,
+          summary: `${nextStepPayload.title} foi adicionada ao plano de acao do projeto.`,
           visibility: "ambos",
-          source_table: "project_next_steps",
-          source_id: nextStepId,
-          metadata: {
-            owner: form.next_step_owner,
-          },
+          source_kind: "next_step",
+          metadata: { owner: form.next_step_owner },
         });
       }
 
-      const { error: timelineError } = await supabase
-        .from("timeline_events")
-        .insert(timelinePayload);
+      const rpcInput = {
+        client_id: form.client_id,
+        project: {
+          name: form.name.trim(),
+          description: form.summary.trim() || null,
+          status: derivedStatus,
+          current_stage: form.current_stage.trim(),
+          billing_type: form.has_subscription ? "mensal" : "projeto",
+          started_at: startedAtIso,
+          solution_type: form.solution_type.trim(),
+          expected_delivery_date: expectedDeliveryIso,
+          client_visible_summary: form.client_visible_summary.trim() || null,
+          tags: form.tags,
+          delivered_at: deliveredAtIso,
+        },
+        contract: {
+          total_amount: unmaskCurrency(form.total_amount),
+          signed_at: signedAtIso,
+          starts_at: contractStartsAtIso,
+          ends_at: contractEndsAtIso,
+          scope_summary: form.scope_summary.trim() || form.summary.trim() || null,
+          status: form.contract_already_paid ? "encerrado" : "rascunho",
+        },
+        installments: {
+          entry: {
+            percentage: Number(form.entry_percentage),
+            amount: installmentPreview.entry,
+            expected_due_date: entryDueDateIso,
+            status: form.contract_already_paid ? "paga" : "pendente",
+            paid_at: form.contract_already_paid ? (entryDueDateIso ?? todayIso) : null,
+            is_blocking: true,
+          },
+          delivery: {
+            percentage: Number(form.delivery_percentage),
+            amount: installmentPreview.delivery,
+            expected_due_date: deliveryDueDateIso,
+            status: form.contract_already_paid ? "paga" : "agendada",
+            paid_at: form.contract_already_paid ? (deliveryDueDateIso ?? todayIso) : null,
+            is_blocking: true,
+          },
+        },
+        charges: [
+          {
+            description: `Entrada ${form.entry_percentage}% - ${form.name.trim()}`,
+            amount: installmentPreview.entry,
+            due_date: entryDueDateIso,
+            status: form.contract_already_paid ? "pago" : "pendente",
+            paid_at: form.contract_already_paid ? (entryDueDateIso ?? todayIso) : null,
+            is_blocking: true,
+            is_historical: form.contract_already_paid,
+          },
+          {
+            description: `Entrega ${form.delivery_percentage}% - ${form.name.trim()}`,
+            amount: installmentPreview.delivery,
+            due_date: deliveryDueDateIso,
+            status: form.contract_already_paid ? "pago" : "pendente",
+            paid_at: form.contract_already_paid ? (deliveryDueDateIso ?? todayIso) : null,
+            is_blocking: true,
+            is_historical: form.contract_already_paid,
+          },
+        ],
+        subscription: subscriptionPayload,
+        next_step: nextStepPayload,
+        timeline_events: timelineEvents,
+      };
 
-      if (timelineError) {
-        throw timelineError;
+      const { data: createdProjectId, error: rpcError } = await supabase.rpc(
+        "create_project_with_billing",
+        { p_input: rpcInput as never }
+      );
+
+      if (rpcError || !createdProjectId) {
+        throw rpcError ?? new Error("Falha ao criar projeto.");
       }
 
+      // Snapshot legado em clients (P-006: sera removido em step futuro).
+      // Mantido fire-and-forget por compatibilidade — falha aqui nao afeta
+      // a criacao porque os dados primarios ja foram persistidos.
       if (selectedClient) {
         const nextProjectTotalValue =
           Number(selectedClient.project_total_value) + unmaskCurrency(form.total_amount);
         const nextMonthlyValue = form.has_subscription
           ? Number(selectedClient.monthly_value) + unmaskCurrency(form.subscription_amount)
           : Number(selectedClient.monthly_value);
-
-        const { error: snapshotError } = await supabase
+        void supabase
           .from("clients")
           .update({
             project_total_value: nextProjectTotalValue,
@@ -740,13 +626,9 @@ export default function AdminProjectCreate() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", selectedClient.id);
-
-        if (snapshotError) {
-          console.warn("[project-create] snapshot update error:", snapshotError.message);
-        }
       }
 
-      // Notify client about new project (fire-and-forget)
+      // Notificar cliente — fire-and-forget. Falha de email nao reverte projeto.
       try {
         const authHeaders = await getSupabaseFunctionAuthHeaders();
         void supabase.functions.invoke("send-project-created", {
@@ -759,7 +641,7 @@ export default function AdminProjectCreate() {
           headers: authHeaders,
         });
       } catch {
-        // Non-blocking: do not prevent navigation on email failure
+        // Non-blocking
       }
 
       toast.success("Projeto criado com sucesso.", {
@@ -767,31 +649,8 @@ export default function AdminProjectCreate() {
       });
 
       clearDraft();
-      navigate(`/portal/admin/projetos/${projectData.id}`, { replace: true });
+      navigate(`/portal/admin/projetos/${createdProjectId}`, { replace: true });
     } catch (error) {
-      if (createdProjectId) {
-        // Clean up timeline_events explicitly (may not cascade via FK)
-        const { error: tlCleanup } = await supabase
-          .from("timeline_events")
-          .delete()
-          .eq("project_id", createdProjectId);
-        if (tlCleanup) {
-          console.warn("[project-create] rollback timeline_events:", tlCleanup.message);
-        }
-
-        // Delete project — FK CASCADE cleans up contracts, installments, charges, subscriptions, next_steps
-        const { error: rollbackError } = await supabase
-          .from("projects")
-          .delete()
-          .eq("id", createdProjectId);
-        if (rollbackError) {
-          console.warn("[project-create] rollback error:", rollbackError.message);
-          setFormError(
-            `Não foi possível criar o projeto. A limpeza automática falhou — projeto parcial (ID: ${createdProjectId}) pode precisar de remoção manual.`
-          );
-          return;
-        }
-      }
       const message = error instanceof Error ? error.message : "Não foi possível criar o projeto.";
       setFormError(message);
     } finally {
