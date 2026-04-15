@@ -723,45 +723,16 @@ function ContractClientForm({
     setErrors((current) => ({ ...current, [field]: undefined }));
   };
 
+  // PA13: campos snapshot legados (monthly_value, project_total_value,
+  // contract_status, contract_type, contract_start, contract_end,
+  // scope_summary, payment_due_day) sao read-only — bloqueados por
+  // trigger no banco desde P18. So validamos o que efetivamente
+  // persiste: client_since e os demais atributos proprios do cliente.
   const validate = () => {
     const nextErrors: ContractFormErrors = {};
-    const monthlyValue = unmaskCurrency(form.monthly_value);
-    const projectValue = unmaskCurrency(form.project_total_value);
-    const paymentDueDay = form.payment_due_day ? Number(form.payment_due_day) : null;
-
-    if (form.monthly_value.trim().length === 0 || Number.isNaN(monthlyValue)) {
-      nextErrors.monthly_value = "Informe o valor mensal.";
-    }
-
-    if (form.project_total_value.trim().length === 0 || Number.isNaN(projectValue)) {
-      nextErrors.project_total_value = "Informe o valor do projeto.";
-    }
-
     if (!parseFormDate(form.client_since)) {
       nextErrors.client_since = "Informe uma data válida para cliente desde.";
     }
-
-    if (form.contract_start && !parseFormDate(form.contract_start)) {
-      nextErrors.contract_start = "Data de início inválida.";
-    }
-
-    if (form.contract_end && !parseFormDate(form.contract_end)) {
-      nextErrors.contract_end = "Data de fim inválida.";
-    }
-
-    const contractStartIso = parseFormDate(form.contract_start);
-    const contractEndIso = parseFormDate(form.contract_end);
-    if (contractStartIso && contractEndIso && contractEndIso < contractStartIso) {
-      nextErrors.contract_end = "A data de fim não pode ser anterior ao início.";
-    }
-
-    if (
-      paymentDueDay !== null &&
-      (!Number.isInteger(paymentDueDay) || paymentDueDay < 1 || paymentDueDay > 31)
-    ) {
-      nextErrors.payment_due_day = "Informe um dia de vencimento entre 1 e 31.";
-    }
-
     return nextErrors;
   };
 
@@ -785,6 +756,17 @@ function ContractClientForm({
       </CardHeader>
       <CardContent className="pt-5">
         <form className="space-y-5" onSubmit={(event) => void handleSubmit(event)}>
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-3 text-xs text-foreground">
+            <p className="font-semibold text-primary">
+              Campos financeiros e contratuais somente leitura
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              Valores mensais, status do contrato, datas de vigência e escopo são calculados
+              automaticamente a partir de <strong>projetos, contratos e cobranças</strong>. Edite
+              esses dados na tela de contratos ou ajustando o contrato do projeto correspondente.
+            </p>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <Field>
               <Label htmlFor="monthly_value">Valor mensal</Label>
@@ -792,12 +774,11 @@ function ContractClientForm({
                 id="monthly_value"
                 name="monthly_value"
                 value={form.monthly_value}
-                onChange={(event) => setField("monthly_value", maskCurrency(event.target.value))}
+                readOnly
+                disabled
+                aria-readonly="true"
                 placeholder="R$ 0,00"
               />
-              <ErrorText className={errors.monthly_value ? "" : "invisible"}>
-                {errors.monthly_value || "\u00A0"}
-              </ErrorText>
             </Field>
 
             <Field>
@@ -806,14 +787,11 @@ function ContractClientForm({
                 id="project_total_value"
                 name="project_total_value"
                 value={form.project_total_value}
-                onChange={(event) =>
-                  setField("project_total_value", maskCurrency(event.target.value))
-                }
+                readOnly
+                disabled
+                aria-readonly="true"
                 placeholder="R$ 0,00"
               />
-              <ErrorText className={errors.project_total_value ? "" : "invisible"}>
-                {errors.project_total_value || "\u00A0"}
-              </ErrorText>
             </Field>
 
             <Field>
@@ -835,16 +813,12 @@ function ContractClientForm({
               <Input
                 id="payment_due_day"
                 name="payment_due_day"
-                type="number"
-                min={1}
-                max={31}
                 value={form.payment_due_day}
-                onChange={(event) => setField("payment_due_day", event.target.value)}
+                readOnly
+                disabled
+                aria-readonly="true"
                 placeholder="10"
               />
-              <ErrorText className={errors.payment_due_day ? "" : "invisible"}>
-                {errors.payment_due_day || "\u00A0"}
-              </ErrorText>
             </Field>
 
             <Field>
@@ -853,10 +827,9 @@ function ContractClientForm({
                 id="contract_status"
                 name="contract_status"
                 value={form.contract_status}
-                onChange={(event) =>
-                  setField("contract_status", event.target.value as ContractStatus | "")
-                }
-                className={selectClass}
+                disabled
+                aria-readonly="true"
+                className={cn(selectClass, "cursor-not-allowed opacity-60")}
               >
                 <option value="">Selecionar</option>
                 <option value="ativo">Ativo</option>
@@ -871,10 +844,9 @@ function ContractClientForm({
                 id="contract_type"
                 name="contract_type"
                 value={form.contract_type}
-                onChange={(event) =>
-                  setField("contract_type", event.target.value as ContractType | "")
-                }
-                className={selectClass}
+                disabled
+                aria-readonly="true"
+                className={cn(selectClass, "cursor-not-allowed opacity-60")}
               >
                 <option value="">Selecionar</option>
                 <option value="projeto">Projeto</option>
@@ -907,12 +879,11 @@ function ContractClientForm({
                 id="contract_start"
                 name="contract_start"
                 value={form.contract_start}
-                onChange={(event) => setField("contract_start", maskDate(event.target.value))}
+                readOnly
+                disabled
+                aria-readonly="true"
                 placeholder="DD/MM/AAAA"
               />
-              <ErrorText className={errors.contract_start ? "" : "invisible"}>
-                {errors.contract_start || "\u00A0"}
-              </ErrorText>
             </Field>
 
             <Field>
@@ -921,12 +892,11 @@ function ContractClientForm({
                 id="contract_end"
                 name="contract_end"
                 value={form.contract_end}
-                onChange={(event) => setField("contract_end", maskDate(event.target.value))}
+                readOnly
+                disabled
+                aria-readonly="true"
                 placeholder="DD/MM/AAAA"
               />
-              <ErrorText className={errors.contract_end ? "" : "invisible"}>
-                {errors.contract_end || "\u00A0"}
-              </ErrorText>
             </Field>
 
             <Field className="md:col-span-2">
@@ -946,7 +916,9 @@ function ContractClientForm({
                 id="scope_summary"
                 name="scope_summary"
                 value={form.scope_summary}
-                onChange={(event) => setField("scope_summary", event.target.value)}
+                readOnly
+                disabled
+                aria-readonly="true"
                 rows={4}
                 placeholder="Descreva brevemente o escopo do contrato."
               />
