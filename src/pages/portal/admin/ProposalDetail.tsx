@@ -69,12 +69,39 @@ type FormState = {
   observations: string;
   document_url: string;
   technical_document_url: string;
+  // ── Billing config (preenchido na criacao, consumido na aprovacao) ──
+  payment_model: "50_50" | "a_vista" | "personalizado";
+  entry_percentage: string;
+  entry_due_date: string;
+  delivery_due_date: string;
+  has_subscription: boolean;
+  subscription_label: string;
+  subscription_amount: string;
+  subscription_due_day: string;
+  subscription_starts_on: string;
+  subscription_ends_on: string;
+};
+
+type BillingConfig = {
+  payment_model?: "50_50" | "a_vista" | "personalizado";
+  entry_percentage?: number;
+  entry_due_date?: string | null;
+  delivery_due_date?: string | null;
+  subscription?: null | {
+    label?: string;
+    amount?: number;
+    due_day?: number;
+    starts_on?: string | null;
+    ends_on?: string | null;
+  };
 };
 
 const selectClass =
   "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 function formDefaults(proposal?: ProposalRow | null): FormState {
+  const billing = (proposal?.billing_config ?? {}) as BillingConfig;
+  const sub = billing.subscription ?? null;
   return {
     title: proposal?.title ?? "",
     destination_type: proposal?.lead_id ? "lead" : "client",
@@ -88,7 +115,52 @@ function formDefaults(proposal?: ProposalRow | null): FormState {
     observations: proposal?.observations ?? "",
     document_url: proposal?.document_url ?? "",
     technical_document_url: proposal?.technical_document_url ?? "",
+    payment_model: billing.payment_model ?? "50_50",
+    entry_percentage: String(billing.entry_percentage ?? 50),
+    entry_due_date: billing.entry_due_date ?? "",
+    delivery_due_date: billing.delivery_due_date ?? "",
+    has_subscription: Boolean(sub),
+    subscription_label: sub?.label ?? "Manutenção mensal",
+    subscription_amount:
+      sub?.amount != null ? maskCurrency(String(Math.round(Number(sub.amount) * 100))) : "",
+    subscription_due_day: sub?.due_day != null ? String(sub.due_day) : "10",
+    subscription_starts_on: sub?.starts_on ?? "",
+    subscription_ends_on: sub?.ends_on ?? "",
   };
+}
+
+function formToBillingConfig(form: FormState): BillingConfig {
+  const config: BillingConfig = {
+    payment_model: form.payment_model,
+  };
+  if (form.payment_model === "personalizado") {
+    const pct = Number(form.entry_percentage);
+    if (Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+      config.entry_percentage = pct;
+    }
+  }
+  if (form.entry_due_date) config.entry_due_date = form.entry_due_date;
+  if (form.delivery_due_date) config.delivery_due_date = form.delivery_due_date;
+  if (form.has_subscription) {
+    const amount = unmaskCurrency(form.subscription_amount);
+    const dueDay = Number(form.subscription_due_day);
+    if (
+      amount > 0 &&
+      Number.isInteger(dueDay) &&
+      dueDay >= 1 &&
+      dueDay <= 31 &&
+      form.subscription_starts_on
+    ) {
+      config.subscription = {
+        label: form.subscription_label.trim() || "Mensalidade",
+        amount,
+        due_day: dueDay,
+        starts_on: form.subscription_starts_on,
+        ends_on: form.subscription_ends_on || null,
+      };
+    }
+  }
+  return config;
 }
 
 /* ------------------------------------------------------------------ */
@@ -458,6 +530,10 @@ export default function ProposalDetail() {
       technical_document_url: form.technical_document_url.trim() || null,
       status,
       created_by: user?.id ?? null,
+      // Auditoria Sub-step C: billing_config alimenta a RPC de aprovacao
+      // para criar installments + charges + opcional subscription
+      // automaticamente. Vazio = aprovacao cria so project shell + contract.
+      billing_config: formToBillingConfig(form) as never,
     };
 
     if (status === "enviada") {
@@ -961,6 +1037,140 @@ export default function ProposalDetail() {
                 rows={3}
               />
             </Field>
+
+            {/* ── Cobranca automatica (faturas) ─────────────────────── */}
+            <div className="rounded-xl border border-border/80 bg-background/40 p-4">
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground">
+                  Cobrança automática
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Quando a proposta for aprovada, o sistema cria as parcelas e cobranças
+                  automaticamente — sem precisar configurar depois.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field>
+                  <Label htmlFor="payment_model">Modelo de pagamento</Label>
+                  <select
+                    id="payment_model"
+                    value={form.payment_model}
+                    onChange={(e) =>
+                      setField("payment_model", e.target.value as FormState["payment_model"])
+                    }
+                    className={selectClass}
+                  >
+                    <option value="50_50">50% entrada / 50% entrega</option>
+                    <option value="a_vista">100% à vista (entrada)</option>
+                    <option value="personalizado">Personalizado</option>
+                  </select>
+                </Field>
+                {form.payment_model === "personalizado" ? (
+                  <Field>
+                    <Label htmlFor="entry_percentage">% de entrada</Label>
+                    <Input
+                      id="entry_percentage"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={form.entry_percentage}
+                      onChange={(e) => setField("entry_percentage", e.target.value)}
+                    />
+                  </Field>
+                ) : null}
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field>
+                  <Label htmlFor="entry_due_date">Vencimento da entrada</Label>
+                  <Input
+                    id="entry_due_date"
+                    type="date"
+                    value={form.entry_due_date}
+                    onChange={(e) => setField("entry_due_date", e.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="delivery_due_date">Vencimento da entrega</Label>
+                  <Input
+                    id="delivery_due_date"
+                    type="date"
+                    value={form.delivery_due_date}
+                    onChange={(e) => setField("delivery_due_date", e.target.value)}
+                  />
+                </Field>
+              </div>
+
+              <label className="mt-4 flex items-center gap-2 text-xs text-foreground">
+                <input
+                  type="checkbox"
+                  checked={form.has_subscription}
+                  onChange={(e) => setField("has_subscription", e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
+                Inclui mensalidade recorrente
+              </label>
+
+              {form.has_subscription ? (
+                <div className="mt-3 space-y-3 rounded-lg border border-border/60 bg-card/60 p-3">
+                  <Field>
+                    <Label htmlFor="subscription_label">Descrição</Label>
+                    <Input
+                      id="subscription_label"
+                      value={form.subscription_label}
+                      onChange={(e) => setField("subscription_label", e.target.value)}
+                      placeholder="Ex: Manutenção mensal"
+                    />
+                  </Field>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <Field>
+                      <Label htmlFor="subscription_amount">Valor mensal</Label>
+                      <Input
+                        id="subscription_amount"
+                        value={form.subscription_amount}
+                        onChange={(e) =>
+                          setField("subscription_amount", maskCurrency(e.target.value))
+                        }
+                        placeholder="R$ 0,00"
+                        inputMode="numeric"
+                      />
+                    </Field>
+                    <Field>
+                      <Label htmlFor="subscription_due_day">Dia de vencimento</Label>
+                      <Input
+                        id="subscription_due_day"
+                        type="number"
+                        min={1}
+                        max={31}
+                        value={form.subscription_due_day}
+                        onChange={(e) => setField("subscription_due_day", e.target.value)}
+                      />
+                    </Field>
+                    <Field>
+                      <Label htmlFor="subscription_starts_on">Início</Label>
+                      <Input
+                        id="subscription_starts_on"
+                        type="date"
+                        value={form.subscription_starts_on}
+                        onChange={(e) => setField("subscription_starts_on", e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <Field>
+                    <Label htmlFor="subscription_ends_on">
+                      Fim (opcional — em branco = indeterminado)
+                    </Label>
+                    <Input
+                      id="subscription_ends_on"
+                      type="date"
+                      value={form.subscription_ends_on}
+                      onChange={(e) => setField("subscription_ends_on", e.target.value)}
+                    />
+                  </Field>
+                </div>
+              ) : null}
+            </div>
 
             {/* Observations */}
             <Field>
