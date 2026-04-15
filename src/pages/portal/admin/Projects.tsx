@@ -80,8 +80,94 @@ function MetricTile({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Row action menu                                                    */
+/*  Delivery urgency badge                                             */
 /* ------------------------------------------------------------------ */
+
+type UrgencyLevel = "overdue" | "critical" | "soon" | "near" | "ok";
+
+function getDeliveryUrgency(
+  expectedDate: string | null,
+  status: PortalProject["status"]
+): { level: UrgencyLevel; label: string; classes: string } | null {
+  if (!expectedDate) return null;
+  if (status === "concluido" || status === "cancelado") return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(`${expectedDate}T00:00:00`);
+  if (Number.isNaN(target.getTime())) return null;
+  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return {
+      level: "overdue",
+      label: `${Math.abs(diffDays)}d atrasado`,
+      classes: "border-destructive/40 bg-destructive/10 text-destructive",
+    };
+  }
+  if (diffDays === 0) {
+    return {
+      level: "critical",
+      label: "Hoje",
+      classes: "border-destructive/40 bg-destructive/10 text-destructive",
+    };
+  }
+  if (diffDays <= 3) {
+    return {
+      level: "critical",
+      label: `${diffDays}d restantes`,
+      classes: "border-destructive/40 bg-destructive/10 text-destructive",
+    };
+  }
+  if (diffDays <= 7) {
+    return {
+      level: "soon",
+      label: `${diffDays}d restantes`,
+      classes: "border-warning/40 bg-warning/15 text-warning",
+    };
+  }
+  if (diffDays <= 14) {
+    return {
+      level: "near",
+      label: `${diffDays}d restantes`,
+      classes: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    };
+  }
+  return {
+    level: "ok",
+    label: `${diffDays}d restantes`,
+    classes: "border-success/30 bg-success/10 text-success",
+  };
+}
+
+function DeliveryUrgencyBadge({
+  expectedDate,
+  status,
+}: {
+  expectedDate: string | null;
+  status: PortalProject["status"];
+}) {
+  const urgency = getDeliveryUrgency(expectedDate, status);
+  if (!urgency) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+        urgency.classes
+      )}
+      title={
+        urgency.level === "overdue"
+          ? "Entrega atrasada"
+          : urgency.level === "critical"
+            ? "Entrega critica"
+            : "Prazo de entrega"
+      }
+    >
+      <Clock size={10} />
+      {urgency.label}
+    </span>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Project row — table-like, uniform columns + action menu            */
@@ -166,6 +252,10 @@ function ProjectRow({
           <span className="text-xs font-medium text-foreground">
             {formatPortalDate(project.expected_delivery_date)}
           </span>
+          <DeliveryUrgencyBadge
+            expectedDate={project.expected_delivery_date}
+            status={project.status}
+          />
         </div>
         <ProjectStageProgressDots currentStage={project.current_stage} />
       </div>
@@ -186,7 +276,13 @@ function ProjectRow({
         <p className="whitespace-nowrap text-sm font-medium text-foreground">
           {formatPortalDate(project.expected_delivery_date)}
         </p>
-        <p className="whitespace-nowrap text-xs text-muted-foreground">
+        <div className="mt-1">
+          <DeliveryUrgencyBadge
+            expectedDate={project.expected_delivery_date}
+            status={project.status}
+          />
+        </div>
+        <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">
           Inicio {formatPortalDate(project.started_at)}
         </p>
       </div>
