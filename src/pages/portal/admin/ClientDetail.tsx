@@ -1384,9 +1384,19 @@ export default function AdminClientDetail() {
           </div>
         </div>
 
-        <Link to="/portal/admin/clientes" className={buttonVariants({ variant: "outline" })}>
-          Voltar
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          {client.is_active ? (
+            <Link
+              to={`/portal/admin/propostas/nova?client_id=${client.id}&source=expansion`}
+              className={buttonVariants({ size: "sm" })}
+            >
+              Nova oportunidade
+            </Link>
+          ) : null}
+          <Link to="/portal/admin/clientes" className={buttonVariants({ variant: "outline" })}>
+            Voltar
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
