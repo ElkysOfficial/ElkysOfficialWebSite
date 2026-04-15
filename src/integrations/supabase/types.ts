@@ -318,6 +318,13 @@ export type Database = {
             foreignKeyName: "charges_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "charges_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -398,6 +405,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "client_contacts_client_id_fkey";
             columns: ["client_id"];
@@ -575,6 +589,13 @@ export type Database = {
             foreignKeyName: "documents_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "documents_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -635,6 +656,13 @@ export type Database = {
           project_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "expenses_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "expenses_client_id_fkey";
             columns: ["client_id"];
@@ -815,6 +843,13 @@ export type Database = {
             foreignKeyName: "leads_converted_client_id_fkey";
             columns: ["converted_client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "leads_converted_client_id_fkey";
+            columns: ["converted_client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -874,6 +909,13 @@ export type Database = {
             foreignKeyName: "marketing_calendar_events_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "marketing_calendar_events_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -918,6 +960,13 @@ export type Database = {
           user_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "notification_recipients_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "notification_recipients_client_id_fkey";
             columns: ["client_id"];
@@ -1149,6 +1198,13 @@ export type Database = {
             foreignKeyName: "project_contracts_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "project_contracts_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1214,6 +1270,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "project_installments_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "project_installments_client_id_fkey";
             columns: ["client_id"];
@@ -1303,6 +1366,13 @@ export type Database = {
             foreignKeyName: "project_next_steps_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "project_next_steps_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1362,6 +1432,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "project_subscriptions_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "project_subscriptions_client_id_fkey";
             columns: ["client_id"];
@@ -1456,6 +1533,13 @@ export type Database = {
             foreignKeyName: "projects_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "projects_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1543,6 +1627,13 @@ export type Database = {
             foreignKeyName: "proposals_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "proposals_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1614,6 +1705,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
           {
             foreignKeyName: "support_tickets_client_id_fkey";
             columns: ["client_id"];
@@ -1747,6 +1845,13 @@ export type Database = {
             foreignKeyName: "team_tasks_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "team_tasks_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1866,6 +1971,13 @@ export type Database = {
             foreignKeyName: "timeline_events_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "timeline_events_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
             referencedRelation: "clients";
             referencedColumns: ["id"];
           },
@@ -1901,6 +2013,30 @@ export type Database = {
       };
     };
     Views: {
+      client_financial_summary: {
+        Row: {
+          active_contracts: number | null;
+          active_subscriptions: number | null;
+          client_id: string | null;
+          monthly_value: number | null;
+          project_total_value: number | null;
+        };
+        Insert: {
+          active_contracts?: never;
+          active_subscriptions?: never;
+          client_id?: string | null;
+          monthly_value?: never;
+          project_total_value?: never;
+        };
+        Update: {
+          active_contracts?: never;
+          active_subscriptions?: never;
+          client_id?: string | null;
+          monthly_value?: never;
+          project_total_value?: never;
+        };
+        Relationships: [];
+      };
       project_contract_history: {
         Row: {
           change_reason: string | null;
