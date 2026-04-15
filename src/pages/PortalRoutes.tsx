@@ -125,7 +125,39 @@ const PortalRoutes = () => (
           path="tarefas"
           element={
             <PortalRoleGuard
-              allowedRoles={["admin_super", "admin", "marketing", "developer", "support"]}
+              allowedRoles={[
+                "admin_super",
+                "admin",
+                "marketing",
+                "developer",
+                "designer",
+                "po",
+                "support",
+                "financeiro",
+                "comercial",
+                "juridico",
+              ]}
+            >
+              <AdminTasks />
+            </PortalRoleGuard>
+          }
+        />
+        <Route
+          path="tarefas/:domain"
+          element={
+            <PortalRoleGuard
+              allowedRoles={[
+                "admin_super",
+                "admin",
+                "marketing",
+                "developer",
+                "designer",
+                "po",
+                "support",
+                "financeiro",
+                "comercial",
+                "juridico",
+              ]}
             >
               <AdminTasks />
             </PortalRoleGuard>

@@ -85,6 +85,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: Target,
         roles: ["admin_super", "admin", "comercial"],
       },
+      {
+        label: "Tarefas Comercial",
+        href: "/portal/admin/tarefas/comercial",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "comercial"],
+      },
     ],
   },
   {
@@ -114,6 +120,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: Zap,
         roles: ["admin_super", "admin", "financeiro"],
       },
+      {
+        label: "Tarefas Financeiro",
+        href: "/portal/admin/tarefas/financeiro",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "financeiro"],
+      },
     ],
   },
   {
@@ -123,6 +135,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         label: "Contratos",
         href: "/portal/admin/contratos",
         icon: FileText,
+        roles: ["admin_super", "admin", "juridico"],
+      },
+      {
+        label: "Tarefas Jurídico",
+        href: "/portal/admin/tarefas/juridico",
+        icon: CheckCircle,
         roles: ["admin_super", "admin", "juridico"],
       },
     ],
@@ -137,21 +155,16 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["admin_super", "admin", "developer", "designer", "po"],
       },
       {
-        label: "Tarefas",
+        label: "Tarefas Dev",
+        href: "/portal/admin/tarefas/desenvolvimento",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "developer", "designer", "po"],
+      },
+      {
+        label: "Tarefas (todas)",
         href: "/portal/admin/tarefas",
         icon: CheckCircle,
-        roles: [
-          "admin_super",
-          "admin",
-          "marketing",
-          "developer",
-          "designer",
-          "po",
-          "support",
-          "financeiro",
-          "comercial",
-          "juridico",
-        ],
+        roles: ["admin_super", "admin"],
       },
       {
         label: "Documentos Dev",
