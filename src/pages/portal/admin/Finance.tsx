@@ -311,6 +311,7 @@ function FinanceRevenueTab({
   };
 
   const [quickPayingId, setQuickPayingId] = useState<string | null>(null);
+  const [confirmingPayCharge, setConfirmingPayCharge] = useState<PortalCharge | null>(null);
 
   /**
    * Atalho de 1 clique para marcar uma cobranca como paga sem abrir o
@@ -824,7 +825,7 @@ function FinanceRevenueTab({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => void handleQuickMarkPaid(charge)}
+                            onClick={() => setConfirmingPayCharge(charge)}
                             loading={quickPayingId === charge.id}
                             loadingText="..."
                             className="h-8 border-success/40 px-2 text-xs text-success hover:bg-success/10 hover:text-success"
@@ -914,7 +915,7 @@ function FinanceRevenueTab({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => void handleQuickMarkPaid(charge)}
+                          onClick={() => setConfirmingPayCharge(charge)}
                           loading={quickPayingId === charge.id}
                           loadingText="..."
                           className="h-9 border-success/40 px-2.5 text-xs text-success hover:bg-success/10 hover:text-success"
@@ -1017,6 +1018,36 @@ function FinanceRevenueTab({
           ) : null}
         </div>
       )}
+
+      <AlertDialog
+        open={Boolean(confirmingPayCharge)}
+        title="Marcar cobrança como paga?"
+        description={
+          confirmingPayCharge
+            ? `Confirmo o recebimento de ${formatBRL(
+                Number(confirmingPayCharge.amount)
+              )} referente a "${confirmingPayCharge.description}". A data de pagamento sera registrada como hoje${
+                confirmingPayCharge.installment_id
+                  ? " e a parcela vinculada do projeto sera atualizada"
+                  : ""
+              }.`
+            : ""
+        }
+        confirmLabel="Confirmar pagamento"
+        cancelLabel="Cancelar"
+        loading={Boolean(quickPayingId)}
+        loadingLabel="Marcando..."
+        onCancel={() => {
+          if (quickPayingId) return;
+          setConfirmingPayCharge(null);
+        }}
+        onConfirm={() => {
+          if (!confirmingPayCharge) return;
+          const charge = confirmingPayCharge;
+          setConfirmingPayCharge(null);
+          void handleQuickMarkPaid(charge);
+        }}
+      />
 
       <AlertDialog
         open={isSuperAdmin && Boolean(deleteChargeId)}
