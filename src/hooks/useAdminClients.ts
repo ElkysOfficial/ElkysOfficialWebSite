@@ -19,29 +19,63 @@ export interface AdminClientIndicators {
 
 async function fetchClients() {
   const todayStr = new Date().toISOString().slice(0, 10);
-  const [clientsRes, contractsRes, chargesRes, projectsRes, proposalsRes] = await Promise.all([
-    supabase
-      .from("clients")
-      .select(CLIENTS_SELECT)
-      .order("is_active", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase.from("project_contracts").select("client_id, total_amount"),
-    // Só o que precisamos para detectar inadimplencia: cobranças não quitadas
-    // e não canceladas. Comparamos due_date contra hoje no cliente para
-    // decidir se entram em "atrasado".
-    supabase
-      .from("charges")
-      .select("client_id, status, due_date")
-      .in("status", ["pendente", "atrasado"]),
-    supabase.from("projects").select("client_id, status").eq("status", "em_andamento"),
-    supabase.from("proposals").select("client_id, status").eq("status", "enviada"),
-  ]);
+  const [clientsRes, contractsRes, chargesRes, projectsRes, proposalsRes, summaryRes] =
+    await Promise.all([
+      supabase
+        .from("clients")
+        .select(CLIENTS_SELECT)
+        .order("is_active", { ascending: false })
+        .order("created_at", { ascending: false }),
+      supabase.from("project_contracts").select("client_id, total_amount"),
+      supabase
+        .from("charges")
+        .select("client_id, status, due_date")
+        .in("status", ["pendente", "atrasado"]),
+      supabase.from("projects").select("client_id, status").eq("status", "em_andamento"),
+      supabase.from("proposals").select("client_id, status").eq("status", "enviada"),
+      // PA11: fonte de verdade para monthly_value e contract_status.
+      // View calculada a partir de project_contracts + charges (P10/P18).
+      supabase
+        .from("client_financial_summary")
+        .select(
+          "client_id, monthly_recurring_value, contract_status_calculated, contract_type_calculated, contract_end_calculated"
+        ),
+    ]);
 
   if (clientsRes.error) throw clientsRes.error;
   if (contractsRes.error) throw contractsRes.error;
   if (chargesRes.error) throw chargesRes.error;
   if (projectsRes.error) throw projectsRes.error;
   if (proposalsRes.error) throw proposalsRes.error;
+  if (summaryRes.error) throw summaryRes.error;
+
+  // Mapa client_id -> summary calculado. Usado para sobrescrever os
+  // snapshots legados de clients (monthly_value, contract_status) que
+  // estao congelados em 0 / 'ativo' apos o write guard de P18.
+  const summaryMap = new Map<
+    string,
+    {
+      monthly: number;
+      status: string | null;
+      type: string | null;
+      end: string | null;
+    }
+  >();
+  for (const s of (summaryRes.data ?? []) as Array<{
+    client_id: string | null;
+    monthly_recurring_value: number | null;
+    contract_status_calculated: string | null;
+    contract_type_calculated: string | null;
+    contract_end_calculated: string | null;
+  }>) {
+    if (!s.client_id) continue;
+    summaryMap.set(s.client_id, {
+      monthly: Number(s.monthly_recurring_value ?? 0),
+      status: s.contract_status_calculated ?? null,
+      type: s.contract_type_calculated ?? null,
+      end: s.contract_end_calculated ?? null,
+    });
+  }
 
   const contractTotals = new Map<string, number>();
   for (const c of contractsRes.data ?? []) {
@@ -75,7 +109,8 @@ async function fetchClients() {
   const expiringCutoff = thirtyDaysFromNow.toISOString().slice(0, 10);
 
   return (clientsRes.data ?? []).map((client) => {
-    const contractEnd = client.contract_end;
+    const summary = summaryMap.get(client.id);
+    const contractEnd = summary?.end ?? client.contract_end;
     const contractExpiringSoon =
       typeof contractEnd === "string" && contractEnd >= todayStr && contractEnd <= expiringCutoff;
 
@@ -88,6 +123,11 @@ async function fetchClients() {
 
     return {
       ...client,
+      // PA11: sobrescreve snapshots legados com valores calculados.
+      monthly_value: summary ? summary.monthly : Number(client.monthly_value ?? 0),
+      contract_status: (summary?.status ?? client.contract_status) as typeof client.contract_status,
+      contract_type: (summary?.type ?? client.contract_type) as typeof client.contract_type,
+      contract_end: summary?.end ?? client.contract_end,
       project_total_value: contractTotals.get(client.id) ?? Number(client.project_total_value),
       indicators,
     };
