@@ -1455,6 +1455,85 @@ export type Database = {
           },
         ];
       };
+      project_validation_rounds: {
+        Row: {
+          client_id: string;
+          client_validated_at: string | null;
+          closed_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          feedback: string | null;
+          id: string;
+          internal_validated_at: string | null;
+          project_id: string;
+          round_no: number;
+          scope_summary: string | null;
+          started_at: string;
+          status: string;
+          updated_at: string;
+          validated_by_client: string | null;
+          validated_by_internal: string | null;
+        };
+        Insert: {
+          client_id: string;
+          client_validated_at?: string | null;
+          closed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          feedback?: string | null;
+          id?: string;
+          internal_validated_at?: string | null;
+          project_id: string;
+          round_no: number;
+          scope_summary?: string | null;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+          validated_by_client?: string | null;
+          validated_by_internal?: string | null;
+        };
+        Update: {
+          client_id?: string;
+          client_validated_at?: string | null;
+          closed_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          feedback?: string | null;
+          id?: string;
+          internal_validated_at?: string | null;
+          project_id?: string;
+          round_no?: number;
+          scope_summary?: string | null;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+          validated_by_client?: string | null;
+          validated_by_internal?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_validation_rounds_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "project_validation_rounds_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_validation_rounds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       projects: {
         Row: {
           acceptance_notes: string | null;
@@ -2098,6 +2177,10 @@ export type Database = {
         Args: { p_proposal_id: string };
         Returns: Json;
       };
+      close_validation_round: {
+        Args: { p_feedback?: string; p_round_id: string; p_status: string };
+        Returns: Json;
+      };
       convert_lead_to_client: {
         Args: { p_lead_id: string; p_overrides?: Json };
         Returns: string;
@@ -2126,9 +2209,21 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean };
       mark_overdue_charges: { Args: never; Returns: undefined };
       mark_overdue_clients_inadimplente: { Args: never; Returns: undefined };
+      mark_validation_client: {
+        Args: { p_client_name?: string; p_round_id: string };
+        Returns: undefined;
+      };
+      mark_validation_internal: {
+        Args: { p_round_id: string };
+        Returns: undefined;
+      };
       register_project_acceptance: {
         Args: { p_notes?: string; p_project_id: string };
         Returns: Json;
+      };
+      start_validation_round: {
+        Args: { p_project_id: string; p_scope_summary?: string };
+        Returns: string;
       };
       sync_financial_blocks: { Args: never; Returns: undefined };
       sync_projects_from_blocking_charges: { Args: never; Returns: undefined };

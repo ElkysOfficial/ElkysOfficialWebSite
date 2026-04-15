@@ -8,6 +8,7 @@ import AdminPageHeader from "@/components/portal/AdminPageHeader";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import ProjectAcceptanceCard from "@/components/portal/ProjectAcceptanceCard";
 import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
+import ProjectValidationRounds from "@/components/portal/ProjectValidationRounds";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
 import Pagination from "@/components/portal/Pagination";
@@ -2663,6 +2664,13 @@ export default function AdminProjectDetail() {
               (project as { onboarding_completed_at?: string | null }).onboarding_completed_at ??
               null
             }
+          />
+        ) : null}
+
+        {project ? (
+          <ProjectValidationRounds
+            projectId={project.id}
+            acceptedAt={(project as { accepted_at?: string | null }).accepted_at ?? null}
           />
         ) : null}
 
