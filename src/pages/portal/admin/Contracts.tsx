@@ -6,6 +6,7 @@ import AdminMetricCard from "@/components/portal/AdminMetricCard";
 import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import PortalLoading from "@/components/portal/PortalLoading";
+import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import StatusBadge from "@/components/portal/StatusBadge";
 import { Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +73,7 @@ export default function Contracts() {
   const [contracts, setContracts] = useState<ContractRow[]>([]);
   const [projects, setProjects] = useState<Map<string, ProjectRef>>(new Map());
   const [clients, setClients] = useState<Map<string, ClientRef>>(new Map());
+  const [contractDocs, setContractDocs] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -81,7 +83,7 @@ export default function Contracts() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [contractsRes, projectsRes, clientsRes] = await Promise.all([
+    const [contractsRes, projectsRes, clientsRes, docsRes] = await Promise.all([
       supabase
         .from("project_contracts")
         .select(
@@ -90,6 +92,12 @@ export default function Contracts() {
         .order("created_at", { ascending: false }),
       supabase.from("projects").select("id, name"),
       supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
+      supabase
+        .from("documents")
+        .select("contract_id, url, external_url, created_at")
+        .eq("type", "contrato")
+        .not("contract_id", "is", null)
+        .order("created_at", { ascending: false }),
     ]);
     const queryError = contractsRes.error ?? projectsRes.error ?? clientsRes.error;
     if (queryError) {
@@ -104,6 +112,18 @@ export default function Contracts() {
     const cMap = new Map<string, ClientRef>();
     for (const c of (clientsRes.data ?? []) as ClientRef[]) cMap.set(c.id, c);
     setClients(cMap);
+    // Documents: mantem apenas o mais recente por contract_id (ordenado desc).
+    const dMap = new Map<string, string>();
+    for (const d of (docsRes.data ?? []) as Array<{
+      contract_id: string | null;
+      url: string | null;
+      external_url: string | null;
+    }>) {
+      if (!d.contract_id || dMap.has(d.contract_id)) continue;
+      const href = d.external_url ?? d.url;
+      if (href) dMap.set(d.contract_id, href);
+    }
+    setContractDocs(dMap);
     setLoading(false);
   }, []);
 
@@ -226,6 +246,7 @@ export default function Contracts() {
             const client = clients.get(contract.client_id);
             const meta = contract.status ? STATUS_META[contract.status] : undefined;
             const isExpanded = expandedId === contract.id;
+            const contractDocUrl = contractDocs.get(contract.id);
             return (
               <Card key={contract.id} className="border-border/70 bg-card/95">
                 <CardContent className="space-y-3 p-4 sm:p-5">
@@ -255,6 +276,11 @@ export default function Contracts() {
                           ? (PAYMENT_MODEL_LABEL[contract.payment_model] ?? contract.payment_model)
                           : "—"}
                       </p>
+                      {contractDocUrl ? (
+                        <div className="mt-2">
+                          <ProjectSiteLink url={contractDocUrl} label="Ver contrato" />
+                        </div>
+                      ) : null}
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold tabular-nums text-foreground">
