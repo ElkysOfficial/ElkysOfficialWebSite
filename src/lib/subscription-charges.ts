@@ -38,17 +38,26 @@ export function getSubscriptionCoverageEnd(
 /**
  * Generate due dates for a subscription within its coverage window.
  *
- * With explicit end date: generates ALL dates from startsOn to endsOn.
- * Without explicit end date: generates from CURRENT MONTH up to 12 months ahead.
+ * `mode` is REQUIRED and controls backfill semantics:
+ * - `"create"`: used when creating a project. Generates ALL dates from `startsOn`
+ *   (or current month, when no explicit `endsOn`) up to the coverage end. May
+ *   backfill historical dates — appropriate only for first-time creation of a
+ *   project that legitimately started in the past.
+ * - `"sync"`: used by background reconciliation flows (ProjectDetail/Finance auto-sync).
+ *   NEVER generates dates before the first day of the current month, even with an
+ *   explicit `endsOn`. This guarantees that historical charges deleted by an admin
+ *   are not silently resurrected on the next page load.
  */
 export function listSubscriptionDueDates({
   startsOn,
   dueDay,
   endsOn,
+  mode,
 }: {
   startsOn: string;
   dueDay: number;
   endsOn?: string | null;
+  mode: "create" | "sync";
 }) {
   if (!startsOn || !Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31) return [];
 
@@ -60,15 +69,17 @@ export function listSubscriptionDueDates({
   // End boundary: explicit date or 12 months from today
   const effectiveEndsOn = endsOn ?? toIsoDate(getSafeDueDate(nowYear, nowMonth + 12, dueDay));
 
-  // Start boundary: with explicit end, start from subscription start.
-  // Without explicit end, start from current month to avoid backfilling history.
+  // Start boundary depends on mode.
+  const subscriptionFirst = computeFirstSubscriptionDueDate(startsOn, dueDay);
+  const currentMonthDue = toIsoDate(getSafeDueDate(nowYear, nowMonth, dueDay));
+
   let startDate: string;
-  if (hasExplicitEnd) {
-    startDate = computeFirstSubscriptionDueDate(startsOn, dueDay);
+  if (mode === "create" && hasExplicitEnd) {
+    // Creation flow with bounded coverage: honor the historical start date.
+    startDate = subscriptionFirst;
   } else {
-    const subscriptionFirst = computeFirstSubscriptionDueDate(startsOn, dueDay);
-    const currentMonthDue = toIsoDate(getSafeDueDate(nowYear, nowMonth, dueDay));
-    // Use the later of: subscription first due date OR current month due date
+    // sync mode (always) OR create mode without explicit end:
+    // floor the start at the current month's due date so history is never resurrected.
     startDate = subscriptionFirst > currentMonthDue ? subscriptionFirst : currentMonthDue;
   }
 
