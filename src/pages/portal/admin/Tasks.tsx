@@ -18,7 +18,17 @@ import { CheckCircle, Clock, ExternalLink, Target, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/design-system";
+import {
+  AlertDialog,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+  Field,
+  Textarea,
+  cn,
+} from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
@@ -467,6 +477,7 @@ export function TaskDetailModal({
   const [endsAt, setEndsAt] = useState(toDateTimeInput(task.ends_at));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const assignee = task.assigned_to ? memberMap.get(task.assigned_to) : null;
   const cat = CATEGORY_MAP[task.category];
@@ -510,7 +521,7 @@ export function TaskDetailModal({
   };
 
   const handleDelete = async () => {
-    if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+    setConfirmingDelete(false);
     setDeleting(true);
 
     if (task.google_event_id) {
@@ -753,7 +764,7 @@ export function TaskDetailModal({
                   variant="outline"
                   className="text-destructive hover:bg-destructive/10"
                   disabled={deleting}
-                  onClick={() => void handleDelete()}
+                  onClick={() => setConfirmingDelete(true)}
                 >
                   {deleting ? "Excluindo..." : "Excluir"}
                 </Button>
@@ -765,6 +776,21 @@ export function TaskDetailModal({
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={confirmingDelete}
+        title="Excluir tarefa?"
+        description={`A tarefa "${task.title}" sera removida permanentemente${
+          task.google_event_id ? " e tambem do Google Agenda" : ""
+        }. Esta acao nao pode ser desfeita.`}
+        confirmLabel="Excluir tarefa"
+        cancelLabel="Cancelar"
+        destructive
+        loading={deleting}
+        loadingLabel="Excluindo..."
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }
