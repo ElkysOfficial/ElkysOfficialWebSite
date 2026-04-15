@@ -296,11 +296,11 @@ const PortalRoutes = () => (
             </PortalRoleGuard>
           }
         />
-        {/* CRM hub (leads + propostas + pipeline) */}
+        {/* CRM hub (leads + propostas + pipeline) — ownership Comercial */}
         <Route
           path="crm"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "comercial"]}>
               <AdminCRM />
             </PortalRoleGuard>
           }
@@ -308,7 +308,7 @@ const PortalRoutes = () => (
         <Route
           path="leads/:id"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "comercial"]}>
               <AdminLeadDetail />
             </PortalRoleGuard>
           }
@@ -316,7 +316,7 @@ const PortalRoutes = () => (
         <Route
           path="propostas/nova"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "comercial"]}>
               <AdminProposalDetail />
             </PortalRoleGuard>
           }
@@ -324,7 +324,7 @@ const PortalRoutes = () => (
         <Route
           path="propostas/:id"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "comercial"]}>
               <AdminProposalDetail />
             </PortalRoleGuard>
           }
