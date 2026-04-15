@@ -24,19 +24,15 @@ import {
   ArrowRight,
   BarChart,
   Banknote,
-  Bell,
   Building2,
   CalendarX,
   CheckCircle,
   Code2,
-  Cog,
-  FileText,
   Folder,
   Receipt,
   Shield,
   SuporteFill,
   Target,
-  TrendingUp,
   Users,
   X,
   Zap,
@@ -56,6 +52,18 @@ type NavSection = {
   items: NavItem[];
 };
 
+// Sidebar organizada pelos 4 dominios da arquitetura (CRM / Financeiro /
+// Desenvolvimento / Juridico) + Marketing e Sistema como areas de apoio.
+// Juridico ainda nao tem tela propria (vira no Sub-step D); por enquanto
+// nao aparece como secao para nao mostrar item vazio.
+//
+// Ownership por dominio:
+//   CRM            → leads, propostas, pipeline (hub /crm)
+//   Financeiro     → clientes (master), receita, despesas, cobranca
+//   Desenvolvimento → projetos, tarefas, suporte pos-entrega
+//   Marketing      → calendario, materiais
+//   Sistema        → equipe, auditoria, documentos internos
+
 const ALL_NAV_SECTIONS: NavSection[] = [
   {
     items: [
@@ -68,8 +76,25 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Clientes & Vendas",
+    label: "CRM",
     items: [
+      {
+        label: "CRM",
+        href: "/portal/admin/crm",
+        icon: Target,
+        roles: ["admin_super", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      {
+        label: "Visão financeira",
+        href: "/portal/admin/financeiro",
+        icon: Banknote,
+        roles: ["admin_super", "admin"],
+      },
       {
         label: "Clientes",
         href: "/portal/admin/clientes",
@@ -77,21 +102,21 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["admin_super", "admin"],
       },
       {
-        label: "CRM",
-        href: "/portal/admin/crm",
-        icon: Target,
+        label: "Despesas",
+        href: "/portal/admin/despesas",
+        icon: Receipt,
         roles: ["admin_super", "admin"],
       },
       {
-        label: "Suporte",
-        href: "/portal/admin/suporte",
-        icon: SuporteFill,
-        roles: ["admin_super", "admin", "support"],
+        label: "Régua de cobrança",
+        href: "/portal/admin/cobranca-automatica",
+        icon: Zap,
+        roles: ["admin_super", "admin"],
       },
     ],
   },
   {
-    label: "Projetos",
+    label: "Desenvolvimento",
     items: [
       {
         label: "Projetos",
@@ -105,33 +130,11 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: CheckCircle,
         roles: ["admin_super", "admin", "marketing", "developer", "support"],
       },
-    ],
-  },
-  {
-    label: "Financeiro",
-    items: [
       {
-        label: "Financeiro",
-        href: "/portal/admin/financeiro",
-        icon: Banknote,
-        roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Regua de Cobranca",
-        href: "/portal/admin/cobranca-automatica",
-        icon: Zap,
-        roles: ["admin_super", "admin"],
-      },
-    ],
-  },
-  {
-    label: "Equipe",
-    items: [
-      {
-        label: "Equipe",
-        href: "/portal/admin/equipe",
-        icon: Users,
-        roles: ["admin_super", "admin"],
+        label: "Suporte",
+        href: "/portal/admin/suporte",
+        icon: SuporteFill,
+        roles: ["admin_super", "admin", "support"],
       },
     ],
   },
@@ -155,6 +158,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
   {
     label: "Sistema",
     items: [
+      {
+        label: "Equipe",
+        href: "/portal/admin/equipe",
+        icon: Users,
+        roles: ["admin_super", "admin"],
+      },
       {
         label: "Auditoria",
         href: "/portal/admin/audit-log",
