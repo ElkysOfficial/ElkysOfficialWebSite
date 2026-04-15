@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -99,9 +100,11 @@ const COLUMN_COUNT_BG: Record<ColumnKey, string> = {
 
 const CATEGORIES = [
   { value: "desenvolvimento", label: "Desenvolvimento", color: "bg-blue-500" },
+  { value: "comercial", label: "Comercial", color: "bg-cyan-500" },
+  { value: "financeiro", label: "Financeiro", color: "bg-emerald-500" },
+  { value: "juridico", label: "Jurídico", color: "bg-amber-500" },
   { value: "marketing", label: "Marketing", color: "bg-pink-500" },
   { value: "suporte", label: "Suporte", color: "bg-orange-500" },
-  { value: "financeiro", label: "Financeiro", color: "bg-emerald-500" },
   { value: "reuniao", label: "Reunião", color: "bg-purple-500" },
   { value: "geral", label: "Geral", color: "bg-slate-400" },
 ];
@@ -1141,15 +1144,29 @@ export function CreateTaskModal({
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 
+const DOMAIN_PRESETS: Record<string, { category: string; title: string }> = {
+  comercial: { category: "comercial", title: "Tarefas — Comercial" },
+  financeiro: { category: "financeiro", title: "Tarefas — Financeiro" },
+  juridico: { category: "juridico", title: "Tarefas — Jurídico" },
+  desenvolvimento: { category: "desenvolvimento", title: "Tarefas — Desenvolvimento" },
+};
+
 export default function AdminTasks() {
   const { user, roles, isAdmin } = useAuth();
+  const { domain } = useParams<{ domain?: string }>();
+  const domainPreset = domain ? DOMAIN_PRESETS[domain] : undefined;
 
   const [tasks, setTasks] = useState<TeamTask[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [categoryFilter, setCategoryFilter] = useState("todos");
+  const [categoryFilter, setCategoryFilter] = useState(domainPreset?.category ?? "todos");
+
+  // Quando o path muda (/tarefas/comercial → /tarefas/juridico), atualiza o filtro.
+  useEffect(() => {
+    setCategoryFilter(domainPreset?.category ?? "todos");
+  }, [domainPreset?.category]);
   const [priorityFilter, setPriorityFilter] = useState("todas");
   const [assignedFilter, setAssignedFilter] = useState("todos");
   const [scope, setScope] = useState<"minhas" | "todas">(() => {
