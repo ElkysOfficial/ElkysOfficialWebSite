@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -273,7 +273,16 @@ export default function AdminClients() {
   } = useAdminClients();
   const hasLoaded = !loading && !queryError;
   const pageError = queryError?.message ?? null;
-  const [page, setPage] = useState(0);
+  const [pageParam, setPageParam] = useUrlState("page", "1");
+  const page = Math.max(0, (Number(pageParam) || 1) - 1);
+  const setPage = useCallback(
+    (next: number | ((current: number) => number)) => {
+      const resolved = typeof next === "function" ? next(page) : next;
+      const safe = Math.max(0, resolved);
+      setPageParam(String(safe + 1));
+    },
+    [page, setPageParam]
+  );
   const [search, setSearch] = useUrlState("q", "");
   const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
   const [clientTypeFilter, setClientTypeFilter] = useUrlState<ClientTypeFilter>("tipo", "all");
