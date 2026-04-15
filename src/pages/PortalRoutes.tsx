@@ -25,6 +25,7 @@ const AdminCRM = lazy(() => import("./portal/admin/CRM"));
 const AdminLeadDetail = lazy(() => import("./portal/admin/LeadDetail"));
 const AdminProposalDetail = lazy(() => import("./portal/admin/ProposalDetail"));
 const AdminBillingAutomation = lazy(() => import("./portal/admin/BillingAutomation"));
+const AdminContracts = lazy(() => import("./portal/admin/Contracts"));
 const AdminTasks = lazy(() => import("./portal/admin/Tasks"));
 const AdminTeamHub = lazy(() => import("./portal/admin/TeamHub"));
 const AdminProfile = lazy(() => import("./portal/admin/Profile"));
@@ -301,6 +302,15 @@ const PortalRoutes = () => (
           element={
             <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
               <AdminBillingAutomation />
+            </PortalRoleGuard>
+          }
+        />
+        {/* Juridico — gestao de contratos */}
+        <Route
+          path="contratos"
+          element={
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+              <AdminContracts />
             </PortalRoleGuard>
           }
         />

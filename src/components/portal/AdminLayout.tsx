@@ -28,6 +28,7 @@ import {
   CalendarX,
   CheckCircle,
   Code2,
+  FileText,
   Folder,
   Receipt,
   Shield,
@@ -111,6 +112,17 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         label: "Régua de cobrança",
         href: "/portal/admin/cobranca-automatica",
         icon: Zap,
+        roles: ["admin_super", "admin"],
+      },
+    ],
+  },
+  {
+    label: "Jurídico",
+    items: [
+      {
+        label: "Contratos",
+        href: "/portal/admin/contratos",
+        icon: FileText,
         roles: ["admin_super", "admin"],
       },
     ],
@@ -355,6 +367,12 @@ const adminPageMeta = [
     title: "Regua de Cobranca",
     description:
       "Automacao de lembretes e cobrancas com regras, templates e historico de execucao.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/admin/contratos",
+    title: "Contratos",
+    description:
+      "Gestao juridica dos contratos do portal com filtros por status e historico de versoes.",
   },
   {
     match: (pathname: string) => pathname === "/portal/admin/perfil",
