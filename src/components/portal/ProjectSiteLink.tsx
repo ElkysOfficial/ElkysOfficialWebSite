@@ -8,6 +8,12 @@ interface ProjectSiteLinkProps {
    * Default e false — mostra icone + host domain (ex: "akproducoes.com.br").
    */
   iconOnly?: boolean;
+  /**
+   * Texto opcional que substitui o hostname como rotulo do link.
+   * Util para reaproveitar o componente fora de "site de produto"
+   * (ex: "Ver contrato" na tela juridica).
+   */
+  label?: string;
 }
 
 /**
@@ -60,12 +66,14 @@ export default function ProjectSiteLink({
   url,
   className,
   iconOnly = false,
+  label,
 }: ProjectSiteLinkProps) {
   const trimmed = url?.trim();
   if (!trimmed) return null;
 
   const href = trimmed.startsWith("http") ? trimmed : `https://${trimmed}`;
   const host = formatHost(trimmed);
+  const display = label ?? host;
 
   return (
     <a
@@ -78,10 +86,10 @@ export default function ProjectSiteLink({
         "hover:border-accent hover:bg-accent/10",
         className
       )}
-      title={`Abrir ${host} em nova aba`}
+      title={label ? `${label} — ${host}` : `Abrir ${host} em nova aba`}
     >
       <ExternalLinkIcon className="h-3.5 w-3.5" />
-      {iconOnly ? null : <span className="truncate max-w-[200px]">{host}</span>}
+      {iconOnly ? null : <span className="truncate max-w-[200px]">{display}</span>}
     </a>
   );
 }
