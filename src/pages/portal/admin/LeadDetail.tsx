@@ -319,63 +319,26 @@ export default function LeadDetail() {
 
     setConverting(true);
 
-    const { data: newClient, error: clientError } = await supabase
-      .from("clients")
-      .insert({
-        full_name: lead.name,
-        email: lead.email || "",
-        cpf: "",
-        phone: lead.phone || "",
-        client_type: lead.company ? "pj" : "pf",
-        nome_fantasia: lead.company || null,
-        client_origin:
-          lead.source === "indicacao"
-            ? "indicacao"
-            : lead.source === "inbound"
-              ? "inbound"
-              : "lead",
-      })
-      .select("id")
-      .single();
-
-    if (clientError || !newClient) {
-      setConverting(false);
-      toast.error("Erro ao criar cliente.");
-      return;
-    }
-
-    // Migrate proposals linked to this lead to the new client
-    await supabase
-      .from("proposals")
-      .update({ client_id: newClient.id, lead_id: null })
-      .eq("lead_id", lead.id);
-
-    const { error: updateError } = await supabase
-      .from("leads")
-      .update({ status: "ganho", converted_client_id: newClient.id })
-      .eq("id", lead.id);
+    // Auditoria P-005: conversao agora e atomica via RPC. Antes eram 4
+    // operacoes sequenciais sem transacao (insert client → update proposals
+    // → update lead → insert timeline) com fire-and-forget no meio. Se
+    // qualquer passo falhasse, dados parciais ficavam no banco.
+    const { data: newClientId, error: rpcError } = await supabase.rpc("convert_lead_to_client", {
+      p_lead_id: lead.id,
+      p_overrides: {},
+    });
 
     setConverting(false);
 
-    if (updateError) {
-      toast.error("Cliente criado, mas erro ao atualizar lead.");
-    } else {
-      toast.success("Lead convertido em cliente com sucesso!");
+    if (rpcError || !newClientId) {
+      toast.error("Erro ao converter lead.", {
+        description: rpcError?.message ?? "Falha desconhecida.",
+      });
+      return;
     }
 
-    // Timeline event for client conversion
-    void supabase.from("timeline_events").insert({
-      client_id: newClient.id,
-      event_type: "lead_convertido",
-      title: "Cliente convertido de lead",
-      summary: `Lead "${lead.name}"${lead.company ? ` (${lead.company})` : ""} convertido em cliente.`,
-      visibility: "interno",
-      source_table: "leads",
-      source_id: lead.id,
-      actor_user_id: user?.id ?? null,
-    });
-
-    navigate(`/portal/admin/clientes/${newClient.id}`);
+    toast.success("Lead convertido em cliente com sucesso!");
+    navigate(`/portal/admin/clientes/${newClientId}`);
   }
 
   /* ---- Mark as lost ---------------------------------------------- */
