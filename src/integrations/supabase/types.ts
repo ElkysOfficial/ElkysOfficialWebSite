@@ -1839,6 +1839,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      approve_proposal_to_project: {
+        Args: { p_proposal_id: string };
+        Returns: Json;
+      };
+      convert_lead_to_client: {
+        Args: { p_lead_id: string; p_overrides?: Json };
+        Returns: string;
+      };
       create_project_with_billing: { Args: { p_input: Json }; Returns: string };
       get_client_id_for_portal_user: {
         Args: { _user_id: string };

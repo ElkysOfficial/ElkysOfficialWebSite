@@ -681,117 +681,25 @@ export default function ProposalDetail() {
 
     setApproving(true);
 
-    // 1. Update proposal status to approved (skip if already approved by client)
-    if (proposal.status !== "aprovada") {
-      const { error: approveError } = await supabase
-        .from("proposals")
-        .update({
-          status: "aprovada",
-          approved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", proposal.id);
+    // Auditoria P-002, P-004: aprovacao agora e atomica via RPC. Antes
+    // eram 5+ operacoes (update proposal, lookup lead, insert project,
+    // insert contract fire-and-forget, insert document fire-and-forget,
+    // insert timeline fire-and-forget, update lead fire-and-forget). A
+    // RPC tambem auto-converte lead em cliente se necessario, eliminando
+    // o "converta o lead primeiro" manual.
+    const { data: result, error: rpcError } = await supabase.rpc("approve_proposal_to_project", {
+      p_proposal_id: proposal.id,
+    });
 
-      if (approveError) {
-        setApproving(false);
-        toast.error("Erro ao aprovar proposta.", { description: approveError.message });
-        return;
-      }
-    }
+    setApproving(false);
 
-    // 2. Resolve client_id (may come from lead conversion)
-    let clientId = proposal.client_id;
-
-    if (!clientId && proposal.lead_id) {
-      // Check if the lead was already converted to a client
-      const { data: leadData } = await supabase
-        .from("leads")
-        .select("converted_client_id")
-        .eq("id", proposal.lead_id)
-        .maybeSingle();
-
-      if (leadData?.converted_client_id) {
-        clientId = leadData.converted_client_id;
-      }
-    }
-
-    if (!clientId) {
-      setApproving(false);
-      toast.error("Não é possível criar o projeto.", {
-        description: proposal.lead_id
-          ? "O lead desta proposta ainda não foi convertido em cliente. Converta o lead primeiro e tente novamente."
-          : "A proposta não possui um cliente vinculado.",
+    if (rpcError || !result) {
+      toast.error("Erro ao aprovar proposta.", {
+        description: rpcError?.message ?? "Falha desconhecida.",
       });
       return;
     }
 
-    // 3. Create project linked to this proposal
-    if (clientId) {
-      const { data: newProject } = await supabase
-        .from("projects")
-        .insert({
-          client_id: clientId,
-          name: proposal.title,
-          description: proposal.scope_summary ?? null,
-          status: "negociacao" as const,
-          current_stage: "Acordo Formal",
-          billing_type: "projeto" as const,
-          proposal_id: proposal.id,
-          solution_type: proposal.solution_type ?? null,
-        })
-        .select("id")
-        .single();
-
-      // 3. Create draft contract pre-filled from proposal
-      if (newProject) {
-        const approvedDate = getLocalDateIso();
-        void supabase.from("project_contracts").insert({
-          project_id: newProject.id,
-          client_id: clientId,
-          total_amount: proposal.total_amount,
-          scope_summary: proposal.scope_summary ?? null,
-          starts_at: approvedDate,
-          status: "rascunho" as const,
-          payment_model: "50_50" as const,
-          created_by: user?.id ?? null,
-        });
-      }
-
-      // 3b. Auto-create document entry for technical attachment
-      if (newProject && proposal.technical_document_url) {
-        void supabase.from("documents").insert({
-          client_id: clientId,
-          project_id: newProject.id,
-          label: `Anexo tecnico - ${proposal.title}`,
-          url: proposal.technical_document_url,
-          type: "outro" as const,
-          uploaded_by: user?.id ?? null,
-        });
-      }
-
-      // 4. Timeline event
-      void supabase.from("timeline_events").insert({
-        client_id: clientId,
-        project_id: newProject?.id ?? null,
-        event_type: "proposta_aprovada",
-        title: "Projeto criado a partir de proposta",
-        summary: `Proposta "${proposal.title}" aprovada. Projeto e contrato rascunho criados.`,
-        visibility: "ambos",
-        source_table: "proposals",
-        source_id: proposal.id,
-        actor_user_id: user?.id ?? null,
-      });
-    }
-
-    // 5. If linked to a lead, advance lead status
-    if (proposal.lead_id) {
-      void supabase
-        .from("leads")
-        .update({ status: "negociacao", updated_at: new Date().toISOString() })
-        .eq("id", proposal.lead_id);
-    }
-
-    setApproving(false);
     toast.success("Projeto e contrato criados com sucesso!");
     void loadData();
   }
