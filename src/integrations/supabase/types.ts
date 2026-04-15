@@ -1033,6 +1033,68 @@ export type Database = {
         };
         Relationships: [];
       };
+      project_contract_versions: {
+        Row: {
+          change_reason: string | null;
+          changed_by: string | null;
+          contract_id: string;
+          created_at: string;
+          ends_at: string | null;
+          id: string;
+          payment_model: Database["public"]["Enums"]["payment_model"] | null;
+          scope_summary: string | null;
+          signed_at: string | null;
+          starts_at: string | null;
+          status: Database["public"]["Enums"]["contract_record_status"] | null;
+          total_amount: number | null;
+          valid_from: string;
+          valid_to: string;
+          version_no: number;
+        };
+        Insert: {
+          change_reason?: string | null;
+          changed_by?: string | null;
+          contract_id: string;
+          created_at?: string;
+          ends_at?: string | null;
+          id?: string;
+          payment_model?: Database["public"]["Enums"]["payment_model"] | null;
+          scope_summary?: string | null;
+          signed_at?: string | null;
+          starts_at?: string | null;
+          status?: Database["public"]["Enums"]["contract_record_status"] | null;
+          total_amount?: number | null;
+          valid_from: string;
+          valid_to?: string;
+          version_no: number;
+        };
+        Update: {
+          change_reason?: string | null;
+          changed_by?: string | null;
+          contract_id?: string;
+          created_at?: string;
+          ends_at?: string | null;
+          id?: string;
+          payment_model?: Database["public"]["Enums"]["payment_model"] | null;
+          scope_summary?: string | null;
+          signed_at?: string | null;
+          starts_at?: string | null;
+          status?: Database["public"]["Enums"]["contract_record_status"] | null;
+          total_amount?: number | null;
+          valid_from?: string;
+          valid_to?: string;
+          version_no?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_contract_versions_contract_id_fkey";
+            columns: ["contract_id"];
+            isOneToOne: false;
+            referencedRelation: "project_contracts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       project_contracts: {
         Row: {
           client_id: string;
@@ -1836,7 +1898,25 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      project_contract_history: {
+        Row: {
+          change_reason: string | null;
+          changed_by: string | null;
+          contract_id: string | null;
+          ends_at: string | null;
+          is_current: boolean | null;
+          payment_model: Database["public"]["Enums"]["payment_model"] | null;
+          scope_summary: string | null;
+          signed_at: string | null;
+          starts_at: string | null;
+          status: Database["public"]["Enums"]["contract_record_status"] | null;
+          total_amount: number | null;
+          valid_from: string | null;
+          valid_to: string | null;
+          version_no: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       approve_proposal_to_project: {
