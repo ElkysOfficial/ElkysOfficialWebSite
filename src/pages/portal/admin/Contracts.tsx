@@ -158,7 +158,7 @@ export default function Contracts() {
           label="Contratos no filtro"
           value={String(totals.count)}
           icon={FileText}
-          tone="brand"
+          tone="primary"
         />
         <AdminMetricCard
           label="Ativos"
