@@ -6,436 +6,248 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       admin_notifications: {
         Row: {
-          id: string;
-          type: string;
-          title: string;
-          body: string;
-          severity: string;
-          target_roles: string[];
-          entity_type: string | null;
-          entity_id: string | null;
           action_url: string | null;
-          read_by: string[];
+          body: string;
           created_at: string;
+          created_by: string | null;
+          entity_id: string | null;
+          entity_type: string | null;
+          id: string;
+          read_by: string[];
+          severity: string;
+          target_roles: Database["public"]["Enums"]["app_role"][];
+          title: string;
+          type: string;
         };
         Insert: {
-          id?: string;
-          type: string;
-          title: string;
-          body: string;
-          severity?: string;
-          target_roles?: string[];
-          entity_type?: string | null;
-          entity_id?: string | null;
           action_url?: string | null;
-          read_by?: string[];
+          body: string;
           created_at?: string;
+          created_by?: string | null;
+          entity_id?: string | null;
+          entity_type?: string | null;
+          id?: string;
+          read_by?: string[];
+          severity?: string;
+          target_roles?: Database["public"]["Enums"]["app_role"][];
+          title: string;
+          type: string;
         };
         Update: {
-          id?: string;
-          type?: string;
-          title?: string;
-          body?: string;
-          severity?: string;
-          target_roles?: string[];
-          entity_type?: string | null;
-          entity_id?: string | null;
           action_url?: string | null;
-          read_by?: string[];
+          body?: string;
           created_at?: string;
+          created_by?: string | null;
+          entity_id?: string | null;
+          entity_type?: string | null;
+          id?: string;
+          read_by?: string[];
+          severity?: string;
+          target_roles?: Database["public"]["Enums"]["app_role"][];
+          title?: string;
+          type?: string;
         };
         Relationships: [];
       };
       audit_logs: {
         Row: {
-          id: string;
-          entity_type: string;
-          entity_id: string;
           action: string;
-          before_data: Json | null;
-          after_data: Json | null;
-          reason: string | null;
           actor_user_id: string | null;
+          after_data: Json | null;
+          before_data: Json | null;
           created_at: string;
-        };
-        Insert: {
-          id?: string;
-          entity_type: string;
           entity_id: string;
+          entity_type: string;
+          id: string;
+          reason: string | null;
+        };
+        Insert: {
           action: string;
-          before_data?: Json | null;
-          after_data?: Json | null;
-          reason?: string | null;
           actor_user_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
           created_at?: string;
+          entity_id: string;
+          entity_type: string;
+          id?: string;
+          reason?: string | null;
         };
         Update: {
-          id?: string;
-          entity_type?: string;
-          entity_id?: string;
           action?: string;
-          before_data?: Json | null;
-          after_data?: Json | null;
-          reason?: string | null;
           actor_user_id?: string | null;
+          after_data?: Json | null;
+          before_data?: Json | null;
           created_at?: string;
+          entity_id?: string;
+          entity_type?: string;
+          id?: string;
+          reason?: string | null;
         };
         Relationships: [];
-      };
-      clients: {
-        Row: {
-          address: string | null;
-          bairro: string | null;
-          cargo_representante: string | null;
-          cep: string | null;
-          city: string | null;
-          complemento: string | null;
-          logradouro: string | null;
-          numero: string | null;
-          client_origin: Database["public"]["Enums"]["client_origin"] | null;
-          client_since: string;
-          client_type: string;
-          cnpj: string | null;
-          contract_end: string | null;
-          contract_start: string | null;
-          contract_status: Database["public"]["Enums"]["contract_status"] | null;
-          contract_type: Database["public"]["Enums"]["contract_type"] | null;
-          country: string;
-          cpf: string;
-          created_at: string;
-          email: string;
-          full_name: string;
-          id: string;
-          is_active: boolean;
-          monthly_value: number;
-          must_change_password: boolean;
-          nome_fantasia: string | null;
-          payment_due_day: number | null;
-          phone: string | null;
-          project_total_value: number;
-          razao_social: string | null;
-          scope_summary: string | null;
-          state: string | null;
-          tags: string[];
-          updated_at: string;
-          user_id: string | null;
-        };
-        Insert: {
-          address?: string | null;
-          bairro?: string | null;
-          cargo_representante?: string | null;
-          cep?: string | null;
-          city?: string | null;
-          complemento?: string | null;
-          logradouro?: string | null;
-          numero?: string | null;
-          client_origin?: Database["public"]["Enums"]["client_origin"] | null;
-          client_since?: string;
-          client_type?: string;
-          cnpj?: string | null;
-          contract_end?: string | null;
-          contract_start?: string | null;
-          contract_status?: Database["public"]["Enums"]["contract_status"] | null;
-          contract_type?: Database["public"]["Enums"]["contract_type"] | null;
-          country?: string;
-          cpf: string;
-          created_at?: string;
-          email: string;
-          full_name: string;
-          id?: string;
-          is_active?: boolean;
-          monthly_value?: number;
-          must_change_password?: boolean;
-          nome_fantasia?: string | null;
-          payment_due_day?: number | null;
-          phone?: string | null;
-          project_total_value?: number;
-          razao_social?: string | null;
-          scope_summary?: string | null;
-          state?: string | null;
-          tags?: string[];
-          updated_at?: string;
-          user_id?: string | null;
-        };
-        Update: {
-          address?: string | null;
-          bairro?: string | null;
-          cargo_representante?: string | null;
-          cep?: string | null;
-          city?: string | null;
-          complemento?: string | null;
-          logradouro?: string | null;
-          numero?: string | null;
-          client_origin?: Database["public"]["Enums"]["client_origin"] | null;
-          client_since?: string;
-          client_type?: string;
-          cnpj?: string | null;
-          contract_end?: string | null;
-          contract_start?: string | null;
-          contract_status?: Database["public"]["Enums"]["contract_status"] | null;
-          contract_type?: Database["public"]["Enums"]["contract_type"] | null;
-          country?: string;
-          cpf?: string;
-          created_at?: string;
-          email?: string;
-          full_name?: string;
-          id?: string;
-          is_active?: boolean;
-          monthly_value?: number;
-          must_change_password?: boolean;
-          nome_fantasia?: string | null;
-          payment_due_day?: number | null;
-          phone?: string | null;
-          project_total_value?: number;
-          razao_social?: string | null;
-          scope_summary?: string | null;
-          state?: string | null;
-          tags?: string[];
-          updated_at?: string;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
-      client_contacts: {
-        Row: {
-          auth_user_id: string | null;
-          client_id: string;
-          cpf: string | null;
-          created_at: string;
-          email: string;
-          full_name: string;
-          id: string;
-          is_legal_representative: boolean;
-          is_primary: boolean;
-          phone: string | null;
-          receives_finance: boolean;
-          role_label: string | null;
-          updated_at: string;
-        };
-        Insert: {
-          auth_user_id?: string | null;
-          client_id: string;
-          cpf?: string | null;
-          created_at?: string;
-          email: string;
-          full_name: string;
-          id?: string;
-          is_legal_representative?: boolean;
-          is_primary?: boolean;
-          phone?: string | null;
-          receives_finance?: boolean;
-          role_label?: string | null;
-          updated_at?: string;
-        };
-        Update: {
-          auth_user_id?: string | null;
-          client_id?: string;
-          cpf?: string | null;
-          created_at?: string;
-          email?: string;
-          full_name?: string;
-          id?: string;
-          is_legal_representative?: boolean;
-          is_primary?: boolean;
-          phone?: string | null;
-          receives_finance?: boolean;
-          role_label?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "client_contacts_auth_user_id_fkey";
-            columns: ["auth_user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "client_contacts_client_id_fkey";
-            columns: ["client_id"];
-            isOneToOne: false;
-            referencedRelation: "clients";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      support_tickets: {
-        Row: {
-          body: string;
-          category: string;
-          client_id: string;
-          created_at: string;
-          first_response_at: string | null;
-          id: string;
-          internal_notes: string | null;
-          priority: string;
-          project_id: string | null;
-          rated_at: string | null;
-          rating: number | null;
-          rating_feedback: string | null;
-          resolved_at: string | null;
-          status: string;
-          subject: string;
-          updated_at: string;
-        };
-        Insert: {
-          body: string;
-          category?: string;
-          client_id: string;
-          created_at?: string;
-          first_response_at?: string | null;
-          id?: string;
-          internal_notes?: string | null;
-          priority?: string;
-          project_id?: string | null;
-          rated_at?: string | null;
-          rating?: number | null;
-          rating_feedback?: string | null;
-          resolved_at?: string | null;
-          status?: string;
-          subject: string;
-          updated_at?: string;
-        };
-        Update: {
-          body?: string;
-          category?: string;
-          client_id?: string;
-          created_at?: string;
-          first_response_at?: string | null;
-          id?: string;
-          internal_notes?: string | null;
-          priority?: string;
-          project_id?: string | null;
-          rated_at?: string | null;
-          rating?: number | null;
-          rating_feedback?: string | null;
-          resolved_at?: string | null;
-          status?: string;
-          subject?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "support_tickets_client_id_fkey";
-            columns: ["client_id"];
-            isOneToOne: false;
-            referencedRelation: "clients";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "support_tickets_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "projects";
-            referencedColumns: ["id"];
-          },
-        ];
       };
       billing_actions_log: {
         Row: {
-          id: string;
-          charge_id: string;
-          rule_id: string | null;
           action_type: string;
-          template_id: string | null;
-          sent_at: string;
-          status: string;
+          charge_id: string;
           error_message: string | null;
+          id: string;
+          rule_id: string | null;
+          sent_at: string;
+          sent_date: string | null;
+          status: string;
+          template_id: string | null;
           triggered_by: string;
         };
         Insert: {
-          id?: string;
-          charge_id: string;
-          rule_id?: string | null;
           action_type: string;
-          template_id?: string | null;
-          sent_at?: string;
-          status?: string;
+          charge_id: string;
           error_message?: string | null;
+          id?: string;
+          rule_id?: string | null;
+          sent_at?: string;
+          sent_date?: string | null;
+          status?: string;
+          template_id?: string | null;
           triggered_by?: string;
         };
         Update: {
-          id?: string;
-          charge_id?: string;
-          rule_id?: string | null;
           action_type?: string;
-          template_id?: string | null;
-          sent_at?: string;
-          status?: string;
+          charge_id?: string;
           error_message?: string | null;
+          id?: string;
+          rule_id?: string | null;
+          sent_at?: string;
+          sent_date?: string | null;
+          status?: string;
+          template_id?: string | null;
           triggered_by?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "billing_actions_log_charge_id_fkey";
+            columns: ["charge_id"];
+            isOneToOne: false;
+            referencedRelation: "charges";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_actions_log_rule_id_fkey";
+            columns: ["rule_id"];
+            isOneToOne: false;
+            referencedRelation: "billing_rules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_actions_log_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "billing_templates";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       billing_rules: {
         Row: {
-          id: string;
-          name: string;
-          trigger_days: number;
           action_type: string;
-          template_id: string | null;
-          is_active: boolean;
-          sort_order: number;
           created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          template_id: string | null;
+          trigger_days: number;
           updated_at: string;
         };
         Insert: {
-          id?: string;
-          name: string;
-          trigger_days: number;
           action_type: string;
-          template_id?: string | null;
-          is_active?: boolean;
-          sort_order?: number;
           created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          sort_order?: number;
+          template_id?: string | null;
+          trigger_days: number;
           updated_at?: string;
         };
         Update: {
-          id?: string;
-          name?: string;
-          trigger_days?: number;
           action_type?: string;
-          template_id?: string | null;
-          is_active?: boolean;
-          sort_order?: number;
           created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          template_id?: string | null;
+          trigger_days?: number;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "billing_rules_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "billing_templates";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       billing_templates: {
         Row: {
+          body: string;
+          created_at: string;
           id: string;
+          is_active: boolean;
           name: string;
           subject: string;
-          body: string;
           type: string;
-          is_active: boolean;
-          created_at: string;
           updated_at: string;
         };
         Insert: {
+          body: string;
+          created_at?: string;
           id?: string;
+          is_active?: boolean;
           name: string;
           subject: string;
-          body: string;
           type?: string;
-          is_active?: boolean;
-          created_at?: string;
           updated_at?: string;
         };
         Update: {
+          body?: string;
+          created_at?: string;
           id?: string;
+          is_active?: boolean;
           name?: string;
           subject?: string;
-          body?: string;
           type?: string;
-          is_active?: boolean;
-          created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -539,6 +351,176 @@ export type Database = {
           },
         ];
       };
+      client_contacts: {
+        Row: {
+          auth_user_id: string | null;
+          client_id: string;
+          cpf: string | null;
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          is_legal_representative: boolean;
+          is_primary: boolean;
+          phone: string | null;
+          receives_finance: boolean;
+          role_label: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          auth_user_id?: string | null;
+          client_id: string;
+          cpf?: string | null;
+          created_at?: string;
+          email: string;
+          full_name: string;
+          id?: string;
+          is_legal_representative?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          receives_finance?: boolean;
+          role_label?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          auth_user_id?: string | null;
+          client_id?: string;
+          cpf?: string | null;
+          created_at?: string;
+          email?: string;
+          full_name?: string;
+          id?: string;
+          is_legal_representative?: boolean;
+          is_primary?: boolean;
+          phone?: string | null;
+          receives_finance?: boolean;
+          role_label?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      clients: {
+        Row: {
+          address: string | null;
+          bairro: string | null;
+          cargo_representante: string | null;
+          cep: string | null;
+          city: string | null;
+          client_origin: Database["public"]["Enums"]["client_origin"] | null;
+          client_since: string;
+          client_type: string;
+          cnpj: string | null;
+          complemento: string | null;
+          contract_end: string | null;
+          contract_start: string | null;
+          contract_status: Database["public"]["Enums"]["contract_status"] | null;
+          contract_type: Database["public"]["Enums"]["contract_type"] | null;
+          country: string;
+          cpf: string;
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          logradouro: string | null;
+          monthly_value: number;
+          must_change_password: boolean;
+          nome_fantasia: string | null;
+          numero: string | null;
+          payment_due_day: number | null;
+          phone: string | null;
+          project_total_value: number;
+          razao_social: string | null;
+          scope_summary: string | null;
+          state: string | null;
+          tags: string[];
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          address?: string | null;
+          bairro?: string | null;
+          cargo_representante?: string | null;
+          cep?: string | null;
+          city?: string | null;
+          client_origin?: Database["public"]["Enums"]["client_origin"] | null;
+          client_since?: string;
+          client_type?: string;
+          cnpj?: string | null;
+          complemento?: string | null;
+          contract_end?: string | null;
+          contract_start?: string | null;
+          contract_status?: Database["public"]["Enums"]["contract_status"] | null;
+          contract_type?: Database["public"]["Enums"]["contract_type"] | null;
+          country?: string;
+          cpf: string;
+          created_at?: string;
+          email: string;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          logradouro?: string | null;
+          monthly_value?: number;
+          must_change_password?: boolean;
+          nome_fantasia?: string | null;
+          numero?: string | null;
+          payment_due_day?: number | null;
+          phone?: string | null;
+          project_total_value?: number;
+          razao_social?: string | null;
+          scope_summary?: string | null;
+          state?: string | null;
+          tags?: string[];
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          address?: string | null;
+          bairro?: string | null;
+          cargo_representante?: string | null;
+          cep?: string | null;
+          city?: string | null;
+          client_origin?: Database["public"]["Enums"]["client_origin"] | null;
+          client_since?: string;
+          client_type?: string;
+          cnpj?: string | null;
+          complemento?: string | null;
+          contract_end?: string | null;
+          contract_start?: string | null;
+          contract_status?: Database["public"]["Enums"]["contract_status"] | null;
+          contract_type?: Database["public"]["Enums"]["contract_type"] | null;
+          country?: string;
+          cpf?: string;
+          created_at?: string;
+          email?: string;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          logradouro?: string | null;
+          monthly_value?: number;
+          must_change_password?: boolean;
+          nome_fantasia?: string | null;
+          numero?: string | null;
+          payment_due_day?: number | null;
+          phone?: string | null;
+          project_total_value?: number;
+          razao_social?: string | null;
+          scope_summary?: string | null;
+          state?: string | null;
+          tags?: string[];
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       documents: {
         Row: {
           archived_at: string | null;
@@ -612,6 +594,99 @@ export type Database = {
           },
         ];
       };
+      expenses: {
+        Row: {
+          amount: number;
+          category: string;
+          client_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string;
+          expense_date: string;
+          id: string;
+          is_fixed: boolean;
+          notes: string | null;
+          project_id: string | null;
+        };
+        Insert: {
+          amount: number;
+          category?: string;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description: string;
+          expense_date?: string;
+          id?: string;
+          is_fixed?: boolean;
+          notes?: string | null;
+          project_id?: string | null;
+        };
+        Update: {
+          amount?: number;
+          category?: string;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string;
+          expense_date?: string;
+          id?: string;
+          is_fixed?: boolean;
+          notes?: string | null;
+          project_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expenses_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      financial_goals: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          notes: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: string;
+          target_amount: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          notes?: string | null;
+          period_end: string;
+          period_start: string;
+          period_type: string;
+          target_amount: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          notes?: string | null;
+          period_end?: string;
+          period_start?: string;
+          period_type?: string;
+          target_amount?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       internal_team_documents: {
         Row: {
           audience: string;
@@ -645,155 +720,105 @@ export type Database = {
         };
         Relationships: [];
       };
-      expenses: {
-        Row: {
-          amount: number;
-          category: string;
-          created_at: string;
-          description: string;
-          expense_date: string;
-          id: string;
-          notes: string | null;
-        };
-        Insert: {
-          amount: number;
-          category?: string;
-          created_at?: string;
-          description: string;
-          expense_date?: string;
-          id?: string;
-          notes?: string | null;
-        };
-        Update: {
-          amount?: number;
-          category?: string;
-          created_at?: string;
-          description?: string;
-          expense_date?: string;
-          id?: string;
-          notes?: string | null;
-        };
-        Relationships: [];
-      };
-      financial_goals: {
-        Row: {
-          id: string;
-          period_type: string;
-          period_start: string;
-          period_end: string;
-          target_amount: number;
-          notes: string | null;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          period_type: string;
-          period_start: string;
-          period_end: string;
-          target_amount: number;
-          notes?: string | null;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          period_type?: string;
-          period_start?: string;
-          period_end?: string;
-          target_amount?: number;
-          notes?: string | null;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       lead_interactions: {
         Row: {
+          created_at: string;
+          created_by: string | null;
           id: string;
           lead_id: string;
-          type: string;
           notes: string;
-          created_by: string | null;
-          created_at: string;
+          type: string;
         };
         Insert: {
+          created_at?: string;
+          created_by?: string | null;
           id?: string;
           lead_id: string;
-          type: string;
           notes: string;
-          created_by?: string | null;
-          created_at?: string;
+          type: string;
         };
         Update: {
+          created_at?: string;
+          created_by?: string | null;
           id?: string;
           lead_id?: string;
-          type?: string;
           notes?: string;
-          created_by?: string | null;
-          created_at?: string;
+          type?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "lead_interactions_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       leads: {
         Row: {
-          id: string;
-          name: string;
-          email: string | null;
-          phone: string | null;
+          assigned_to: string | null;
           company: string | null;
+          converted_client_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          estimated_value: number | null;
+          id: string;
+          lost_reason: string | null;
+          name: string;
+          notes: string | null;
+          phone: string | null;
+          probability: number | null;
           source: string;
           status: string;
-          estimated_value: number;
-          probability: number;
-          assigned_to: string | null;
-          notes: string | null;
-          lost_reason: string | null;
-          converted_client_id: string | null;
-          created_by: string | null;
-          created_at: string;
           updated_at: string;
         };
         Insert: {
-          id?: string;
-          name: string;
-          email?: string | null;
-          phone?: string | null;
+          assigned_to?: string | null;
           company?: string | null;
+          converted_client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          estimated_value?: number | null;
+          id?: string;
+          lost_reason?: string | null;
+          name: string;
+          notes?: string | null;
+          phone?: string | null;
+          probability?: number | null;
           source?: string;
           status?: string;
-          estimated_value?: number;
-          probability?: number;
-          assigned_to?: string | null;
-          notes?: string | null;
-          lost_reason?: string | null;
-          converted_client_id?: string | null;
-          created_by?: string | null;
-          created_at?: string;
           updated_at?: string;
         };
         Update: {
-          id?: string;
-          name?: string;
-          email?: string | null;
-          phone?: string | null;
+          assigned_to?: string | null;
           company?: string | null;
+          converted_client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          estimated_value?: number | null;
+          id?: string;
+          lost_reason?: string | null;
+          name?: string;
+          notes?: string | null;
+          phone?: string | null;
+          probability?: number | null;
           source?: string;
           status?: string;
-          estimated_value?: number;
-          probability?: number;
-          assigned_to?: string | null;
-          notes?: string | null;
-          lost_reason?: string | null;
-          converted_client_id?: string | null;
-          created_by?: string | null;
-          created_at?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_client_id_fkey";
+            columns: ["converted_client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       marketing_calendar_events: {
         Row: {
@@ -860,6 +885,111 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      notification_recipients: {
+        Row: {
+          client_id: string;
+          created_at: string;
+          email_error: string | null;
+          email_sent: boolean;
+          id: string;
+          notification_id: string;
+          read_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          client_id: string;
+          created_at?: string;
+          email_error?: string | null;
+          email_sent?: boolean;
+          id?: string;
+          notification_id: string;
+          read_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          client_id?: string;
+          created_at?: string;
+          email_error?: string | null;
+          email_sent?: boolean;
+          id?: string;
+          notification_id?: string;
+          read_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_recipients_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notification_recipients_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          body: string;
+          created_at: string;
+          created_by: string | null;
+          error_count: number | null;
+          filter_client_ids: string[] | null;
+          filter_contract_status: string | null;
+          filter_mode: string;
+          filter_tags: string[] | null;
+          id: string;
+          recipient_count: number | null;
+          send_at: string | null;
+          sent_at: string | null;
+          status: Database["public"]["Enums"]["notification_status"];
+          title: string;
+          type: Database["public"]["Enums"]["notification_type"];
+          updated_at: string;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          created_by?: string | null;
+          error_count?: number | null;
+          filter_client_ids?: string[] | null;
+          filter_contract_status?: string | null;
+          filter_mode?: string;
+          filter_tags?: string[] | null;
+          id?: string;
+          recipient_count?: number | null;
+          send_at?: string | null;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          title: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+          updated_at?: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          error_count?: number | null;
+          filter_client_ids?: string[] | null;
+          filter_contract_status?: string | null;
+          filter_mode?: string;
+          filter_tags?: string[] | null;
+          id?: string;
+          recipient_count?: number | null;
+          send_at?: string | null;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["notification_status"];
+          title?: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -1047,14 +1177,17 @@ export type Database = {
       };
       project_next_steps: {
         Row: {
+          action_type: Database["public"]["Enums"]["next_step_action_type"];
+          assigned_to: string | null;
           client_id: string;
-          client_visible: boolean;
           client_responded_at: string | null;
           client_response: string | null;
+          client_visible: boolean;
           created_at: string;
           description: string | null;
           due_date: string | null;
           id: string;
+          meeting_link: string | null;
           owner: Database["public"]["Enums"]["next_step_owner"];
           project_id: string;
           requires_client_action: boolean;
@@ -1064,14 +1197,17 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          action_type?: Database["public"]["Enums"]["next_step_action_type"];
+          assigned_to?: string | null;
           client_id: string;
-          client_visible?: boolean;
           client_responded_at?: string | null;
           client_response?: string | null;
+          client_visible?: boolean;
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
           id?: string;
+          meeting_link?: string | null;
           owner?: Database["public"]["Enums"]["next_step_owner"];
           project_id: string;
           requires_client_action?: boolean;
@@ -1081,14 +1217,17 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          action_type?: Database["public"]["Enums"]["next_step_action_type"];
+          assigned_to?: string | null;
           client_id?: string;
-          client_visible?: boolean;
           client_responded_at?: string | null;
           client_response?: string | null;
+          client_visible?: boolean;
           created_at?: string;
           description?: string | null;
           due_date?: string | null;
           id?: string;
+          meeting_link?: string | null;
           owner?: Database["public"]["Enums"]["next_step_owner"];
           project_id?: string;
           requires_client_action?: boolean;
@@ -1177,81 +1316,12 @@ export type Database = {
           },
         ];
       };
-      proposals: {
-        Row: {
-          id: string;
-          client_id: string | null;
-          lead_id: string | null;
-          title: string;
-          status: string;
-          valid_until: string | null;
-          total_amount: number;
-          scope_summary: string | null;
-          payment_conditions: string | null;
-          observations: string | null;
-          document_url: string | null;
-          solution_type: string | null;
-          technical_document_url: string | null;
-          approved_at: string | null;
-          rejected_at: string | null;
-          rejection_reason: string | null;
-          sent_at: string | null;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          client_id?: string | null;
-          lead_id?: string | null;
-          title: string;
-          status?: string;
-          valid_until?: string | null;
-          total_amount?: number;
-          scope_summary?: string | null;
-          payment_conditions?: string | null;
-          observations?: string | null;
-          document_url?: string | null;
-          solution_type?: string | null;
-          technical_document_url?: string | null;
-          approved_at?: string | null;
-          rejected_at?: string | null;
-          rejection_reason?: string | null;
-          sent_at?: string | null;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          client_id?: string | null;
-          lead_id?: string | null;
-          title?: string;
-          status?: string;
-          valid_until?: string | null;
-          total_amount?: number;
-          scope_summary?: string | null;
-          payment_conditions?: string | null;
-          observations?: string | null;
-          document_url?: string | null;
-          solution_type?: string | null;
-          technical_document_url?: string | null;
-          approved_at?: string | null;
-          rejected_at?: string | null;
-          rejection_reason?: string | null;
-          sent_at?: string | null;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       projects: {
         Row: {
           archived_at: string | null;
           billing_type: Database["public"]["Enums"]["billing_type"];
-          client_visible_summary: string | null;
           client_id: string;
+          client_visible_summary: string | null;
           created_at: string;
           current_stage: string;
           delivered_at: string | null;
@@ -1274,8 +1344,8 @@ export type Database = {
         Insert: {
           archived_at?: string | null;
           billing_type?: Database["public"]["Enums"]["billing_type"];
-          client_visible_summary?: string | null;
           client_id: string;
+          client_visible_summary?: string | null;
           created_at?: string;
           current_stage?: string;
           delivered_at?: string | null;
@@ -1298,8 +1368,8 @@ export type Database = {
         Update: {
           archived_at?: string | null;
           billing_type?: Database["public"]["Enums"]["billing_type"];
-          client_visible_summary?: string | null;
           client_id?: string;
+          client_visible_summary?: string | null;
           created_at?: string;
           current_stage?: string;
           delivered_at?: string | null;
@@ -1308,11 +1378,11 @@ export type Database = {
           id?: string;
           internal_notes?: string | null;
           manual_status_override?: boolean;
-          proposal_id?: string | null;
           name?: string;
           pause_reason?: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source?: Database["public"]["Enums"]["pause_source"] | null;
           production_url?: string | null;
+          proposal_id?: string | null;
           solution_type?: string | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["project_status"];
@@ -1325,6 +1395,357 @@ export type Database = {
             columns: ["client_id"];
             isOneToOne: false;
             referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_proposal_id_fkey";
+            columns: ["proposal_id"];
+            isOneToOne: false;
+            referencedRelation: "proposals";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      proposals: {
+        Row: {
+          approved_at: string | null;
+          client_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          document_url: string | null;
+          id: string;
+          lead_id: string | null;
+          observations: string | null;
+          payment_conditions: string | null;
+          rejected_at: string | null;
+          rejection_reason: string | null;
+          scope_summary: string | null;
+          sent_at: string | null;
+          solution_type: string | null;
+          status: string;
+          technical_document_url: string | null;
+          title: string;
+          total_amount: number;
+          updated_at: string;
+          valid_until: string | null;
+        };
+        Insert: {
+          approved_at?: string | null;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          document_url?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          observations?: string | null;
+          payment_conditions?: string | null;
+          rejected_at?: string | null;
+          rejection_reason?: string | null;
+          scope_summary?: string | null;
+          sent_at?: string | null;
+          solution_type?: string | null;
+          status?: string;
+          technical_document_url?: string | null;
+          title: string;
+          total_amount?: number;
+          updated_at?: string;
+          valid_until?: string | null;
+        };
+        Update: {
+          approved_at?: string | null;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          document_url?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          observations?: string | null;
+          payment_conditions?: string | null;
+          rejected_at?: string | null;
+          rejection_reason?: string | null;
+          scope_summary?: string | null;
+          sent_at?: string | null;
+          solution_type?: string | null;
+          status?: string;
+          technical_document_url?: string | null;
+          title?: string;
+          total_amount?: number;
+          updated_at?: string;
+          valid_until?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "proposals_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proposals_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      support_tickets: {
+        Row: {
+          body: string;
+          category: string;
+          client_id: string;
+          created_at: string;
+          first_response_at: string | null;
+          id: string;
+          internal_notes: string | null;
+          priority: string;
+          project_id: string | null;
+          rated_at: string | null;
+          rating: number | null;
+          rating_feedback: string | null;
+          resolved_at: string | null;
+          sla_deadline: string | null;
+          status: string;
+          subject: string;
+          updated_at: string;
+        };
+        Insert: {
+          body: string;
+          category?: string;
+          client_id: string;
+          created_at?: string;
+          first_response_at?: string | null;
+          id?: string;
+          internal_notes?: string | null;
+          priority?: string;
+          project_id?: string | null;
+          rated_at?: string | null;
+          rating?: number | null;
+          rating_feedback?: string | null;
+          resolved_at?: string | null;
+          sla_deadline?: string | null;
+          status?: string;
+          subject: string;
+          updated_at?: string;
+        };
+        Update: {
+          body?: string;
+          category?: string;
+          client_id?: string;
+          created_at?: string;
+          first_response_at?: string | null;
+          id?: string;
+          internal_notes?: string | null;
+          priority?: string;
+          project_id?: string | null;
+          rated_at?: string | null;
+          rating?: number | null;
+          rating_feedback?: string | null;
+          resolved_at?: string | null;
+          sla_deadline?: string | null;
+          status?: string;
+          subject?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "support_tickets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      team_members: {
+        Row: {
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          must_change_password: boolean;
+          phone: string | null;
+          role_title: string;
+          system_role: Database["public"]["Enums"]["app_role"] | null;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          full_name: string;
+          id?: string;
+          is_active?: boolean;
+          must_change_password?: boolean;
+          phone?: string | null;
+          role_title?: string;
+          system_role?: Database["public"]["Enums"]["app_role"] | null;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          full_name?: string;
+          id?: string;
+          is_active?: boolean;
+          must_change_password?: boolean;
+          phone?: string | null;
+          role_title?: string;
+          system_role?: Database["public"]["Enums"]["app_role"] | null;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      team_tasks: {
+        Row: {
+          assigned_to: string | null;
+          category: string;
+          client_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          due_date: string | null;
+          ends_at: string | null;
+          google_event_id: string | null;
+          google_meet_link: string | null;
+          id: string;
+          marketing_event_id: string | null;
+          next_step_id: string | null;
+          priority: string;
+          project_id: string | null;
+          role_visibility: string[];
+          starts_at: string | null;
+          status: string;
+          ticket_id: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          assigned_to?: string | null;
+          category?: string;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          due_date?: string | null;
+          ends_at?: string | null;
+          google_event_id?: string | null;
+          google_meet_link?: string | null;
+          id?: string;
+          marketing_event_id?: string | null;
+          next_step_id?: string | null;
+          priority?: string;
+          project_id?: string | null;
+          role_visibility?: string[];
+          starts_at?: string | null;
+          status?: string;
+          ticket_id?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_to?: string | null;
+          category?: string;
+          client_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          due_date?: string | null;
+          ends_at?: string | null;
+          google_event_id?: string | null;
+          google_meet_link?: string | null;
+          id?: string;
+          marketing_event_id?: string | null;
+          next_step_id?: string | null;
+          priority?: string;
+          project_id?: string | null;
+          role_visibility?: string[];
+          starts_at?: string | null;
+          status?: string;
+          ticket_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_tasks_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_tasks_marketing_event_id_fkey";
+            columns: ["marketing_event_id"];
+            isOneToOne: false;
+            referencedRelation: "marketing_calendar_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_tasks_next_step_id_fkey";
+            columns: ["next_step_id"];
+            isOneToOne: false;
+            referencedRelation: "project_next_steps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_tasks_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_tasks_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ticket_messages: {
+        Row: {
+          author_name: string;
+          body: string;
+          created_at: string;
+          id: string;
+          sender_role: string;
+          ticket_id: string;
+        };
+        Insert: {
+          author_name: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+          sender_role: string;
+          ticket_id: string;
+        };
+        Update: {
+          author_name?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          sender_role?: string;
+          ticket_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey";
+            columns: ["ticket_id"];
+            isOneToOne: false;
+            referencedRelation: "support_tickets";
             referencedColumns: ["id"];
           },
         ];
@@ -1392,153 +1813,6 @@ export type Database = {
           },
         ];
       };
-      notifications: {
-        Row: {
-          id: string;
-          title: string;
-          body: string;
-          type: Database["public"]["Enums"]["notification_type"];
-          status: Database["public"]["Enums"]["notification_status"];
-          send_at: string | null;
-          sent_at: string | null;
-          filter_mode: string;
-          filter_tags: string[];
-          filter_contract_status: string | null;
-          filter_client_ids: string[];
-          recipient_count: number;
-          error_count: number;
-          created_by: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          title: string;
-          body: string;
-          type?: Database["public"]["Enums"]["notification_type"];
-          status?: Database["public"]["Enums"]["notification_status"];
-          send_at?: string | null;
-          sent_at?: string | null;
-          filter_mode?: string;
-          filter_tags?: string[];
-          filter_contract_status?: string | null;
-          filter_client_ids?: string[];
-          recipient_count?: number;
-          error_count?: number;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          title?: string;
-          body?: string;
-          type?: Database["public"]["Enums"]["notification_type"];
-          status?: Database["public"]["Enums"]["notification_status"];
-          send_at?: string | null;
-          sent_at?: string | null;
-          filter_mode?: string;
-          filter_tags?: string[];
-          filter_contract_status?: string | null;
-          filter_client_ids?: string[];
-          recipient_count?: number;
-          error_count?: number;
-          created_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      notification_recipients: {
-        Row: {
-          id: string;
-          notification_id: string;
-          client_id: string;
-          user_id: string | null;
-          email_sent: boolean;
-          email_error: string | null;
-          read_at: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          notification_id: string;
-          client_id: string;
-          user_id?: string | null;
-          email_sent?: boolean;
-          email_error?: string | null;
-          read_at?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          notification_id?: string;
-          client_id?: string;
-          user_id?: string | null;
-          email_sent?: boolean;
-          email_error?: string | null;
-          read_at?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "notification_recipients_notification_id_fkey";
-            columns: ["notification_id"];
-            isOneToOne: false;
-            referencedRelation: "notifications";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "notification_recipients_client_id_fkey";
-            columns: ["client_id"];
-            isOneToOne: false;
-            referencedRelation: "clients";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      team_members: {
-        Row: {
-          created_at: string;
-          email: string;
-          full_name: string;
-          id: string;
-          is_active: boolean;
-          must_change_password: boolean;
-          phone: string | null;
-          role_title: string;
-          system_role: Database["public"]["Enums"]["app_role"] | null;
-          updated_at: string;
-          user_id: string | null;
-        };
-        Insert: {
-          created_at?: string;
-          email: string;
-          full_name: string;
-          id?: string;
-          is_active?: boolean;
-          must_change_password?: boolean;
-          phone?: string | null;
-          role_title?: string;
-          system_role?: Database["public"]["Enums"]["app_role"] | null;
-          updated_at?: string;
-          user_id?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          email?: string;
-          full_name?: string;
-          id?: string;
-          is_active?: boolean;
-          must_change_password?: boolean;
-          phone?: string | null;
-          role_title?: string;
-          system_role?: Database["public"]["Enums"]["app_role"] | null;
-          updated_at?: string;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
       user_roles: {
         Row: {
           created_at: string;
@@ -1565,7 +1839,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      get_client_id_for_portal_user: { Args: { _user_id: string }; Returns: string };
+      get_client_id_for_portal_user: {
+        Args: { _user_id: string };
+        Returns: string;
+      };
       get_client_id_for_user: { Args: { _user_id: string }; Returns: string };
       has_any_team_role: { Args: { _user_id: string }; Returns: boolean };
       has_role: {
@@ -1583,12 +1860,10 @@ export type Database = {
         Returns: boolean;
       };
       is_admin: { Args: { _user_id: string }; Returns: boolean };
-      mark_overdue_charges: { Args: Record<PropertyKey, never>; Returns: undefined };
-      sync_financial_blocks: { Args: Record<PropertyKey, never>; Returns: undefined };
-      sync_projects_from_blocking_charges: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+      mark_overdue_charges: { Args: never; Returns: undefined };
+      mark_overdue_clients_inadimplente: { Args: never; Returns: undefined };
+      sync_financial_blocks: { Args: never; Returns: undefined };
+      sync_projects_from_blocking_charges: { Args: never; Returns: undefined };
     };
     Enums: {
       app_role: "admin_super" | "admin" | "cliente" | "marketing" | "developer" | "support";
@@ -1596,21 +1871,30 @@ export type Database = {
       client_origin: "lead" | "indicacao" | "inbound";
       contract_record_status: "rascunho" | "ativo" | "encerrado" | "cancelado";
       contract_status: "ativo" | "inadimplente" | "cancelado";
-      notification_type: "manutencao" | "atualizacao" | "otimizacao" | "alerta" | "personalizado";
-      notification_status: "rascunho" | "agendada" | "enviando" | "enviada" | "falha";
       contract_type: "projeto" | "recorrente" | "hibrido";
-      document_visibility: "cliente" | "interno" | "ambos";
       document_type: "contrato" | "aditivo" | "nota_fiscal" | "codigo_fonte" | "outro";
-      invoice_status: "agendada" | "pendente" | "pago" | "atrasado" | "cancelado";
+      document_visibility: "cliente" | "interno" | "ambos";
+      invoice_status: "pendente" | "pago" | "atrasado" | "cancelado" | "agendada";
+      next_step_action_type:
+        | "geral"
+        | "reuniao"
+        | "documento"
+        | "aprovacao"
+        | "informacao"
+        | "feedback"
+        | "acesso"
+        | "conteudo";
       next_step_owner: "elkys" | "cliente" | "compartilhado";
       next_step_status: "pendente" | "em_andamento" | "concluido" | "cancelado";
+      notification_status: "rascunho" | "agendada" | "enviando" | "enviada" | "falha";
+      notification_type: "manutencao" | "atualizacao" | "otimizacao" | "alerta" | "personalizado";
       pause_source: "automatico" | "manual";
       payment_model: "50_50" | "a_vista" | "personalizado";
       project_installment_status: "agendada" | "pendente" | "paga" | "atrasada" | "cancelada";
       project_installment_trigger: "assinatura" | "conclusao" | "data_fixa";
       project_installment_type: "entrada" | "entrega";
       project_pause_reason: "financeiro" | "dependencia_cliente" | "interno" | "escopo" | "outro";
-      project_status: "negociacao" | "em_andamento" | "concluido" | "pausado" | "cancelado";
+      project_status: "em_andamento" | "concluido" | "pausado" | "cancelado" | "negociacao";
       subscription_status: "agendada" | "ativa" | "pausada" | "encerrada";
     };
     CompositeTypes: {
@@ -1735,6 +2019,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin_super", "admin", "cliente", "marketing", "developer", "support"],
@@ -1743,18 +2030,30 @@ export const Constants = {
       contract_record_status: ["rascunho", "ativo", "encerrado", "cancelado"],
       contract_status: ["ativo", "inadimplente", "cancelado"],
       contract_type: ["projeto", "recorrente", "hibrido"],
-      document_visibility: ["cliente", "interno", "ambos"],
       document_type: ["contrato", "aditivo", "nota_fiscal", "codigo_fonte", "outro"],
-      invoice_status: ["agendada", "pendente", "pago", "atrasado", "cancelado"],
+      document_visibility: ["cliente", "interno", "ambos"],
+      invoice_status: ["pendente", "pago", "atrasado", "cancelado", "agendada"],
+      next_step_action_type: [
+        "geral",
+        "reuniao",
+        "documento",
+        "aprovacao",
+        "informacao",
+        "feedback",
+        "acesso",
+        "conteudo",
+      ],
       next_step_owner: ["elkys", "cliente", "compartilhado"],
       next_step_status: ["pendente", "em_andamento", "concluido", "cancelado"],
+      notification_status: ["rascunho", "agendada", "enviando", "enviada", "falha"],
+      notification_type: ["manutencao", "atualizacao", "otimizacao", "alerta", "personalizado"],
       pause_source: ["automatico", "manual"],
       payment_model: ["50_50", "a_vista", "personalizado"],
       project_installment_status: ["agendada", "pendente", "paga", "atrasada", "cancelada"],
       project_installment_trigger: ["assinatura", "conclusao", "data_fixa"],
       project_installment_type: ["entrada", "entrega"],
       project_pause_reason: ["financeiro", "dependencia_cliente", "interno", "escopo", "outro"],
-      project_status: ["negociacao", "em_andamento", "concluido", "pausado", "cancelado"],
+      project_status: ["em_andamento", "concluido", "pausado", "cancelado", "negociacao"],
       subscription_status: ["agendada", "ativa", "pausada", "encerrada"],
     },
   },

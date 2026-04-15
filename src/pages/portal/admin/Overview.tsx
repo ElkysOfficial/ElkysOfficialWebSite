@@ -20,6 +20,12 @@ import SurfaceStat from "@/components/portal/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  BURN_RATE_WINDOW_MONTHS,
+  computeBurnRate,
+  computeOperationalMargin,
+  computeRunway,
+} from "@/lib/finance-metrics";
 import { formatBRL, toCents } from "@/lib/masks";
 import { getClientDisplayName, isProjectOperationallyOpen, isTicketOpen } from "@/lib/portal";
 
@@ -119,6 +125,8 @@ interface OverviewState {
   pipelineValue: number;
   pipelineCount: number;
   burnRate: number;
+  /** Meses que o caixa atual sustenta no ritmo de burn. null = burn ≤ 0 (não queima). */
+  runwayMonths: number | null;
   operationalMargin: number | null;
   openTickets: number;
   resolvedTicketsThisMonth: number;
@@ -197,6 +205,7 @@ const initialState: OverviewState = {
   pipelineValue: 0,
   pipelineCount: 0,
   burnRate: 0,
+  runwayMonths: null,
   operationalMargin: null,
   openTickets: 0,
   resolvedTicketsThisMonth: 0,
@@ -904,37 +913,15 @@ export default function AdminOverview() {
             if (monthKey < currentMonthKey && !isPaid) return;
             point.recurringRevenue += toCents(charge.amount);
           });
-        // Fallback retroativo: para cada mês, se as charges pagas de
-        // mensalidade somarem menos que a base recorrente que estava
-        // ativa NAQUELE mês, usar a base como linha teórica. Isso evita
-        // que meses passados mostrem MRR=0 só porque o admin não marcou
-        // as cobranças como "pago" (o sync de subscriptions cria como
-        // "pendente" e o status real só muda no clique manual). O cálculo
-        // respeita starts_on e ends_on de cada subscription para não
-        // inflar meses anteriores ao início ou posteriores ao fim.
-        for (const frame of monthFrames) {
-          const monthStartIso = `${frame.key}-01`;
-          const lastDay = new Date(
-            frame.start.getFullYear(),
-            frame.start.getMonth() + 1,
-            0
-          ).getDate();
-          const monthEndIso = `${frame.key}-${String(lastDay).padStart(2, "0")}`;
-
-          const baseForMonthCents = subscriptions
-            .filter((sub) => {
-              if (!["agendada", "ativa"].includes(sub.status)) return false;
-              if (sub.starts_on && sub.starts_on > monthEndIso) return false;
-              if (sub.ends_on && sub.ends_on < monthStartIso) return false;
-              return true;
-            })
-            .reduce((sum, sub) => sum + toCents(sub.amount), 0);
-
-          const point = monthlyMap.get(frame.key);
-          if (point && point.recurringRevenue < baseForMonthCents) {
-            point.recurringRevenue = baseForMonthCents;
-          }
-        }
+        // Auditoria 2026-04-15: removido fallback contratual silencioso.
+        // Antes, meses passados onde o admin nao tinha marcado as charges
+        // como "pago" eram preenchidos com a base contratual ativa, criando
+        // uma serie hibrida (parte realizada, parte teorica) que mascarava
+        // churn e inflava o MRR historico. Agora MRR historico = SOMENTE
+        // realizado. Meses sem charges pagas mostrarao zero — informacao
+        // verdadeira em vez de inferencia. Quem quiser ver a base contratual
+        // deve olhar o forecast (computeForecast) ou a soma de subscriptions
+        // ativas em dado momento.
 
         // Primeiro mes com dado consolidado real = menor due_date entre
         // as charges nao historicas, truncado para YYYY-MM. Qualquer
@@ -1163,24 +1150,16 @@ export default function AdminOverview() {
         const pipelineValue = projectPipelineValue + proposalPipelineValue;
         const pipelineCount = negociacaoProjectIds.size + pendingProposals.length;
 
-        // Burn rate medio mensal = media das saidas dos ultimos 6 meses
-        // (janela inteira como denominador). Antes dividia apenas pelos
-        // meses que TINHAM despesa, o que inflava o burn quando havia
-        // meses vazios e escondia o sinal real de start/gap operacional.
-        const burnWindow = monthlySeries.slice(-6);
-        const burnRate =
-          burnWindow.length > 0
-            ? burnWindow.reduce((sum, m) => sum + m.cashOut, 0) / burnWindow.length
-            : 0;
+        // Burn rate e margem: lib central garante que Overview e Finance
+        // produzam exatamente o mesmo numero para a mesma metrica.
+        const burnRate = computeBurnRate(monthlySeries, BURN_RATE_WINDOW_MONTHS);
+        const runwayMonths = computeRunway(cashBalance, burnRate);
 
-        // Operational margin: (cashIn - cashOut) / cashIn for current period
-        const currentMonthCashIn = monthlySeries[monthlySeries.length - 1]?.cashIn ?? 0;
-        const operationalMargin =
-          currentMonthCashIn > 0
-            ? ((currentMonthCashIn - (monthlySeries[monthlySeries.length - 1]?.cashOut ?? 0)) /
-                currentMonthCashIn) *
-              100
-            : null;
+        const currentMonthPoint = monthlySeries[monthlySeries.length - 1];
+        const operationalMargin = computeOperationalMargin(
+          currentMonthPoint?.cashIn ?? 0,
+          currentMonthPoint?.cashOut ?? 0
+        );
 
         // Support tickets
         const openTickets = tickets.filter((t) => isTicketOpen(t.status)).length;
@@ -1348,6 +1327,7 @@ export default function AdminOverview() {
           pipelineValue,
           pipelineCount,
           burnRate,
+          runwayMonths,
           operationalMargin,
           openTickets,
           resolvedTicketsThisMonth,

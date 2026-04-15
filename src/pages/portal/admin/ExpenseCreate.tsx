@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -31,14 +31,17 @@ import {
 
 const CATEGORIES = [
   { value: "geral", label: "Geral" },
+  { value: "pro_labore", label: "Pró-labore (sócio)", defaultFixed: true },
+  { value: "pessoal_clt", label: "Folha CLT", defaultFixed: true },
+  { value: "pessoal_pj", label: "Pessoal PJ recorrente", defaultFixed: true },
+  { value: "pessoal", label: "Pessoal (avulso)" },
   { value: "software", label: "Software / Ferramentas" },
   { value: "infra", label: "Infraestrutura" },
   { value: "marketing", label: "Marketing" },
-  { value: "pessoal", label: "Pessoal" },
   { value: "equipamento", label: "Equipamento" },
   { value: "servico_terceiro", label: "Serviço de Terceiro" },
   { value: "imposto", label: "Impostos" },
-];
+] as const;
 
 const ENTRY_MODES = [
   {
@@ -65,6 +68,7 @@ const expenseSchema = z
     amount: z.string().min(1, "Valor obrigatório"),
     expense_date: z.string().min(10, "Data inválida"),
     notes: z.string().optional(),
+    is_fixed: z.boolean().default(false),
     entry_mode: z.enum(["unica", "parcelada", "recorrente"]),
     installments_count: z.string().optional(),
     recurrence_months: z.string().optional(),
@@ -129,6 +133,7 @@ export default function AdminExpenseCreate() {
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ExpenseForm>({
     resolver: zodResolver(expenseSchema),
@@ -136,10 +141,23 @@ export default function AdminExpenseCreate() {
       entry_mode: "unica",
       installments_count: "2",
       recurrence_months: "12",
+      is_fixed: false,
     },
   });
 
   const entryMode = watch("entry_mode");
+  const categoryValue = watch("category");
+  // Auto-marca custos de pessoal/pro-labore como fixos por padrao
+  // (admin pode desmarcar manualmente).
+  const categoryDefaultFixed = useMemo(
+    () => CATEGORIES.find((c) => c.value === categoryValue && "defaultFixed" in c)?.value,
+    [categoryValue]
+  );
+  useEffect(() => {
+    if (categoryDefaultFixed) {
+      setValue("is_fixed", true);
+    }
+  }, [categoryDefaultFixed, setValue]);
   const amountValue = watch("amount");
   const installmentsCount = Number(watch("installments_count") || "0");
   const recurrenceMonths = Number(watch("recurrence_months") || "0");
@@ -160,12 +178,14 @@ export default function AdminExpenseCreate() {
 
       const total = unmaskCurrency(data.amount);
       const notes = data.notes?.trim() || null;
+      const isFixed = Boolean(data.is_fixed);
       const entries: Array<{
         description: string;
         category: string;
         amount: number;
         expense_date: string;
         notes: string | null;
+        is_fixed: boolean;
       }> = [];
 
       if (data.entry_mode === "parcelada") {
@@ -183,6 +203,7 @@ export default function AdminExpenseCreate() {
             amount: amountInCents / 100,
             expense_date: addMonthsToIsoDate(parsedExpenseDate, index),
             notes,
+            is_fixed: isFixed,
           });
         }
       } else if (data.entry_mode === "recorrente") {
@@ -195,6 +216,7 @@ export default function AdminExpenseCreate() {
             amount: total,
             expense_date: addMonthsToIsoDate(parsedExpenseDate, index),
             notes,
+            is_fixed: isFixed,
           });
         }
       } else {
@@ -204,6 +226,7 @@ export default function AdminExpenseCreate() {
           amount: total,
           expense_date: parsedExpenseDate,
           notes,
+          is_fixed: isFixed,
         });
       }
 
@@ -319,6 +342,14 @@ export default function AdminExpenseCreate() {
                 <ErrorText className={errors.category ? "" : "invisible"}>
                   {errors.category?.message || "\u00A0"}
                 </ErrorText>
+                <label className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    {...register("is_fixed")}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  Custo fixo recorrente (entra no burn fixo)
+                </label>
               </Field>
 
               <Field>
