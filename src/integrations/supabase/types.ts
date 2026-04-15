@@ -2034,6 +2034,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      crm_deals_view: {
+        Row: {
+          client_id: string | null;
+          created_at: string | null;
+          deal_id: string | null;
+          expected_value: number | null;
+          last_activity_at: string | null;
+          lead_id: string | null;
+          owner_id: string | null;
+          project_id: string | null;
+          proposal_id: string | null;
+          source_id: string | null;
+          source_kind: string | null;
+          stage: string | null;
+          title: string | null;
+        };
+        Relationships: [];
+      };
       project_contract_history: {
         Row: {
           change_reason: string | null;
