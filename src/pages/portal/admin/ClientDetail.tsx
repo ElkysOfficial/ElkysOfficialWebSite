@@ -41,6 +41,7 @@ import {
   unmaskDigits,
 } from "@/lib/masks";
 import { lookupAddressByCep } from "@/lib/cep";
+import type { ClientFinancialSummary } from "@/lib/client-summary";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import StatusBadge from "@/components/portal/StatusBadge";
 import {
@@ -979,6 +980,8 @@ export default function AdminClientDetail() {
   const [clientTickets, setClientTickets] = useState<ClientTicket[]>([]);
   const [clientTimeline, setClientTimeline] = useState<ClientTimelineEvent[]>([]);
   const [clientProposals, setClientProposals] = useState<ClientProposal[]>([]);
+  // PROBLEMA 10: resumo calculado em tempo real (substitui snapshots).
+  const [clientSummary, setClientSummary] = useState<ClientFinancialSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const editParam = searchParams.get("edit") as EditingSection;
@@ -1005,6 +1008,7 @@ export default function AdminClientDetail() {
       ticketsRes,
       timelineRes,
       proposalsRes,
+      summaryRes,
     ] = await Promise.all([
       supabase.from("clients").select("*").eq("id", id).maybeSingle(),
       supabase
@@ -1045,6 +1049,8 @@ export default function AdminClientDetail() {
         .select("id, title, status, total_amount, valid_until, created_at, sent_at, approved_at")
         .eq("client_id", id)
         .order("created_at", { ascending: false }),
+      // PROBLEMA 10: resumo calculado em tempo real (substitui snapshots).
+      supabase.from("client_financial_summary").select("*").eq("client_id", id).maybeSingle(),
     ]);
 
     setClient(clientRes.data ?? null);
@@ -1055,6 +1061,9 @@ export default function AdminClientDetail() {
     setClientTickets((ticketsRes.data ?? []) as ClientTicket[]);
     setClientTimeline((timelineRes.data ?? []) as ClientTimelineEvent[]);
     setClientProposals((proposalsRes.data ?? []) as ClientProposal[]);
+    // PROBLEMA 10: resumo calculado da view (verdade unica para
+    // contract_status, contract_type, scope, dates, monthly_value).
+    setClientSummary((summaryRes.data as ClientFinancialSummary | null) ?? null);
     setLoading(false);
   }, [id]);
 
@@ -1410,26 +1419,40 @@ export default function AdminClientDetail() {
           {client.is_active ? "Conta ativa" : "Conta inativa"}
         </span>
 
-        {client.contract_status ? (
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
-              client.contract_status === "ativo"
-                ? "bg-success/10 text-success"
-                : client.contract_status === "inadimplente"
-                  ? "bg-warning/10 text-warning"
-                  : "bg-destructive/10 text-destructive"
-            )}
-          >
-            {CONTRACT_STATUS_LABEL[client.contract_status]}
-          </span>
-        ) : null}
+        {/* PROBLEMA 10: prefere o valor CALCULADO da view (verdade unica)
+            sobre o snapshot legado em clients.contract_status. */}
+        {(() => {
+          const status = clientSummary?.contract_status_calculated ?? client.contract_status;
+          if (!status) return null;
+          return (
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                status === "ativo"
+                  ? "bg-success/10 text-success"
+                  : status === "inadimplente"
+                    ? "bg-warning/10 text-warning"
+                    : "bg-destructive/10 text-destructive"
+              )}
+              title="Calculado em tempo real a partir de contratos e charges"
+            >
+              {CONTRACT_STATUS_LABEL[status]}
+            </span>
+          );
+        })()}
 
-        {client.contract_type ? (
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            {CONTRACT_TYPE_LABEL[client.contract_type]}
-          </span>
-        ) : null}
+        {(() => {
+          const type = clientSummary?.contract_type_calculated ?? client.contract_type;
+          if (!type) return null;
+          return (
+            <span
+              className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+              title="Calculado em tempo real a partir de contratos e subscriptions"
+            >
+              {CONTRACT_TYPE_LABEL[type]}
+            </span>
+          );
+        })()}
 
         {client.tags.length > 0
           ? client.tags.map((tag) => (
