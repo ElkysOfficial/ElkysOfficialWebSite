@@ -1471,6 +1471,7 @@ export type Database = {
       proposals: {
         Row: {
           approved_at: string | null;
+          billing_config: Json;
           client_id: string | null;
           created_at: string;
           created_by: string | null;
@@ -1493,6 +1494,7 @@ export type Database = {
         };
         Insert: {
           approved_at?: string | null;
+          billing_config?: Json;
           client_id?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -1515,6 +1517,7 @@ export type Database = {
         };
         Update: {
           approved_at?: string | null;
+          billing_config?: Json;
           client_id?: string | null;
           created_at?: string;
           created_by?: string | null;
