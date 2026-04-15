@@ -80,7 +80,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     label: "Comercial",
     items: [
       {
-        label: "CRM",
+        label: "Comercial",
         href: "/portal/admin/crm",
         icon: Target,
         roles: ["admin_super", "admin", "comercial"],
