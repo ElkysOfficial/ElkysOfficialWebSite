@@ -75,12 +75,18 @@ const INTERACTION_TYPE_LABEL: Record<InteractionType, string> = {
   nota: "Nota",
 };
 
+// PROBLEMA 13: alinhado com o CHECK constraint de leads.source
+// (migration 20260416220000) que aceita 11 canais.
 const SOURCE_LABEL: Record<string, string> = {
-  site: "Site",
-  indicacao: "Indicacao",
   inbound: "Inbound",
-  outbound: "Outbound",
+  site: "Site",
+  formulario: "Formulário",
   rede_social: "Rede Social",
+  whatsapp: "WhatsApp",
+  reuniao: "Reunião",
+  indicacao: "Indicação",
+  cold: "Prospecção fria",
+  prospeccao: "Prospecção",
   evento: "Evento",
   outro: "Outro",
 };
