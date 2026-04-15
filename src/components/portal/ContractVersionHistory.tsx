@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
 import { Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -58,33 +59,36 @@ export default function ContractVersionHistory({ contractId, className }: Props)
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
+  const loadHistory = useCallback(async () => {
     if (!contractId) {
       setRows([]);
       return;
     }
-    let active = true;
     setLoading(true);
     setError(null);
-    void supabase
+    const { data, error: queryError } = await supabase
       .from("project_contract_history")
       .select("*")
       .eq("contract_id", contractId)
-      .order("version_no", { ascending: false })
-      .then(({ data, error: queryError }) => {
-        if (!active) return;
-        if (queryError) {
-          setError(queryError.message);
-          setRows([]);
-        } else {
-          setRows((data as HistoryRow[]) ?? []);
-        }
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+      .order("version_no", { ascending: false });
+    if (queryError) {
+      setError(queryError.message);
+      setRows([]);
+    } else {
+      setRows((data as HistoryRow[]) ?? []);
+    }
+    setLoading(false);
   }, [contractId]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
+
+  // PROBLEMA 14: status atual do contrato vem da linha is_current da view.
+  const currentStatus = useMemo(() => {
+    const current = rows.find((r) => r.is_current);
+    return (current?.status ?? null) as "rascunho" | "ativo" | "encerrado" | "cancelado" | null;
+  }, [rows]);
 
   const versionCount = rows.length;
   const hasHistory = useMemo(() => rows.some((r) => !r.is_current), [rows]);
@@ -118,6 +122,15 @@ export default function ContractVersionHistory({ contractId, className }: Props)
             {expanded ? "Ocultar" : "Ver tudo"}
           </span>
         </button>
+
+        {/* PROBLEMA 14: ações de ciclo de vida do contrato */}
+        {!loading && currentStatus && contractId ? (
+          <ContractActionsButtons
+            contractId={contractId}
+            status={currentStatus}
+            onTransitioned={() => void loadHistory()}
+          />
+        ) : null}
 
         {error ? (
           <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
