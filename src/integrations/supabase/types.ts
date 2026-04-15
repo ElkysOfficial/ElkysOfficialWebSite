@@ -1576,6 +1576,7 @@ export type Database = {
           created_by: string | null;
           document_url: string | null;
           id: string;
+          is_expansion: boolean;
           lead_id: string | null;
           observations: string | null;
           payment_conditions: string | null;
@@ -1599,6 +1600,7 @@ export type Database = {
           created_by?: string | null;
           document_url?: string | null;
           id?: string;
+          is_expansion?: boolean;
           lead_id?: string | null;
           observations?: string | null;
           payment_conditions?: string | null;
@@ -1622,6 +1624,7 @@ export type Database = {
           created_by?: string | null;
           document_url?: string | null;
           id?: string;
+          is_expansion?: boolean;
           lead_id?: string | null;
           observations?: string | null;
           payment_conditions?: string | null;

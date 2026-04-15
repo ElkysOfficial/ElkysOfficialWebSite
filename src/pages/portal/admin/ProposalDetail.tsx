@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
@@ -404,6 +404,7 @@ function ProposalReadOnly({
 export default function ProposalDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
 
   const isEditing = Boolean(id);
@@ -417,6 +418,9 @@ export default function ProposalDetail() {
   const [sending, setSending] = useState(false);
   const [approving, setApproving] = useState(false);
   const [linkedProjectId, setLinkedProjectId] = useState<string | null>(null);
+  // PROBLEMA 8: marca proposta como expansao quando vem do botao
+  // "Nova oportunidade" do ClientDetail (?source=expansion).
+  const [isExpansion, setIsExpansion] = useState(false);
 
   /* ── Helpers ── */
 
@@ -532,10 +536,26 @@ export default function ProposalDetail() {
         .maybeSingle();
 
       setLinkedProjectId(linkedProject?.id ?? null);
+      setIsExpansion(Boolean(proposalRes.data.is_expansion));
+    } else {
+      // PROBLEMA 8: pre-popular cliente quando a proposta nasce do botao
+      // "Nova oportunidade" no ClientDetail (URL ?client_id=xxx&source=expansion).
+      const queryClientId = searchParams.get("client_id");
+      const queryIsExpansion = searchParams.get("source") === "expansion";
+      if (queryClientId) {
+        setForm((prev) => ({
+          ...prev,
+          destination_type: "client" as DestinationType,
+          client_id: queryClientId,
+        }));
+      }
+      if (queryIsExpansion) {
+        setIsExpansion(true);
+      }
     }
 
     setLoading(false);
-  }, [id, navigate]);
+  }, [id, navigate, searchParams]);
 
   useEffect(() => {
     void loadData();
@@ -570,6 +590,8 @@ export default function ProposalDetail() {
       // para criar installments + charges + opcional subscription
       // automaticamente. Vazio = aprovacao cria so project shell + contract.
       billing_config: formToBillingConfig(form) as never,
+      // PROBLEMA 8: marca proposta como expansao se nasceu de cliente ativo.
+      is_expansion: isExpansion,
     };
 
     if (status === "enviada") {
