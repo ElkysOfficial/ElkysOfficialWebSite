@@ -77,7 +77,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "CRM",
+    label: "Comercial",
     items: [
       {
         label: "CRM",
