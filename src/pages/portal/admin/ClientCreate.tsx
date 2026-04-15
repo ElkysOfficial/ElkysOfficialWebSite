@@ -288,8 +288,6 @@ export default function AdminClientCreate() {
           cpf: unmaskDigits(form.cpf),
           cnpj: form.cnpj ? unmaskDigits(form.cnpj) : null,
           phone: unmaskDigits(form.phone),
-          address:
-            [form.logradouro, form.numero, form.complemento].filter(Boolean).join(", ") || null,
           logradouro: form.logradouro || null,
           numero: form.numero || null,
           complemento: form.complemento || null,

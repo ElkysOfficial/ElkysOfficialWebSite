@@ -423,7 +423,6 @@ export type Database = {
       };
       clients: {
         Row: {
-          address: string | null;
           bairro: string | null;
           cargo_representante: string | null;
           cep: string | null;
@@ -460,7 +459,6 @@ export type Database = {
           user_id: string | null;
         };
         Insert: {
-          address?: string | null;
           bairro?: string | null;
           cargo_representante?: string | null;
           cep?: string | null;
@@ -497,7 +495,6 @@ export type Database = {
           user_id?: string | null;
         };
         Update: {
-          address?: string | null;
           bairro?: string | null;
           cargo_representante?: string | null;
           cep?: string | null;
