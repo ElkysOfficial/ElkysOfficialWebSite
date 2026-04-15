@@ -16,6 +16,7 @@ import {
   buttonVariants,
   cn,
 } from "@/design-system";
+import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
@@ -73,6 +74,48 @@ type ProjectCreateForm = {
   tags: string[];
   tag_input: string;
 };
+
+function formatDraftSavedAt(date: Date | null): string {
+  if (!date) return "";
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "agora";
+  if (diffMin === 1) return "ha 1 min";
+  if (diffMin < 60) return `ha ${diffMin} min`;
+  return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function DraftStatus({
+  pending,
+  savedAt,
+  onClear,
+}: {
+  pending: boolean;
+  savedAt: Date | null;
+  onClear: () => void;
+}) {
+  if (!pending && !savedAt) return null;
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/30 px-3 py-1 text-xs text-muted-foreground">
+      <span
+        className={cn(
+          "inline-block h-1.5 w-1.5 rounded-full",
+          pending ? "animate-pulse bg-warning" : "bg-success"
+        )}
+      />
+      {pending ? "Salvando rascunho..." : `Rascunho salvo ${formatDraftSavedAt(savedAt)}`}
+      {savedAt && !pending ? (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-[11px] font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+        >
+          descartar
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 const STEPS = [
   { label: "Projeto", description: "Cliente, escopo, etapa e status inicial.", icon: Users },
@@ -263,6 +306,16 @@ export default function AdminProjectCreate() {
 
     void loadClients();
   }, [preselectedClientId]);
+
+  const {
+    savedAt: draftSavedAt,
+    clearDraft,
+    isPending: draftPending,
+  } = useFormDraftAutoSave<ProjectCreateForm>({
+    storageKey: "elkys:admin:project-create:draft",
+    values: form,
+    onRestore: (restored) => setForm(restored),
+  });
 
   const selectedClient = useMemo(
     () => clients.find((client) => client.id === form.client_id) ?? null,
@@ -711,6 +764,7 @@ export default function AdminProjectCreate() {
         description: "Contrato, cobranças e estrutura inicial foram registrados.",
       });
 
+      clearDraft();
       navigate(`/portal/admin/projetos/${projectData.id}`, { replace: true });
     } catch (error) {
       if (createdProjectId) {
@@ -745,7 +799,8 @@ export default function AdminProjectCreate() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <DraftStatus pending={draftPending} savedAt={draftSavedAt} onClear={clearDraft} />
         <Link
           to={
             selectedClient
