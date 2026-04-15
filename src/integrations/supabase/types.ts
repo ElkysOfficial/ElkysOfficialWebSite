@@ -437,7 +437,7 @@ export type Database = {
           contract_status: Database["public"]["Enums"]["contract_status"] | null;
           contract_type: Database["public"]["Enums"]["contract_type"] | null;
           country: string;
-          cpf: string;
+          cpf: string | null;
           created_at: string;
           email: string;
           full_name: string;
@@ -473,7 +473,7 @@ export type Database = {
           contract_status?: Database["public"]["Enums"]["contract_status"] | null;
           contract_type?: Database["public"]["Enums"]["contract_type"] | null;
           country?: string;
-          cpf: string;
+          cpf?: string | null;
           created_at?: string;
           email: string;
           full_name: string;
@@ -509,7 +509,7 @@ export type Database = {
           contract_status?: Database["public"]["Enums"]["contract_status"] | null;
           contract_type?: Database["public"]["Enums"]["contract_type"] | null;
           country?: string;
-          cpf?: string;
+          cpf?: string | null;
           created_at?: string;
           email?: string;
           full_name?: string;

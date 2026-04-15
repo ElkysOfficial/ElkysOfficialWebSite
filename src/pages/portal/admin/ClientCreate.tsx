@@ -285,7 +285,9 @@ export default function AdminClientCreate() {
           user_id: createdUserId,
           full_name: form.full_name.trim(),
           email: form.email.trim(),
-          cpf: unmaskDigits(form.cpf),
+          // PROBLEMA 1: cpf NULL quando vazio (PJ nao tem CPF). Antes
+          // enviava '' e a segunda criacao de PJ violava UNIQUE.
+          cpf: form.cpf ? unmaskDigits(form.cpf) || null : null,
           cnpj: form.cnpj ? unmaskDigits(form.cnpj) : null,
           phone: unmaskDigits(form.phone),
           logradouro: form.logradouro || null,
