@@ -206,14 +206,6 @@ function parseFormDate(value?: string | null) {
   return isoDate;
 }
 
-function buildAddress({
-  logradouro,
-  numero,
-  complemento,
-}: Pick<GeneralFormValues, "logradouro" | "numero" | "complemento">) {
-  return [logradouro.trim(), numero.trim(), complemento.trim()].filter(Boolean).join(", ") || null;
-}
-
 function normalizeTags(tagsInput: string) {
   return Array.from(
     new Set(
@@ -1133,7 +1125,6 @@ export default function AdminClientDetail() {
         city: values.city.trim() || null,
         state: values.state.trim().toUpperCase() || null,
         country: values.country.trim() || "Brasil",
-        address: buildAddress(values),
         updated_at: new Date().toISOString(),
       };
 
