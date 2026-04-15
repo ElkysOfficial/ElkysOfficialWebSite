@@ -98,13 +98,47 @@ const CATEGORIES = [
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
 
 const PRIORITIES = [
-  { value: "urgente", label: "Urgente", dot: "bg-red-500" },
-  { value: "alta", label: "Alta", dot: "bg-orange-500" },
-  { value: "media", label: "Média", dot: "bg-yellow-500" },
-  { value: "baixa", label: "Baixa", dot: "bg-green-500" },
+  {
+    value: "urgente",
+    label: "Urgente",
+    dot: "bg-red-500",
+    badge: "border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400",
+    rank: 0,
+  },
+  {
+    value: "alta",
+    label: "Alta",
+    dot: "bg-orange-500",
+    badge: "border-orange-500/30 bg-orange-500/15 text-orange-600 dark:text-orange-400",
+    rank: 1,
+  },
+  {
+    value: "media",
+    label: "Média",
+    dot: "bg-yellow-500",
+    badge: "border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+    rank: 2,
+  },
+  {
+    value: "baixa",
+    label: "Baixa",
+    dot: "bg-green-500",
+    badge: "border-green-500/30 bg-green-500/15 text-green-700 dark:text-green-400",
+    rank: 3,
+  },
 ];
 
 const PRIORITY_MAP = Object.fromEntries(PRIORITIES.map((p) => [p.value, p]));
+
+const SORT_OPTIONS = [
+  { value: "default", label: "Padrão (mais recentes)" },
+  { value: "due_asc", label: "Prazo (mais próximo)" },
+  { value: "due_desc", label: "Prazo (mais distante)" },
+  { value: "priority", label: "Prioridade" },
+  { value: "title", label: "Título (A-Z)" },
+] as const;
+
+type SortKey = (typeof SORT_OPTIONS)[number]["value"];
 
 const DEADLINE_OPTIONS = [
   { value: "", label: "Sem prazo" },
@@ -272,8 +306,13 @@ function TaskCardInner({
             </span>
           )}
           {pri && (
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <span className={cn("inline-block h-2 w-2 rounded-full", pri.dot)} />
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                pri.badge
+              )}
+            >
+              <span className={cn("inline-block h-1.5 w-1.5 rounded-full", pri.dot)} />
               {pri.label}
             </span>
           )}
@@ -1091,12 +1130,24 @@ export default function AdminTasks() {
     const saved = window.localStorage.getItem("elkys-admin-tasks-scope");
     return saved === "todas" ? "todas" : "minhas";
   });
+  const [sortKey, setSortKey] = useState<SortKey>(() => {
+    if (typeof window === "undefined") return "default";
+    const saved = window.localStorage.getItem("elkys-admin-tasks-sort");
+    const valid = SORT_OPTIONS.some((o) => o.value === saved);
+    return valid ? (saved as SortKey) : "default";
+  });
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("elkys-admin-tasks-scope", scope);
     }
   }, [scope]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("elkys-admin-tasks-sort", sortKey);
+    }
+  }, [sortKey]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TeamTask | null>(null);
@@ -1182,8 +1233,24 @@ export default function AdminTasks() {
       const key = t.status as ColumnKey;
       if (key in map) map[key].push(t);
     }
+
+    if (sortKey !== "default") {
+      const FAR_FUTURE = "9999-12-31";
+      const compare: Record<Exclude<SortKey, "default">, (a: TeamTask, b: TeamTask) => number> = {
+        due_asc: (a, b) => (a.due_date ?? FAR_FUTURE).localeCompare(b.due_date ?? FAR_FUTURE),
+        due_desc: (a, b) => (b.due_date ?? "").localeCompare(a.due_date ?? ""),
+        priority: (a, b) =>
+          (PRIORITY_MAP[a.priority]?.rank ?? 99) - (PRIORITY_MAP[b.priority]?.rank ?? 99),
+        title: (a, b) => a.title.localeCompare(b.title, "pt-BR"),
+      };
+      const fn = compare[sortKey];
+      for (const k of Object.keys(map) as ColumnKey[]) {
+        map[k] = [...map[k]].sort(fn);
+      }
+    }
+
     return map;
-  }, [filtered]);
+  }, [filtered, sortKey]);
 
   /* ── Drag ───────────────────────────────────────────────────────── */
 
@@ -1351,7 +1418,19 @@ export default function AdminTasks() {
             </span>
           ))}
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as SortKey)}
+              className="flex h-9 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              title="Ordenar tarefas"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
             <Button type="button" size="sm" onClick={() => setShowCreate(true)}>
               + Nova tarefa
             </Button>
