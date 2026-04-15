@@ -1563,6 +1563,7 @@ export type Database = {
           status: Database["public"]["Enums"]["project_status"];
           tags: string[];
           updated_at: string;
+          warranty_period_days: number;
         };
         Insert: {
           acceptance_notes?: string | null;
@@ -1592,6 +1593,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["project_status"];
           tags?: string[];
           updated_at?: string;
+          warranty_period_days?: number;
         };
         Update: {
           acceptance_notes?: string | null;
@@ -1621,6 +1623,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["project_status"];
           tags?: string[];
           updated_at?: string;
+          warranty_period_days?: number;
         };
         Relationships: [
           {
@@ -1751,6 +1754,7 @@ export type Database = {
           created_at: string;
           first_response_at: string | null;
           id: string;
+          in_warranty: boolean;
           internal_notes: string | null;
           priority: string;
           project_id: string | null;
@@ -1770,6 +1774,7 @@ export type Database = {
           created_at?: string;
           first_response_at?: string | null;
           id?: string;
+          in_warranty?: boolean;
           internal_notes?: string | null;
           priority?: string;
           project_id?: string | null;
@@ -1789,6 +1794,7 @@ export type Database = {
           created_at?: string;
           first_response_at?: string | null;
           id?: string;
+          in_warranty?: boolean;
           internal_notes?: string | null;
           priority?: string;
           project_id?: string | null;
@@ -2234,6 +2240,16 @@ export type Database = {
       mark_validation_internal: {
         Args: { p_round_id: string };
         Returns: undefined;
+      };
+      open_project_support_ticket: {
+        Args: {
+          p_body: string;
+          p_category?: string;
+          p_priority?: string;
+          p_project_id: string;
+          p_subject: string;
+        };
+        Returns: Json;
       };
       register_project_acceptance: {
         Args: { p_notes?: string; p_project_id: string };
