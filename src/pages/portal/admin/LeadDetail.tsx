@@ -24,6 +24,14 @@ import {
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  type LeadDiagnosis,
+  type LeadUrgency,
+  URGENCY_OPTIONS,
+  hasMinimalDiagnosis,
+  isDiagnosisConcluded,
+  parseLeadDiagnosis,
+} from "@/lib/lead-diagnosis";
 import { formatBRL, maskCurrency, unmaskCurrency, maskPhone } from "@/lib/masks";
 import { formatPortalDateTime } from "@/lib/portal";
 
@@ -34,7 +42,14 @@ import { formatPortalDateTime } from "@/lib/portal";
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 type InteractionRow = Database["public"]["Tables"]["lead_interactions"]["Row"];
 
-type LeadStatus = "novo" | "qualificado" | "proposta" | "negociacao" | "ganho" | "perdido";
+type LeadStatus =
+  | "novo"
+  | "qualificado"
+  | "diagnostico"
+  | "proposta"
+  | "negociacao"
+  | "ganho"
+  | "perdido";
 type InteractionType = "ligacao" | "email" | "reuniao" | "whatsapp" | "nota";
 
 type StatusMeta = {
@@ -45,6 +60,7 @@ type StatusMeta = {
 const STATUS_META: Record<LeadStatus, StatusMeta> = {
   novo: { label: "Novo", tone: "secondary" },
   qualificado: { label: "Qualificado", tone: "accent" },
+  diagnostico: { label: "Diagnóstico", tone: "primary" },
   proposta: { label: "Proposta", tone: "primary" },
   negociacao: { label: "Negociacao", tone: "warning" },
   ganho: { label: "Ganho", tone: "success" },
@@ -166,6 +182,10 @@ export default function LeadDetail() {
   // Status change loading
   const [statusLoading, setStatusLoading] = useState(false);
 
+  // Diagnostico estruturado (PROBLEMA 5)
+  const [diagnosis, setDiagnosis] = useState<LeadDiagnosis>({});
+  const [savingDiagnosis, setSavingDiagnosis] = useState(false);
+
   /* ---- Fetching -------------------------------------------------- */
 
   const fetchData = useCallback(async () => {
@@ -194,11 +214,70 @@ export default function LeadDetail() {
       map[m.user_id] = m.full_name;
     }
 
-    setLead(leadRes.data as LeadRow);
+    const leadData = leadRes.data as LeadRow;
+    setLead(leadData);
+    setDiagnosis(parseLeadDiagnosis((leadData as { diagnosis?: unknown }).diagnosis) ?? {});
     setInteractions((interactionsRes.data ?? []) as InteractionRow[]);
     setTeamMap(map);
     setLoading(false);
   }, [id, navigate]);
+
+  /* ---- Diagnostico handlers ------------------------------------- */
+
+  function setDiagnosisField<K extends keyof LeadDiagnosis>(field: K, value: LeadDiagnosis[K]) {
+    setDiagnosis((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSaveDiagnosis(opts: { concluding?: boolean } = {}) {
+    if (!lead || savingDiagnosis) return;
+    setSavingDiagnosis(true);
+    try {
+      const concluding = Boolean(opts.concluding);
+      if (concluding && !hasMinimalDiagnosis(diagnosis)) {
+        toast.error("Preencha contexto, problema e objetivo antes de concluir.");
+        setSavingDiagnosis(false);
+        return;
+      }
+      const payload: LeadDiagnosis = {
+        ...diagnosis,
+        concluded_at: concluding ? new Date().toISOString() : (diagnosis.concluded_at ?? null),
+      };
+
+      const { error: updateError } = await supabase
+        .from("leads")
+        .update({ diagnosis: payload as never, updated_at: new Date().toISOString() })
+        .eq("id", lead.id);
+
+      if (updateError) {
+        toast.error("Erro ao salvar diagnóstico.", { description: updateError.message });
+        return;
+      }
+
+      setDiagnosis(payload);
+
+      // Ao concluir, avancar status do lead para 'diagnostico' se ainda
+      // estiver em 'qualificado' (ou recem 'novo').
+      if (concluding && (lead.status === "qualificado" || lead.status === "novo")) {
+        const { error: statusError } = await supabase
+          .from("leads")
+          .update({ status: "diagnostico", updated_at: new Date().toISOString() })
+          .eq("id", lead.id);
+        if (statusError) {
+          toast.error("Diagnóstico salvo, mas falha ao avançar status.", {
+            description: statusError.message,
+          });
+        } else {
+          setLead({ ...lead, status: "diagnostico", diagnosis: payload as never });
+        }
+      } else {
+        setLead({ ...lead, diagnosis: payload as never });
+      }
+
+      toast.success(concluding ? "Diagnóstico concluído." : "Diagnóstico salvo.");
+    } finally {
+      setSavingDiagnosis(false);
+    }
+  }
 
   useEffect(() => {
     void fetchData();
@@ -576,8 +655,131 @@ export default function LeadDetail() {
           </Card>
         </div>
 
-        {/* Right column — Interactions ----------------------------- */}
+        {/* Right column — Diagnostico + Interactions ---------------- */}
         <div className="xl:col-span-7 space-y-6">
+          {/* Diagnóstico estruturado (PROBLEMA 5) */}
+          <Card className="border-border/70 bg-card/92">
+            <CardHeader className="flex flex-row items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-base">Diagnóstico</CardTitle>
+                {isDiagnosisConcluded(diagnosis) ? (
+                  <p className="mt-1 text-xs text-success">
+                    Concluído em{" "}
+                    {diagnosis.concluded_at ? formatPortalDateTime(diagnosis.concluded_at) : "—"}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Consolide contexto, problema, objetivo e mais antes de criar a proposta. O
+                    resumo aqui pré-popula o escopo da proposta.
+                  </p>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Field>
+                <Label>Contexto do cliente</Label>
+                <Textarea
+                  value={diagnosis.context ?? ""}
+                  onChange={(e) => setDiagnosisField("context", e.target.value)}
+                  placeholder="Quem é o cliente, o que faz, momento atual..."
+                  rows={3}
+                />
+              </Field>
+              <Field>
+                <Label>Problema atual</Label>
+                <Textarea
+                  value={diagnosis.problem ?? ""}
+                  onChange={(e) => setDiagnosisField("problem", e.target.value)}
+                  placeholder="Qual a dor concreta que ele quer resolver?"
+                  rows={3}
+                />
+              </Field>
+              <Field>
+                <Label>Objetivo</Label>
+                <Textarea
+                  value={diagnosis.objective ?? ""}
+                  onChange={(e) => setDiagnosisField("objective", e.target.value)}
+                  placeholder="Qual o resultado esperado ao final do projeto?"
+                  rows={2}
+                />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field>
+                  <Label>Urgência</Label>
+                  <select
+                    className={selectClass}
+                    value={diagnosis.urgency ?? ""}
+                    onChange={(e) =>
+                      setDiagnosisField("urgency", (e.target.value || null) as LeadUrgency | null)
+                    }
+                  >
+                    <option value="">Não definida</option>
+                    {URGENCY_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field>
+                  <Label>Expectativa</Label>
+                  <Input
+                    value={diagnosis.expectation ?? ""}
+                    onChange={(e) => setDiagnosisField("expectation", e.target.value)}
+                    placeholder="Prazo, formato, entregáveis..."
+                  />
+                </Field>
+              </div>
+              <Field>
+                <Label>Escopo inicial</Label>
+                <Textarea
+                  value={diagnosis.initial_scope ?? ""}
+                  onChange={(e) => setDiagnosisField("initial_scope", e.target.value)}
+                  placeholder="Solução preliminar discutida..."
+                  rows={2}
+                />
+              </Field>
+              <Field>
+                <Label>Restrições</Label>
+                <Textarea
+                  value={diagnosis.constraints ?? ""}
+                  onChange={(e) => setDiagnosisField("constraints", e.target.value)}
+                  placeholder="Tecnologias obrigatórias, integrações, prazos rígidos..."
+                  rows={2}
+                />
+              </Field>
+              <Field>
+                <Label>Impacto no negócio</Label>
+                <Textarea
+                  value={diagnosis.business_impact ?? ""}
+                  onChange={(e) => setDiagnosisField("business_impact", e.target.value)}
+                  placeholder="O que muda para o cliente quando o projeto for entregue?"
+                  rows={2}
+                />
+              </Field>
+
+              <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={savingDiagnosis}
+                  onClick={() => void handleSaveDiagnosis()}
+                >
+                  {savingDiagnosis ? "Salvando..." : "Salvar"}
+                </Button>
+                {!isDiagnosisConcluded(diagnosis) ? (
+                  <Button
+                    size="sm"
+                    disabled={savingDiagnosis || !hasMinimalDiagnosis(diagnosis)}
+                    onClick={() => void handleSaveDiagnosis({ concluding: true })}
+                  >
+                    Concluir diagnóstico
+                  </Button>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border/70 bg-card/92">
             <CardHeader>
               <CardTitle className="text-base">Interações ({interactions.length})</CardTitle>

@@ -21,6 +21,11 @@ import {
 } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  buildScopeSummaryFromDiagnosis,
+  isDiagnosisConcluded,
+  parseLeadDiagnosis,
+} from "@/lib/lead-diagnosis";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, getLocalDateIso, maskCurrency, unmaskCurrency } from "@/lib/masks";
@@ -442,6 +447,29 @@ export default function ProposalDetail() {
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  /* ── Lead → diagnosis → scope_summary pre-population (PROBLEMA 5) ── */
+
+  async function handleLeadChange(leadId: string) {
+    setField("lead_id", leadId);
+    if (!leadId) return;
+    // Busca diagnostico do lead. Se concluido e scope_summary atual estiver
+    // vazio, pre-popula a partir do template gerado.
+    const { data: leadData } = await supabase
+      .from("leads")
+      .select("diagnosis")
+      .eq("id", leadId)
+      .maybeSingle();
+    if (!leadData) return;
+    const diagnosis = parseLeadDiagnosis((leadData as { diagnosis?: unknown }).diagnosis);
+    if (!isDiagnosisConcluded(diagnosis)) return;
+    if (form.scope_summary.trim().length > 0) return; // nao sobrescreve
+    const template = buildScopeSummaryFromDiagnosis(diagnosis);
+    if (template) {
+      setField("scope_summary", template);
+      toast.success("Escopo pré-preenchido com base no diagnóstico do lead.");
+    }
   }
 
   /* ── Load data ── */
@@ -974,7 +1002,7 @@ export default function ProposalDetail() {
                 <select
                   id="lead_id"
                   value={form.lead_id}
-                  onChange={(e) => setField("lead_id", e.target.value)}
+                  onChange={(e) => void handleLeadChange(e.target.value)}
                   className={selectClass}
                 >
                   <option value="">Selecione um lead</option>
