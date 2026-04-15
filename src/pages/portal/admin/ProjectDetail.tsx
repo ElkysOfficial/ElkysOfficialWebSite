@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
 import Pagination from "@/components/portal/Pagination";
@@ -2649,6 +2650,8 @@ export default function AdminProjectDetail() {
             </div>
           ) : null}
         </Card>
+
+        {contracts[0] ? <ContractVersionHistory contractId={contracts[0].id} /> : null}
       </div>
     );
   })();
