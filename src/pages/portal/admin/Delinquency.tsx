@@ -25,6 +25,7 @@ type ChargeRow = Pick<
   | "payment_link"
   | "is_historical"
   | "origin_type"
+  | "paid_at"
 >;
 
 type ClientRow = Pick<
@@ -74,10 +75,11 @@ export default function Delinquency() {
       supabase
         .from("charges")
         .select(
-          "id, client_id, description, amount, due_date, status, payment_link, is_historical, origin_type"
+          "id, client_id, description, amount, due_date, status, payment_link, is_historical, origin_type, paid_at"
         )
         .in("status", ["atrasado", "pendente"])
         .eq("is_historical", false)
+        .is("paid_at", null)
         .lte("due_date", todayStr),
       supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
     ]);

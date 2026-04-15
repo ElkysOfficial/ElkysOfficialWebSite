@@ -56,7 +56,13 @@ import {
   getProjectEffectiveBucket,
   isTicketOpen,
 } from "@/lib/portal";
-import { getSubscriptionCoverageEnd, listSubscriptionDueDates } from "@/lib/subscription-charges";
+import {
+  BURN_RATE_WINDOW_MONTHS,
+  computeBurnRate,
+  computeOperationalMargin,
+  computeRunway,
+} from "@/lib/finance-metrics";
+import { syncSubscriptionCharges } from "@/lib/sync-subscription-charges";
 import {
   formatBRL,
   formatDateInput,
@@ -1146,6 +1152,8 @@ interface AnaliseState {
   cashBalance: number;
   currentMonthNet: number;
   burnRate: number;
+  /** Meses que o caixa atual sustenta no ritmo de burn. null = burn ≤ 0. */
+  runwayMonths: number | null;
   operationalMargin: number | null;
   agingBuckets: AgingBucket[];
   activeClients: number;
@@ -1550,123 +1558,10 @@ function FinanceAnaliseTab() {
     const todayStr = now.toISOString().slice(0, 10);
     const curKey = createMonthKey(now.getFullYear(), now.getMonth());
 
-    // ── Auto-sync subscription charges ──
-    // Generates missing future charges so "Receita prevista" is always up-to-date.
-    // Uses upsert + unique index (subscription_id, due_date) to prevent duplicates.
-    const syncableSubs = subs.filter((s) => ["agendada", "ativa"].includes(s.status));
-    if (syncableSubs.length > 0) {
-      const latestContractByProject = new Map<string, AnaliseContract>();
-      for (const c of contracts) {
-        if (!latestContractByProject.has(c.project_id))
-          latestContractByProject.set(c.project_id, c);
-      }
-
-      const existingKeys = new Set(
-        charges
-          .filter((ch) => ch.subscription_id)
-          .map((ch) => `${ch.subscription_id}__${ch.due_date}`)
-      );
-
-      const toInsert: {
-        client_id: string;
-        project_id: string;
-        contract_id: string | null;
-        subscription_id: string;
-        origin_type: "mensalidade";
-        description: string;
-        amount: number;
-        due_date: string;
-        status: "agendada" | "pendente";
-        is_blocking: boolean;
-      }[] = [];
-
-      for (const sub of syncableSubs) {
-        const contract = latestContractByProject.get(sub.project_id) ?? null;
-        const coverageEnd = getSubscriptionCoverageEnd(sub.ends_on, contract?.ends_at ?? null);
-        const dueDates = listSubscriptionDueDates({
-          startsOn: sub.starts_on,
-          dueDay: sub.due_day,
-          endsOn: coverageEnd,
-          mode: "sync",
-        });
-
-        for (const dd of dueDates) {
-          if (existingKeys.has(`${sub.id}__${dd}`)) continue;
-          toInsert.push({
-            client_id: sub.client_id,
-            project_id: sub.project_id,
-            contract_id: contract?.id ?? null,
-            subscription_id: sub.id,
-            origin_type: "mensalidade",
-            description: sub.label,
-            amount: Number(sub.amount),
-            due_date: dd,
-            status: dd > todayStr ? "agendada" : "pendente",
-            is_blocking: sub.is_blocking,
-          });
-        }
-      }
-
-      // Fix status of existing future charges that are "pendente" but should be "agendada"
-      const chargesToFixStatus = charges.filter(
-        (ch) =>
-          ch.subscription_id &&
-          ch.status === "pendente" &&
-          ch.due_date > todayStr &&
-          !ch.is_historical
-      );
-
-      if (chargesToFixStatus.length > 0) {
-        await supabase
-          .from("charges")
-          .update({ status: "agendada" })
-          .in(
-            "id",
-            chargesToFixStatus.map((c) => c.id)
-          );
-      }
-
-      // Fix status of past charges still marked "agendada" that should be "pendente"
-      const chargesToMarkPendente = charges.filter(
-        (ch) =>
-          ch.subscription_id &&
-          ch.status === "agendada" &&
-          ch.due_date <= todayStr &&
-          !ch.is_historical
-      );
-      if (chargesToMarkPendente.length > 0) {
-        await supabase
-          .from("charges")
-          .update({ status: "pendente" })
-          .in(
-            "id",
-            chargesToMarkPendente.map((c) => c.id)
-          );
-      }
-
-      // Insert missing charges — upsert with ignoreDuplicates to prevent race conditions.
-      // Relies on unique index idx_charges_subscription_due_date_unique (subscription_id, due_date).
-      if (toInsert.length > 0) {
-        const { error: upsertError } = await supabase
-          .from("charges")
-          .upsert(toInsert, { onConflict: "subscription_id,due_date", ignoreDuplicates: true });
-
-        if (upsertError) {
-          console.warn("[finance-sync] upsert charges:", upsertError.message);
-        }
-      }
-
-      // Always reload after sync to reflect status corrections
-      const refreshed = await supabase
-        .from("charges")
-        .select(
-          "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, subscription_id"
-        );
-      if (!refreshed.error && refreshed.data) {
-        charges.length = 0;
-        charges.push(...(refreshed.data as AnaliseCharge[]));
-      }
-    }
+    // Auditoria 2026-04-15: REMOVIDO auto-sync de charges em load.
+    // Sincronizacao agora e exclusivamente manual via botao "Sincronizar
+    // mensalidades" (handleManualSync abaixo). Abrir a tela e operacao
+    // 100% READ ONLY — sem mutacoes silenciosas no banco.
 
     // Monthly series (12 months)
     const monthFrames = Array.from({ length: 12 }, (_, rawIndex) => {
@@ -1740,36 +1635,15 @@ function FinanceAnaliseTab() {
       p.cashOut += toCents(e.amount);
     });
 
-    // Fallback retroativo por mes: se as charges pagas de mensalidade
-    // somarem menos que a base contratual ativa NAQUELE mes, usar a base.
-    // Evita que meses passados mostrem MRR=0 so porque o admin nao
-    // marcou as cobrancas como "pago". Respeita starts_on/ends_on de
-    // cada subscription para nao inflar meses anteriores ao inicio ou
-    // posteriores ao fim.
+    // Auditoria 2026-04-15: removido fallback contratual silencioso.
+    // MRR historico = SOMENTE realizado. Meses sem charges pagas mostrarao
+    // zero — informacao verdadeira em vez de inferencia teorica que
+    // mascarava churn e inflava o historico.
     const recurringSubscriptions = subs.filter((s) => ["agendada", "ativa"].includes(s.status));
     const recurringBaseCents = recurringSubscriptions.reduce(
       (sum, s) => sum + toCents(s.amount),
       0
     );
-    for (const frame of monthFrames) {
-      const [y, m] = frame.key.split("-").map(Number);
-      const monthStartIso = `${frame.key}-01`;
-      const lastDay = new Date(y, m, 0).getDate();
-      const monthEndIso = `${frame.key}-${String(lastDay).padStart(2, "0")}`;
-
-      const baseForMonthCents = recurringSubscriptions
-        .filter((sub) => {
-          if (sub.starts_on && sub.starts_on > monthEndIso) return false;
-          if (sub.ends_on && sub.ends_on < monthStartIso) return false;
-          return true;
-        })
-        .reduce((sum, sub) => sum + toCents(sub.amount), 0);
-
-      const point = monthlyMap.get(frame.key);
-      if (point && point.recurringRevenue < baseForMonthCents) {
-        point.recurringRevenue = baseForMonthCents;
-      }
-    }
 
     // Convert centavos back to reais for the public series
     const recurringBase = recurringBaseCents / 100;
@@ -1903,17 +1777,8 @@ function FinanceAnaliseTab() {
       pendingProposals.reduce((s, p) => s + toCents(p.total_amount), 0) / 100;
     const pipelineValue = projectPipelineValue + proposalPipelineValue;
 
-    // Burn rate medio = media das saidas dos ultimos 6 meses, usando
-    // SEMPRE a mesma janela para numerador e denominador (fatia do
-    // monthlySeries). Antes numerador e denominador divergiam em 1 mes
-    // porque sixMonthsAgo era calculado a parte, gerando burn inflado
-    // caso houvesse despesa exatamente no mes limite.
-    const lastSixMonths = monthlySeries.slice(-6);
-    const burnMonthsWithExpenses = lastSixMonths.filter((m) => m.cashOut > 0).length;
-    const burnRate =
-      burnMonthsWithExpenses > 0
-        ? lastSixMonths.reduce((s, m) => s + m.cashOut, 0) / burnMonthsWithExpenses
-        : 0;
+    // Burn rate via lib central (mesmo numero do Overview).
+    const burnRate = computeBurnRate(monthlySeries, BURN_RATE_WINDOW_MONTHS);
 
     // Cash, receivables, margin
     const cashBalance =
@@ -1947,19 +1812,15 @@ function FinanceAnaliseTab() {
 
     const curMonth = monthlySeries[monthlySeries.length - 1];
     const currentMonthNet = curMonth?.net ?? 0;
-    const currentMrr = curMonth?.recurringRevenue ?? recurringBase;
+    const currentMrr = curMonth?.recurringRevenue ?? 0;
     const currentProjectRevenue = curMonth?.projectRevenue ?? 0;
     // Margem operacional por COMPETENCIA: receita reconhecida do mes
-    // (recorrente contratada + projeto com parcela devida no mes) menos
-    // despesas do mes. Usar cashIn/cashOut aqui dava "margem de caixa",
-    // inflada quando mensalidades antigas eram pagas retroativamente no
-    // mes corrente e mostrando verde quando a operacao estava no vermelho.
+    // (recorrente + projeto por due_date) menos despesas do mes (caixa).
+    // Lib central garante uma definicao unica em todo o app — Overview e
+    // Finance produzem o mesmo numero para a mesma metrica.
     const currentMonthRevenue = currentMrr + currentProjectRevenue;
-    const currentMonthExpenses = curMonth?.cashOut ?? 0;
-    const operationalMargin =
-      currentMonthRevenue > 0
-        ? ((currentMonthRevenue - currentMonthExpenses) / currentMonthRevenue) * 100
-        : null;
+    const operationalMargin = computeOperationalMargin(currentMonthRevenue, curMonth?.cashOut ?? 0);
+    const runwayMonths = computeRunway(cashBalance, burnRate);
 
     const newClientsThisMonth = clients.filter((c) => {
       const since = parseDateValue(c.client_since);
@@ -1983,6 +1844,7 @@ function FinanceAnaliseTab() {
       cashBalance,
       currentMonthNet,
       burnRate,
+      runwayMonths,
       operationalMargin,
       agingBuckets,
       activeClients: activeClients.length,
@@ -2016,15 +1878,66 @@ function FinanceAnaliseTab() {
     void loadAnalise();
   }, [loadAnalise]);
 
+  const [syncing, setSyncing] = useState(false);
+  const handleManualSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const [chargesRes, subsRes, contractsRes] = await Promise.all([
+        supabase.from("charges").select("id, subscription_id, due_date, status, is_historical"),
+        supabase
+          .from("project_subscriptions")
+          .select(
+            "id, client_id, project_id, amount, status, starts_on, due_day, ends_on, is_blocking, label"
+          ),
+        supabase
+          .from("project_contracts")
+          .select("id, project_id, ends_at")
+          .order("created_at", { ascending: false }),
+      ]);
+      if (chargesRes.error || subsRes.error || contractsRes.error) {
+        toast.error("Falha ao carregar dados para sincronizacao");
+        return;
+      }
+      const result = await syncSubscriptionCharges(supabase, {
+        subscriptions: subsRes.data ?? [],
+        contracts: contractsRes.data ?? [],
+        existingCharges: chargesRes.data ?? [],
+      });
+      const parts: string[] = [];
+      if (result.inserted > 0) parts.push(`${result.inserted} novas`);
+      if (result.scheduledFromPendente > 0)
+        parts.push(`${result.scheduledFromPendente} → agendada`);
+      if (result.pendenteFromScheduled > 0)
+        parts.push(`${result.pendenteFromScheduled} → pendente`);
+      toast.success(parts.length > 0 ? `Sync: ${parts.join(", ")}` : "Nada para sincronizar");
+      await loadAnalise();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Falha na sincronizacao");
+    } finally {
+      setSyncing(false);
+    }
+  }, [loadAnalise]);
+
   if (loading || !state) return <PortalLoading />;
 
   return (
     <div className="space-y-6">
       {/* Revenue breakdown */}
       <section>
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Composicao da receita
-        </h3>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Composicao da receita
+          </h3>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleManualSync}
+            disabled={syncing}
+          >
+            {syncing ? "Sincronizando..." : "Sincronizar mensalidades"}
+          </Button>
+        </div>
         <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
           <SurfaceStat label="MRR" value={formatBRL(state.currentMrr)} tone="success" />
           <SurfaceStat
@@ -2095,6 +2008,27 @@ function FinanceAnaliseTab() {
             label="Burn rate mensal"
             value={formatBRL(state.burnRate)}
             tone={state.burnRate > 0 ? "warning" : "neutral"}
+          />
+          <SurfaceStat
+            label="Runway"
+            value={
+              state.runwayMonths === null
+                ? "—"
+                : state.runwayMonths === 0
+                  ? "0 meses"
+                  : state.runwayMonths >= 24
+                    ? "24+ meses"
+                    : `${state.runwayMonths.toFixed(1)} meses`
+            }
+            tone={
+              state.runwayMonths === null
+                ? "neutral"
+                : state.runwayMonths < 3
+                  ? "destructive"
+                  : state.runwayMonths < 6
+                    ? "warning"
+                    : "success"
+            }
           />
           <SurfaceStat
             label="Saldo do mes"
