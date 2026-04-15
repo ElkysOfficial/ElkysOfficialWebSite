@@ -30,6 +30,7 @@ import {
   cn,
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
+import { getLocalDateIso } from "@/lib/masks";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
 /* ------------------------------------------------------------------ */
@@ -198,7 +199,7 @@ function getInitials(name: string) {
 function addDays(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  return getLocalDateIso(d);
 }
 
 function toDateTimeInput(iso: string | null): string {
@@ -1023,7 +1024,7 @@ export function CreateTaskModal({
                 type="date"
                 value={form.custom_date}
                 onChange={(e) => set("custom_date", e.target.value)}
-                min={new Date().toISOString().slice(0, 10)}
+                min={getLocalDateIso()}
               />
             </Field>
           )}

@@ -23,6 +23,7 @@ import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import {
   formatBRL,
   formatDateInput,
+  getLocalDateIso,
   maskCurrency,
   maskDate,
   parseFormDate,
@@ -243,7 +244,7 @@ export default function AdminProjectCreate() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const today = formatDateInput(new Date().toISOString().slice(0, 10));
+  const today = formatDateInput(getLocalDateIso());
   const [form, setForm] = useState<ProjectCreateForm>({
     client_id: preselectedClientId,
     name: "",
@@ -439,7 +440,7 @@ export default function AdminProjectCreate() {
     const entryDueDateIso = parseFormDate(form.entry_due_date);
     const deliveryDueDateIso = parseFormDate(form.delivery_due_date);
     const deliveredAtIso = form.is_retroactive ? parseFormDate(form.delivered_at) : null;
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = getLocalDateIso();
 
     try {
       const { data: projectData, error: projectError } = await supabase
