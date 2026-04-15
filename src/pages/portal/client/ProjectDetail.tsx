@@ -8,6 +8,7 @@ import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import Pagination from "@/components/portal/Pagination";
 import PortalLoading from "@/components/portal/PortalLoading";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
+import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
 import StatusBadge from "@/components/portal/StatusBadge";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
@@ -318,6 +319,8 @@ export default function ClientProjectDetail() {
           ) : null}
         </CardContent>
       </Card>
+
+      <ProjectStageJourney currentStage={project.current_stage} />
 
       <div className="flex gap-1 overflow-x-auto rounded-lg border border-border/60 bg-card p-1">
         {projectTabs.map((item) => (
