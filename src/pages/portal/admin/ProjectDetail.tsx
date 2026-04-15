@@ -6,6 +6,7 @@ import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
+import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
 import Pagination from "@/components/portal/Pagination";
@@ -2652,6 +2653,17 @@ export default function AdminProjectDetail() {
         </Card>
 
         {contracts[0] ? <ContractVersionHistory contractId={contracts[0].id} /> : null}
+
+        {project ? (
+          <ProjectOnboardingChecklist
+            projectId={project.id}
+            initialChecklist={(project as { onboarding_checklist?: unknown }).onboarding_checklist}
+            initialCompletedAt={
+              (project as { onboarding_completed_at?: string | null }).onboarding_completed_at ??
+              null
+            }
+          />
+        ) : null}
       </div>
     );
   })();

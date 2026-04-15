@@ -1470,6 +1470,8 @@ export type Database = {
           internal_notes: string | null;
           manual_status_override: boolean;
           name: string;
+          onboarding_checklist: Json;
+          onboarding_completed_at: string | null;
           pause_reason: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source: Database["public"]["Enums"]["pause_source"] | null;
           production_url: string | null;
@@ -1494,6 +1496,8 @@ export type Database = {
           internal_notes?: string | null;
           manual_status_override?: boolean;
           name: string;
+          onboarding_checklist?: Json;
+          onboarding_completed_at?: string | null;
           pause_reason?: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source?: Database["public"]["Enums"]["pause_source"] | null;
           production_url?: string | null;
@@ -1518,6 +1522,8 @@ export type Database = {
           internal_notes?: string | null;
           manual_status_override?: boolean;
           name?: string;
+          onboarding_checklist?: Json;
+          onboarding_completed_at?: string | null;
           pause_reason?: Database["public"]["Enums"]["project_pause_reason"] | null;
           pause_source?: Database["public"]["Enums"]["pause_source"] | null;
           production_url?: string | null;
