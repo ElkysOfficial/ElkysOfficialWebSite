@@ -787,6 +787,7 @@ export type Database = {
           converted_client_id: string | null;
           created_at: string;
           created_by: string | null;
+          diagnosis: Json | null;
           email: string | null;
           estimated_value: number | null;
           id: string;
@@ -805,6 +806,7 @@ export type Database = {
           converted_client_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          diagnosis?: Json | null;
           email?: string | null;
           estimated_value?: number | null;
           id?: string;
@@ -823,6 +825,7 @@ export type Database = {
           converted_client_id?: string | null;
           created_at?: string;
           created_by?: string | null;
+          diagnosis?: Json | null;
           email?: string | null;
           estimated_value?: number | null;
           id?: string;
