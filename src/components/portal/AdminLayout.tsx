@@ -148,6 +148,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
       },
+      {
+        label: "Documentos Dev",
+        href: "/portal/admin/documentos/desenvolvedor",
+        icon: Code2,
+        roles: ["admin_super", "admin", "developer"],
+      },
     ],
   },
   {
@@ -181,12 +187,6 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/audit-log",
         icon: Shield,
         roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Documentos Dev",
-        href: "/portal/admin/documentos/desenvolvedor",
-        icon: Code2,
-        roles: ["admin_super", "admin", "developer"],
       },
     ],
   },
