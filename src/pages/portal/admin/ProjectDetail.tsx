@@ -6,6 +6,7 @@ import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
+import ProjectAcceptanceCard from "@/components/portal/ProjectAcceptanceCard";
 import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
@@ -2662,6 +2663,19 @@ export default function AdminProjectDetail() {
               (project as { onboarding_completed_at?: string | null }).onboarding_completed_at ??
               null
             }
+          />
+        ) : null}
+
+        {project ? (
+          <ProjectAcceptanceCard
+            projectId={project.id}
+            acceptedAt={(project as { accepted_at?: string | null }).accepted_at ?? null}
+            acceptedBy={(project as { accepted_by?: string | null }).accepted_by ?? null}
+            acceptanceNotes={
+              (project as { acceptance_notes?: string | null }).acceptance_notes ?? null
+            }
+            deliveredAt={project.delivered_at}
+            onAccepted={() => void loadProject()}
           />
         ) : null}
       </div>

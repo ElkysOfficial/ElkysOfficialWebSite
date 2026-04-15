@@ -1457,6 +1457,9 @@ export type Database = {
       };
       projects: {
         Row: {
+          acceptance_notes: string | null;
+          accepted_at: string | null;
+          accepted_by: string | null;
           archived_at: string | null;
           billing_type: Database["public"]["Enums"]["billing_type"];
           client_id: string;
@@ -1483,6 +1486,9 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          acceptance_notes?: string | null;
+          accepted_at?: string | null;
+          accepted_by?: string | null;
           archived_at?: string | null;
           billing_type?: Database["public"]["Enums"]["billing_type"];
           client_id: string;
@@ -1509,6 +1515,9 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          acceptance_notes?: string | null;
+          accepted_at?: string | null;
+          accepted_by?: string | null;
           archived_at?: string | null;
           billing_type?: Database["public"]["Enums"]["billing_type"];
           client_id?: string;
@@ -2114,6 +2123,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean };
       mark_overdue_charges: { Args: never; Returns: undefined };
       mark_overdue_clients_inadimplente: { Args: never; Returns: undefined };
+      register_project_acceptance: {
+        Args: { p_notes?: string; p_project_id: string };
+        Returns: Json;
+      };
       sync_financial_blocks: { Args: never; Returns: undefined };
       sync_projects_from_blocking_charges: { Args: never; Returns: undefined };
     };
