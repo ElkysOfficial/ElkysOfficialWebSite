@@ -2245,6 +2245,16 @@ export type Database = {
       };
       sync_financial_blocks: { Args: never; Returns: undefined };
       sync_projects_from_blocking_charges: { Args: never; Returns: undefined };
+      transition_project_contract: {
+        Args: {
+          p_contract_id: string;
+          p_ends_at?: string;
+          p_reason?: string;
+          p_signed_at?: string;
+          p_to_status: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       app_role: "admin_super" | "admin" | "cliente" | "marketing" | "developer" | "support";
