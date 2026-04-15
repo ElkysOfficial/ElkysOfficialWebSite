@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminMetricCard from "@/components/portal/AdminMetricCard";
+import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import PortalLoading from "@/components/portal/PortalLoading";
 import StatusBadge from "@/components/portal/StatusBadge";
@@ -77,11 +78,10 @@ export default function Contracts() {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    void Promise.all([
+    const [contractsRes, projectsRes, clientsRes] = await Promise.all([
       supabase
         .from("project_contracts")
         .select(
@@ -90,27 +90,26 @@ export default function Contracts() {
         .order("created_at", { ascending: false }),
       supabase.from("projects").select("id, name"),
       supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
-    ]).then(([contractsRes, projectsRes, clientsRes]) => {
-      if (!active) return;
-      const queryError = contractsRes.error ?? projectsRes.error ?? clientsRes.error;
-      if (queryError) {
-        setError(queryError.message);
-        setLoading(false);
-        return;
-      }
-      setContracts((contractsRes.data ?? []) as ContractRow[]);
-      const pMap = new Map<string, ProjectRef>();
-      for (const p of (projectsRes.data ?? []) as ProjectRef[]) pMap.set(p.id, p);
-      setProjects(pMap);
-      const cMap = new Map<string, ClientRef>();
-      for (const c of (clientsRes.data ?? []) as ClientRef[]) cMap.set(c.id, c);
-      setClients(cMap);
+    ]);
+    const queryError = contractsRes.error ?? projectsRes.error ?? clientsRes.error;
+    if (queryError) {
+      setError(queryError.message);
       setLoading(false);
-    });
-    return () => {
-      active = false;
-    };
+      return;
+    }
+    setContracts((contractsRes.data ?? []) as ContractRow[]);
+    const pMap = new Map<string, ProjectRef>();
+    for (const p of (projectsRes.data ?? []) as ProjectRef[]) pMap.set(p.id, p);
+    setProjects(pMap);
+    const cMap = new Map<string, ClientRef>();
+    for (const c of (clientsRes.data ?? []) as ClientRef[]) cMap.set(c.id, c);
+    setClients(cMap);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void loadAll();
+  }, [loadAll]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -287,6 +286,12 @@ export default function Contracts() {
                       {isExpanded ? "Ocultar histórico" : "Ver histórico de versões"}
                     </button>
                   </div>
+
+                  <ContractActionsButtons
+                    contractId={contract.id}
+                    status={contract.status}
+                    onTransitioned={() => void loadAll()}
+                  />
 
                   {isExpanded ? <ContractVersionHistory contractId={contract.id} /> : null}
                 </CardContent>
