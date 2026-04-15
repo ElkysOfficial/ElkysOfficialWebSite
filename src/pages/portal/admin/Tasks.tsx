@@ -1086,6 +1086,17 @@ export default function AdminTasks() {
   const [categoryFilter, setCategoryFilter] = useState("todos");
   const [priorityFilter, setPriorityFilter] = useState("todas");
   const [assignedFilter, setAssignedFilter] = useState("todos");
+  const [scope, setScope] = useState<"minhas" | "todas">(() => {
+    if (typeof window === "undefined") return "minhas";
+    const saved = window.localStorage.getItem("elkys-admin-tasks-scope");
+    return saved === "todas" ? "todas" : "minhas";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("elkys-admin-tasks-scope", scope);
+    }
+  }, [scope]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TeamTask | null>(null);
@@ -1142,14 +1153,22 @@ export default function AdminTasks() {
 
   /* ── Filtering ──────────────────────────────────────────────────── */
 
+  const myTasksCount = useMemo(
+    () => tasks.filter((t) => t.assigned_to === user?.id || t.created_by === user?.id).length,
+    [tasks, user?.id]
+  );
+
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
+      if (isAdmin && scope === "minhas") {
+        if (t.assigned_to !== user?.id && t.created_by !== user?.id) return false;
+      }
       if (categoryFilter !== "todos" && t.category !== categoryFilter) return false;
       if (priorityFilter !== "todas" && t.priority !== priorityFilter) return false;
       if (assignedFilter !== "todos" && t.assigned_to !== assignedFilter) return false;
       return true;
     });
-  }, [tasks, categoryFilter, priorityFilter, assignedFilter]);
+  }, [tasks, categoryFilter, priorityFilter, assignedFilter, scope, isAdmin, user?.id]);
 
   const grouped = useMemo(() => {
     const map: Record<ColumnKey, TeamTask[]> = {
@@ -1230,6 +1249,51 @@ export default function AdminTasks() {
       {/* Toolbar */}
       <Card className="rounded-2xl border-border/80 bg-card/95">
         <CardContent className="flex flex-wrap items-center gap-3 p-3 sm:p-4">
+          {isAdmin && (
+            <div className="flex rounded-lg border border-border/60 bg-background p-0.5">
+              <button
+                type="button"
+                onClick={() => setScope("minhas")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                  scope === "minhas"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Minhas tarefas
+                <span
+                  className={cn(
+                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
+                    scope === "minhas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {myTasksCount}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScope("todas")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                  scope === "todas"
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Todas
+                <span
+                  className={cn(
+                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
+                    scope === "todas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {tasks.length}
+                </span>
+              </button>
+            </div>
+          )}
+
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
