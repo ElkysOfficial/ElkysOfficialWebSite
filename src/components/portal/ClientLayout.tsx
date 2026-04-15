@@ -32,6 +32,7 @@ const SIDEBAR_STORAGE_KEY = "elkys-client-sidebar-collapsed";
 const navItems = [
   { label: "Visão Geral", href: "/portal/cliente", icon: Home },
   { label: "Propostas", href: "/portal/cliente/propostas", icon: FileText },
+  { label: "Contratos", href: "/portal/cliente/contratos", icon: FileText },
   { label: "Projetos", href: "/portal/cliente/projetos", icon: CalendarX },
   { label: "Financeiro", href: "/portal/cliente/financeiro", icon: Banknote },
   { label: "Suporte", href: "/portal/cliente/suporte", icon: Phone },
@@ -53,6 +54,12 @@ const clientPageMeta = [
     match: (pathname: string) => pathname.startsWith("/portal/cliente/propostas/"),
     title: "Detalhe da Proposta",
     description: "Avalie os termos da proposta e responda diretamente pelo portal.",
+  },
+  {
+    match: (pathname: string) => pathname === "/portal/cliente/contratos",
+    title: "Contratos",
+    description:
+      "Contratos emitidos pela Elkys com escopo, valores e vigência. Revise e registre seu aceite formal.",
   },
   {
     match: (pathname: string) => pathname === "/portal/cliente/projetos",
