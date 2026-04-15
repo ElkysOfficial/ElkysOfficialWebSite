@@ -8,6 +8,7 @@ import AdminPageHeader from "@/components/portal/AdminPageHeader";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import ProjectAcceptanceCard from "@/components/portal/ProjectAcceptanceCard";
 import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
+import ProjectSupportCard from "@/components/portal/ProjectSupportCard";
 import ProjectValidationRounds from "@/components/portal/ProjectValidationRounds";
 import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
 import PortalLoading from "@/components/portal/PortalLoading";
@@ -2684,6 +2685,16 @@ export default function AdminProjectDetail() {
             }
             deliveredAt={project.delivered_at}
             onAccepted={() => void loadProject()}
+          />
+        ) : null}
+
+        {project ? (
+          <ProjectSupportCard
+            projectId={project.id}
+            acceptedAt={(project as { accepted_at?: string | null }).accepted_at ?? null}
+            warrantyPeriodDays={
+              (project as { warranty_period_days?: number }).warranty_period_days ?? 90
+            }
           />
         ) : null}
       </div>
