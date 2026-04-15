@@ -1174,17 +1174,15 @@ export default function AdminClientDetail() {
     setActionLoading("contract");
 
     try {
+      // PROBLEMA 18: snapshots legados (monthly_value, project_total_value,
+      // contract_status, contract_type, contract_start, contract_end,
+      // scope_summary, payment_due_day) sao bloqueados por trigger no banco.
+      // Dados reais vivem em project_contracts / project_subscriptions e
+      // sao lidos via client_financial_summary. Este save persiste apenas
+      // atributos proprios do cliente (client_since, client_origin, tags).
       const payload: ClientUpdate = {
-        monthly_value: unmaskCurrency(values.monthly_value),
-        project_total_value: unmaskCurrency(values.project_total_value),
         client_since: parseFormDate(values.client_since) ?? client.client_since,
-        payment_due_day: values.payment_due_day ? Number(values.payment_due_day) : null,
-        contract_status: values.contract_status || null,
-        contract_type: values.contract_type || null,
         client_origin: values.client_origin || null,
-        contract_start: parseFormDate(values.contract_start),
-        contract_end: parseFormDate(values.contract_end),
-        scope_summary: values.scope_summary.trim() || null,
         tags: normalizeTags(values.tags_input),
         updated_at: new Date().toISOString(),
       };
