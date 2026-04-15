@@ -516,6 +516,14 @@ export default function ProposalDetail() {
   /* ── Build payload ── */
 
   function buildPayload(status: string) {
+    // PROBLEMA 4: garante XOR client/lead antes de montar payload.
+    // O DB tem CHECK constraint, mas falhar cedo aqui evita UX ruim
+    // (admin so saberia do erro depois do POST).
+    const hasClient = form.destination_type === "client" && Boolean(form.client_id);
+    const hasLead = form.destination_type === "lead" && Boolean(form.lead_id);
+    if (hasClient === hasLead) {
+      throw new Error("Selecione exatamente um destinatario: cliente OU lead.");
+    }
     const payload: Database["public"]["Tables"]["proposals"]["Insert"] = {
       title: form.title.trim(),
       client_id: form.destination_type === "client" && form.client_id ? form.client_id : null,
