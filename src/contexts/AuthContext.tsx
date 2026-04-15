@@ -12,7 +12,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
-export type AppRole = "admin_super" | "admin" | "cliente" | "marketing" | "developer" | "support";
+export type AppRole =
+  | "admin_super"
+  | "admin"
+  | "cliente"
+  | "marketing"
+  | "developer"
+  | "support"
+  | "financeiro"
+  | "comercial"
+  | "juridico"
+  | "designer"
+  | "po";
 
 interface AuthState {
   user: User | null;
