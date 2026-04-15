@@ -1839,6 +1839,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      create_project_with_billing: { Args: { p_input: Json }; Returns: string };
       get_client_id_for_portal_user: {
         Args: { _user_id: string };
         Returns: string;
