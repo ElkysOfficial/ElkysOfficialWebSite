@@ -37,6 +37,7 @@ const ClientFinance = lazy(() => import("./portal/client/Finance"));
 const ClientSupport = lazy(() => import("./portal/client/Support"));
 const ClientProposals = lazy(() => import("./portal/client/Proposals"));
 const ClientProposalView = lazy(() => import("./portal/client/ProposalView"));
+const ClientContracts = lazy(() => import("./portal/client/Contracts"));
 const ClientProfile = lazy(() => import("./portal/client/Profile"));
 const ChangePassword = lazy(() => import("./portal/client/ChangePassword"));
 const AdminChangePassword = lazy(() => import("./portal/admin/ChangePassword"));
@@ -384,6 +385,7 @@ const PortalRoutes = () => (
         <Route index element={<ClientOverview />} />
         <Route path="propostas" element={<ClientProposals />} />
         <Route path="propostas/:id" element={<ClientProposalView />} />
+        <Route path="contratos" element={<ClientContracts />} />
         <Route path="projetos" element={<ClientProjects />} />
         <Route path="projetos/:id" element={<ClientProjectDetail />} />
         <Route path="financeiro" element={<ClientFinance />} />

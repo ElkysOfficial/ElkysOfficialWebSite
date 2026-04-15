@@ -35,7 +35,8 @@
       "Bash(ls *)",
       "Bash(awk '{print $NF}')",
       "Bash(grep -B 5 -A 5 \"ends_at.*<\\\\|ends_at.*>\\\\|status.*ends_at\" \"C:\\\\Users\\\\lcvsilva\\\\Desktop\\\\ElkysOfficialWebSite/supabase/migrations\"/*.sql)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }
