@@ -303,10 +303,7 @@ export default function AdminClientCreate() {
           nome_fantasia: form.nome_fantasia || null,
           cargo_representante: form.cargo_representante || null,
           client_since: parseFormDate(form.client_since) ?? getLocalDateIso(),
-          monthly_value: 0,
-          project_total_value: 0,
           must_change_password: true,
-          scope_summary: form.notes_internal.trim() || null,
         })
         .select("id, full_name")
         .single();
