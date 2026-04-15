@@ -176,16 +176,23 @@ function AddProjectDocumentForm({
   clientId,
   projectId,
   actorUserId,
+  allowContractType,
   onAdded,
 }: {
   clientId: string;
   projectId: string;
   actorUserId?: string | null;
+  /**
+   * PA19: quando false, oculta 'contrato' do select. Link do contrato
+   * e responsabilidade do juridico — anexado via AddContractLinkForm
+   * na tela /portal/admin/contratos.
+   */
+  allowContractType: boolean;
   onAdded: () => Promise<void>;
 }) {
   const [label, setLabel] = useState("");
   const [url, setUrl] = useState("");
-  const [type, setType] = useState<DocumentType>("contrato");
+  const [type, setType] = useState<DocumentType>(allowContractType ? "contrato" : "briefing");
   const [submitting, setSubmitting] = useState(false);
 
   const handleAdd = async () => {
@@ -264,7 +271,7 @@ function AddProjectDocumentForm({
 
     setLabel("");
     setUrl("");
-    setType("contrato");
+    setType(allowContractType ? "contrato" : "briefing");
     await onAdded();
     setSubmitting(false);
     toast.success("Documento adicionado ao projeto.");
@@ -304,11 +311,13 @@ function AddProjectDocumentForm({
             onChange={(event) => setType(event.target.value as DocumentType)}
             className={selectClass}
           >
-            {(Object.keys(DOCUMENT_TYPE_LABEL) as DocumentType[]).map((docType) => (
-              <option key={docType} value={docType}>
-                {DOCUMENT_TYPE_LABEL[docType]}
-              </option>
-            ))}
+            {(Object.keys(DOCUMENT_TYPE_LABEL) as DocumentType[])
+              .filter((docType) => allowContractType || docType !== "contrato")
+              .map((docType) => (
+                <option key={docType} value={docType}>
+                  {DOCUMENT_TYPE_LABEL[docType]}
+                </option>
+              ))}
           </select>
         </Field>
         <Button
@@ -364,7 +373,8 @@ function OverlayPanel({
 }
 
 export default function AdminProjectDetail() {
-  const { user } = useAuth();
+  const { user, roles, isAdmin } = useAuth();
+  const allowContractType = isAdmin || roles.includes("juridico");
   const { id } = useParams();
   const [project, setProject] = useState<Database["public"]["Tables"]["projects"]["Row"] | null>(
     null
@@ -2810,6 +2820,7 @@ export default function AdminProjectDetail() {
             clientId={client.id}
             projectId={project.id}
             actorUserId={user?.id ?? null}
+            allowContractType={allowContractType}
             onAdded={async () => {
               await loadProject();
             }}
