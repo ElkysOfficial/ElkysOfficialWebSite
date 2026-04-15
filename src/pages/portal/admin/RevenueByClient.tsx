@@ -10,7 +10,7 @@ import { Button, Card, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import { formatBRL, toCents } from "@/lib/masks";
+import { formatBRL, getLocalDateIso, toCents } from "@/lib/masks";
 import { getClientDisplayName } from "@/lib/portal";
 
 type ChargeRow = Pick<
@@ -45,7 +45,7 @@ function getStartDate(months: PeriodOption): string | null {
   const d = new Date();
   d.setMonth(d.getMonth() - months);
   d.setDate(1);
-  return d.toISOString().slice(0, 10);
+  return getLocalDateIso(d);
 }
 
 export default function RevenueByClient() {

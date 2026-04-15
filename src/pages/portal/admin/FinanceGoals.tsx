@@ -9,7 +9,7 @@ import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatBRL, maskCurrency, toCents, unmaskCurrency } from "@/lib/masks";
+import { formatBRL, getLocalDateIso, maskCurrency, toCents, unmaskCurrency } from "@/lib/masks";
 
 type GoalRow = Database["public"]["Tables"]["financial_goals"]["Row"];
 type ChargeRow = Pick<
@@ -83,8 +83,8 @@ function computePeriodDates(
     const start = new Date(year, month, 1);
     const end = new Date(year, month + 1, 0);
     return {
-      start: start.toISOString().slice(0, 10),
-      end: end.toISOString().slice(0, 10),
+      start: getLocalDateIso(start),
+      end: getLocalDateIso(end),
     };
   }
 
@@ -93,8 +93,8 @@ function computePeriodDates(
     const start = new Date(year, qStart, 1);
     const end = new Date(year, qStart + 3, 0);
     return {
-      start: start.toISOString().slice(0, 10),
-      end: end.toISOString().slice(0, 10),
+      start: getLocalDateIso(start),
+      end: getLocalDateIso(end),
     };
   }
 
@@ -102,6 +102,11 @@ function computePeriodDates(
     start: `${year}-01-01`,
     end: `${year}-12-31`,
   };
+}
+
+/** Mês corrente (YYYY-MM) na timezone LOCAL. */
+function getLocalMonthIso(): string {
+  return getLocalDateIso().slice(0, 7);
 }
 
 export default function FinanceGoals() {
@@ -117,7 +122,7 @@ export default function FinanceGoals() {
 
   // Form state
   const [formPeriodType, setFormPeriodType] = useState<PeriodType>("mensal");
-  const [formMonth, setFormMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [formMonth, setFormMonth] = useState(() => getLocalMonthIso());
   const [formAmount, setFormAmount] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
@@ -188,7 +193,7 @@ export default function FinanceGoals() {
 
   const resetForm = () => {
     setFormPeriodType("mensal");
-    setFormMonth(new Date().toISOString().slice(0, 7));
+    setFormMonth(getLocalMonthIso());
     setFormAmount("");
     setFormNotes("");
     setEditingGoal(null);

@@ -23,7 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL, maskCurrency, unmaskCurrency } from "@/lib/masks";
+import { formatBRL, getLocalDateIso, maskCurrency, unmaskCurrency } from "@/lib/masks";
 import {
   canTransitionProposal,
   formatPortalDate,
@@ -548,7 +548,7 @@ export default function ProposalDetail() {
     }
 
     if (form.valid_until) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalDateIso();
       if (form.valid_until < today) {
         toast.error("A data de validade não pode estar no passado.");
         return;
@@ -744,7 +744,7 @@ export default function ProposalDetail() {
 
       // 3. Create draft contract pre-filled from proposal
       if (newProject) {
-        const approvedDate = new Date().toISOString().slice(0, 10);
+        const approvedDate = getLocalDateIso();
         void supabase.from("project_contracts").insert({
           project_id: newProject.id,
           client_id: clientId,
