@@ -22,6 +22,7 @@ import { lookupAddressByCep } from "@/lib/cep";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import {
   formatDateInput,
+  getLocalDateIso,
   isValidCNPJ,
   isValidCPF,
   maskCEP,
@@ -158,7 +159,7 @@ export default function AdminClientCreate() {
     city: "",
     state: "",
     country: "Brasil",
-    client_since: formatDateInput(new Date().toISOString().slice(0, 10)),
+    client_since: formatDateInput(getLocalDateIso()),
     notes_internal: "",
   });
 
@@ -301,7 +302,7 @@ export default function AdminClientCreate() {
           razao_social: form.razao_social || null,
           nome_fantasia: form.nome_fantasia || null,
           cargo_representante: form.cargo_representante || null,
-          client_since: parseFormDate(form.client_since) ?? new Date().toISOString().slice(0, 10),
+          client_since: parseFormDate(form.client_since) ?? getLocalDateIso(),
           monthly_value: 0,
           project_total_value: 0,
           must_change_password: true,

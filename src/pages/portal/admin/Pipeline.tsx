@@ -8,7 +8,7 @@ import StatusBadge from "@/components/portal/StatusBadge";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { formatBRL } from "@/lib/masks";
+import { formatBRL, getLocalDateIso } from "@/lib/masks";
 import {
   PROJECT_STATUS_META,
   formatPortalDate,
@@ -222,7 +222,7 @@ export default function Pipeline() {
 
     const clientMap = new Map(clientsData.map((c) => [c.id, c]));
     const leadMap = new Map(leadsData.map((l) => [l.id, l]));
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getLocalDateIso();
 
     // Check which proposals already have a linked project (avoid duplicates)
     const linkedProposalIds = new Set(

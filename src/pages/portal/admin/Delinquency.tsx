@@ -11,7 +11,7 @@ import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import { formatBRL, toCents } from "@/lib/masks";
+import { formatBRL, getLocalDateIso, toCents } from "@/lib/masks";
 import { CHARGE_STATUS_META, formatPortalDate, getClientDisplayName } from "@/lib/portal";
 
 type ChargeRow = Pick<
@@ -69,7 +69,7 @@ export default function Delinquency() {
     setLoading(true);
     setError(null);
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getLocalDateIso();
 
     const [chargesRes, clientsRes] = await Promise.all([
       supabase

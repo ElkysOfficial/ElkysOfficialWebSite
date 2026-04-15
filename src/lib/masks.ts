@@ -2,6 +2,19 @@
  * Masks & formatters for Brazilian documents and currency
  */
 
+/**
+ * Retorna a data no formato YYYY-MM-DD respeitando a TIMEZONE LOCAL do
+ * navegador. Usar `new Date().toISOString().slice(0,10)` é bug: converte
+ * para UTC e, para usuarios em BRT (UTC-3) a noite, devolve o dia seguinte
+ * — quebrando comparacoes contra `due_date` (date-only no banco).
+ */
+export function getLocalDateIso(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function maskCPF(value: string): string {
   return value
     .replace(/\D/g, "")

@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   formatBRL,
+  getLocalDateIso,
   maskCurrency,
   maskDate,
   parseFormDate,
@@ -120,7 +121,7 @@ function addMonthsToIsoDate(baseDate: string, monthsToAdd: number) {
   const target = new Date(year, month - 1 + monthsToAdd, 1);
   const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
   target.setDate(Math.min(day, lastDay));
-  return target.toISOString().slice(0, 10);
+  return getLocalDateIso(target);
 }
 
 export default function AdminExpenseCreate() {
@@ -147,17 +148,17 @@ export default function AdminExpenseCreate() {
 
   const entryMode = watch("entry_mode");
   const categoryValue = watch("category");
-  // Auto-marca custos de pessoal/pro-labore como fixos por padrao
-  // (admin pode desmarcar manualmente).
-  const categoryDefaultFixed = useMemo(
-    () => CATEGORIES.find((c) => c.value === categoryValue && "defaultFixed" in c)?.value,
+  // Auto-marca custos de pessoal/pro-labore como fixos e desmarca quando
+  // troca para uma categoria nao-fixa. Sem o reset, trocar de "pro_labore"
+  // para "software" deixava is_fixed=true incorretamente.
+  const categoryIsDefaultFixed = useMemo(
+    () => Boolean(CATEGORIES.find((c) => c.value === categoryValue && "defaultFixed" in c)),
     [categoryValue]
   );
   useEffect(() => {
-    if (categoryDefaultFixed) {
-      setValue("is_fixed", true);
-    }
-  }, [categoryDefaultFixed, setValue]);
+    if (!categoryValue) return;
+    setValue("is_fixed", categoryIsDefaultFixed);
+  }, [categoryValue, categoryIsDefaultFixed, setValue]);
   const amountValue = watch("amount");
   const installmentsCount = Number(watch("installments_count") || "0");
   const recurrenceMonths = Number(watch("recurrence_months") || "0");

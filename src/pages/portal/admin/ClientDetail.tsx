@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import {
   formatBRL,
+  getLocalDateIso,
   isValidCNPJ,
   isValidCPF,
   maskCEP,
@@ -1677,7 +1678,7 @@ export default function AdminClientDetail() {
             {clientProjects.map((project) => {
               const statusMeta =
                 PROJECT_STATUS_META[project.status as keyof typeof PROJECT_STATUS_META];
-              const todayStr = new Date().toISOString().slice(0, 10);
+              const todayStr = getLocalDateIso();
               const isOverdue =
                 project.status === "em_andamento" &&
                 !!project.expected_delivery_date &&

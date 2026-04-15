@@ -59,6 +59,7 @@ import {
 import {
   formatBRL,
   formatDateInput,
+  getLocalDateIso,
   maskCurrency,
   maskDate,
   parseFormDate,
@@ -638,7 +639,7 @@ export default function AdminProjectDetail() {
     const expectedDeliveryIso = parseFormDate(projectForm.expected_delivery_date);
     const subscriptionStartsOnIso = parseFormDate(projectForm.subscription_starts_on);
     const subscriptionEndsOnIso = parseFormDate(projectForm.subscription_ends_on);
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = getLocalDateIso();
 
     if (projectForm.name.trim().length < 3) {
       toast.error("Informe um nome valido para o projeto.");
@@ -1155,7 +1156,7 @@ export default function AdminProjectDetail() {
           .from("project_installments")
           .update({
             status: draft.status,
-            paid_at: draft.status === "paga" ? new Date().toISOString().slice(0, 10) : null,
+            paid_at: draft.status === "paga" ? getLocalDateIso() : null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", installment.id);
@@ -1166,7 +1167,7 @@ export default function AdminProjectDetail() {
           .from("charges")
           .update({
             status: getChargeStatusFromInstallmentStatus(draft.status),
-            paid_at: draft.status === "paga" ? new Date().toISOString().slice(0, 10) : null,
+            paid_at: draft.status === "paga" ? getLocalDateIso() : null,
             updated_at: new Date().toISOString(),
           })
           .eq("installment_id", installment.id);
@@ -2607,8 +2608,7 @@ export default function AdminProjectDetail() {
                         value={item.statusKey}
                         onChange={async (e) => {
                           const next = e.target.value as typeof item.statusKey;
-                          const paidAt =
-                            next === "pago" ? new Date().toISOString().slice(0, 10) : null;
+                          const paidAt = next === "pago" ? getLocalDateIso() : null;
                           const { error } = await supabase
                             .from("charges")
                             .update({ status: next, paid_at: paidAt })

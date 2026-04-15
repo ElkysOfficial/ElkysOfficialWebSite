@@ -66,6 +66,7 @@ import { syncSubscriptionCharges } from "@/lib/sync-subscription-charges";
 import {
   formatBRL,
   formatDateInput,
+  getLocalDateIso,
   maskCurrency,
   maskDate,
   parseFormDate,
@@ -229,25 +230,25 @@ function FinanceRevenueTab({
   const periodRange = useMemo<{ from: string; to: string } | null>(() => {
     if (periodPreset === "custom" || periodPreset === "all") return null;
     const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
+    const todayStr = getLocalDateIso(today);
     if (periodPreset === "mes_atual") {
       const first = new Date(today.getFullYear(), today.getMonth(), 1);
       const last = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      return { from: first.toISOString().slice(0, 10), to: last.toISOString().slice(0, 10) };
+      return { from: getLocalDateIso(first), to: getLocalDateIso(last) };
     }
     if (periodPreset === "30d") {
       const past = new Date(today);
       past.setDate(past.getDate() - 30);
-      return { from: past.toISOString().slice(0, 10), to: todayStr };
+      return { from: getLocalDateIso(past), to: todayStr };
     }
     if (periodPreset === "90d") {
       const past = new Date(today);
       past.setDate(past.getDate() - 90);
-      return { from: past.toISOString().slice(0, 10), to: todayStr };
+      return { from: getLocalDateIso(past), to: todayStr };
     }
     if (periodPreset === "ytd") {
       const first = new Date(today.getFullYear(), 0, 1);
-      return { from: first.toISOString().slice(0, 10), to: todayStr };
+      return { from: getLocalDateIso(first), to: todayStr };
     }
     return null;
   }, [periodPreset]);
@@ -330,7 +331,7 @@ function FinanceRevenueTab({
     if (charge.status === "pago") return;
     setQuickPayingId(charge.id);
 
-    const paidAt = new Date().toISOString().slice(0, 10);
+    const paidAt = getLocalDateIso();
     const previousStatus = charge.status;
     const previousPaidAt = charge.paid_at;
 
@@ -432,7 +433,7 @@ function FinanceRevenueTab({
     setEditorError(null);
 
     const isPaidNow = editor.status === "pago";
-    const paidAt = isPaidNow ? new Date().toISOString().slice(0, 10) : null;
+    const paidAt = isPaidNow ? getLocalDateIso() : null;
     const { error } = await supabase
       .from("charges")
       .update({
@@ -1555,7 +1556,7 @@ function FinanceAnaliseTab() {
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const todayStr = now.toISOString().slice(0, 10);
+    const todayStr = getLocalDateIso(now);
     const curKey = createMonthKey(now.getFullYear(), now.getMonth());
 
     // Auditoria 2026-04-15: REMOVIDO auto-sync de charges em load.
@@ -1788,9 +1789,7 @@ function FinanceAnaliseTab() {
         expenses.reduce((s, e) => s + toCents(e.amount), 0)) /
       100;
     // "A receber" = pendente (due already) + agendada com vencimento este mês
-    const currentMonthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .slice(0, 10);
+    const currentMonthEndStr = getLocalDateIso(new Date(now.getFullYear(), now.getMonth() + 1, 0));
     const pendingReceivables =
       charges
         .filter(

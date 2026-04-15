@@ -26,7 +26,7 @@ import {
   computeOperationalMargin,
   computeRunway,
 } from "@/lib/finance-metrics";
-import { formatBRL, toCents } from "@/lib/masks";
+import { formatBRL, getLocalDateIso, toCents } from "@/lib/masks";
 import { getClientDisplayName, isProjectOperationallyOpen, isTicketOpen } from "@/lib/portal";
 
 type DashboardClient = Pick<
@@ -1020,9 +1020,9 @@ export default function AdminOverview() {
           100;
 
         // "A receber" = pendente (já vencido) + agendada com vencimento este mês
-        const currentMonthEndStr = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-          .toISOString()
-          .slice(0, 10);
+        const currentMonthEndStr = getLocalDateIso(
+          new Date(now.getFullYear(), now.getMonth() + 1, 0)
+        );
         const pendingReceivables =
           charges
             .filter(
@@ -1053,7 +1053,7 @@ export default function AdminOverview() {
         }).length;
 
         // Overdue projects: em_andamento with expected_delivery_date in the past
-        const todayStr = now.toISOString().slice(0, 10);
+        const todayStr = getLocalDateIso(now);
         const overdueProjects = projects.filter(
           (p) =>
             p.status === "em_andamento" &&
@@ -1173,7 +1173,7 @@ export default function AdminOverview() {
         const clientNameMap = new Map(clients.map((c) => [c.id, getClientDisplayName(c)]));
         const sevenDaysFromNow = new Date();
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-        const sevenDaysStr = sevenDaysFromNow.toISOString().slice(0, 10);
+        const sevenDaysStr = getLocalDateIso(sevenDaysFromNow);
 
         const upcomingCharges: UpcomingCharge[] = charges
           .filter(
@@ -1205,7 +1205,7 @@ export default function AdminOverview() {
         // Upcoming deliveries (projects due in next 14 days)
         const fourteenDaysFromNow = new Date();
         fourteenDaysFromNow.setDate(fourteenDaysFromNow.getDate() + 14);
-        const fourteenDaysStr = fourteenDaysFromNow.toISOString().slice(0, 10);
+        const fourteenDaysStr = getLocalDateIso(fourteenDaysFromNow);
 
         const upcomingDeliveries = projects
           .filter(
