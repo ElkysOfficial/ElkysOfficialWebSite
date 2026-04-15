@@ -1,4 +1,4 @@
-import { cn } from "@/design-system";
+import { buttonVariants, cn } from "@/design-system";
 
 interface ProjectSiteLinkProps {
   url?: string | null;
@@ -75,6 +75,10 @@ export default function ProjectSiteLink({
   const host = formatHost(trimmed);
   const display = label ?? host;
 
+  // PA12: reaproveita buttonVariants do DS para herdar altura minima,
+  // ring de foco, arredondamento, transicoes e tipografia padrao. As
+  // cores accent sobrescrevem o outline padrao para manter a identidade
+  // visual original do componente.
   return (
     <a
       href={href}
@@ -82,8 +86,8 @@ export default function ProjectSiteLink({
       rel="noopener noreferrer"
       onClick={(event) => event.stopPropagation()}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/5 px-2 py-1 text-xs font-medium text-accent transition-colors",
-        "hover:border-accent hover:bg-accent/10",
+        buttonVariants({ variant: "outline", size: "sm" }),
+        "h-auto min-h-0 gap-1.5 border-accent/40 bg-accent/5 px-2 py-1 text-xs text-accent hover:border-accent hover:bg-accent/10 hover:text-accent",
         className
       )}
       title={label ? `${label} — ${host}` : `Abrir ${host} em nova aba`}
