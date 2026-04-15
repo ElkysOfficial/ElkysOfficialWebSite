@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { FileText, Search, TrendingUp } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import AdminPageHeader from "@/components/portal/AdminPageHeader";
+import ContractAcceptanceStatusCard from "@/components/portal/ContractAcceptanceStatusCard";
 import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
 import ProjectAcceptanceCard from "@/components/portal/ProjectAcceptanceCard";
 import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
@@ -2674,6 +2675,8 @@ export default function AdminProjectDetail() {
             acceptedAt={(project as { accepted_at?: string | null }).accepted_at ?? null}
           />
         ) : null}
+
+        {project ? <ContractAcceptanceStatusCard projectId={project.id} /> : null}
 
         {project ? (
           <ProjectAcceptanceCard
