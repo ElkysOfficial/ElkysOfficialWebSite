@@ -1,4 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, ".env") }); // Supabase URLs
+dotenv.config({ path: path.resolve(__dirname, "e2e", ".env") }); // Credenciais E2E
 
 export default defineConfig({
   testDir: "./e2e",

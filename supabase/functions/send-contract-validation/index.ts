@@ -11,8 +11,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
-import { requireAdminAccess } from "../_shared/auth.ts";
-import { createServiceRoleClient } from "../_shared/auth.ts";
+import { requireOperationalAccess, createServiceRoleClient } from "../_shared/auth.ts";
 
 interface Payload {
   contract_id: string;
@@ -25,7 +24,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const auth = await requireAdminAccess(req, CORS);
+    const auth = await requireOperationalAccess(req, CORS);
     if (auth instanceof Response) return auth;
 
     const { contract_id, client_id, project_name, scope_summary } = (await req.json()) as Payload;
