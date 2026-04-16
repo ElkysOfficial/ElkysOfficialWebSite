@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Bell, Clock, Receipt, Shield, Zap } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import Pagination from "@/components/portal/Pagination";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import Pagination from "@/components/portal/shared/Pagination";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import {
   AlertDialog,
   Button,

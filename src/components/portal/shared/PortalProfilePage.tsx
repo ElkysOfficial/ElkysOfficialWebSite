@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { CheckCircle, FileText, Hexagon, Shield, X } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Button,

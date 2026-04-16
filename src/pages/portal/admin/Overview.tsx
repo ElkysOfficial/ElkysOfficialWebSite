@@ -16,9 +16,9 @@ import {
 } from "recharts";
 
 import { Clock, Receipt, Shield, TrendingUp } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import SurfaceStat from "@/components/portal/SurfaceStat";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import SurfaceStat from "@/components/portal/shared/SurfaceStat";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -461,7 +461,7 @@ function DashboardTooltip({
   );
 }
 
-/* SurfaceStat & SurfaceStat now imported from @/components/portal/SurfaceStat */
+/* SurfaceStat & SurfaceStat now imported from @/components/portal/shared/SurfaceStat */
 
 function CashFlowGroupedBarChart({ data }: { data: MonthlyPoint[] }) {
   const hasValue = data.some((item) => item.cashIn > 0 || item.cashOut > 0);

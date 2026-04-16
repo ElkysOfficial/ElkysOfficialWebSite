@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

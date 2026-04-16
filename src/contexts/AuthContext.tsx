@@ -1,3 +1,23 @@
+/**
+ * Contexto central de autenticacao — gerencia sessao, roles e timeout.
+ *
+ * Responsabilidades:
+ * - Login/logout via Supabase email/password
+ * - Carregamento de roles da tabela `user_roles` (nao do JWT)
+ * - Timeout de inatividade (30min) com aviso de 2min
+ * - Refresh automatico do React Query ao mudar de sessao
+ *
+ * Os roles determinam o acesso: admin_super, admin, comercial,
+ * juridico, financeiro, po, developer, designer, marketing,
+ * support, cliente.
+ *
+ * @example
+ * const { user, roles, signIn, signOut } = useAuth();
+ * if (roles.includes("admin_super")) { ... }
+ *
+ * @module AuthContext
+ */
+
 import {
   createContext,
   useContext,

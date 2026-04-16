@@ -3,20 +3,20 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FileText, Search, TrendingUp } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import AdminPageHeader from "@/components/portal/AdminPageHeader";
-import ContractAcceptanceStatusCard from "@/components/portal/ContractAcceptanceStatusCard";
-import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
-import ProjectAcceptanceCard from "@/components/portal/ProjectAcceptanceCard";
-import ProjectOnboardingChecklist from "@/components/portal/ProjectOnboardingChecklist";
-import ProjectSupportCard from "@/components/portal/ProjectSupportCard";
-import ProjectValidationRounds from "@/components/portal/ProjectValidationRounds";
-import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
-import PortalLoading from "@/components/portal/PortalLoading";
-import Pagination from "@/components/portal/Pagination";
-import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
-import ProjectTimelineFeed from "@/components/portal/ProjectTimelineFeed";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AdminPageHeader from "@/components/portal/admin/AdminPageHeader";
+import ContractAcceptanceStatusCard from "@/components/portal/contract/ContractAcceptanceStatusCard";
+import ContractVersionHistory from "@/components/portal/contract/ContractVersionHistory";
+import ProjectAcceptanceCard from "@/components/portal/project/ProjectAcceptanceCard";
+import ProjectOnboardingChecklist from "@/components/portal/project/ProjectOnboardingChecklist";
+import ProjectSupportCard from "@/components/portal/project/ProjectSupportCard";
+import ProjectValidationRounds from "@/components/portal/project/ProjectValidationRounds";
+import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import Pagination from "@/components/portal/shared/Pagination";
+import ProjectStageJourney from "@/components/portal/project/ProjectStageJourney";
+import ProjectTimelineFeed from "@/components/portal/project/ProjectTimelineFeed";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
   Button,

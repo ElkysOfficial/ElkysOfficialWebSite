@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Folder } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { PROJECT_STATUS_META, formatPortalDate } from "@/lib/portal";

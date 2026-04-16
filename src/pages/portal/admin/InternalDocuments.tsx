@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Code2, ExternalLink, FileText } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,

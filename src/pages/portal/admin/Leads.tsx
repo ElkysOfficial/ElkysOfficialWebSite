@@ -13,12 +13,12 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 
 import { Shield, Target, TrendingUp, Users, Search } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import NameAvatar from "@/components/portal/NameAvatar";
-import AdminMetricCard from "@/components/portal/AdminMetricCard";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ExportMenu from "@/components/portal/ExportMenu";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import NameAvatar from "@/components/portal/shared/NameAvatar";
+import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, Card, CardContent, Input, Field, Label, Textarea, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

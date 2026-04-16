@@ -2,9 +2,9 @@ import { type ComponentType, useCallback, useEffect, useRef, useState } from "re
 import { toast } from "sonner";
 
 import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import Pagination from "@/components/portal/Pagination";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import Pagination from "@/components/portal/shared/Pagination";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUrlState } from "@/hooks/useUrlState";
 import { Button, Input, cn } from "@/design-system";

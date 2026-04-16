@@ -11,9 +11,9 @@ import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 
 import { type IconProps, CheckCircle, Phone, Search, Users, Wrench, X, Zap } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import RowActionMenu from "@/components/portal/RowActionMenu";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import { buttonVariants, AlertDialog, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

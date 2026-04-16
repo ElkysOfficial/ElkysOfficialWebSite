@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
+import ContractActionsButtons from "@/components/portal/contract/ContractActionsButtons";
 import { Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

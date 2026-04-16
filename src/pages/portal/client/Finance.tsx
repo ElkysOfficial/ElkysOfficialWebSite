@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { BarChart, CheckCircle, Clock, Wallet } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import MetricTile from "@/components/portal/MetricTile";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import MetricTile from "@/components/portal/shared/MetricTile";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { CHARGE_STATUS_META, formatPortalDate } from "@/lib/portal";
 import { loadChargesForClient, resolveClientForUser } from "@/lib/portal-data";

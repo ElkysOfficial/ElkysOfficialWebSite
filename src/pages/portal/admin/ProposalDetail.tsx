@@ -3,10 +3,10 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ProposalExpiryCountdown from "@/components/portal/ProposalExpiryCountdown";
-import ProposalRejectModal from "@/components/portal/ProposalRejectModal";
-import StatusBadge from "@/components/portal/StatusBadge";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ProposalExpiryCountdown from "@/components/portal/proposal/ProposalExpiryCountdown";
+import ProposalRejectModal from "@/components/portal/proposal/ProposalRejectModal";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import {
   Button,
   Card,

@@ -1,3 +1,4 @@
+/** Hook que garante duracao minima de loading para evitar flash de conteudo. */
 import { useEffect, useRef, useState } from "react";
 
 /**

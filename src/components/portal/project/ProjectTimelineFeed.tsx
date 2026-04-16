@@ -1,6 +1,14 @@
+/**
+ * Feed de timeline do projeto — exibe eventos cronologicos.
+ *
+ * Renderiza a lista de timeline_events vinculados ao projeto com icones
+ * por tipo (proposta, cobranca, documento, status) e paginacao responsiva.
+ * Filtra por visibilidade (admin vs cliente vs ambos) conforme o contexto.
+ */
+
 import { useState } from "react";
 import { CheckCircle, Clock, FileText, TrendingUp } from "@/assets/icons";
-import Pagination from "@/components/portal/Pagination";
+import Pagination from "@/components/portal/shared/Pagination";
 import { cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { type PortalTimelineEvent } from "@/lib/portal";
