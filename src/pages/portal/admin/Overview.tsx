@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import {
   Bar,
@@ -1335,6 +1336,27 @@ export default function AdminOverview() {
 
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
   const [forecastPeriod, setForecastPeriod] = useState<3 | 6 | 12>(6);
+  const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+
+  const handleQuickMarkPaid = useCallback(
+    async (chargeId: string) => {
+      setMarkingPaidId(chargeId);
+      const now = new Date().toISOString();
+      const todayStr = getLocalDateIso(new Date());
+      const { error: updateError } = await supabase
+        .from("charges")
+        .update({ status: "pago", paid_at: todayStr, updated_at: now })
+        .eq("id", chargeId);
+      setMarkingPaidId(null);
+      if (updateError) {
+        toast.error("Erro ao marcar como pago.");
+        return;
+      }
+      toast.success("Cobrança marcada como paga.");
+      refetchDashboard();
+    },
+    [refetchDashboard]
+  );
 
   const currentForecast = useMemo(() => {
     if (forecastPeriod === 3) return summary.forecast.months3;
@@ -1603,7 +1625,7 @@ export default function AdminOverview() {
                       {summary.upcomingCharges.map((charge) => (
                         <div
                           key={charge.id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2"
+                          className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2"
                         >
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-xs font-medium text-foreground">
@@ -1625,6 +1647,14 @@ export default function AdminOverview() {
                                   : `em ${charge.daysUntilDue}d`}
                             </p>
                           </div>
+                          <button
+                            type="button"
+                            disabled={markingPaidId === charge.id}
+                            onClick={() => void handleQuickMarkPaid(charge.id)}
+                            className="shrink-0 rounded-md bg-success/10 px-2 py-1 text-[10px] font-semibold text-success transition-colors hover:bg-success/20 disabled:opacity-50"
+                          >
+                            {markingPaidId === charge.id ? "..." : "Pago"}
+                          </button>
                         </div>
                       ))}
                     </div>
