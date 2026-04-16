@@ -71,6 +71,7 @@ const COLUMN_ACCENT: Record<LeadStatus, string> = {
 const COLUMN_COUNT_BG: Record<LeadStatus, string> = {
   novo: "bg-secondary/15 text-secondary-foreground",
   qualificado: "bg-accent/15 text-accent",
+  diagnostico: "bg-primary/15 text-primary",
   proposta: "bg-primary/15 text-primary",
   negociacao: "bg-warning/15 text-warning",
   ganho: "bg-success/15 text-success",
