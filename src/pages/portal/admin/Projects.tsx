@@ -588,7 +588,7 @@ export default function AdminProjects() {
             title="Nenhum projeto com esses filtros"
             description="A combinação atual de filtros e busca não retornou resultados. Ajuste os critérios para ampliar a visão da operação."
             action={
-              <Button type="button" variant="outline" onClick={clearAllProjectFilters}>
+              <Button type="button" variant="outline" size="sm" onClick={clearAllProjectFilters}>
                 Limpar filtros
               </Button>
             }
@@ -635,6 +635,7 @@ export default function AdminProjects() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  size="sm"
                   disabled={page === 0}
                   onClick={() => setPage((current) => current - 1)}
                 >
@@ -643,6 +644,7 @@ export default function AdminProjects() {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   size="sm"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((current) => current + 1)}

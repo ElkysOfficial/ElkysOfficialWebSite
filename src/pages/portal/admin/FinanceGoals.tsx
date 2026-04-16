@@ -409,7 +409,7 @@ export default function FinanceGoals() {
               <Button type="button" onClick={() => void handleSave()} disabled={saving}>
                 {saving ? "Salvando..." : editingGoal ? "Atualizar" : "Criar meta"}
               </Button>
-              <Button type="button" variant="outline" onClick={resetForm}>
+              <Button type="button" variant="outline" size="sm" onClick={resetForm}>
                 Cancelar
               </Button>
             </div>

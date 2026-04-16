@@ -599,7 +599,7 @@ export default function ClientSupport() {
               </p>
 
               <a href={`mailto:${CONTACT.email}?subject=Suporte - Portal do Cliente`}>
-                <Button variant="outline" className="w-full gap-2 sm:w-auto">
+                <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto">
                   <Mail size={15} />
                   Enviar e-mail - {CONTACT.email}
                 </Button>
@@ -682,6 +682,7 @@ export default function ClientSupport() {
                         <Button
                           type="button"
                           variant="outline"
+                          size="sm"
                           size="sm"
                           className="shrink-0"
                           onClick={(e) => {

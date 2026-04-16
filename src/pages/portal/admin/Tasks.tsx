@@ -674,7 +674,7 @@ export function TaskDetailModal({
                 </Field>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setEditing(false)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
                   Cancelar
                 </Button>
                 <Button type="button" disabled={saving} onClick={() => void handleSave()}>
@@ -771,6 +771,7 @@ export function TaskDetailModal({
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   className="text-destructive hover:bg-destructive/10"
                   disabled={deleting}
                   onClick={() => setConfirmingDelete(true)}
@@ -1132,7 +1133,7 @@ export function CreateTaskModal({
           )}
 
           <div className="flex justify-end gap-2 border-t border-border/40 pt-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>

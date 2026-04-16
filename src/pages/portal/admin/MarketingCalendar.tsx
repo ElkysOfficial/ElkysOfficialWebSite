@@ -2311,12 +2311,19 @@ export default function AdminMarketingCalendar() {
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => resetForm(selectedDate)}
                     disabled={saving}
                   >
                     Limpar
                   </Button>
-                  <Button type="button" variant="outline" onClick={closeEditor} disabled={saving}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={closeEditor}
+                    disabled={saving}
+                  >
                     Fechar
                   </Button>
                   <Button type="button" onClick={() => void handleSave()} disabled={saving}>

@@ -687,7 +687,7 @@ export default function AdminClients() {
             title="Nenhum cliente com esses filtros"
             description="A combinação atual de filtros e busca não retornou resultados. Ajuste os critérios para ampliar a carteira visível."
             action={
-              <Button type="button" variant="outline" onClick={clearAllFilters}>
+              <Button type="button" variant="outline" size="sm" onClick={clearAllFilters}>
                 Limpar filtros
               </Button>
             }
@@ -732,6 +732,7 @@ export default function AdminClients() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  size="sm"
                   disabled={page === 0}
                   onClick={() => setPage((current) => current - 1)}
                 >
@@ -740,6 +741,7 @@ export default function AdminClients() {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   size="sm"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((current) => current + 1)}

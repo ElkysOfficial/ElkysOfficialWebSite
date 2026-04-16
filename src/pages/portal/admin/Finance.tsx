@@ -801,7 +801,7 @@ function FinanceRevenueTab({
                     ) : null}
 
                     <div className="flex flex-wrap justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={stopEditing}>
+                      <Button type="button" variant="outline" size="sm" onClick={stopEditing}>
                         Cancelar
                       </Button>
                       <Button
@@ -833,6 +833,7 @@ function FinanceRevenueTab({
                           <Button
                             type="button"
                             variant="outline"
+                            size="sm"
                             size="sm"
                             onClick={() => setConfirmingPayCharge(charge)}
                             loading={quickPayingId === charge.id}
@@ -924,6 +925,7 @@ function FinanceRevenueTab({
                           type="button"
                           variant="outline"
                           size="sm"
+                          size="sm"
                           onClick={() => setConfirmingPayCharge(charge)}
                           loading={quickPayingId === charge.id}
                           loadingText="..."
@@ -1008,6 +1010,7 @@ function FinanceRevenueTab({
                   type="button"
                   variant="outline"
                   size="sm"
+                  size="sm"
                   disabled={page === 0}
                   onClick={() => setPage((current) => current - 1)}
                 >
@@ -1016,6 +1019,7 @@ function FinanceRevenueTab({
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   size="sm"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((current) => current + 1)}
@@ -1932,6 +1936,7 @@ function FinanceAnaliseTab() {
           <Button
             type="button"
             variant="outline"
+            size="sm"
             size="sm"
             onClick={handleManualSync}
             disabled={syncing}
