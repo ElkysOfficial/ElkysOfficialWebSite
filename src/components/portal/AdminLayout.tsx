@@ -195,6 +195,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: AgileMono,
         roles: ["support"],
       },
+      {
+        label: "Tarefas Suporte",
+        href: "/portal/admin/tarefas/suporte",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "support"],
+      },
     ],
   },
   {
