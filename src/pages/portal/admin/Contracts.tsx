@@ -35,6 +35,20 @@ type ContractRow = Pick<
 type ProjectRef = {
   id: string;
   name: string;
+  proposal_id: string | null;
+};
+
+type ProposalContext = {
+  id: string;
+  title: string;
+  scope_summary: string | null;
+  payment_conditions: string | null;
+  observations: string | null;
+  total_amount: number;
+  solution_type: string | null;
+  billing_config: Record<string, unknown> | null;
+  lead_name: string | null;
+  diagnosis: Record<string, string | null> | null;
 };
 
 type ClientRef = {
@@ -79,6 +93,8 @@ export default function Contracts() {
   const [projects, setProjects] = useState<Map<string, ProjectRef>>(new Map());
   const [clients, setClients] = useState<Map<string, ClientRef>>(new Map());
   const [contractDocs, setContractDocs] = useState<Map<string, string>>(new Map());
+  const [proposalContext, setProposalContext] = useState<Map<string, ProposalContext>>(new Map());
+  const [contextExpandedId, setContextExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -95,7 +111,7 @@ export default function Contracts() {
       supabase
         .from("project_contracts")
         .select(
-          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at, projects(id, name), clients(id, full_name, client_type, nome_fantasia)"
+          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at, projects(id, name, proposal_id), clients(id, full_name, client_type, nome_fantasia)"
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -144,6 +160,65 @@ export default function Contracts() {
       if (href) dMap.set(d.contract_id, href);
     }
     setContractDocs(dMap);
+
+    // Carregar contexto comercial: propostas vinculadas via project.proposal_id
+    const proposalIds = Array.from(pMap.values())
+      .map((p) => p.proposal_id)
+      .filter((id): id is string => !!id);
+
+    if (proposalIds.length > 0) {
+      const { data: proposalsData } = await supabase
+        .from("proposals")
+        .select(
+          "id, title, scope_summary, payment_conditions, observations, total_amount, solution_type, billing_config, lead_id"
+        )
+        .in("id", proposalIds);
+
+      const leadIds = (proposalsData ?? [])
+        .map((p: { lead_id: string | null }) => p.lead_id)
+        .filter((id): id is string => !!id);
+
+      let leadsMap = new Map<
+        string,
+        { name: string; diagnosis: Record<string, string | null> | null }
+      >();
+      if (leadIds.length > 0) {
+        const { data: leadsData } = await supabase
+          .from("leads")
+          .select("id, name, diagnosis")
+          .in("id", leadIds);
+        leadsMap = new Map(
+          (leadsData ?? []).map(
+            (l: { id: string; name: string; diagnosis: Record<string, string | null> | null }) => [
+              l.id,
+              { name: l.name, diagnosis: l.diagnosis },
+            ]
+          )
+        );
+      }
+
+      const ctxMap = new Map<string, ProposalContext>();
+      for (const p of (proposalsData ?? []) as Array<{
+        id: string;
+        title: string;
+        scope_summary: string | null;
+        payment_conditions: string | null;
+        observations: string | null;
+        total_amount: number;
+        solution_type: string | null;
+        billing_config: Record<string, unknown> | null;
+        lead_id: string | null;
+      }>) {
+        const lead = p.lead_id ? leadsMap.get(p.lead_id) : null;
+        ctxMap.set(p.id, {
+          ...p,
+          lead_name: lead?.name ?? null,
+          diagnosis: lead?.diagnosis ?? null,
+        });
+      }
+      setProposalContext(ctxMap);
+    }
+
     setLoading(false);
   }, []);
 
@@ -267,6 +342,10 @@ export default function Contracts() {
             const meta = contract.status ? STATUS_META[contract.status] : undefined;
             const isExpanded = expandedId === contract.id;
             const contractDocUrl = contractDocs.get(contract.id);
+            const proposalCtx = project?.proposal_id
+              ? proposalContext.get(project.proposal_id)
+              : null;
+            const isContextExpanded = contextExpandedId === contract.id;
             return (
               <Card key={contract.id} className="border-border/70 bg-card/95">
                 <CardContent className="space-y-3 p-4 sm:p-5">
@@ -319,6 +398,132 @@ export default function Contracts() {
                       {contract.scope_summary}
                     </p>
                   ) : null}
+
+                  {/* Contexto comercial — diagnóstico + proposta */}
+                  {proposalCtx && (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setContextExpandedId(isContextExpanded ? null : contract.id)}
+                        className="text-xs font-medium text-accent hover:underline"
+                      >
+                        {isContextExpanded
+                          ? "Ocultar contexto comercial"
+                          : "Ver contexto comercial"}
+                      </button>
+
+                      {isContextExpanded && (
+                        <div className="space-y-3 rounded-xl border border-accent/20 bg-accent/5 p-4">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-accent">
+                            Contexto da negociação
+                          </p>
+
+                          {proposalCtx.lead_name && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Lead de origem
+                              </p>
+                              <p className="text-xs text-foreground">{proposalCtx.lead_name}</p>
+                            </div>
+                          )}
+
+                          {proposalCtx.diagnosis && (
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {proposalCtx.diagnosis.context && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Contexto
+                                  </p>
+                                  <p className="text-xs text-foreground">
+                                    {proposalCtx.diagnosis.context}
+                                  </p>
+                                </div>
+                              )}
+                              {proposalCtx.diagnosis.problem && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Problema
+                                  </p>
+                                  <p className="text-xs text-foreground">
+                                    {proposalCtx.diagnosis.problem}
+                                  </p>
+                                </div>
+                              )}
+                              {proposalCtx.diagnosis.objective && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Objetivo
+                                  </p>
+                                  <p className="text-xs text-foreground">
+                                    {proposalCtx.diagnosis.objective}
+                                  </p>
+                                </div>
+                              )}
+                              {proposalCtx.diagnosis.business_impact && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Impacto no negócio
+                                  </p>
+                                  <p className="text-xs text-foreground">
+                                    {proposalCtx.diagnosis.business_impact}
+                                  </p>
+                                </div>
+                              )}
+                              {proposalCtx.diagnosis.constraints && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Restrições
+                                  </p>
+                                  <p className="text-xs text-foreground">
+                                    {proposalCtx.diagnosis.constraints}
+                                  </p>
+                                </div>
+                              )}
+                              {proposalCtx.diagnosis.urgency && (
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Urgência
+                                  </p>
+                                  <p className="text-xs text-foreground capitalize">
+                                    {proposalCtx.diagnosis.urgency}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {proposalCtx.payment_conditions && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Condições de pagamento
+                              </p>
+                              <p className="text-xs text-foreground">
+                                {proposalCtx.payment_conditions}
+                              </p>
+                            </div>
+                          )}
+
+                          {proposalCtx.observations && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Observações
+                              </p>
+                              <p className="text-xs text-foreground">{proposalCtx.observations}</p>
+                            </div>
+                          )}
+
+                          <div className="pt-1">
+                            <Link
+                              to={`/portal/admin/propostas/${proposalCtx.id}`}
+                              className="text-xs font-medium text-primary hover:underline"
+                            >
+                              Abrir proposta completa
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3">
                     <div className="text-[11px] text-muted-foreground">
