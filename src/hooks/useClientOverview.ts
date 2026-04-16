@@ -5,6 +5,7 @@ import {
   loadSupportTicketsForClient,
 } from "@/lib/portal-data";
 import { isTicketOpen } from "@/lib/portal";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useClientOverview(clientId: string | null | undefined) {
   return useQuery({
@@ -12,10 +13,21 @@ export function useClientOverview(clientId: string | null | undefined) {
     queryFn: async () => {
       if (!clientId) throw new Error("Client ID is required");
 
-      const [projectsRes, chargesRes, ticketsRes] = await Promise.all([
+      const [projectsRes, chargesRes, ticketsRes, proposalsRes, contractsRes] = await Promise.all([
         loadProjectsForClient(clientId),
         loadChargesForClient(clientId),
         loadSupportTicketsForClient(clientId),
+        supabase
+          .from("proposals")
+          .select("id, title, status, total_amount")
+          .eq("client_id", clientId)
+          .eq("status", "enviada"),
+        supabase
+          .from("project_contracts")
+          .select("id, status, accepted_at")
+          .eq("client_id", clientId)
+          .eq("status", "em_validacao")
+          .is("accepted_at", null),
       ]);
 
       // If ALL queries failed, throw so React Query shows error state
@@ -23,11 +35,21 @@ export function useClientOverview(clientId: string | null | undefined) {
         throw projectsRes.error;
       }
 
-      // Return partial data — consumers already fallback with ?? [] / ?? 0
       return {
         projects: projectsRes.projects,
         charges: chargesRes.charges,
         openTickets: ticketsRes.tickets.filter((t) => isTicketOpen(t.status)).length,
+        pendingProposals: (proposalsRes.data ?? []) as Array<{
+          id: string;
+          title: string;
+          status: string;
+          total_amount: number;
+        }>,
+        pendingContracts: (contractsRes.data ?? []) as Array<{
+          id: string;
+          status: string;
+          accepted_at: string | null;
+        }>,
       };
     },
     enabled: !!clientId,
