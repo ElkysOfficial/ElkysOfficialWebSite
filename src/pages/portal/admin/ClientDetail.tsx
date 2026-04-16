@@ -3,10 +3,10 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner";
 
 import { Building2, CheckCircle } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import CollapsibleSection from "@/components/portal/CollapsibleSection";
-import ContactLinks from "@/components/portal/ContactLinks";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import CollapsibleSection from "@/components/portal/shared/CollapsibleSection";
+import ContactLinks from "@/components/portal/shared/ContactLinks";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ import {
 import { lookupAddressByCep } from "@/lib/cep";
 import type { ClientFinancialSummary } from "@/lib/client-summary";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
-import StatusBadge from "@/components/portal/StatusBadge";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import {
   CHARGE_STATUS_META,
   PROJECT_STATUS_META,

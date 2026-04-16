@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Shield, TrendingUp, Wallet } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/AdminMetricCard";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

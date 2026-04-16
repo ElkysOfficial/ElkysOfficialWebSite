@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Clock, Eye, Shield } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import Pagination from "@/components/portal/Pagination";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import Pagination from "@/components/portal/shared/Pagination";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import RelativeDate from "@/components/portal/RelativeDate";
+import RelativeDate from "@/components/portal/shared/RelativeDate";
 
 type AuditLogRow = Database["public"]["Tables"]["audit_logs"]["Row"];
 

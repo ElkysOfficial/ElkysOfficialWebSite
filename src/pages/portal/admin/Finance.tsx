@@ -19,17 +19,17 @@ import {
 import type { ComponentType } from "react";
 import { CheckCircle, Clock, FileText, Receipt, Search } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import RowActionMenu from "@/components/portal/RowActionMenu";
-import SurfaceStat from "@/components/portal/SurfaceStat";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import RowActionMenu from "@/components/portal/shared/RowActionMenu";
+import SurfaceStat from "@/components/portal/shared/SurfaceStat";
 
 // Lazy-load sub-tabs: only the active tab downloads its code
 const AdminExpenses = lazy(() => import("@/pages/portal/admin/Expenses"));
 const Delinquency = lazy(() => import("@/pages/portal/admin/Delinquency"));
 const RevenueByClient = lazy(() => import("@/pages/portal/admin/RevenueByClient"));
 const FinanceGoals = lazy(() => import("@/pages/portal/admin/FinanceGoals"));
-import StatusBadge from "@/components/portal/StatusBadge";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
@@ -1226,7 +1226,7 @@ function getMonthKeyFromDate(value?: string | null) {
   return createMonthKey(parsed.getFullYear(), parsed.getMonth());
 }
 
-/* SurfaceStat now imported from @/components/portal/SurfaceStat */
+/* SurfaceStat now imported from @/components/portal/shared/SurfaceStat */
 
 type TooltipPayloadItem = {
   color?: string;

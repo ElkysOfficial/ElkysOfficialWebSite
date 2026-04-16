@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/AdminMetricCard";
-import AddContractLinkForm from "@/components/portal/AddContractLinkForm";
-import ContractActionsButtons from "@/components/portal/ContractActionsButtons";
-import ContractVersionHistory from "@/components/portal/ContractVersionHistory";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import AddContractLinkForm from "@/components/portal/contract/AddContractLinkForm";
+import ContractActionsButtons from "@/components/portal/contract/ContractActionsButtons";
+import ContractVersionHistory from "@/components/portal/contract/ContractVersionHistory";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

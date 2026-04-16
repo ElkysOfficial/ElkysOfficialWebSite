@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Headphones, Mail, Phone, Send } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import { Button, Card, CardContent, Field, Input, Label, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { CONTACT } from "@/constants";

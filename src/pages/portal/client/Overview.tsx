@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { Clock, FileText, Folder, Headphones, Receipt } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import MetricTile from "@/components/portal/MetricTile";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import MetricTile from "@/components/portal/shared/MetricTile";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, buttonVariants, Card, CardContent } from "@/design-system";
 import { useClientId } from "@/hooks/useClientId";
 import { useClientOverview } from "@/hooks/useClientOverview";

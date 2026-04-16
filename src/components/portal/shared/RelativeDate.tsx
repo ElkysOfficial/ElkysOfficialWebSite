@@ -30,7 +30,11 @@ export default function RelativeDate({
   const dateTimeAttr = date.includes("T") ? date : `${date}T00:00:00`;
 
   return (
-    <Tag className={cn(className)} title={tooltip} {...(Tag === "time" ? { dateTime: dateTimeAttr } : {})}>
+    <Tag
+      className={cn(className)}
+      title={tooltip}
+      {...(Tag === "time" ? { dateTime: dateTimeAttr } : {})}
+    >
       {text}
     </Tag>
   );

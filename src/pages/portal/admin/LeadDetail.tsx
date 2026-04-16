@@ -13,11 +13,11 @@ import {
   Shield,
   Users,
 } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import ContactLinks from "@/components/portal/ContactLinks";
-import NameAvatar from "@/components/portal/NameAvatar";
-import PortalLoading from "@/components/portal/PortalLoading";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import ContactLinks from "@/components/portal/shared/ContactLinks";
+import NameAvatar from "@/components/portal/shared/NameAvatar";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Button,

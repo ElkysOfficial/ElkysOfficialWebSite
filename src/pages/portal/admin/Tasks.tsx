@@ -16,8 +16,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
 
 import { CheckCircle, Clock, ExternalLink, Target, X } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,

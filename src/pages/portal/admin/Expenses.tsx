@@ -6,11 +6,11 @@ import type { ComponentType } from "react";
 
 import type { IconProps } from "@/assets/icons";
 import { Clock, FileText, Search, TrendingUp } from "@/assets/icons";
-import ExportMenu from "@/components/portal/ExportMenu";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import RowActionMenu from "@/components/portal/RowActionMenu";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Clock, ExternalLink, Receipt, Shield } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/AdminMetricCard";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ExportMenu from "@/components/portal/ExportMenu";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

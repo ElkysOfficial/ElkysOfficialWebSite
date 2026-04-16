@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import PortalLoading from "@/components/portal/PortalLoading";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import {
   buttonVariants,
   Button,
