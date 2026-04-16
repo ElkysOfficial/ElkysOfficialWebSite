@@ -482,6 +482,7 @@ function FinanceRevenueTab({
     // Notify client when charge becomes overdue
     if (editor.status === "atrasado" && originalCharge && originalCharge.status !== "atrasado") {
       try {
+        const overdueHeaders = await getSupabaseFunctionAuthHeaders();
         const { error: overdueError } = await supabase.functions.invoke("send-charge-overdue", {
           body: {
             client_id: originalCharge.client_id,
@@ -489,6 +490,7 @@ function FinanceRevenueTab({
             charge_amount: unmaskCurrency(editor.amount),
             due_date: parsedDate,
           },
+          headers: overdueHeaders,
         });
         if (overdueError) sideEffectWarnings.push("Notificação de atraso não enviada.");
       } catch {

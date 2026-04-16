@@ -730,7 +730,7 @@ export default function ProposalDetail() {
             .from("leads")
             .update({ status: "proposta", updated_at: new Date().toISOString() })
             .eq("id", form.lead_id)
-            .in("status", ["novo", "qualificado"]);
+            .in("status", ["novo", "qualificado", "diagnostico"]);
         }
 
         // Timeline: record proposal sent event
@@ -781,7 +781,7 @@ export default function ProposalDetail() {
             .from("leads")
             .update({ status: "proposta", updated_at: new Date().toISOString() })
             .eq("id", form.lead_id)
-            .in("status", ["novo", "qualificado"]);
+            .in("status", ["novo", "qualificado", "diagnostico"]);
         }
 
         // Timeline event
@@ -909,20 +909,23 @@ export default function ProposalDetail() {
     }
 
     // Timeline event (silencioso em falha para nao bloquear o fluxo)
-    try {
-      await supabase.from("timeline_events").insert({
-        client_id: proposal.client_id,
-        project_id: null,
-        actor_user_id: user?.id ?? null,
-        event_type: "proposta_rejeitada",
-        title: "Proposta rejeitada",
-        summary: `Proposta "${proposal.title}" marcada como rejeitada. Motivo: ${reasonText}`,
-        visibility: "ambos",
-        source_table: "proposals",
-        source_id: proposal.id,
-      });
-    } catch {
-      /* silencioso */
+    // Só insere se tem client_id (proposals de lead sem conversão não têm)
+    if (proposal.client_id) {
+      try {
+        await supabase.from("timeline_events").insert({
+          client_id: proposal.client_id,
+          project_id: null,
+          actor_user_id: user?.id ?? null,
+          event_type: "proposta_rejeitada",
+          title: "Proposta rejeitada",
+          summary: `Proposta "${proposal.title}" marcada como rejeitada. Motivo: ${reasonText}`,
+          visibility: "ambos",
+          source_table: "proposals",
+          source_id: proposal.id,
+        });
+      } catch {
+        /* silencioso */
+      }
     }
 
     // Se vinculada a lead, avanca status pra perdido
