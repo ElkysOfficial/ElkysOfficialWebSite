@@ -11,7 +11,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
-import { requireAdminAccess } from "../_shared/auth.ts";
+import { requireOperationalAccess } from "../_shared/auth.ts";
 
 interface Payload {
   client_id: string;
@@ -24,7 +24,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const auth = await requireAdminAccess(req, CORS);
+    const auth = await requireOperationalAccess(req, CORS);
     if (auth instanceof Response) return auth;
 
     const { client_id, project_name, solution_type, current_stage } = (await req.json()) as Payload;
