@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 
-type ContractStatus = "rascunho" | "ativo" | "encerrado" | "cancelado";
+type ContractStatus = "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
 
 type Props = {
   contractId: string;
@@ -29,7 +29,7 @@ export default function ContractActionsButtons({
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
-  async function transitionTo(toStatus: "ativo" | "encerrado" | "cancelado") {
+  async function transitionTo(toStatus: "em_validacao" | "ativo" | "encerrado" | "cancelado") {
     if (submitting) return;
     const reason = window.prompt(`Motivo da transição para "${toStatus}" (opcional):`);
     if (reason === null) return; // cancelado pelo admin
@@ -62,6 +62,21 @@ export default function ContractActionsButtons({
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
       {status === "rascunho" ? (
+        <>
+          <Button size="sm" disabled={submitting} onClick={() => void transitionTo("em_validacao")}>
+            Enviar para validação
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={submitting}
+            onClick={() => void transitionTo("ativo")}
+          >
+            Ativar direto
+          </Button>
+        </>
+      ) : null}
+      {status === "em_validacao" ? (
         <Button size="sm" disabled={submitting} onClick={() => void transitionTo("ativo")}>
           Ativar contrato
         </Button>
