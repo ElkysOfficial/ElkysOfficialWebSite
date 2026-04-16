@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { Bell, Clock, Receipt, Shield, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import Pagination from "@/components/portal/Pagination";
 import PortalLoading from "@/components/portal/PortalLoading";
 import {
   AlertDialog,
@@ -38,6 +39,9 @@ export default function BillingAutomation() {
   const [rules, setRules] = useState<RuleRow[]>([]);
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [logTotal, setLogTotal] = useState(0);
+  const [logPage, setLogPage] = useState(0);
+  const LOG_PAGE_SIZE = 20;
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<ActiveTab>("regras");
 
@@ -72,23 +76,34 @@ export default function BillingAutomation() {
   const selectClass =
     "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+  const loadLogs = useCallback(
+    async (page: number) => {
+      const from = page * LOG_PAGE_SIZE;
+      const to = from + LOG_PAGE_SIZE - 1;
+      const { data, count } = await supabase
+        .from("billing_actions_log")
+        .select("*", { count: "exact" })
+        .order("sent_at", { ascending: false })
+        .range(from, to);
+      setLogs((data ?? []) as LogRow[]);
+      setLogTotal(count ?? 0);
+    },
+    [LOG_PAGE_SIZE]
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [rulesRes, templatesRes, logsRes] = await Promise.all([
+    const [rulesRes, templatesRes] = await Promise.all([
       supabase.from("billing_rules").select("*").order("sort_order", { ascending: true }),
       supabase.from("billing_templates").select("*").order("created_at", { ascending: true }),
-      supabase
-        .from("billing_actions_log")
-        .select("*")
-        .order("sent_at", { ascending: false })
-        .limit(50),
     ]);
 
     setRules((rulesRes.data ?? []) as RuleRow[]);
     setTemplates((templatesRes.data ?? []) as TemplateRow[]);
-    setLogs((logsRes.data ?? []) as LogRow[]);
+    await loadLogs(0);
+    setLogPage(0);
     setLoading(false);
-  }, []);
+  }, [loadLogs]);
 
   useEffect(() => {
     void loadData();
@@ -280,7 +295,7 @@ export default function BillingAutomation() {
   const tabs: { key: ActiveTab; label: string }[] = [
     { key: "regras", label: `Regras (${rules.length})` },
     { key: "templates", label: `Templates (${templates.length})` },
-    { key: "log", label: `Log (${logs.length >= 50 ? "50+" : logs.length})` },
+    { key: "log", label: `Log (${logTotal})` },
   ];
 
   return (
@@ -594,53 +609,65 @@ export default function BillingAutomation() {
               description="Quando a régua for executada, o histórico aparecerá aqui."
             />
           ) : (
-            <Card className="overflow-hidden rounded-2xl border-border/80 bg-card/95">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-sm">
-                  <thead>
-                    <tr className="border-b border-border/60 bg-muted/30">
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                        Data
-                      </th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                        Acao
-                      </th>
-                      <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                        Disparado por
-                      </th>
-                      <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/40">
-                    {logs.map((log) => (
-                      <tr key={log.id} className="transition-colors hover:bg-muted/20">
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {formatPortalDateTime(log.sent_at)}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-foreground">{log.action_type}</td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {log.triggered_by === "manual" ? "Manual" : "Cron"}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span
-                            className={cn(
-                              "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                              log.status === "enviado"
-                                ? "bg-success/10 text-success"
-                                : "bg-destructive/10 text-destructive"
-                            )}
-                          >
-                            {log.status === "enviado" ? "Enviado" : "Falha"}
-                          </span>
-                        </td>
+            <>
+              <Card className="overflow-hidden rounded-2xl border-border/80 bg-card/95">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[600px] text-sm">
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30">
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                          Data
+                        </th>
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                          Acao
+                        </th>
+                        <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                          Disparado por
+                        </th>
+                        <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                          Status
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                    </thead>
+                    <tbody className="divide-y divide-border/40">
+                      {logs.map((log) => (
+                        <tr key={log.id} className="transition-colors hover:bg-muted/20">
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
+                            {formatPortalDateTime(log.sent_at)}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-foreground">{log.action_type}</td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
+                            {log.triggered_by === "manual" ? "Manual" : "Cron"}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span
+                              className={cn(
+                                "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                                log.status === "enviado"
+                                  ? "bg-success/10 text-success"
+                                  : "bg-destructive/10 text-destructive"
+                              )}
+                            >
+                              {log.status === "enviado" ? "Enviado" : "Falha"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+              <Pagination
+                page={logPage}
+                totalPages={Math.ceil(logTotal / LOG_PAGE_SIZE)}
+                totalItems={logTotal}
+                pageSize={LOG_PAGE_SIZE}
+                onPageChange={(p) => {
+                  setLogPage(p);
+                  void loadLogs(p);
+                }}
+              />
+            </>
           )}
         </div>
       )}
