@@ -91,6 +91,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: CheckCircle,
         roles: ["admin_super", "admin", "comercial"],
       },
+      {
+        label: "Calendário Comercial",
+        href: "/portal/admin/calendario/comercial",
+        icon: CalendarX,
+        roles: ["admin_super", "admin", "comercial"],
+      },
     ],
   },
   {
@@ -107,12 +113,6 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/clientes",
         icon: Building2,
         roles: ["admin_super", "admin", "financeiro", "comercial"],
-      },
-      {
-        label: "Despesas",
-        href: "/portal/admin/despesas",
-        icon: Receipt,
-        roles: ["admin_super", "admin", "financeiro"],
       },
       {
         label: "Régua de cobrança",
@@ -132,6 +132,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: CheckCircle,
         roles: ["admin_super", "admin", "financeiro"],
       },
+      {
+        label: "Calendário Financeiro",
+        href: "/portal/admin/calendario/financeiro",
+        icon: CalendarX,
+        roles: ["admin_super", "admin", "financeiro"],
+      },
     ],
   },
   {
@@ -147,6 +153,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         label: "Tarefas Jurídico",
         href: "/portal/admin/tarefas/juridico",
         icon: CheckCircle,
+        roles: ["admin_super", "admin", "juridico"],
+      },
+      {
+        label: "Calendário Jurídico",
+        href: "/portal/admin/calendario/juridico",
+        icon: CalendarX,
         roles: ["admin_super", "admin", "juridico"],
       },
     ],
@@ -167,10 +179,10 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["admin_super", "admin", "developer", "designer", "po"],
       },
       {
-        label: "Tarefas (todas)",
-        href: "/portal/admin/tarefas",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin"],
+        label: "Calendário Dev",
+        href: "/portal/admin/calendario/desenvolvimento",
+        icon: CalendarX,
+        roles: ["admin_super", "admin", "developer", "designer", "po"],
       },
       {
         label: "Documentos Dev",
@@ -201,14 +213,20 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: CheckCircle,
         roles: ["admin_super", "admin", "support"],
       },
+      {
+        label: "Calendário Suporte",
+        href: "/portal/admin/calendario/suporte",
+        icon: CalendarX,
+        roles: ["admin_super", "admin", "support"],
+      },
     ],
   },
   {
     label: "Marketing",
     items: [
       {
-        label: "Calendário",
-        href: "/portal/admin/calendario",
+        label: "Calendário Marketing",
+        href: "/portal/admin/calendario/marketing",
         icon: CalendarX,
         roles: ["admin_super", "admin", "marketing"],
       },
@@ -236,6 +254,18 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     label: "Sistema",
     items: [
       {
+        label: "Tarefas (todas)",
+        href: "/portal/admin/tarefas",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin"],
+      },
+      {
+        label: "Calendário (geral)",
+        href: "/portal/admin/calendario",
+        icon: CalendarX,
+        roles: ["admin_super", "admin"],
+      },
+      {
         label: "Equipe",
         href: "/portal/admin/equipe",
         icon: Users,
@@ -262,7 +292,12 @@ const adminPageMeta = [
     match: (pathname: string) => pathname === "/portal/admin/calendario",
     title: "Calendário",
     description:
-      "Agenda operacional do marketing para campanhas, publicações, eventos e entregas planejadas.",
+      "Agenda operacional geral para campanhas, reuniões, entregas e marcos de todas as áreas.",
+  },
+  {
+    match: (pathname: string) => pathname.startsWith("/portal/admin/calendario/"),
+    title: "Calendário",
+    description: "Agenda operacional filtrada por área — eventos, entregas e marcos do domínio.",
   },
   {
     match: (pathname: string) => pathname === "/portal/admin/documentos/marketing-design",
