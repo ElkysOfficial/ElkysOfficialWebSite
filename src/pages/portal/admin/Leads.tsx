@@ -30,7 +30,14 @@ import { toast } from "sonner";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 
-type LeadStatus = "novo" | "qualificado" | "proposta" | "negociacao" | "ganho" | "perdido";
+type LeadStatus =
+  | "novo"
+  | "qualificado"
+  | "diagnostico"
+  | "proposta"
+  | "negociacao"
+  | "ganho"
+  | "perdido";
 
 const STATUS_META: {
   key: LeadStatus;
@@ -39,8 +46,9 @@ const STATUS_META: {
 }[] = [
   { key: "novo", label: "Novo", tone: "secondary" },
   { key: "qualificado", label: "Qualificado", tone: "accent" },
+  { key: "diagnostico", label: "Diagnóstico", tone: "primary" },
   { key: "proposta", label: "Proposta", tone: "primary" },
-  { key: "negociacao", label: "Negociacao", tone: "warning" },
+  { key: "negociacao", label: "Negociação", tone: "warning" },
   { key: "ganho", label: "Ganho", tone: "success" },
   { key: "perdido", label: "Perdido", tone: "destructive" },
 ];
@@ -53,6 +61,7 @@ const STATUS_MAP = Object.fromEntries(STATUS_META.map((s) => [s.key, s])) as Rec
 const COLUMN_ACCENT: Record<LeadStatus, string> = {
   novo: "border-t-secondary",
   qualificado: "border-t-accent",
+  diagnostico: "border-t-primary",
   proposta: "border-t-primary",
   negociacao: "border-t-warning",
   ganho: "border-t-success",

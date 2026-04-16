@@ -541,12 +541,19 @@ export default function ProposalDetail() {
       // PROBLEMA 8: pre-popular cliente quando a proposta nasce do botao
       // "Nova oportunidade" no ClientDetail (URL ?client_id=xxx&source=expansion).
       const queryClientId = searchParams.get("client_id");
+      const queryLeadId = searchParams.get("lead_id");
       const queryIsExpansion = searchParams.get("source") === "expansion";
       if (queryClientId) {
         setForm((prev) => ({
           ...prev,
           destination_type: "client" as DestinationType,
           client_id: queryClientId,
+        }));
+      } else if (queryLeadId) {
+        setForm((prev) => ({
+          ...prev,
+          destination_type: "lead" as DestinationType,
+          lead_id: queryLeadId,
         }));
       }
       if (queryIsExpansion) {

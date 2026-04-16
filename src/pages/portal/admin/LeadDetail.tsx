@@ -2,7 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
-import { ArrowLeft, Building2, Clock, Mail, Phone, Send, Shield, Users } from "@/assets/icons";
+import {
+  ArrowLeft,
+  Building2,
+  Clock,
+  FileText,
+  Mail,
+  Phone,
+  Send,
+  Shield,
+  Users,
+} from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import ContactLinks from "@/components/portal/ContactLinks";
 import NameAvatar from "@/components/portal/NameAvatar";
@@ -33,7 +43,7 @@ import {
   parseLeadDiagnosis,
 } from "@/lib/lead-diagnosis";
 import { formatBRL, maskCurrency, unmaskCurrency, maskPhone } from "@/lib/masks";
-import { formatPortalDateTime } from "@/lib/portal";
+import { formatPortalDate, formatPortalDateTime } from "@/lib/portal";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -188,6 +198,16 @@ export default function LeadDetail() {
   // Status change loading
   const [statusLoading, setStatusLoading] = useState(false);
 
+  // Linked proposals
+  type LinkedProposal = {
+    id: string;
+    title: string;
+    status: string;
+    total_amount: number;
+    created_at: string;
+  };
+  const [linkedProposals, setLinkedProposals] = useState<LinkedProposal[]>([]);
+
   // Diagnostico estruturado (PROBLEMA 5)
   const [diagnosis, setDiagnosis] = useState<LeadDiagnosis>({});
   const [savingDiagnosis, setSavingDiagnosis] = useState(false);
@@ -198,7 +218,7 @@ export default function LeadDetail() {
     if (!id) return;
 
     setLoading(true);
-    const [leadRes, interactionsRes, teamRes] = await Promise.all([
+    const [leadRes, interactionsRes, teamRes, proposalsRes] = await Promise.all([
       supabase.from("leads").select("*").eq("id", id).single(),
       supabase
         .from("lead_interactions")
@@ -206,6 +226,11 @@ export default function LeadDetail() {
         .eq("lead_id", id)
         .order("created_at", { ascending: false }),
       supabase.from("team_members").select("user_id, full_name"),
+      supabase
+        .from("proposals")
+        .select("id, title, status, total_amount, created_at")
+        .eq("lead_id", id)
+        .order("created_at", { ascending: false }),
     ]);
 
     if (leadRes.error || !leadRes.data) {
@@ -224,6 +249,7 @@ export default function LeadDetail() {
     setLead(leadData);
     setDiagnosis(parseLeadDiagnosis((leadData as { diagnosis?: unknown }).diagnosis) ?? {});
     setInteractions((interactionsRes.data ?? []) as InteractionRow[]);
+    setLinkedProposals((proposalsRes.data ?? []) as LinkedProposal[]);
     setTeamMap(map);
     setLoading(false);
   }, [id, navigate]);
@@ -504,7 +530,18 @@ export default function LeadDetail() {
             )}
           </div>
         </div>
-        <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+        <div className="flex items-center gap-2">
+          <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+          {canTransition && (
+            <Link
+              to={`/portal/admin/propostas/nova?lead_id=${id}`}
+              className={buttonVariants({ size: "sm" })}
+            >
+              <FileText className="mr-1.5 h-3.5 w-3.5" />
+              Criar proposta
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Status quick actions -------------------------------------- */}
@@ -918,6 +955,61 @@ export default function LeadDetail() {
                 </Button>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Propostas vinculadas ----------------------------------------- */}
+      {linkedProposals.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4 text-primary" />
+              Propostas vinculadas ({linkedProposals.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {linkedProposals.map((p) => (
+              <Link
+                key={p.id}
+                to={`/portal/admin/propostas/${p.id}`}
+                className="flex items-center justify-between rounded-lg border border-border/50 bg-background/60 px-4 py-3 transition-colors hover:border-primary/30 hover:bg-card"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{p.title}</p>
+                  <p className="text-xs text-muted-foreground">{formatPortalDate(p.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-foreground">
+                    {formatBRL(Number(p.total_amount))}
+                  </span>
+                  <StatusBadge
+                    label={
+                      p.status === "rascunho"
+                        ? "Rascunho"
+                        : p.status === "enviada"
+                          ? "Enviada"
+                          : p.status === "aprovada"
+                            ? "Aprovada"
+                            : p.status === "rejeitada"
+                              ? "Rejeitada"
+                              : "Expirada"
+                    }
+                    tone={
+                      p.status === "aprovada"
+                        ? "success"
+                        : p.status === "rejeitada"
+                          ? "destructive"
+                          : p.status === "enviada"
+                            ? "accent"
+                            : p.status === "expirada"
+                              ? "warning"
+                              : "secondary"
+                    }
+                  />
+                </div>
+              </Link>
+            ))}
           </CardContent>
         </Card>
       )}
