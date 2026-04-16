@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import {
@@ -16,6 +16,7 @@ import {
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import ContactLinks from "@/components/portal/shared/ContactLinks";
 import NameAvatar from "@/components/portal/shared/NameAvatar";
+import Pagination from "@/components/portal/shared/Pagination";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -197,6 +198,24 @@ export default function LeadDetail() {
 
   // Status change loading
   const [statusLoading, setStatusLoading] = useState(false);
+
+  // Tabs — URL-based (mesmo padrao de ProjectDetail)
+  type LeadTab = "dados" | "diagnostico" | "interacoes" | "propostas";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs: LeadTab[] = ["dados", "diagnostico", "interacoes", "propostas"];
+  const tabFromUrl = searchParams.get("tab") as LeadTab | null;
+  const tab: LeadTab = tabFromUrl && validTabs.includes(tabFromUrl) ? tabFromUrl : "dados";
+  const setTab = (next: LeadTab) => {
+    if (next === "dados") {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ tab: next }, { replace: true });
+    }
+  };
+
+  // Paginacao de interacoes
+  const INTERACTIONS_PER_PAGE = 10;
+  const [interactionsPage, setInteractionsPage] = useState(1);
 
   // Linked proposals
   type LinkedProposal = {
@@ -522,15 +541,32 @@ export default function LeadDetail() {
   const statusFlow: LeadStatus[] = ["qualificado", "proposta", "negociacao"];
   const availableStatuses = canTransition ? statusFlow.filter((s) => s !== status) : [];
 
+  const paginatedInteractions = interactions.slice(
+    (interactionsPage - 1) * INTERACTIONS_PER_PAGE,
+    interactionsPage * INTERACTIONS_PER_PAGE
+  );
+
+  const leadTabs: { key: LeadTab; label: string }[] = [
+    { key: "dados", label: "Dados do Lead" },
+    {
+      key: "diagnostico",
+      label: isDiagnosisConcluded(diagnosis) ? "Diagnóstico ✓" : "Diagnóstico",
+    },
+    { key: "interacoes", label: `Interações (${interactions.length})` },
+    ...(linkedProposals.length > 0
+      ? [{ key: "propostas" as LeadTab, label: `Propostas (${linkedProposals.length})` }]
+      : []),
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header ---------------------------------------------------- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
-            to="/portal/admin/leads"
+            to="/portal/admin/crm"
             className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-9 w-9 p-0")}
-            aria-label="Voltar para Leads"
+            aria-label="Voltar para CRM"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
@@ -545,8 +581,19 @@ export default function LeadDetail() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+          {availableStatuses.map((s) => (
+            <Button
+              key={s}
+              variant="outline"
+              size="sm"
+              disabled={statusLoading}
+              onClick={() => void handleStatusChange(s)}
+            >
+              {STATUS_META[s].label}
+            </Button>
+          ))}
           {canTransition && isDiagnosisConcluded(diagnosis) && (
             <Link
               to={`/portal/admin/propostas/nova?lead_id=${id}`}
@@ -559,33 +606,31 @@ export default function LeadDetail() {
         </div>
       </div>
 
-      {/* Status quick actions -------------------------------------- */}
-      {availableStatuses.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {availableStatuses.map((s) => {
-            const meta = STATUS_META[s];
-            return (
-              <Button
-                key={s}
-                variant="outline"
-                size="sm"
-                disabled={statusLoading}
-                onClick={() => void handleStatusChange(s)}
-              >
-                Mover para {meta.label}
-              </Button>
-            );
-          })}
-        </div>
-      )}
+      {/* Tabs ------------------------------------------------------- */}
+      <div className="flex gap-1 overflow-x-auto rounded-lg border border-border/60 bg-card p-1">
+        {leadTabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "min-h-[40px] min-w-fit whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-all",
+              tab === t.key
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {/* Two-column layout ----------------------------------------- */}
-      <div className="grid gap-6 xl:grid-cols-12">
-        {/* Left column — Lead data --------------------------------- */}
-        <div className="xl:col-span-5">
+      {/* ═══ TAB: DADOS ═══ */}
+      {tab === "dados" && (
+        <div className="grid gap-6 xl:grid-cols-2">
           <Card className="border-border/70 bg-card/92">
             <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <CardTitle className="text-base">Dados do Lead</CardTitle>
+              <CardTitle className="text-base">Informações</CardTitle>
               {!editing ? (
                 <Button variant="outline" size="sm" onClick={handleStartEdit}>
                   Editar
@@ -711,29 +756,89 @@ export default function LeadDetail() {
               )}
             </CardContent>
           </Card>
-        </div>
 
-        {/* Right column — Diagnostico + Interactions ---------------- */}
-        <div className="xl:col-span-7 space-y-6">
-          {/* Diagnóstico estruturado (PROBLEMA 5) */}
-          <Card className="border-border/70 bg-card/92">
-            <CardHeader className="flex flex-row items-center justify-between gap-2">
-              <div>
-                <CardTitle className="text-base">Diagnóstico</CardTitle>
-                {isDiagnosisConcluded(diagnosis) ? (
-                  <p className="mt-1 text-xs text-success">
-                    Concluído em{" "}
-                    {diagnosis.concluded_at ? formatPortalDateTime(diagnosis.concluded_at) : "—"}
-                  </p>
+          {/* Ações rápidas */}
+          {canTransition && (
+            <Card className="border-border/70 bg-card/92">
+              <CardHeader>
+                <CardTitle className="text-base">Ações</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={converting}
+                  onClick={() => void handleConvert()}
+                >
+                  {converting ? "Convertendo..." : "Converter em Cliente"}
+                </Button>
+                {!showLostInput ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={() => setShowLostInput(true)}
+                  >
+                    Marcar como perdido
+                  </Button>
                 ) : (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Consolide contexto, problema, objetivo e mais antes de criar a proposta. O
-                    resumo aqui pré-popula o escopo da proposta.
-                  </p>
+                  <div className="space-y-3">
+                    <Field>
+                      <Label>Motivo da perda</Label>
+                      <Input
+                        value={lostReason}
+                        onChange={(e) => setLostReason(e.target.value)}
+                        placeholder="Ex: Preco, concorrente, timing..."
+                      />
+                    </Field>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={markingLost}
+                        onClick={() => void handleMarkLost()}
+                      >
+                        {markingLost ? "Salvando..." : "Confirmar"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowLostInput(false);
+                          setLostReason("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ═══ TAB: DIAGNÓSTICO ═══ */}
+      {tab === "diagnostico" && (
+        <Card className="border-border/70 bg-card/92">
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <div>
+              <CardTitle className="text-base">Diagnóstico</CardTitle>
+              {isDiagnosisConcluded(diagnosis) ? (
+                <p className="mt-1 text-xs text-success">
+                  Concluído em{" "}
+                  {diagnosis.concluded_at ? formatPortalDateTime(diagnosis.concluded_at) : "—"}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Consolide contexto, problema, objetivo e mais antes de criar a proposta.
+                </p>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 xl:grid-cols-2">
               <Field>
                 <Label>Contexto do cliente</Label>
                 <Textarea
@@ -815,81 +920,83 @@ export default function LeadDetail() {
                   rows={2}
                 />
               </Field>
-
-              <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            </div>
+            <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={savingDiagnosis}
+                onClick={() => void handleSaveDiagnosis()}
+              >
+                {savingDiagnosis ? "Salvando..." : "Salvar"}
+              </Button>
+              {!isDiagnosisConcluded(diagnosis) && (
                 <Button
-                  variant="outline"
                   size="sm"
-                  disabled={savingDiagnosis}
-                  onClick={() => void handleSaveDiagnosis()}
+                  disabled={savingDiagnosis || !hasMinimalDiagnosis(diagnosis)}
+                  onClick={() => void handleSaveDiagnosis({ concluding: true })}
                 >
-                  {savingDiagnosis ? "Salvando..." : "Salvar"}
+                  Concluir diagnóstico
                 </Button>
-                {!isDiagnosisConcluded(diagnosis) ? (
-                  <Button
-                    size="sm"
-                    disabled={savingDiagnosis || !hasMinimalDiagnosis(diagnosis)}
-                    onClick={() => void handleSaveDiagnosis({ concluding: true })}
-                  >
-                    Concluir diagnóstico
-                  </Button>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <Card className="border-border/70 bg-card/92">
-            <CardHeader>
-              <CardTitle className="text-base">Interações ({interactions.length})</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Add interaction form */}
-              <div className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-4">
-                <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
-                  <Field>
-                    <Label>Tipo</Label>
-                    <select
-                      className={selectClass}
-                      value={newType}
-                      onChange={(e) => setNewType(e.target.value as InteractionType)}
-                    >
-                      {Object.entries(INTERACTION_TYPE_LABEL).map(([val, lbl]) => (
-                        <option key={val} value={val}>
-                          {lbl}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field>
-                    <Label>Notas</Label>
-                    <Textarea
-                      rows={2}
-                      value={newNotes}
-                      onChange={(e) => setNewNotes(e.target.value)}
-                      placeholder="Descreva a interacao..."
-                    />
-                  </Field>
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    size="sm"
-                    disabled={addingInteraction || !newNotes.trim()}
-                    onClick={() => void handleAddInteraction()}
+      {/* ═══ TAB: INTERAÇÕES ═══ */}
+      {tab === "interacoes" && (
+        <Card className="border-border/70 bg-card/92">
+          <CardHeader>
+            <CardTitle className="text-base">Interações ({interactions.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-4">
+              <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
+                <Field>
+                  <Label>Tipo</Label>
+                  <select
+                    className={selectClass}
+                    value={newType}
+                    onChange={(e) => setNewType(e.target.value as InteractionType)}
                   >
-                    {addingInteraction ? "Registrando..." : "Registrar"}
-                  </Button>
-                </div>
+                    {Object.entries(INTERACTION_TYPE_LABEL).map(([val, lbl]) => (
+                      <option key={val} value={val}>
+                        {lbl}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field>
+                  <Label>Notas</Label>
+                  <Textarea
+                    rows={2}
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    placeholder="Descreva a interacao..."
+                  />
+                </Field>
               </div>
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  disabled={addingInteraction || !newNotes.trim()}
+                  onClick={() => void handleAddInteraction()}
+                >
+                  {addingInteraction ? "Registrando..." : "Registrar"}
+                </Button>
+              </div>
+            </div>
 
-              {/* Timeline */}
-              {interactions.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">
-                  Nenhuma interacao registrada.
-                </p>
-              ) : (
+            {interactions.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Nenhuma interacao registrada.
+              </p>
+            ) : (
+              <>
                 <div className="relative space-y-0 pl-6">
                   <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border/60" />
-                  {interactions.map((interaction) => (
+                  {paginatedInteractions.map((interaction) => (
                     <div key={interaction.id} className="relative pb-4">
                       <div className="absolute -left-6 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-border bg-card">
                         <InteractionIcon type={interaction.type} />
@@ -918,65 +1025,24 @@ export default function LeadDetail() {
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Action buttons at bottom ---------------------------------- */}
-      {canTransition && (
-        <Card className="border-border/70 bg-card/92">
-          <CardContent className="flex flex-wrap items-center gap-3 py-4">
-            <Button variant="default" disabled={converting} onClick={() => void handleConvert()}>
-              {converting ? "Convertendo..." : "Converter em Cliente"}
-            </Button>
-
-            {!showLostInput ? (
-              <Button
-                variant="outline"
-                className="text-destructive hover:bg-destructive/10"
-                onClick={() => setShowLostInput(true)}
-              >
-                Marcar como perdido
-              </Button>
-            ) : (
-              <div className="flex flex-1 items-end gap-2">
-                <Field className="flex-1">
-                  <Label>Motivo da perda</Label>
-                  <Input
-                    value={lostReason}
-                    onChange={(e) => setLostReason(e.target.value)}
-                    placeholder="Ex: Preco, concorrente, timing..."
+                {interactions.length > INTERACTIONS_PER_PAGE && (
+                  <Pagination
+                    page={interactionsPage}
+                    totalPages={Math.ceil(interactions.length / INTERACTIONS_PER_PAGE)}
+                    totalItems={interactions.length}
+                    pageSize={INTERACTIONS_PER_PAGE}
+                    onPageChange={setInteractionsPage}
                   />
-                </Field>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={markingLost}
-                  onClick={() => void handleMarkLost()}
-                >
-                  {markingLost ? "Salvando..." : "Confirmar"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowLostInput(false);
-                    setLostReason("");
-                  }}
-                >
-                  Cancelar
-                </Button>
-              </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Propostas vinculadas ----------------------------------------- */}
-      {linkedProposals.length > 0 && (
-        <Card>
+      {/* ═══ TAB: PROPOSTAS ═══ */}
+      {tab === "propostas" && linkedProposals.length > 0 && (
+        <Card className="border-border/70 bg-card/92">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <FileText className="h-4 w-4 text-primary" />
