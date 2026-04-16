@@ -75,18 +75,18 @@ export default function ContractActionsButtons({
         }
       }
 
-      // Notificar áreas quando contrato é ativado
+      // Quando contrato é ATIVADO: criar projeto + cobranças + onboarding via RPC
       if (toStatus === "ativo") {
-        void supabase.from("admin_notifications").insert({
-          type: "contrato_ativado",
-          title: `Contrato ativado: ${projectName}`,
-          body: `O contrato do projeto "${projectName}" foi ativado pelo jurídico. O projeto pode ser iniciado.`,
-          severity: "success",
-          target_roles: ["admin_super", "admin", "developer", "po", "financeiro"],
-          entity_type: "project_contract",
-          entity_id: contractId,
-          action_url: "/portal/admin/contratos",
+        const { error: activateError } = await supabase.rpc("activate_contract_to_project", {
+          p_contract_id: contractId,
         });
+        if (activateError) {
+          toast.error("Contrato ativado, mas erro ao criar projeto.", {
+            description: activateError.message,
+          });
+        } else {
+          toast.success("Projeto e cobranças criados automaticamente.");
+        }
       }
 
       onTransitioned?.();

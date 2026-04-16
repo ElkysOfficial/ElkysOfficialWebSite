@@ -842,27 +842,10 @@ export default function ProposalDetail() {
     }
 
     const rpcResult = result as {
-      project_id?: string;
       client_id?: string;
       contract_id?: string;
+      proposal_id?: string;
     };
-
-    // Enviar email de projeto criado ao cliente
-    if (rpcResult.client_id && rpcResult.project_id) {
-      try {
-        const headers = await getSupabaseFunctionAuthHeaders();
-        void supabase.functions.invoke("send-project-created", {
-          body: {
-            client_id: rpcResult.client_id,
-            project_name: proposal.title,
-            solution_type: proposal.solution_type,
-          },
-          headers,
-        });
-      } catch {
-        // Fire-and-forget
-      }
-    }
 
     // Se proposta era de lead (sem client_id direto), enviar welcome email
     // ao novo cliente convertido
@@ -893,7 +876,7 @@ export default function ProposalDetail() {
       }
     }
 
-    toast.success("Projeto e contrato criados com sucesso!");
+    toast.success("Proposta aprovada! Contrato gerado para revisão do jurídico.");
     void loadData();
   }
 
