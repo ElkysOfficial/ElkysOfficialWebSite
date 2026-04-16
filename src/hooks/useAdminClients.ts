@@ -38,7 +38,7 @@ async function fetchClients() {
       supabase
         .from("client_financial_summary")
         .select(
-          "client_id, monthly_recurring_value, contract_status_calculated, contract_type_calculated, contract_end_calculated"
+          "client_id, monthly_value, contract_status_calculated, contract_type_calculated, contract_end_calculated"
         ),
     ]);
 
@@ -63,14 +63,14 @@ async function fetchClients() {
   >();
   for (const s of (summaryRes.data ?? []) as Array<{
     client_id: string | null;
-    monthly_recurring_value: number | null;
+    monthly_value: number | null;
     contract_status_calculated: string | null;
     contract_type_calculated: string | null;
     contract_end_calculated: string | null;
   }>) {
     if (!s.client_id) continue;
     summaryMap.set(s.client_id, {
-      monthly: Number(s.monthly_recurring_value ?? 0),
+      monthly: Number(s.monthly_value ?? 0),
       status: s.contract_status_calculated ?? null,
       type: s.contract_type_calculated ?? null,
       end: s.contract_end_calculated ?? null,
