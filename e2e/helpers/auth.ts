@@ -14,6 +14,9 @@ export async function login(page: Page, email: string, password: string) {
 
   // Aguarda redirect para /portal/admin ou /portal/cliente
   await page.waitForURL(/\/portal\/(admin|cliente)/, { timeout: 20_000 });
+
+  // Fechar cookie banner automaticamente após login
+  await dismissCookieBanner(page);
 }
 
 /**
@@ -42,6 +45,17 @@ export async function navigateAdmin(page: Page, path: string) {
 export async function navigateClient(page: Page, path: string) {
   await page.goto(`/portal/cliente/${path}`);
   await page.waitForLoadState("networkidle");
+}
+
+/**
+ * Fecha o banner de cookies se estiver visível.
+ */
+export async function dismissCookieBanner(page: Page) {
+  const cookieBtn = page.locator('button:has-text("Aceitar Cookies")');
+  if (await cookieBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await cookieBtn.click();
+    await cookieBtn.waitFor({ state: "hidden", timeout: 3000 }).catch(() => {});
+  }
 }
 
 /**

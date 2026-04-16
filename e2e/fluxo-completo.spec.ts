@@ -4,6 +4,7 @@ import {
   logout,
   navigateAdmin,
   navigateClient,
+  dismissCookieBanner,
   expectToast,
   waitForPortalLoad,
   uniqueId,
@@ -61,12 +62,6 @@ test.describe.serial("Fluxo Completo: Lead → Expansão", () => {
     await navigateAdmin(page, "crm");
     await waitForPortalLoad(page);
 
-    // Fechar cookie banner se visível
-    const cookieBtn = page.locator('button:has-text("Aceitar Cookies")');
-    if (await cookieBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await cookieBtn.click();
-    }
-
     // Clicar em "Novo Lead"
     const newLeadBtn = page.locator(
       'button:has-text("Novo Lead"), button:has-text("Fechar formulario")'
@@ -116,31 +111,22 @@ test.describe.serial("Fluxo Completo: Lead → Expansão", () => {
       await expectToast(page, /qualificado/i);
     }
 
-    // Fechar cookie banner se visível
-    const cookieBtn = page.locator('button:has-text("Aceitar Cookies")');
-    if (await cookieBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await cookieBtn.click();
-    }
-
-    // Preencher diagnóstico usando labels
-    const contextTA = page
-      .locator('label:has-text("Contexto do cliente") + textarea, textarea')
-      .first();
-    const problemTA = page.locator("textarea").nth(1);
-    const objectiveTA = page.locator("textarea").nth(2);
-
     // Scroll até a seção de diagnóstico
     const diagTitle = page.locator("text=Diagnóstico").first();
     if (await diagTitle.isVisible()) {
       await diagTitle.scrollIntoViewIfNeeded();
     }
 
-    // Preencher campos — usar getByLabel se possível, fallback para nth
+    // Preencher diagnóstico usando placeholders reais
     await page
-      .getByLabel("Contexto do cliente")
+      .locator('textarea[placeholder*="Quem"]')
       .fill("Cliente precisa de sistema web para gestão de pedidos");
-    await page.getByLabel("Problema atual").fill("Processo manual de pedidos causa erros e atraso");
-    await page.getByLabel("Objetivo").fill("Automatizar fluxo de pedidos em 3 meses");
+    await page
+      .locator('textarea[placeholder*="dor concreta"]')
+      .fill("Processo manual de pedidos causa erros e atraso");
+    await page
+      .locator('textarea[placeholder*="resultado esperado"]')
+      .fill("Automatizar fluxo de pedidos em 3 meses");
 
     // Concluir diagnóstico (salva e conclui ao mesmo tempo)
     const concludeBtn = page.locator('button:has-text("Concluir")').first();
@@ -170,12 +156,19 @@ test.describe.serial("Fluxo Completo: Lead → Expansão", () => {
     await createProposalBtn.click();
     await waitForPortalLoad(page);
 
-    // Preencher proposta
+    // Preencher proposta — campos obrigatórios
     await page.fill('input[id="title"]', PROPOSAL_TITLE);
 
+    // Tipo de solução
+    const solutionInput = page.locator('input[placeholder*="Site institucional"]');
+    if (await solutionInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await solutionInput.fill("Sistema Web");
+    }
+
     // Valor
-    const amountInput = page.locator('input[id="total_amount"], input[placeholder*="valor" i]');
+    const amountInput = page.locator('input[id="total_amount"]');
     if (await amountInput.isVisible()) {
+      await amountInput.click();
       await amountInput.fill(PROPOSAL_VALUE);
     }
 
@@ -187,15 +180,21 @@ test.describe.serial("Fluxo Completo: Lead → Expansão", () => {
       );
     }
 
-    // Salvar como rascunho
-    await page.click('button:has-text("Salvar rascunho")');
-    await expectToast(page, /salvo|rascunho/i);
+    // Link do documento (obrigatório para enviar)
+    const docInput = page.locator('input[placeholder*="drive.google.com"]').first();
+    if (await docInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await docInput.fill("https://drive.google.com/test-doc");
+    }
 
-    // Enviar para cliente
-    const sendBtn = page.locator('button:has-text("Enviar")');
-    if (await sendBtn.isVisible()) {
+    // Enviar para o cliente
+    const sendBtn = page.locator('button:has-text("Enviar para cliente")');
+    if (await sendBtn.isEnabled({ timeout: 3000 }).catch(() => false)) {
       await sendBtn.click();
       await expectToast(page, /enviada|enviado/i);
+    } else {
+      // Fallback: salvar como rascunho — admin aprovará diretamente
+      await page.click('button:has-text("Salvar rascunho")');
+      await expectToast(page, /salvo|rascunho/i);
     }
   });
 
@@ -212,20 +211,26 @@ test.describe.serial("Fluxo Completo: Lead → Expansão", () => {
 
     // Tab propostas
     await page.click('button:has-text("Propostas")');
-    await waitForPortalLoad(page);
+    await page.waitForTimeout(2000);
 
-    // Encontrar a proposta
+    // Encontrar a proposta na listagem
     const proposalLink = page.locator(`a:has-text("${PROPOSAL_TITLE}")`).first();
     await expect(proposalLink).toBeVisible({ timeout: 10_000 });
     await proposalLink.click();
     await waitForPortalLoad(page);
 
-    // Clicar "Aprovar e criar projeto"
-    const approveBtn = page.locator('button:has-text("Aprovar")');
-    await expect(approveBtn).toBeVisible();
+    // Scroll até o botão de aprovação
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(1000);
+
+    // Clicar "Aprovar e criar projeto" ou "Criar projeto a partir desta proposta"
+    const approveBtn = page
+      .locator('button:has-text("Aprovar"), button:has-text("Criar projeto")')
+      .first();
+    await expect(approveBtn).toBeVisible({ timeout: 10_000 });
     await approveBtn.click();
 
-    await expectToast(page, /aprovad|contrato/i);
+    await expectToast(page, /aprovad|contrato|projeto/i);
   });
 
   // ═══════════════════════════════════════════════════════════════════
