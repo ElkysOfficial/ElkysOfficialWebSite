@@ -85,6 +85,9 @@ Deno serverless functions for user management, email notifications, and billing.
 See `docs/` for detailed specs:
 
 - `ARCHITECTURE.md` — full technical architecture (in Portuguese)
-- `Database.md` — schema documentation
-- `EDGE-Functions.md` — edge function specs
-- `Permissions.md` — RBAC role matrix
+- `DATABASE.md` — schema documentation
+- `EDGE-FUNCTIONS.md` — edge function specs
+- `PERMISSIONS.md` — RBAC role matrix
+- `DESIGN-SYSTEM.md` — design system tokens, components and patterns
+- `ROADMAP.md` — admin dashboard roadmap
+- `TESTING.md` — E2E testing guide
