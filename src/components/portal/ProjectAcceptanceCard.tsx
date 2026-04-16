@@ -3,9 +3,12 @@ import { toast } from "sonner";
 
 import { Button, Card, CardContent, Field, Label, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
 type Props = {
   projectId: string;
+  clientId?: string;
+  projectName?: string;
   acceptedAt: string | null;
   acceptedBy: string | null;
   acceptanceNotes: string | null;
@@ -39,6 +42,8 @@ function formatDateTime(value: string | null) {
  */
 export default function ProjectAcceptanceCard({
   projectId,
+  clientId,
+  projectName,
   acceptedAt,
   acceptanceNotes,
   deliveredAt,
@@ -61,6 +66,23 @@ export default function ProjectAcceptanceCard({
         toast.error("Erro ao registrar aceite.", { description: error.message });
         return;
       }
+      // L5: Email ao cliente confirmando aceite de entrega
+      if (clientId) {
+        try {
+          const headers = await getSupabaseFunctionAuthHeaders();
+          void supabase.functions.invoke("send-project-completed", {
+            body: {
+              client_id: clientId,
+              project_name: projectName ?? "Projeto",
+              delivered_at: new Date().toISOString().slice(0, 10),
+            },
+            headers,
+          });
+        } catch {
+          // Fire-and-forget
+        }
+      }
+
       toast.success("Aceite registrado com sucesso.");
       onAccepted?.();
     } finally {

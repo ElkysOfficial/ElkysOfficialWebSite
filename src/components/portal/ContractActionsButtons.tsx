@@ -73,19 +73,49 @@ export default function ContractActionsButtons({
         } catch {
           // Fire-and-forget
         }
+
+        // L3: Notif in-app para admin sobre envio
+        void supabase.from("admin_notifications").insert({
+          type: "contrato_enviado_validacao",
+          title: `Contrato enviado: ${projectName}`,
+          body: `O contrato do projeto "${projectName}" foi enviado para assinatura do cliente.`,
+          severity: "info",
+          target_roles: ["admin_super", "admin"],
+          entity_type: "project_contract",
+          entity_id: contractId,
+          action_url: "/portal/admin/contratos",
+        });
       }
 
       // Quando contrato é ATIVADO: criar projeto + cobranças + onboarding via RPC
       if (toStatus === "ativo") {
-        const { error: activateError } = await supabase.rpc("activate_contract_to_project", {
-          p_contract_id: contractId,
-        });
+        const { data: activateResult, error: activateError } = await supabase.rpc(
+          "activate_contract_to_project",
+          { p_contract_id: contractId }
+        );
         if (activateError) {
           toast.error("Contrato ativado, mas erro ao criar projeto.", {
             description: activateError.message,
           });
         } else {
           toast.success("Projeto e cobranças criados automaticamente.");
+
+          // L4: Email ao cliente notificando que projeto foi criado
+          const result = activateResult as { project_id?: string; already_exists?: boolean } | null;
+          if (result?.project_id && !result?.already_exists && clientId) {
+            try {
+              const emailHeaders = await getSupabaseFunctionAuthHeaders();
+              void supabase.functions.invoke("send-project-created", {
+                body: {
+                  client_id: clientId,
+                  project_name: projectName,
+                },
+                headers: emailHeaders,
+              });
+            } catch {
+              // Fire-and-forget
+            }
+          }
         }
       }
 

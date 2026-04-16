@@ -305,6 +305,21 @@ export default function LeadDetail() {
         setLead({ ...lead, diagnosis: payload as never });
       }
 
+      // L1: Ao concluir diagnóstico, criar tarefa "Elaborar proposta"
+      if (concluding) {
+        void supabase.from("team_tasks").insert({
+          title: `Elaborar proposta - ${lead.name}`,
+          description: `Diagnóstico do lead "${lead.name}" foi concluído. Elabore e envie a proposta comercial.`,
+          category: "comercial",
+          status: "pendente",
+          priority: "alta",
+          client_id: null,
+          role_visibility: ["admin_super", "admin", "comercial"],
+          due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
+          created_by: user?.id ?? null,
+        });
+      }
+
       toast.success(concluding ? "Diagnóstico concluído." : "Diagnóstico salvo.");
     } finally {
       setSavingDiagnosis(false);
