@@ -176,7 +176,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         label: "Documentos Dev",
         href: "/portal/admin/documentos/desenvolvedor",
         icon: Code2,
-        roles: ["admin_super", "admin", "developer", "designer"],
+        roles: ["admin_super", "admin", "developer", "designer", "po"],
       },
     ],
   },
