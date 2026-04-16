@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   Bar,
@@ -737,655 +738,602 @@ function ProjectStatusBarChart({ counts }: { counts: Record<ProjectBucket, numbe
   );
 }
 
-export default function AdminOverview() {
-  const [summary, setSummary] = useState<OverviewState>(initialState);
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
-  const [hasLoaded, setHasLoaded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function fetchDashboard(): Promise<OverviewState> {
+  const [
+    clientsRes,
+    projectsRes,
+    chargesRes,
+    subscriptionsRes,
+    expensesRes,
+    contractsRes,
+    ticketsRes,
+    proposalsRes,
+  ] = await Promise.all([
+    supabase
+      .from("clients")
+      .select("id, is_active, client_since, full_name, client_type, nome_fantasia"),
+    supabase
+      .from("projects")
+      .select(
+        "id, client_id, status, started_at, delivered_at, expected_delivery_date, current_stage"
+      ),
+    supabase
+      .from("charges")
+      .select(
+        "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, description"
+      ),
+    supabase
+      .from("project_subscriptions")
+      .select("id, client_id, amount, status, ends_on, starts_on"),
+    supabase.from("expenses").select("id, amount, expense_date"),
+    supabase.from("project_contracts").select("id, project_id, total_amount, status, signed_at"),
+    supabase.from("support_tickets").select("id, status, created_at"),
+    supabase
+      .from("proposals")
+      .select("id, total_amount, status")
+      .in("status", ["enviada", "aprovada"]),
+  ]);
 
-  const loadDashboard = useCallback(
-    async (background = false) => {
-      if (!background || !hasLoaded) {
-        setLoading(true);
-        setError(null);
-      }
+  const hardError =
+    clientsRes.error ??
+    projectsRes.error ??
+    chargesRes.error ??
+    subscriptionsRes.error ??
+    expensesRes.error ??
+    contractsRes.error ??
+    ticketsRes.error;
 
-      try {
-        const [
-          clientsRes,
-          projectsRes,
-          chargesRes,
-          subscriptionsRes,
-          expensesRes,
-          contractsRes,
-          ticketsRes,
-          proposalsRes,
-        ] = await Promise.all([
-          supabase
-            .from("clients")
-            .select("id, is_active, client_since, full_name, client_type, nome_fantasia"),
-          supabase
-            .from("projects")
-            .select(
-              "id, client_id, status, started_at, delivered_at, expected_delivery_date, current_stage"
-            ),
-          supabase
-            .from("charges")
-            .select(
-              "id, client_id, amount, due_date, origin_type, paid_at, status, is_historical, description"
-            ),
-          supabase
-            .from("project_subscriptions")
-            .select("id, client_id, amount, status, ends_on, starts_on"),
-          supabase.from("expenses").select("id, amount, expense_date"),
-          supabase
-            .from("project_contracts")
-            .select("id, project_id, total_amount, status, signed_at"),
-          supabase.from("support_tickets").select("id, status, created_at"),
-          supabase
-            .from("proposals")
-            .select("id, total_amount, status")
-            .in("status", ["enviada", "aprovada"]),
-        ]);
+  if (hardError) {
+    throw new Error(hardError.message);
+  }
 
-        const hardError =
-          clientsRes.error ??
-          projectsRes.error ??
-          chargesRes.error ??
-          subscriptionsRes.error ??
-          expensesRes.error ??
-          contractsRes.error ??
-          ticketsRes.error;
+  const clients = (clientsRes.data as DashboardClient[] | null) ?? [];
+  const projects = (projectsRes.data as DashboardProject[] | null) ?? [];
+  const charges = (chargesRes.data as DashboardCharge[] | null) ?? [];
+  const subscriptions = (subscriptionsRes.data as DashboardSubscription[] | null) ?? [];
+  const expenses = (expensesRes.data as DashboardExpense[] | null) ?? [];
+  const contracts = (contractsRes.data as DashboardContract[] | null) ?? [];
+  const tickets = (ticketsRes.data as DashboardTicket[] | null) ?? [];
 
-        if (hardError) {
-          if (!hasLoaded) {
-            setError(hardError.message);
-            setLoading(false);
-          }
-          return;
-        }
+  const hasAnyData =
+    clients.length > 0 ||
+    projects.length > 0 ||
+    charges.length > 0 ||
+    subscriptions.length > 0 ||
+    expenses.length > 0;
 
-        const clients = (clientsRes.data as DashboardClient[] | null) ?? [];
-        const projects = (projectsRes.data as DashboardProject[] | null) ?? [];
-        const charges = (chargesRes.data as DashboardCharge[] | null) ?? [];
-        const subscriptions = (subscriptionsRes.data as DashboardSubscription[] | null) ?? [];
-        const expenses = (expensesRes.data as DashboardExpense[] | null) ?? [];
-        const contracts = (contractsRes.data as DashboardContract[] | null) ?? [];
-        const tickets = (ticketsRes.data as DashboardTicket[] | null) ?? [];
-
-        const hasAnyData =
-          clients.length > 0 ||
-          projects.length > 0 ||
-          charges.length > 0 ||
-          subscriptions.length > 0 ||
-          expenses.length > 0;
-
-        const now = new Date();
-        const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-        // 13 meses: 12 meses passados + mes corrente. Necessario para
-        // rolling 12M honesto (comparar MRR_t com MRR_{t-12}); com 12
-        // meses o start index ficava clampado em 0 e gerava valor
-        // extrapolado em vez de N/A.
-        const monthFrames = getRecentMonths(13);
-        const monthlyMap = new Map(
-          monthFrames.map((month) => [
-            month.key,
-            {
-              key: month.key,
-              label: month.label,
-              shortLabel: month.shortLabel,
-              cashIn: 0,
-              cashOut: 0,
-              net: 0,
-              recurringRevenue: 0,
-              projectRevenue: 0,
-            },
-          ])
-        );
-
-        const activeClients = clients.filter((client) => client.is_active);
-        const activeClientIds = new Set(activeClients.map((client) => client.id));
-        const previousActiveClients = activeClients.filter((client) => {
-          const clientSince = parseDateEndOfDay(client.client_since);
-          return clientSince ? clientSince <= endOfPreviousMonth : false;
-        }).length;
-
-        const recurringSubscriptions = subscriptions.filter((subscription) =>
-          ["agendada", "ativa"].includes(subscription.status)
-        );
-        const recurringBaseCents = recurringSubscriptions.reduce(
-          (sum, subscription) => sum + toCents(subscription.amount),
-          0
-        );
-        const recurringBase = recurringBaseCents / 100;
-        const recurringClientIds = new Set(
-          recurringSubscriptions
-            .filter((subscription) => activeClientIds.has(subscription.client_id))
-            .map((subscription) => subscription.client_id)
-        );
-
-        // Accumulate in centavos (integers) to avoid floating-point errors
-        charges
-          .filter((charge) => charge.status === "pago" && !charge.is_historical)
-          .forEach((charge) => {
-            const monthKey = getMonthKeyFromDate(charge.paid_at ?? charge.due_date);
-            if (!monthKey) return;
-            const point = monthlyMap.get(monthKey);
-            if (!point) return;
-            point.cashIn += toCents(charge.amount);
-            if (charge.origin_type === "parcela_projeto") {
-              point.projectRevenue += toCents(charge.amount);
-            }
-          });
-
-        expenses.forEach((expense) => {
-          const monthKey = getMonthKeyFromDate(expense.expense_date);
-          if (!monthKey) return;
-          const point = monthlyMap.get(monthKey);
-          if (!point) return;
-          point.cashOut += toCents(expense.amount);
-        });
-
-        const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
-
-        charges
-          .filter(
-            (charge) =>
-              charge.origin_type === "mensalidade" &&
-              charge.status !== "cancelado" &&
-              !charge.is_historical
-          )
-          .forEach((charge) => {
-            const isPaid = charge.status === "pago";
-            // MRR e receita recorrente sao metricas de COMPETENCIA:
-            // o mes de referencia e sempre o due_date (mes em que a
-            // receita foi devida), nunca o paid_at. Usar paid_at aqui
-            // fazia mensalidades antigas pagas no mes corrente inflarem
-            // o MRR do mes atual e zerarem os meses passados, gerando
-            // MoM/3M/6M/12M completamente distorcidos. Fluxo de caixa
-            // (cashIn) continua por paid_at mais acima, como deve ser.
-            const monthKey = getMonthKeyFromDate(charge.due_date);
-            if (!monthKey) return;
-            const point = monthlyMap.get(monthKey);
-            if (!point) return;
-            // For past months, only count paid; for current/future, count all non-cancelled
-            if (monthKey < currentMonthKey && !isPaid) return;
-            point.recurringRevenue += toCents(charge.amount);
-          });
-        // Auditoria 2026-04-15: removido fallback contratual silencioso.
-        // Antes, meses passados onde o admin nao tinha marcado as charges
-        // como "pago" eram preenchidos com a base contratual ativa, criando
-        // uma serie hibrida (parte realizada, parte teorica) que mascarava
-        // churn e inflava o MRR historico. Agora MRR historico = SOMENTE
-        // realizado. Meses sem charges pagas mostrarao zero — informacao
-        // verdadeira em vez de inferencia. Quem quiser ver a base contratual
-        // deve olhar o forecast (computeForecast) ou a soma de subscriptions
-        // ativas em dado momento.
-
-        // Primeiro mes com dado consolidado real = menor due_date entre
-        // as charges nao historicas, truncado para YYYY-MM. Qualquer
-        // janela rolling de MRR Growth que exija mes-base anterior a
-        // isso vai retornar N/A (regra do feedback financeiro).
-        let earliestDataMonth: string | null = null;
-        for (const charge of charges) {
-          if (charge.is_historical || !charge.due_date) continue;
-          const mk = getMonthKeyFromDate(charge.due_date);
-          if (!mk) continue;
-          if (!earliestDataMonth || mk < earliestDataMonth) {
-            earliestDataMonth = mk;
-          }
-        }
-
-        // Convert centavos back to reais for the public series
-        const monthlySeries = monthFrames.map((frame) => {
-          const point = monthlyMap.get(frame.key) ?? {
-            key: frame.key,
-            label: frame.label,
-            shortLabel: frame.shortLabel,
-            cashIn: 0,
-            cashOut: 0,
-            net: 0,
-            recurringRevenue: 0,
-            projectRevenue: 0,
-          };
-
-          return {
-            ...point,
-            cashIn: point.cashIn / 100,
-            cashOut: point.cashOut / 100,
-            recurringRevenue: point.recurringRevenue / 100,
-            projectRevenue: point.projectRevenue / 100,
-            net: (point.cashIn - point.cashOut) / 100,
-          };
-        });
-
-        const previousMonthPoint = monthlySeries[monthlySeries.length - 2];
-        const openProjects = projects.filter((project) => isProjectOpen(project)).length;
-        const previousOpenProjects = projects.filter((project) =>
-          wasProjectOpenAt(project, endOfPreviousMonth)
-        ).length;
-
-        const projectStatusCounts: Record<ProjectBucket, number> = {
-          negociacao: 0,
-          em_andamento: 0,
-          concluído: 0,
-          pausado: 0,
-        };
-
-        projects.forEach((project) => {
-          if (project.status === "cancelado") return;
-          // Usar status real do projeto (não o bucket operacional) para o gráfico
-          const bucket = project.status as ProjectBucket;
-          if (bucket in projectStatusCounts) {
-            projectStatusCounts[bucket] += 1;
-          }
-        });
-
-        // Overdue clients: trust the DB status field exclusively (no client-side date logic)
-        const overdueClientIds = new Set(
-          charges
-            .filter(
-              (charge) =>
-                activeClientIds.has(charge.client_id) &&
-                charge.status === "atrasado" &&
-                !charge.is_historical
-            )
-            .map((charge) => charge.client_id)
-        );
-
-        const clientsWithoutRecurringIds = new Set(
-          activeClients
-            .filter((client) => !recurringClientIds.has(client.id))
-            .map((client) => client.id)
-        );
-
-        const healthyRecurringClients = Array.from(recurringClientIds).filter(
-          (clientId) => !overdueClientIds.has(clientId)
-        ).length;
-        const nonRecurringClients = Array.from(clientsWithoutRecurringIds).filter(
-          (clientId) => !overdueClientIds.has(clientId)
-        ).length;
-        const clientsAtRisk = new Set([
-          ...Array.from(overdueClientIds),
-          ...Array.from(clientsWithoutRecurringIds),
-        ]).size;
-
-        // Cash balance: only operational (non-historical) paid charges
-        const cashBalance =
-          (charges
-            .filter((charge) => charge.status === "pago" && !charge.is_historical)
-            .reduce((sum, charge) => sum + toCents(charge.amount), 0) -
-            expenses.reduce((sum, expense) => sum + toCents(expense.amount), 0)) /
-          100;
-
-        // "A receber" = pendente (já vencido) + agendada com vencimento este mês
-        const currentMonthEndStr = getLocalDateIso(
-          new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        );
-        const pendingReceivables =
-          charges
-            .filter(
-              (c) =>
-                !c.is_historical &&
-                (c.status === "pendente" ||
-                  (c.status === "agendada" && c.due_date <= currentMonthEndStr))
-            )
-            .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
-
-        const overdueReceivables =
-          charges
-            .filter((c) => c.status === "atrasado" && !c.is_historical)
-            .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
-
-        const currentMonthNet = monthlySeries[monthlySeries.length - 1]?.net ?? 0;
-        const previousCashBalance = cashBalance - currentMonthNet;
-        const currentMrr =
-          monthlySeries[monthlySeries.length - 1]?.recurringRevenue ?? recurringBase;
-        const previousMrr = previousMonthPoint?.recurringRevenue ?? 0;
-        const currentProjectRevenue = monthlySeries[monthlySeries.length - 1]?.projectRevenue ?? 0;
-
-        // New clients this month
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const newClientsThisMonth = clients.filter((c) => {
-          const since = parseDateValue(c.client_since);
-          return since && since >= startOfMonth && c.is_active;
-        }).length;
-
-        // Overdue projects: em_andamento with expected_delivery_date in the past
-        const todayStr = getLocalDateIso(now);
-        const overdueProjects = projects.filter(
-          (p) =>
-            p.status === "em_andamento" &&
-            p.expected_delivery_date &&
-            p.expected_delivery_date < todayStr &&
-            !p.delivered_at
-        ).length;
-
-        // Completed this month
-        const completedThisMonth = projects.filter((p) => {
-          if (p.status !== "concluido") return false;
-          const delivered = parseDateValue(p.delivered_at);
-          return delivered && delivered >= startOfMonth;
-        }).length;
-
-        // Average delivery time (days) for completed projects
-        const deliveryDurations = projects
-          .filter((p) => p.status === "concluido" && p.started_at && p.delivered_at)
-          .map((p) => {
-            const start = parseDateValue(p.started_at)!;
-            const end = parseDateValue(p.delivered_at)!;
-            return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-          })
-          .filter((d) => d > 0);
-        const avgDeliveryDays =
-          deliveryDurations.length > 0
-            ? Math.round(deliveryDurations.reduce((a, b) => a + b, 0) / deliveryDurations.length)
-            : null;
-
-        // Aging analysis — only charges already past due (future pending are not yet receivable)
-        const agingCharges = charges.filter(
-          (c) =>
-            (c.status === "pendente" || c.status === "atrasado") &&
-            !c.is_historical &&
-            c.due_date &&
-            c.due_date <= todayStr
-        );
-        const agingBuckets: AgingBucket[] = [
-          { range: "0-30 dias", amount: 0, count: 0 },
-          { range: "30-60 dias", amount: 0, count: 0 },
-          { range: "60+ dias", amount: 0, count: 0 },
-        ];
-        agingCharges.forEach((c) => {
-          const dueDate = new Date(c.due_date + "T00:00:00");
-          const daysOverdue = Math.floor(
-            (now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
-          );
-          const amtCents = toCents(c.amount);
-          if (daysOverdue <= 30) {
-            agingBuckets[0].amount += amtCents;
-            agingBuckets[0].count += 1;
-          } else if (daysOverdue <= 60) {
-            agingBuckets[1].amount += amtCents;
-            agingBuckets[1].count += 1;
-          } else {
-            agingBuckets[2].amount += amtCents;
-            agingBuckets[2].count += 1;
-          }
-        });
-        // Convert centavos back to reais
-        for (const bucket of agingBuckets) bucket.amount /= 100;
-
-        // Forecast: future agendada charges + approved proposals (expected future revenue)
-        const chargesForecast =
-          charges
-            .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
-            .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
-
-        type ProposalForecast = { id: string; total_amount: number; status: string };
-        const approvedProposalsForecast =
-          ((proposalsRes.data ?? []) as ProposalForecast[])
-            .filter((p) => p.status === "aprovada")
-            .reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
-
-        const forecastRevenue = chargesForecast + approvedProposalsForecast;
-
-        // Pipeline: projects in negociacao (contracts) + active proposals (enviadas/aprovadas)
-        const negociacaoProjectIds = new Set(
-          projects.filter((p) => p.status === "negociacao").map((p) => p.id)
-        );
-        const pipelineContracts = contracts.filter(
-          (c) => negociacaoProjectIds.has(c.project_id) && c.status !== "cancelado"
-        );
-        const projectPipelineValue =
-          pipelineContracts.reduce((sum, c) => sum + toCents(c.total_amount), 0) / 100;
-
-        type ProposalPipeline = { id: string; total_amount: number; status: string };
-        const allProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
-        // Only "enviada" proposals count toward pipeline — "aprovada" already have a project+contract
-        const pendingProposals = allProposals.filter((p) => p.status === "enviada");
-        const proposalPipelineValue =
-          pendingProposals.reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
-
-        const pipelineValue = projectPipelineValue + proposalPipelineValue;
-        const pipelineCount = negociacaoProjectIds.size + pendingProposals.length;
-
-        // Burn rate e margem: lib central garante que Overview e Finance
-        // produzam exatamente o mesmo numero para a mesma metrica.
-        const burnRate = computeBurnRate(monthlySeries, BURN_RATE_WINDOW_MONTHS);
-        const runwayMonths = computeRunway(cashBalance, burnRate);
-
-        const currentMonthPoint = monthlySeries[monthlySeries.length - 1];
-        const operationalMargin = computeOperationalMargin(
-          currentMonthPoint?.cashIn ?? 0,
-          currentMonthPoint?.cashOut ?? 0
-        );
-
-        // Support tickets
-        const openTickets = tickets.filter((t) => isTicketOpen(t.status)).length;
-        const resolvedTicketsThisMonth = tickets.filter((t) => {
-          if (t.status !== "resolvido" && t.status !== "fechado") return false;
-          const created = parseDateValue(t.created_at);
-          return created && created >= startOfMonth;
-        }).length;
-
-        // Upcoming charges (due in next 7 days)
-        const clientNameMap = new Map(clients.map((c) => [c.id, getClientDisplayName(c)]));
-        const sevenDaysFromNow = new Date();
-        sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
-        const sevenDaysStr = getLocalDateIso(sevenDaysFromNow);
-
-        const upcomingCharges: UpcomingCharge[] = charges
-          .filter(
-            (c) =>
-              !c.is_historical &&
-              (c.status === "pendente" || c.status === "agendada") &&
-              c.due_date >= todayStr &&
-              c.due_date <= sevenDaysStr
-          )
-          .map((c) => {
-            const dueDate = new Date(`${c.due_date}T00:00:00`);
-            const daysUntil = Math.max(
-              0,
-              Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-            );
-            return {
-              id: c.id,
-              clientName: clientNameMap.get(c.client_id) ?? "—",
-              clientId: c.client_id,
-              description: c.description,
-              amount: Number(c.amount),
-              dueDate: c.due_date,
-              daysUntilDue: daysUntil,
-            };
-          })
-          .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
-          .slice(0, 5);
-
-        // Upcoming deliveries (projects due in next 14 days)
-        const fourteenDaysFromNow = new Date();
-        fourteenDaysFromNow.setDate(fourteenDaysFromNow.getDate() + 14);
-        const fourteenDaysStr = getLocalDateIso(fourteenDaysFromNow);
-
-        const upcomingDeliveries = projects
-          .filter(
-            (p) =>
-              p.status === "em_andamento" &&
-              p.expected_delivery_date &&
-              p.expected_delivery_date >= todayStr &&
-              p.expected_delivery_date <= fourteenDaysStr &&
-              !p.delivered_at
-          )
-          .map((p) => {
-            const dueDate = new Date(`${p.expected_delivery_date}T00:00:00`);
-            return {
-              id: p.id,
-              name: p.name ?? "Projeto",
-              clientName: clientNameMap.get(p.client_id) ?? "—",
-              dueDate: p.expected_delivery_date!,
-              daysUntil: Math.max(
-                0,
-                Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-              ),
-            };
-          })
-          .sort((a, b) => a.daysUntil - b.daysUntil)
-          .slice(0, 5);
-
-        // Forecast computation — por mes calendario dentro do horizonte.
-        // Para cada mes futuro: receita prevista = max(agendada charges
-        // do mes, base contratual ativa no mes). Nao soma os dois (era
-        // double counting: charges agendada JA sao a materializacao
-        // das subscriptions). A base contratual cobre meses em que o
-        // gerador de charges ainda nao rodou.
-        const computeForecast = (months: number) => {
-          const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-          let recurringCents = 0;
-          let scheduledCents = 0;
-          let totalCents = 0;
-
-          for (let i = 0; i < months; i += 1) {
-            const monthDate = new Date(
-              nextMonthStart.getFullYear(),
-              nextMonthStart.getMonth() + i,
-              1
-            );
-            const y = monthDate.getFullYear();
-            const m = monthDate.getMonth();
-            const monthKey = createMonthKey(y, m);
-            const monthStartIso = `${monthKey}-01`;
-            const lastDay = new Date(y, m + 1, 0).getDate();
-            const monthEndIso = `${monthKey}-${String(lastDay).padStart(2, "0")}`;
-
-            // Base contratual ativa naquele mes (respeita starts_on/ends_on)
-            const monthBaseCents = recurringSubscriptions
-              .filter((sub) => activeClientIds.has(sub.client_id))
-              .filter((sub) => {
-                if (sub.starts_on && sub.starts_on > monthEndIso) return false;
-                if (sub.ends_on && sub.ends_on < monthStartIso) return false;
-                return true;
-              })
-              .reduce((sum, sub) => sum + toCents(sub.amount), 0);
-
-            // Agendada charges devidas naquele mes
-            const monthScheduledCents = charges
-              .filter(
-                (c) =>
-                  !c.is_historical &&
-                  c.status === "agendada" &&
-                  c.due_date >= monthStartIso &&
-                  c.due_date <= monthEndIso
-              )
-              .reduce((sum, c) => sum + toCents(c.amount), 0);
-
-            recurringCents += monthBaseCents;
-            scheduledCents += monthScheduledCents;
-            // Union: usa o maior dos dois para cada mes, evitando double counting
-            totalCents += Math.max(monthBaseCents, monthScheduledCents);
-          }
-
-          return {
-            recurring: recurringCents / 100,
-            scheduled: scheduledCents / 100,
-            total: totalCents / 100,
-          };
-        };
-
-        const forecast = {
-          months3: computeForecast(3),
-          months6: computeForecast(6),
-          months12: computeForecast(12),
-        };
-
-        setSummary({
-          hasAnyData,
-          activeClients: activeClients.length,
-          previousActiveClients,
-          newClientsThisMonth,
-          openProjects,
-          previousOpenProjects,
-          overdueProjects,
-          completedThisMonth,
-          avgDeliveryDays,
-          recurringClients: recurringClientIds.size,
-          healthyRecurringClients,
-          nonRecurringClients,
-          overdueClients: overdueClientIds.size,
-          clientsAtRisk,
-          recurringBase,
-          currentMrr,
-          previousMrr,
-          currentProjectRevenue,
-          cashBalance,
-          previousCashBalance,
-          currentMonthNet,
-          pendingReceivables,
-          overdueReceivables,
-          forecastRevenue,
-          agingBuckets,
-          pipelineValue,
-          pipelineCount,
-          burnRate,
-          runwayMonths,
-          operationalMargin,
-          openTickets,
-          resolvedTicketsThisMonth,
-          monthlySeries,
-          earliestDataMonth,
-          projectStatusCounts,
-          averageRecurringRevenuePerClient:
-            recurringClientIds.size > 0 ? recurringBase / recurringClientIds.size : 0,
-          upcomingCharges,
-          upcomingDeliveries,
-          forecast,
-        });
-
-        setHasLoaded(true);
-        setLoading(false);
-      } catch (unhandledError) {
-        // Captura qualquer exceção não antecipada (ex: network drop,
-        // CORS, Supabase timeout) para garantir que o componente não
-        // fique preso em skeleton permanente. O refresh em background
-        // preserva os dados antigos sem disparar erro visível.
-        console.error("[AdminOverview.loadDashboard]", unhandledError);
-        if (!hasLoaded) {
-          const message =
-            unhandledError instanceof Error
-              ? unhandledError.message
-              : "Falha ao carregar o painel. Verifique sua conexão e tente novamente.";
-          setError(message);
-          setLoading(false);
-        }
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+  const now = new Date();
+  const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  // 13 meses: 12 meses passados + mes corrente. Necessario para
+  // rolling 12M honesto (comparar MRR_t com MRR_{t-12}); com 12
+  // meses o start index ficava clampado em 0 e gerava valor
+  // extrapolado em vez de N/A.
+  const monthFrames = getRecentMonths(13);
+  const monthlyMap = new Map(
+    monthFrames.map((month) => [
+      month.key,
+      {
+        key: month.key,
+        label: month.label,
+        shortLabel: month.shortLabel,
+        cashIn: 0,
+        cashOut: 0,
+        net: 0,
+        recurringRevenue: 0,
+        projectRevenue: 0,
+      },
+    ])
   );
 
-  useEffect(() => {
-    let debounceId: ReturnType<typeof setTimeout>;
-    const refreshDashboard = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-      // Debounce to prevent double-fire from focus + visibilitychange
-      clearTimeout(debounceId);
-      debounceId = setTimeout(() => void loadDashboard(true), 300);
+  const activeClients = clients.filter((client) => client.is_active);
+  const activeClientIds = new Set(activeClients.map((client) => client.id));
+  const previousActiveClients = activeClients.filter((client) => {
+    const clientSince = parseDateEndOfDay(client.client_since);
+    return clientSince ? clientSince <= endOfPreviousMonth : false;
+  }).length;
+
+  const recurringSubscriptions = subscriptions.filter((subscription) =>
+    ["agendada", "ativa"].includes(subscription.status)
+  );
+  const recurringBaseCents = recurringSubscriptions.reduce(
+    (sum, subscription) => sum + toCents(subscription.amount),
+    0
+  );
+  const recurringBase = recurringBaseCents / 100;
+  const recurringClientIds = new Set(
+    recurringSubscriptions
+      .filter((subscription) => activeClientIds.has(subscription.client_id))
+      .map((subscription) => subscription.client_id)
+  );
+
+  // Accumulate in centavos (integers) to avoid floating-point errors
+  charges
+    .filter((charge) => charge.status === "pago" && !charge.is_historical)
+    .forEach((charge) => {
+      const monthKey = getMonthKeyFromDate(charge.paid_at ?? charge.due_date);
+      if (!monthKey) return;
+      const point = monthlyMap.get(monthKey);
+      if (!point) return;
+      point.cashIn += toCents(charge.amount);
+      if (charge.origin_type === "parcela_projeto") {
+        point.projectRevenue += toCents(charge.amount);
+      }
+    });
+
+  expenses.forEach((expense) => {
+    const monthKey = getMonthKeyFromDate(expense.expense_date);
+    if (!monthKey) return;
+    const point = monthlyMap.get(monthKey);
+    if (!point) return;
+    point.cashOut += toCents(expense.amount);
+  });
+
+  const currentMonthKey = createMonthKey(now.getFullYear(), now.getMonth());
+
+  charges
+    .filter(
+      (charge) =>
+        charge.origin_type === "mensalidade" &&
+        charge.status !== "cancelado" &&
+        !charge.is_historical
+    )
+    .forEach((charge) => {
+      const isPaid = charge.status === "pago";
+      // MRR e receita recorrente sao metricas de COMPETENCIA:
+      // o mes de referencia e sempre o due_date (mes em que a
+      // receita foi devida), nunca o paid_at. Usar paid_at aqui
+      // fazia mensalidades antigas pagas no mes corrente inflarem
+      // o MRR do mes atual e zerarem os meses passados, gerando
+      // MoM/3M/6M/12M completamente distorcidos. Fluxo de caixa
+      // (cashIn) continua por paid_at mais acima, como deve ser.
+      const monthKey = getMonthKeyFromDate(charge.due_date);
+      if (!monthKey) return;
+      const point = monthlyMap.get(monthKey);
+      if (!point) return;
+      // For past months, only count paid; for current/future, count all non-cancelled
+      if (monthKey < currentMonthKey && !isPaid) return;
+      point.recurringRevenue += toCents(charge.amount);
+    });
+  // Auditoria 2026-04-15: removido fallback contratual silencioso.
+  // Antes, meses passados onde o admin nao tinha marcado as charges
+  // como "pago" eram preenchidos com a base contratual ativa, criando
+  // uma serie hibrida (parte realizada, parte teorica) que mascarava
+  // churn e inflava o MRR historico. Agora MRR historico = SOMENTE
+  // realizado. Meses sem charges pagas mostrarao zero — informacao
+  // verdadeira em vez de inferencia. Quem quiser ver a base contratual
+  // deve olhar o forecast (computeForecast) ou a soma de subscriptions
+  // ativas em dado momento.
+
+  // Primeiro mes com dado consolidado real = menor due_date entre
+  // as charges nao historicas, truncado para YYYY-MM. Qualquer
+  // janela rolling de MRR Growth que exija mes-base anterior a
+  // isso vai retornar N/A (regra do feedback financeiro).
+  let earliestDataMonth: string | null = null;
+  for (const charge of charges) {
+    if (charge.is_historical || !charge.due_date) continue;
+    const mk = getMonthKeyFromDate(charge.due_date);
+    if (!mk) continue;
+    if (!earliestDataMonth || mk < earliestDataMonth) {
+      earliestDataMonth = mk;
+    }
+  }
+
+  // Convert centavos back to reais for the public series
+  const monthlySeries = monthFrames.map((frame) => {
+    const point = monthlyMap.get(frame.key) ?? {
+      key: frame.key,
+      label: frame.label,
+      shortLabel: frame.shortLabel,
+      cashIn: 0,
+      cashOut: 0,
+      net: 0,
+      recurringRevenue: 0,
+      projectRevenue: 0,
     };
 
-    void loadDashboard();
-
-    const interval = window.setInterval(refreshDashboard, 60_000);
-    window.addEventListener("focus", refreshDashboard);
-    document.addEventListener("visibilitychange", refreshDashboard);
-
-    return () => {
-      clearTimeout(debounceId);
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshDashboard);
-      document.removeEventListener("visibilitychange", refreshDashboard);
+    return {
+      ...point,
+      cashIn: point.cashIn / 100,
+      cashOut: point.cashOut / 100,
+      recurringRevenue: point.recurringRevenue / 100,
+      projectRevenue: point.projectRevenue / 100,
+      net: (point.cashIn - point.cashOut) / 100,
     };
-  }, [loadDashboard]);
+  });
 
+  const previousMonthPoint = monthlySeries[monthlySeries.length - 2];
+  const openProjects = projects.filter((project) => isProjectOpen(project)).length;
+  const previousOpenProjects = projects.filter((project) =>
+    wasProjectOpenAt(project, endOfPreviousMonth)
+  ).length;
+
+  const projectStatusCounts: Record<ProjectBucket, number> = {
+    negociacao: 0,
+    em_andamento: 0,
+    concluído: 0,
+    pausado: 0,
+  };
+
+  projects.forEach((project) => {
+    if (project.status === "cancelado") return;
+    // Usar status real do projeto (não o bucket operacional) para o gráfico
+    const bucket = project.status as ProjectBucket;
+    if (bucket in projectStatusCounts) {
+      projectStatusCounts[bucket] += 1;
+    }
+  });
+
+  // Overdue clients: trust the DB status field exclusively (no client-side date logic)
+  const overdueClientIds = new Set(
+    charges
+      .filter(
+        (charge) =>
+          activeClientIds.has(charge.client_id) &&
+          charge.status === "atrasado" &&
+          !charge.is_historical
+      )
+      .map((charge) => charge.client_id)
+  );
+
+  const clientsWithoutRecurringIds = new Set(
+    activeClients.filter((client) => !recurringClientIds.has(client.id)).map((client) => client.id)
+  );
+
+  const healthyRecurringClients = Array.from(recurringClientIds).filter(
+    (clientId) => !overdueClientIds.has(clientId)
+  ).length;
+  const nonRecurringClients = Array.from(clientsWithoutRecurringIds).filter(
+    (clientId) => !overdueClientIds.has(clientId)
+  ).length;
+  const clientsAtRisk = new Set([
+    ...Array.from(overdueClientIds),
+    ...Array.from(clientsWithoutRecurringIds),
+  ]).size;
+
+  // Cash balance: only operational (non-historical) paid charges
+  const cashBalance =
+    (charges
+      .filter((charge) => charge.status === "pago" && !charge.is_historical)
+      .reduce((sum, charge) => sum + toCents(charge.amount), 0) -
+      expenses.reduce((sum, expense) => sum + toCents(expense.amount), 0)) /
+    100;
+
+  // "A receber" = pendente (já vencido) + agendada com vencimento este mês
+  const currentMonthEndStr = getLocalDateIso(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  const pendingReceivables =
+    charges
+      .filter(
+        (c) =>
+          !c.is_historical &&
+          (c.status === "pendente" || (c.status === "agendada" && c.due_date <= currentMonthEndStr))
+      )
+      .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+
+  const overdueReceivables =
+    charges
+      .filter((c) => c.status === "atrasado" && !c.is_historical)
+      .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+
+  const currentMonthNet = monthlySeries[monthlySeries.length - 1]?.net ?? 0;
+  const previousCashBalance = cashBalance - currentMonthNet;
+  const currentMrr = monthlySeries[monthlySeries.length - 1]?.recurringRevenue ?? recurringBase;
+  const previousMrr = previousMonthPoint?.recurringRevenue ?? 0;
+  const currentProjectRevenue = monthlySeries[monthlySeries.length - 1]?.projectRevenue ?? 0;
+
+  // New clients this month
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const newClientsThisMonth = clients.filter((c) => {
+    const since = parseDateValue(c.client_since);
+    return since && since >= startOfMonth && c.is_active;
+  }).length;
+
+  // Overdue projects: em_andamento with expected_delivery_date in the past
+  const todayStr = getLocalDateIso(now);
+  const overdueProjects = projects.filter(
+    (p) =>
+      p.status === "em_andamento" &&
+      p.expected_delivery_date &&
+      p.expected_delivery_date < todayStr &&
+      !p.delivered_at
+  ).length;
+
+  // Completed this month
+  const completedThisMonth = projects.filter((p) => {
+    if (p.status !== "concluido") return false;
+    const delivered = parseDateValue(p.delivered_at);
+    return delivered && delivered >= startOfMonth;
+  }).length;
+
+  // Average delivery time (days) for completed projects
+  const deliveryDurations = projects
+    .filter((p) => p.status === "concluido" && p.started_at && p.delivered_at)
+    .map((p) => {
+      const start = parseDateValue(p.started_at)!;
+      const end = parseDateValue(p.delivered_at)!;
+      return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    })
+    .filter((d) => d > 0);
+  const avgDeliveryDays =
+    deliveryDurations.length > 0
+      ? Math.round(deliveryDurations.reduce((a, b) => a + b, 0) / deliveryDurations.length)
+      : null;
+
+  // Aging analysis — only charges already past due (future pending are not yet receivable)
+  const agingCharges = charges.filter(
+    (c) =>
+      (c.status === "pendente" || c.status === "atrasado") &&
+      !c.is_historical &&
+      c.due_date &&
+      c.due_date <= todayStr
+  );
+  const agingBuckets: AgingBucket[] = [
+    { range: "0-30 dias", amount: 0, count: 0 },
+    { range: "30-60 dias", amount: 0, count: 0 },
+    { range: "60+ dias", amount: 0, count: 0 },
+  ];
+  agingCharges.forEach((c) => {
+    const dueDate = new Date(c.due_date + "T00:00:00");
+    const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    const amtCents = toCents(c.amount);
+    if (daysOverdue <= 30) {
+      agingBuckets[0].amount += amtCents;
+      agingBuckets[0].count += 1;
+    } else if (daysOverdue <= 60) {
+      agingBuckets[1].amount += amtCents;
+      agingBuckets[1].count += 1;
+    } else {
+      agingBuckets[2].amount += amtCents;
+      agingBuckets[2].count += 1;
+    }
+  });
+  // Convert centavos back to reais
+  for (const bucket of agingBuckets) bucket.amount /= 100;
+
+  // Forecast: future agendada charges + approved proposals (expected future revenue)
+  const chargesForecast =
+    charges
+      .filter((c) => c.status === "agendada" && !c.is_historical && c.due_date > todayStr)
+      .reduce((sum, c) => sum + toCents(c.amount), 0) / 100;
+
+  type ProposalForecast = { id: string; total_amount: number; status: string };
+  const approvedProposalsForecast =
+    ((proposalsRes.data ?? []) as ProposalForecast[])
+      .filter((p) => p.status === "aprovada")
+      .reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
+
+  const forecastRevenue = chargesForecast + approvedProposalsForecast;
+
+  // Pipeline: projects in negociacao (contracts) + active proposals (enviadas/aprovadas)
+  const negociacaoProjectIds = new Set(
+    projects.filter((p) => p.status === "negociacao").map((p) => p.id)
+  );
+  const pipelineContracts = contracts.filter(
+    (c) => negociacaoProjectIds.has(c.project_id) && c.status !== "cancelado"
+  );
+  const projectPipelineValue =
+    pipelineContracts.reduce((sum, c) => sum + toCents(c.total_amount), 0) / 100;
+
+  type ProposalPipeline = { id: string; total_amount: number; status: string };
+  const allProposals = (proposalsRes.data ?? []) as ProposalPipeline[];
+  // Only "enviada" proposals count toward pipeline — "aprovada" already have a project+contract
+  const pendingProposals = allProposals.filter((p) => p.status === "enviada");
+  const proposalPipelineValue =
+    pendingProposals.reduce((sum, p) => sum + toCents(p.total_amount), 0) / 100;
+
+  const pipelineValue = projectPipelineValue + proposalPipelineValue;
+  const pipelineCount = negociacaoProjectIds.size + pendingProposals.length;
+
+  // Burn rate e margem: lib central garante que Overview e Finance
+  // produzam exatamente o mesmo numero para a mesma metrica.
+  const burnRate = computeBurnRate(monthlySeries, BURN_RATE_WINDOW_MONTHS);
+  const runwayMonths = computeRunway(cashBalance, burnRate);
+
+  const currentMonthPoint = monthlySeries[monthlySeries.length - 1];
+  const operationalMargin = computeOperationalMargin(
+    currentMonthPoint?.cashIn ?? 0,
+    currentMonthPoint?.cashOut ?? 0
+  );
+
+  // Support tickets
+  const openTickets = tickets.filter((t) => isTicketOpen(t.status)).length;
+  const resolvedTicketsThisMonth = tickets.filter((t) => {
+    if (t.status !== "resolvido" && t.status !== "fechado") return false;
+    const created = parseDateValue(t.created_at);
+    return created && created >= startOfMonth;
+  }).length;
+
+  // Upcoming charges (due in next 7 days)
+  const clientNameMap = new Map(clients.map((c) => [c.id, getClientDisplayName(c)]));
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+  const sevenDaysStr = getLocalDateIso(sevenDaysFromNow);
+
+  const upcomingCharges: UpcomingCharge[] = charges
+    .filter(
+      (c) =>
+        !c.is_historical &&
+        (c.status === "pendente" || c.status === "agendada") &&
+        c.due_date >= todayStr &&
+        c.due_date <= sevenDaysStr
+    )
+    .map((c) => {
+      const dueDate = new Date(`${c.due_date}T00:00:00`);
+      const daysUntil = Math.max(
+        0,
+        Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      );
+      return {
+        id: c.id,
+        clientName: clientNameMap.get(c.client_id) ?? "—",
+        clientId: c.client_id,
+        description: c.description,
+        amount: Number(c.amount),
+        dueDate: c.due_date,
+        daysUntilDue: daysUntil,
+      };
+    })
+    .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
+    .slice(0, 5);
+
+  // Upcoming deliveries (projects due in next 14 days)
+  const fourteenDaysFromNow = new Date();
+  fourteenDaysFromNow.setDate(fourteenDaysFromNow.getDate() + 14);
+  const fourteenDaysStr = getLocalDateIso(fourteenDaysFromNow);
+
+  const upcomingDeliveries = projects
+    .filter(
+      (p) =>
+        p.status === "em_andamento" &&
+        p.expected_delivery_date &&
+        p.expected_delivery_date >= todayStr &&
+        p.expected_delivery_date <= fourteenDaysStr &&
+        !p.delivered_at
+    )
+    .map((p) => {
+      const dueDate = new Date(`${p.expected_delivery_date}T00:00:00`);
+      return {
+        id: p.id,
+        name: p.name ?? "Projeto",
+        clientName: clientNameMap.get(p.client_id) ?? "—",
+        dueDate: p.expected_delivery_date!,
+        daysUntil: Math.max(
+          0,
+          Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        ),
+      };
+    })
+    .sort((a, b) => a.daysUntil - b.daysUntil)
+    .slice(0, 5);
+
+  // Forecast computation — por mes calendario dentro do horizonte.
+  // Para cada mes futuro: receita prevista = max(agendada charges
+  // do mes, base contratual ativa no mes). Nao soma os dois (era
+  // double counting: charges agendada JA sao a materializacao
+  // das subscriptions). A base contratual cobre meses em que o
+  // gerador de charges ainda nao rodou.
+  const computeForecast = (months: number) => {
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    let recurringCents = 0;
+    let scheduledCents = 0;
+    let totalCents = 0;
+
+    for (let i = 0; i < months; i += 1) {
+      const monthDate = new Date(nextMonthStart.getFullYear(), nextMonthStart.getMonth() + i, 1);
+      const y = monthDate.getFullYear();
+      const m = monthDate.getMonth();
+      const monthKey = createMonthKey(y, m);
+      const monthStartIso = `${monthKey}-01`;
+      const lastDay = new Date(y, m + 1, 0).getDate();
+      const monthEndIso = `${monthKey}-${String(lastDay).padStart(2, "0")}`;
+
+      // Base contratual ativa naquele mes (respeita starts_on/ends_on)
+      const monthBaseCents = recurringSubscriptions
+        .filter((sub) => activeClientIds.has(sub.client_id))
+        .filter((sub) => {
+          if (sub.starts_on && sub.starts_on > monthEndIso) return false;
+          if (sub.ends_on && sub.ends_on < monthStartIso) return false;
+          return true;
+        })
+        .reduce((sum, sub) => sum + toCents(sub.amount), 0);
+
+      // Agendada charges devidas naquele mes
+      const monthScheduledCents = charges
+        .filter(
+          (c) =>
+            !c.is_historical &&
+            c.status === "agendada" &&
+            c.due_date >= monthStartIso &&
+            c.due_date <= monthEndIso
+        )
+        .reduce((sum, c) => sum + toCents(c.amount), 0);
+
+      recurringCents += monthBaseCents;
+      scheduledCents += monthScheduledCents;
+      // Union: usa o maior dos dois para cada mes, evitando double counting
+      totalCents += Math.max(monthBaseCents, monthScheduledCents);
+    }
+
+    return {
+      recurring: recurringCents / 100,
+      scheduled: scheduledCents / 100,
+      total: totalCents / 100,
+    };
+  };
+
+  const forecast = {
+    months3: computeForecast(3),
+    months6: computeForecast(6),
+    months12: computeForecast(12),
+  };
+
+  return {
+    hasAnyData,
+    activeClients: activeClients.length,
+    previousActiveClients,
+    newClientsThisMonth,
+    openProjects,
+    previousOpenProjects,
+    overdueProjects,
+    completedThisMonth,
+    avgDeliveryDays,
+    recurringClients: recurringClientIds.size,
+    healthyRecurringClients,
+    nonRecurringClients,
+    overdueClients: overdueClientIds.size,
+    clientsAtRisk,
+    recurringBase,
+    currentMrr,
+    previousMrr,
+    currentProjectRevenue,
+    cashBalance,
+    previousCashBalance,
+    currentMonthNet,
+    pendingReceivables,
+    overdueReceivables,
+    forecastRevenue,
+    agingBuckets,
+    pipelineValue,
+    pipelineCount,
+    burnRate,
+    runwayMonths,
+    operationalMargin,
+    openTickets,
+    resolvedTicketsThisMonth,
+    monthlySeries,
+    earliestDataMonth,
+    projectStatusCounts,
+    averageRecurringRevenuePerClient:
+      recurringClientIds.size > 0 ? recurringBase / recurringClientIds.size : 0,
+    upcomingCharges,
+    upcomingDeliveries,
+    forecast,
+  };
+}
+
+export default function AdminOverview() {
+  const {
+    data: summary = initialState,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["admin-dashboard"],
+    queryFn: fetchDashboard,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: "always",
+    refetchInterval: 60_000,
+    retry: 1,
+  });
+
+  const queryClient = useQueryClient();
+  const refetchDashboard = () =>
+    void queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? String(queryError) : null;
+  const hasLoaded = !loading && !error;
+
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(6);
   const [forecastPeriod, setForecastPeriod] = useState<3 | 6 | 12>(6);
 
   const currentForecast = useMemo(() => {
@@ -1489,7 +1437,7 @@ export default function AdminOverview() {
     return `Operação estável ${periodLabel}`;
   }, [periodMrrChange, periodLabel, periodNet, summary.clientsAtRisk, summary.overdueReceivables]);
 
-  if (!hasLoaded && !error) return <PortalLoading />;
+  if (loading) return <PortalLoading />;
 
   return (
     <div className="space-y-4">
@@ -1499,7 +1447,7 @@ export default function AdminOverview() {
           title="Não foi possível montar o painel"
           description={`${error} Verifique a conexão com o Supabase e tente carregar novamente.`}
           action={
-            <Button type="button" onClick={() => void loadDashboard()}>
+            <Button type="button" onClick={() => refetchDashboard()}>
               Tentar novamente
             </Button>
           }
@@ -1510,7 +1458,7 @@ export default function AdminOverview() {
           title="Dashboard pronto para receber operação"
           description="Cadastre clientes, projetos, cobranças e despesas para transformar esta tela em um resumo executivo com leitura imediata."
           action={
-            <Button type="button" onClick={() => void loadDashboard()}>
+            <Button type="button" onClick={() => refetchDashboard()}>
               Atualizar painel
             </Button>
           }
