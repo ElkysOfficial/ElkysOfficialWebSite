@@ -92,12 +92,7 @@ export default function AddContractLinkForm({
 
   if (!open) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        className={cn("h-8 min-h-0 px-2 text-xs", className)}
-        onClick={() => setOpen(true)}
-      >
+      <Button variant="outline" size="sm" className={className} onClick={() => setOpen(true)}>
         {existingUrl ? "Atualizar link do PDF" : "Anexar link do PDF"}
       </Button>
     );
@@ -120,12 +115,7 @@ export default function AddContractLinkForm({
         />
       </Field>
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          disabled={saving}
-          onClick={() => void handleSave()}
-          className="h-8 min-h-0 px-3 text-xs"
-        >
+        <Button size="sm" disabled={saving} onClick={() => void handleSave()}>
           {saving ? "Salvando..." : "Salvar link"}
         </Button>
         <Button
@@ -136,7 +126,6 @@ export default function AddContractLinkForm({
             setOpen(false);
             setUrl(existingUrl ?? "");
           }}
-          className="h-8 min-h-0 px-3 text-xs"
         >
           Cancelar
         </Button>

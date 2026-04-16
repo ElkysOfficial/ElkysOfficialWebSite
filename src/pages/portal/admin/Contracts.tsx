@@ -397,11 +397,7 @@ export default function Contracts() {
                           {client.phone ? ` · ${client.phone}` : ""}
                         </p>
                       )}
-                      {contractDocUrl ? (
-                        <div className="mt-2">
-                          <ProjectSiteLink url={contractDocUrl} label="Ver contrato" />
-                        </div>
-                      ) : null}
+                      {/* Link do PDF fica na seção de ações abaixo */}
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold tabular-nums text-foreground">
