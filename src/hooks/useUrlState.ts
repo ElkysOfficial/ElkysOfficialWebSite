@@ -1,3 +1,4 @@
+/** Hook para sincronizar estado com query params da URL. */
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -8,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
  */
 export function useUrlState<T extends string>(
   key: string,
-  defaultValue: T,
+  defaultValue: T
 ): [T, (next: T) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
   const raw = searchParams.get(key);
@@ -26,10 +27,10 @@ export function useUrlState<T extends string>(
           }
           return params;
         },
-        { replace: true },
+        { replace: true }
       );
     },
-    [key, defaultValue, setSearchParams],
+    [key, defaultValue, setSearchParams]
   );
 
   return [value, setValue];
@@ -40,7 +41,7 @@ export function useUrlState<T extends string>(
  * Útil para filtros opcionais como tagFilter.
  */
 export function useUrlStateNullable<T extends string>(
-  key: string,
+  key: string
 ): [T | null, (next: T | null) => void] {
   const [searchParams, setSearchParams] = useSearchParams();
   const raw = searchParams.get(key);
@@ -58,10 +59,10 @@ export function useUrlStateNullable<T extends string>(
           }
           return params;
         },
-        { replace: true },
+        { replace: true }
       );
     },
-    [key, setSearchParams],
+    [key, setSearchParams]
   );
 
   return [value, setValue];

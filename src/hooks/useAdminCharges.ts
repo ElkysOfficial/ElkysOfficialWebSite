@@ -1,3 +1,16 @@
+/**
+ * Hook de cobrancas (charges) para o admin portal.
+ *
+ * Carrega todas as cobrancas do sistema ordenadas por vencimento.
+ * Inclui parcelas de projeto, mensalidades e cobrancas manuais.
+ *
+ * Usado por: Finance.tsx, Overview.tsx, ClientDetail.tsx
+ * Cache: 1min stale, 10min garbage collection
+ *
+ * @example
+ * const { data: charges, isLoading } = useAdminCharges();
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 

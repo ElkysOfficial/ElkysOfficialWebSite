@@ -1,3 +1,24 @@
+/**
+ * Hook de projetos para o admin portal.
+ *
+ * Carrega projetos + clientes + contratos + subscriptions em paralelo
+ * (bundle). O bundle evita cascata de requests — uma unica chamada
+ * traz tudo que a listagem precisa para renderizar cards com nome do
+ * cliente, valor do contrato e status de recorrencia.
+ *
+ * Retorna um Map de clientes e contratos indexados por ID para
+ * lookup O(1) na renderizacao.
+ *
+ * Usado por: Projects.tsx, Pipeline.tsx, Overview.tsx
+ * Cache: 2min stale, 10min garbage collection
+ *
+ * @example
+ * const { data } = useAdminProjects();
+ * // data.projects: ProjectRow[]
+ * // data.clientsMap: Map<string, ClientRef>
+ * // data.contractsMap: Map<string, ContractRef>
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 

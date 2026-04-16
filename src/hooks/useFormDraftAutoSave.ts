@@ -1,3 +1,4 @@
+/** Hook para auto-save de rascunhos de formulario em localStorage. */
 import { useEffect, useRef, useState } from "react";
 
 interface UseFormDraftAutoSaveOptions<T> {

@@ -1,3 +1,18 @@
+/**
+ * Hook de propostas para o admin portal.
+ *
+ * Carrega propostas + clientes + leads em paralelo (bundle).
+ * Necessario porque uma proposta pode estar vinculada a um lead
+ * (funil comercial) ou diretamente a um cliente (expansao).
+ *
+ * Usado por: Proposals.tsx (tab CRM), ProposalDetail.tsx
+ * Cache: 2min stale, 10min garbage collection
+ *
+ * @example
+ * const { data } = useAdminProposals();
+ * // data.proposals, data.clients, data.leads
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 

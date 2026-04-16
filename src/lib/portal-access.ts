@@ -1,5 +1,12 @@
+/**
+ * Roteamento por role — determina a rota padrao de cada persona ao logar.
+ *
+ * @module portal-access
+ */
+
 import type { AppRole } from "@/contexts/AuthContext";
 
+/** Retorna a rota inicial do admin portal baseado nos roles do usuario. */
 export function getDefaultAdminRoute(roles: AppRole[]) {
   if (roles.includes("admin_super") || roles.includes("admin")) {
     return "/portal/admin";

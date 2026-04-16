@@ -1,3 +1,24 @@
+/**
+ * Hook de clientes para o admin portal.
+ *
+ * Carrega clientes + contratos + cobrancas + projetos + propostas
+ * em paralelo e calcula indicadores operacionais por cliente:
+ * - hasOverdueCharges: cliente tem cobranca atrasada
+ * - hasActiveProject: projeto em andamento
+ * - hasPendingProposal: proposta enviada aguardando resposta
+ * - contractExpiringSoon: contrato vence em menos de 30 dias
+ *
+ * Isso evita N+1 queries na listagem — tudo agregado em memoria.
+ *
+ * Usado por: Clients.tsx, ClientDetail.tsx, Finance.tsx
+ * Cache: 2min stale, 10min garbage collection
+ *
+ * @example
+ * const { data, isLoading } = useAdminClients();
+ * // data.clients: ClientRow[]
+ * // data.indicators: Map<string, AdminClientIndicators>
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 

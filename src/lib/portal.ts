@@ -1,3 +1,13 @@
+/**
+ * Tipos, constantes e utilitarios compartilhados do portal.
+ *
+ * Exporta aliases de tipo (PortalProject, PortalClient, etc.),
+ * mapas de metadados (status labels, stage options) e funcoes
+ * de formatacao/transicao usadas em todo o admin e cliente.
+ *
+ * @module portal
+ */
+
 import type { Database } from "@/integrations/supabase/types";
 
 export type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
