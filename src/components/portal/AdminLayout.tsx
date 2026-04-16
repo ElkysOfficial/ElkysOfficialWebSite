@@ -219,6 +219,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["marketing"],
       },
       {
+        label: "Tarefas Marketing",
+        href: "/portal/admin/tarefas/marketing",
+        icon: CheckCircle,
+        roles: ["admin_super", "admin", "marketing"],
+      },
+      {
         label: "Documentos M&D",
         href: "/portal/admin/documentos/marketing-design",
         icon: Folder,
