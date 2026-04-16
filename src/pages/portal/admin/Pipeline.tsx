@@ -66,6 +66,8 @@ type PipelineItem =
       stageLabel: string;
       dateLabel: string | null;
       isOverdue: boolean;
+      sortDate?: string | null;
+      createdAt?: string | null;
       link: string;
     }
   | {
@@ -76,6 +78,8 @@ type PipelineItem =
       status: string;
       value: number;
       dateLabel: string | null;
+      sortDate?: string | null;
+      createdAt?: string | null;
       link: string;
     };
 
@@ -279,6 +283,8 @@ export default function Pipeline() {
           !!project.expected_delivery_date &&
           project.expected_delivery_date < todayStr &&
           !project.delivered_at,
+        sortDate: project.expected_delivery_date,
+        createdAt: project.started_at,
         link: `/portal/admin/projetos/${project.id}`,
       });
     }
@@ -308,6 +314,8 @@ export default function Pipeline() {
         status: proposal.status,
         value: Number(proposal.total_amount),
         dateLabel: proposal.sent_at ? `Enviada: ${formatPortalDate(proposal.sent_at)}` : null,
+        sortDate: proposal.sent_at,
+        createdAt: proposal.created_at,
         link: `/portal/admin/propostas/${proposal.id}`,
       });
     }
