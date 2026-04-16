@@ -366,7 +366,9 @@ export default function Contracts() {
                           </Link>
                         ) : (
                           <span className="text-sm font-semibold text-muted-foreground">
-                            Projeto #{contract.project_id.slice(0, 8)}
+                            {contract.project_id
+                              ? `Projeto #${contract.project_id.slice(0, 8)}`
+                              : "Aguardando ativação"}
                           </span>
                         )}
                         {meta ? <StatusBadge label={meta.label} tone={meta.tone} /> : null}
@@ -600,7 +602,7 @@ export default function Contracts() {
                     />
                     <AddContractLinkForm
                       contractId={contract.id}
-                      projectId={contract.project_id}
+                      projectId={contract.project_id ?? ""}
                       clientId={contract.client_id}
                       versionNo={contract.version_no}
                       existingUrl={contractDocUrl ?? null}
