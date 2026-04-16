@@ -162,13 +162,21 @@ export default function ProposalView() {
       });
     }
 
-    // Notify admin team via admin_notifications
+    // Notify all relevant teams via admin_notifications
     void supabase.from("admin_notifications").insert({
       type: "proposta_aprovada",
       title: `Proposta aprovada: ${proposal.title}`,
       body: `O cliente aprovou a proposta "${proposal.title}" no valor de R$ ${Number(proposal.total_amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}. Acesse para criar o projeto.`,
       severity: "action_required",
-      target_roles: ["admin_super", "admin"],
+      target_roles: [
+        "admin_super",
+        "admin",
+        "comercial",
+        "juridico",
+        "financeiro",
+        "developer",
+        "po",
+      ],
       entity_type: "proposal",
       entity_id: proposal.id,
       action_url: `/portal/admin/propostas/${proposal.id}`,
@@ -209,6 +217,31 @@ export default function ProposalView() {
     if (error) {
       toast.error("Erro ao rejeitar proposta.");
       return;
+    }
+
+    // Notify admin + comercial about rejection
+    void supabase.from("admin_notifications").insert({
+      type: "proposta_rejeitada",
+      title: `Proposta rejeitada: ${proposal.title}`,
+      body: `O cliente rejeitou a proposta "${proposal.title}".${rejectionReason.trim() ? ` Motivo: ${rejectionReason.trim()}` : " Nenhum motivo informado."}`,
+      severity: "warning",
+      target_roles: ["admin_super", "admin", "comercial"],
+      entity_type: "proposal",
+      entity_id: proposal.id,
+      action_url: `/portal/admin/propostas/${proposal.id}`,
+    });
+
+    // Timeline event
+    if (proposal.client_id) {
+      void supabase.from("timeline_events").insert({
+        client_id: proposal.client_id,
+        event_type: "proposta_rejeitada",
+        title: "Proposta rejeitada pelo cliente",
+        summary: `Proposta "${proposal.title}" rejeitada.${rejectionReason.trim() ? ` Motivo: ${rejectionReason.trim()}` : ""}`,
+        visibility: "interno",
+        source_table: "proposals",
+        source_id: proposal.id,
+      });
     }
 
     toast.success("Proposta rejeitada.");
