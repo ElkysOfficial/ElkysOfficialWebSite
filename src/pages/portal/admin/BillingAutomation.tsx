@@ -4,7 +4,17 @@ import { toast } from "sonner";
 import { Bell, Clock, Receipt, Shield, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import PortalLoading from "@/components/portal/PortalLoading";
-import { Button, Card, CardContent, Input, Field, Label, Textarea, cn } from "@/design-system";
+import {
+  AlertDialog,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Field,
+  Label,
+  Textarea,
+  cn,
+} from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatPortalDateTime } from "@/lib/portal";
@@ -50,6 +60,14 @@ export default function BillingAutomation() {
   const [tplSaving, setTplSaving] = useState(false);
 
   const [executingManual, setExecutingManual] = useState(false);
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "rule" | "template";
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const selectClass =
     "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -154,7 +172,10 @@ export default function BillingAutomation() {
   };
 
   const deleteRule = async (id: string) => {
+    setDeleting(true);
     const { error } = await supabase.from("billing_rules").delete().eq("id", id);
+    setDeleting(false);
+    setDeleteTarget(null);
     if (error) {
       toast.error("Erro ao remover regra.");
       return;
@@ -224,7 +245,10 @@ export default function BillingAutomation() {
   };
 
   const deleteTemplate = async (id: string) => {
+    setDeleting(true);
     const { error } = await supabase.from("billing_templates").delete().eq("id", id);
+    setDeleting(false);
+    setDeleteTarget(null);
     if (error) {
       toast.error("Erro ao remover template.");
       return;
@@ -420,7 +444,9 @@ export default function BillingAutomation() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => void deleteRule(rule.id)}
+                          onClick={() =>
+                            setDeleteTarget({ type: "rule", id: rule.id, name: rule.name })
+                          }
                           className="rounded-md px-2 py-1 text-[10px] font-medium text-destructive hover:bg-destructive/10 transition-colors"
                         >
                           Remover
@@ -542,7 +568,9 @@ export default function BillingAutomation() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => void deleteTemplate(tpl.id)}
+                        onClick={() =>
+                          setDeleteTarget({ type: "template", id: tpl.id, name: tpl.name })
+                        }
                         className="rounded-md px-2 py-1 text-[10px] font-medium text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         Remover
@@ -616,6 +644,26 @@ export default function BillingAutomation() {
           )}
         </div>
       )}
+      <AlertDialog
+        open={!!deleteTarget}
+        destructive
+        title={
+          deleteTarget?.type === "rule" ? "Remover regra de cobrança" : "Remover template de email"
+        }
+        description={`Tem certeza que deseja remover "${deleteTarget?.name ?? ""}"? Essa ação não pode ser desfeita.`}
+        confirmLabel="Remover"
+        loading={deleting}
+        loadingLabel="Removendo..."
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          if (deleteTarget.type === "rule") {
+            void deleteRule(deleteTarget.id);
+          } else {
+            void deleteTemplate(deleteTarget.id);
+          }
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
