@@ -87,7 +87,7 @@ export default function ProjectSiteLink({
       onClick={(event) => event.stopPropagation()}
       className={cn(
         buttonVariants({ variant: "outline", size: "sm" }),
-        "h-auto min-h-0 gap-1.5 border-accent/40 bg-accent/5 px-2 py-1 text-xs text-accent hover:border-accent hover:bg-accent/10 hover:text-accent",
+        "gap-1.5 border-accent/40 bg-accent/5 text-accent hover:border-accent hover:bg-accent/10 hover:text-accent",
         className
       )}
       title={label ? `${label} — ${host}` : `Abrir ${host} em nova aba`}

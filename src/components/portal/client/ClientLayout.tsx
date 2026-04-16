@@ -478,7 +478,7 @@ export default function ClientLayout() {
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col transition-all duration-300 ease-out">
           <header className="sticky top-0 z-20 h-20 border-b border-border/75 bg-background">
             <div className="flex h-full items-center justify-between gap-4 px-4 md:px-6 xl:px-8">
               <div className="flex min-w-0 items-center gap-3">

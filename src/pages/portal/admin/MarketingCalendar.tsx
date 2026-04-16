@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { ArrowLeft, ArrowRight, Clock, Globe, X } from "@/assets/icons";
@@ -697,8 +698,24 @@ function AgendaListItem({
   );
 }
 
+/**
+ * Mapa de dominios para filtro de tarefas no calendario.
+ * Mesmo padrao de DOMAIN_PRESETS em Tasks.tsx.
+ * Cada dominio filtra por category da team_task.
+ */
+const CALENDAR_DOMAIN_ROLES: Record<string, string[]> = {
+  comercial: ["comercial"],
+  financeiro: ["financeiro"],
+  juridico: ["juridico"],
+  desenvolvimento: ["desenvolvimento"],
+  suporte: ["suporte"],
+  marketing: ["marketing"],
+};
+
 export default function AdminMarketingCalendar() {
   const { user, isAdmin, isMarketing, isSuperAdmin, roles } = useAuth();
+  const { domain } = useParams<{ domain?: string }>();
+  const domainCategories = domain ? CALENDAR_DOMAIN_ROLES[domain] : undefined;
   const hasLoadedCalendarRef = useRef(false);
   const resizeSessionRef = useRef<ResizeSession>(null);
   const resizePreviewRef = useRef<string | null>(null);
@@ -1041,24 +1058,38 @@ export default function AdminMarketingCalendar() {
         return;
       }
 
-      const mappedEvents: CalendarEvent[] = (
-        (eventsRes.data as Record<string, unknown>[] | null) ?? []
-      ).map((item) => {
-        const client = item["clients"] as CalendarClient | null;
-        const project = item["projects"] as { id: string; name: string } | null;
+      // Marketing calendar events: mostrar em calendario geral e marketing
+      // Em calendarios de outros dominios, ocultar (sao eventos de marketing)
+      const showMarketingEvents = !domainCategories || domainCategories.includes("marketing");
+      const mappedEvents: CalendarEvent[] = showMarketingEvents
+        ? ((eventsRes.data as Record<string, unknown>[] | null) ?? []).map((item) => {
+            const client = item["clients"] as CalendarClient | null;
+            const project = item["projects"] as { id: string; name: string } | null;
 
-        return {
-          ...(item as unknown as Database["public"]["Tables"]["marketing_calendar_events"]["Row"]),
-          client_name: getEventClientName(client),
-          project_name: project?.name ?? null,
-        };
-      });
+            return {
+              ...(item as unknown as Database["public"]["Tables"]["marketing_calendar_events"]["Row"]),
+              client_name: getEventClientName(client),
+              project_name: project?.name ?? null,
+            };
+          })
+        : [];
 
       // Convert team_tasks into CalendarEvent shape (virtual events for the calendar)
+      // Quando acessado via /calendario/:domain, filtra por category do dominio
       const taskEvents: CalendarEvent[] = (
         (tasksRes.data as Record<string, unknown>[] | null) ?? []
       )
         .filter((t) => {
+          // Filtro de dominio: so mostra tarefas da category do dominio
+          // ou atribuidas ao usuario atual
+          if (domainCategories) {
+            const taskCategory = (t["category"] as string) ?? "geral";
+            const taskAssignedTo = t["assigned_to"] as string | null;
+            if (!domainCategories.includes(taskCategory) && taskAssignedTo !== user?.id) {
+              return false;
+            }
+          }
+
           const taskRoles = t["role_visibility"] as string[] | null;
           const taskAssignedTo = t["assigned_to"] as string | null;
           // Role-based visibility: admin sees all, others see assigned or role-visible
@@ -1113,7 +1144,7 @@ export default function AdminMarketingCalendar() {
     return () => {
       active = false;
     };
-  }, [monthCursor, reloadToken]);
+  }, [monthCursor, reloadToken, domainCategories, user?.id, isAdmin, roles]);
 
   useLayoutEffect(() => {
     if (view === "mes") {
@@ -2280,12 +2311,19 @@ export default function AdminMarketingCalendar() {
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => resetForm(selectedDate)}
                     disabled={saving}
                   >
                     Limpar
                   </Button>
-                  <Button type="button" variant="outline" onClick={closeEditor} disabled={saving}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={closeEditor}
+                    disabled={saving}
+                  >
                     Fechar
                   </Button>
                   <Button type="button" onClick={() => void handleSave()} disabled={saving}>

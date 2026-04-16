@@ -332,6 +332,7 @@ export default function BillingAutomation() {
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => {
                 resetRuleForm();
                 setShowRuleForm(true);
@@ -395,7 +396,7 @@ export default function BillingAutomation() {
                   <Button type="button" onClick={() => void saveRule()} disabled={ruleSaving}>
                     {ruleSaving ? "Salvando..." : editingRule ? "Atualizar" : "Criar"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={resetRuleForm}>
+                  <Button type="button" variant="outline" size="sm" onClick={resetRuleForm}>
                     Cancelar
                   </Button>
                 </div>
@@ -486,6 +487,7 @@ export default function BillingAutomation() {
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => {
                 resetTemplateForm();
                 setShowTemplateForm(true);
@@ -544,7 +546,7 @@ export default function BillingAutomation() {
                   <Button type="button" onClick={() => void saveTemplate()} disabled={tplSaving}>
                     {tplSaving ? "Salvando..." : editingTemplate ? "Atualizar" : "Criar"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={resetTemplateForm}>
+                  <Button type="button" variant="outline" size="sm" onClick={resetTemplateForm}>
                     Cancelar
                   </Button>
                 </div>

@@ -218,7 +218,13 @@ export default function ProposalRejectModal({
 
           <div className="border-t border-border/60" />
           <div className="flex items-center justify-end gap-3 px-6 py-4">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+              disabled={submitting}
+            >
               Cancelar
             </Button>
             <Button

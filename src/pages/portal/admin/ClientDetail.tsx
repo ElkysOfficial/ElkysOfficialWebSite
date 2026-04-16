@@ -680,7 +680,7 @@ function GeneralClientForm({
           </CollapsibleSection>
 
           <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
+            <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
             <Button type="submit" loading={saving} loadingText="Salvando...">
@@ -926,7 +926,7 @@ function ContractClientForm({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
+            <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>
