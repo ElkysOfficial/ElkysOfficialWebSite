@@ -75,6 +75,20 @@ export default function ContractActionsButtons({
         }
       }
 
+      // Notificar áreas quando contrato é ativado
+      if (toStatus === "ativo") {
+        void supabase.from("admin_notifications").insert({
+          type: "contrato_ativado",
+          title: `Contrato ativado: ${projectName}`,
+          body: `O contrato do projeto "${projectName}" foi ativado pelo jurídico. O projeto pode ser iniciado.`,
+          severity: "success",
+          target_roles: ["admin_super", "admin", "developer", "po", "financeiro"],
+          entity_type: "project_contract",
+          entity_id: contractId,
+          action_url: "/portal/admin/contratos",
+        });
+      }
+
       onTransitioned?.();
     } finally {
       setSubmitting(false);

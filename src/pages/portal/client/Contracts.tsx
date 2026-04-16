@@ -35,7 +35,8 @@ const STATUS_META: Record<
   string,
   { label: string; tone: "primary" | "success" | "warning" | "secondary" | "destructive" }
 > = {
-  rascunho: { label: "Aguardando seu aceite", tone: "warning" },
+  rascunho: { label: "Em preparação", tone: "secondary" },
+  em_validacao: { label: "Aguardando seu aceite", tone: "warning" },
   ativo: { label: "Ativo", tone: "success" },
   encerrado: { label: "Encerrado", tone: "primary" },
   cancelado: { label: "Cancelado", tone: "destructive" },
@@ -122,6 +123,18 @@ export default function ClientContracts() {
         toast.error("Erro ao registrar aceite.", { description: error.message });
         return;
       }
+      // Notificar jurídico e admin que o cliente aceitou o contrato
+      void supabase.from("admin_notifications").insert({
+        type: "contrato_aceito",
+        title: "Contrato aceito pelo cliente",
+        body: "O cliente registrou aceite formal do contrato. Verifique e ative o contrato se necessário.",
+        severity: "action_required",
+        target_roles: ["admin_super", "admin", "juridico"],
+        entity_type: "project_contract",
+        entity_id: contractId,
+        action_url: "/portal/admin/contratos",
+      });
+
       toast.success("Contrato aceito.");
       void loadContracts();
     } finally {
@@ -152,7 +165,7 @@ export default function ClientContracts() {
       {contracts.map((contract) => {
         const project = projects.get(contract.project_id);
         const meta = STATUS_META[contract.status ?? ""] ?? STATUS_META.rascunho;
-        const needsAcceptance = contract.accepted_at === null && contract.status !== "cancelado";
+        const needsAcceptance = contract.accepted_at === null && contract.status === "em_validacao";
         const isAccepting = acceptingId === contract.id;
 
         return (
