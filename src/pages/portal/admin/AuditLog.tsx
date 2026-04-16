@@ -146,9 +146,11 @@ export default function AuditLog() {
     setLoading(true);
     setError(null);
 
-    const [logsRes, teamRes] = await Promise.all([
+    const [logsRes, teamRes, clientsRes, profilesRes] = await Promise.all([
       supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("team_members").select("user_id, full_name"),
+      supabase.from("clients").select("user_id, full_name, nome_fantasia, client_type"),
+      supabase.from("profiles").select("id, full_name"),
     ]);
 
     if (logsRes.error) {
@@ -157,8 +159,28 @@ export default function AuditLog() {
       return;
     }
 
+    // Mesclar team_members + clients + profiles para resolver nomes
+    const mergedMembers: TeamMember[] = [
+      ...((teamRes.data ?? []) as TeamMember[]),
+      ...(
+        (clientsRes.data ?? []) as Array<{
+          user_id: string | null;
+          full_name: string;
+          nome_fantasia: string | null;
+          client_type: string | null;
+        }>
+      ).map((c) => ({
+        user_id: c.user_id,
+        full_name: c.client_type === "pj" && c.nome_fantasia ? c.nome_fantasia : c.full_name,
+      })),
+      ...((profilesRes.data ?? []) as Array<{ id: string; full_name: string | null }>).map((p) => ({
+        user_id: p.id,
+        full_name: p.full_name ?? "Perfil sem nome",
+      })),
+    ];
+
     setLogs((logsRes.data ?? []) as AuditLogRow[]);
-    setTeamMembers((teamRes.data ?? []) as TeamMember[]);
+    setTeamMembers(mergedMembers);
     setLoading(false);
   }, []);
 

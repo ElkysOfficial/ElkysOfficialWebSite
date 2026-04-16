@@ -366,7 +366,7 @@ export default function Contracts() {
                           </Link>
                         ) : (
                           <span className="text-sm font-semibold text-muted-foreground">
-                            Projeto removido
+                            Projeto #{contract.project_id.slice(0, 8)}
                           </span>
                         )}
                         {meta ? <StatusBadge label={meta.label} tone={meta.tone} /> : null}
@@ -375,7 +375,9 @@ export default function Contracts() {
                         </span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {client ? getClientDisplayName(client) : "Cliente desconhecido"}
+                        {client
+                          ? getClientDisplayName(client)
+                          : `Cliente #${contract.client_id.slice(0, 8)}`}
                         {client?.cnpj
                           ? ` · CNPJ: ${client.cnpj}`
                           : client?.cpf
@@ -507,6 +509,37 @@ export default function Contracts() {
                                   </p>
                                 </div>
                               )}
+                            </div>
+                          )}
+
+                          {proposalCtx.solution_type && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Tipo de solução
+                              </p>
+                              <p className="text-xs text-foreground">{proposalCtx.solution_type}</p>
+                            </div>
+                          )}
+
+                          {proposalCtx.scope_summary && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Escopo aprovado
+                              </p>
+                              <p className="whitespace-pre-wrap text-xs text-foreground">
+                                {proposalCtx.scope_summary}
+                              </p>
+                            </div>
+                          )}
+
+                          {proposalCtx.total_amount > 0 && (
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                Valor da proposta
+                              </p>
+                              <p className="text-xs font-semibold text-foreground">
+                                {formatBRL(proposalCtx.total_amount)}
+                              </p>
                             </div>
                           )}
 
