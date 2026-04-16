@@ -5,12 +5,24 @@ export function getDefaultAdminRoute(roles: AppRole[]) {
     return "/portal/admin";
   }
 
+  if (roles.includes("juridico")) {
+    return "/portal/admin/contratos";
+  }
+
+  if (roles.includes("comercial")) {
+    return "/portal/admin/crm";
+  }
+
+  if (roles.includes("financeiro")) {
+    return "/portal/admin/financeiro";
+  }
+
   if (roles.includes("marketing")) {
     return "/portal/admin/calendario";
   }
 
-  if (roles.includes("developer")) {
-    return "/portal/admin/documentos/desenvolvedor";
+  if (roles.includes("developer") || roles.includes("designer") || roles.includes("po")) {
+    return "/portal/admin/projetos";
   }
 
   if (roles.includes("support")) {
