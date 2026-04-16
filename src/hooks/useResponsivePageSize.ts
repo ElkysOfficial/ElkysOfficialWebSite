@@ -1,3 +1,4 @@
+/** Hook que ajusta tamanho de pagina (itens por pagina) baseado na largura da tela. */
 import { useEffect, useState } from "react";
 
 /**

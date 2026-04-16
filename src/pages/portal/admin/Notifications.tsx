@@ -5,8 +5,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 
 import { type IconProps, Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import RelativeDate from "@/components/portal/RelativeDate";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import RelativeDate from "@/components/portal/shared/RelativeDate";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import {
   Button,

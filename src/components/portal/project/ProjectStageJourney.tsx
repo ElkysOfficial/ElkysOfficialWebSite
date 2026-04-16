@@ -1,3 +1,11 @@
+/**
+ * Jornada do projeto por etapas — visualizacao das 6 fases do ciclo de vida.
+ *
+ * Renderiza steps visuais (Imersao → Acordo → Arquitetura → Engenharia →
+ * Validacao → Evolucao) destacando a etapa atual com icone e cor.
+ * Usado no detalhe do projeto para dar visao clara do progresso.
+ */
+
 import { CheckCircle, Code2, FileText, Hexagon, Search, Shield, Target } from "@/assets/icons";
 import { cn } from "@/design-system";
 import { PROJECT_STAGE_OPTIONS, getProjectStageIndex } from "@/lib/portal";

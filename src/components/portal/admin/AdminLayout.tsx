@@ -1,13 +1,13 @@
 import { memo, Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import PortalErrorBoundary from "@/components/portal/PortalErrorBoundary";
-import PortalLoading from "@/components/portal/PortalLoading";
+import PortalErrorBoundary from "@/components/portal/shared/PortalErrorBoundary";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useTheme } from "next-themes";
 
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
-import AdminNotificationBell from "@/components/portal/AdminNotificationBell";
-import PortalBreadcrumbs from "@/components/portal/PortalBreadcrumbs";
+import AdminNotificationBell from "@/components/portal/admin/AdminNotificationBell";
+import PortalBreadcrumbs from "@/components/portal/shared/PortalBreadcrumbs";
 import { resolveAdminBreadcrumbs } from "@/lib/admin-breadcrumbs";
 import { supabase } from "@/integrations/supabase/client";
 import {

@@ -4,12 +4,12 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import Pagination from "@/components/portal/Pagination";
-import PortalLoading from "@/components/portal/PortalLoading";
-import ProjectSiteLink from "@/components/portal/ProjectSiteLink";
-import ProjectStageJourney from "@/components/portal/ProjectStageJourney";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import Pagination from "@/components/portal/shared/Pagination";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
+import ProjectStageJourney from "@/components/portal/project/ProjectStageJourney";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import {
   Button,

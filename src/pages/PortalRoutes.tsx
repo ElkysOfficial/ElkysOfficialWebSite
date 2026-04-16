@@ -1,12 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "@/components/portal/ProtectedRoute";
-import MustChangePasswordGuard from "@/components/portal/MustChangePasswordGuard";
-import MustChangePasswordGuardAdmin from "@/components/portal/MustChangePasswordGuardAdmin";
-import PortalRoleGuard from "@/components/portal/PortalRoleGuard";
+import ProtectedRoute from "@/components/portal/auth/ProtectedRoute";
+import MustChangePasswordGuard from "@/components/portal/auth/MustChangePasswordGuard";
+import MustChangePasswordGuardAdmin from "@/components/portal/auth/MustChangePasswordGuardAdmin";
+import PortalRoleGuard from "@/components/portal/auth/PortalRoleGuard";
 
-const AdminLayout = lazy(() => import("@/components/portal/AdminLayout"));
-const AdminPortalHome = lazy(() => import("@/components/portal/AdminPortalHome"));
+const AdminLayout = lazy(() => import("@/components/portal/admin/AdminLayout"));
+const AdminPortalHome = lazy(() => import("@/components/portal/admin/AdminPortalHome"));
 const AdminMarketingCalendar = lazy(() => import("./portal/admin/MarketingCalendar"));
 const AdminClients = lazy(() => import("./portal/admin/Clients"));
 const AdminClientCreate = lazy(() => import("./portal/admin/ClientCreate"));
@@ -29,7 +29,7 @@ const AdminContracts = lazy(() => import("./portal/admin/Contracts"));
 const AdminTasks = lazy(() => import("./portal/admin/Tasks"));
 const AdminTeamHub = lazy(() => import("./portal/admin/TeamHub"));
 const AdminProfile = lazy(() => import("./portal/admin/Profile"));
-const ClientLayout = lazy(() => import("@/components/portal/ClientLayout"));
+const ClientLayout = lazy(() => import("@/components/portal/client/ClientLayout"));
 const ClientOverview = lazy(() => import("./portal/client/Overview"));
 const ClientProjects = lazy(() => import("./portal/client/Projects"));
 const ClientProjectDetail = lazy(() => import("./portal/client/ProjectDetail"));

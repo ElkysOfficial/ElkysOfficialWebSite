@@ -1,4 +1,4 @@
-import type { BreadcrumbTrailItem } from "@/components/portal/PortalBreadcrumbs";
+import type { BreadcrumbTrailItem } from "@/components/portal/shared/PortalBreadcrumbs";
 
 const ADMIN_ROOT: BreadcrumbTrailItem = {
   label: "Visão Geral",

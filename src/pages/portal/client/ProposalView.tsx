@@ -3,9 +3,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { CheckCircle, ExternalLink, FileText, X } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import PortalLoading from "@/components/portal/PortalLoading";
-import StatusBadge from "@/components/portal/StatusBadge";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import {
   Button,
   Card,

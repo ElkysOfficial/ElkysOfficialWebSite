@@ -1,3 +1,23 @@
+/**
+ * Hook para o dashboard (Overview) do portal do cliente.
+ *
+ * Carrega em paralelo tudo que o cliente precisa ver na tela inicial:
+ * - Projetos ativos e seus status
+ * - Cobrancas pendentes e atrasadas
+ * - Tickets de suporte abertos
+ * - Propostas enviadas aguardando aceite
+ * - Contratos pendentes de assinatura
+ *
+ * Agrega metricas (totais, contagens) para os cards do dashboard.
+ *
+ * Usado por: portal/client/Overview.tsx
+ * Cache: 2min stale, 10min garbage collection
+ *
+ * @example
+ * const { data } = useClientOverview(clientId);
+ * // data.projects, data.pendingCharges, data.openTickets, etc.
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import {
   loadChargesForClient,

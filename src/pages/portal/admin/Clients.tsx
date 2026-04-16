@@ -5,12 +5,12 @@ import { toast } from "sonner";
 
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import type { IconProps } from "@/assets/icons";
-import AdminEmptyState from "@/components/portal/AdminEmptyState";
-import ClientRowIndicators from "@/components/portal/ClientRowIndicators";
-import PortalLoading from "@/components/portal/PortalLoading";
+import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import ClientRowIndicators from "@/components/portal/client/ClientRowIndicators";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAdminClients, type AdminClientIndicators } from "@/hooks/useAdminClients";
 import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
-import RowActionMenu from "@/components/portal/RowActionMenu";
+import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import { AlertDialog, buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";

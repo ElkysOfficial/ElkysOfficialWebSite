@@ -19,7 +19,17 @@ npm run format       # Prettier format src files
 npm run format:check # Check formatting without writing
 ```
 
-There is no test runner configured. Linting runs automatically via lint-staged + husky on pre-commit.
+Linting runs automatically via lint-staged + husky on pre-commit.
+
+### E2E tests (Playwright)
+
+```bash
+node e2e/setup-accounts.mjs   # Create test accounts (once)
+npm run test:e2e               # Headless
+npm run test:e2e:headed        # With browser
+```
+
+21 tests covering the full Lead→Expansion flow with 10 personas. See `e2e/README.md` and `docs/TESTING.md`.
 
 ## Architecture
 
@@ -29,8 +39,23 @@ All page components use `React.lazy()` + `Suspense`. Routes are guarded by a cha
 `ProtectedRoute` → `MustChangePasswordGuard` → `PortalRoleGuard` → Layout
 
 - **Public site** (`/`, `/cases`, `/servicos/:slug`, `/como-trabalhamos`, legal pages)
-- **Admin portal** (`/portal/admin/*`) — roles: `admin_super`, `admin`, `marketing`, `developer`, `support`
+- **Admin portal** (`/portal/admin/*`) — roles: `admin_super`, `admin`, `comercial`, `juridico`, `financeiro`, `po`, `developer`, `designer`, `marketing`, `support`
 - **Client portal** (`/portal/cliente/*`) — role: `cliente`
+
+### Portal components (`src/components/portal/`)
+
+Organized by domain:
+
+```
+portal/admin/        — AdminLayout, AdminEmptyState, AdminMetricCard, etc.
+portal/client/       — ClientLayout, ClientRowIndicators
+portal/auth/         — ProtectedRoute, PortalRoleGuard, MustChangePassword*
+portal/project/      — AcceptanceCard, OnboardingChecklist, ValidationRounds, etc.
+portal/contract/     — ActionsButtons, VersionHistory, AcceptanceStatusCard
+portal/proposal/     — ExpiryCountdown, RejectModal
+portal/notification/ — NotificationBell
+portal/shared/       — StatusBadge, Pagination, PortalLoading, ExportMenu, etc.
+```
 
 ### Auth (`src/contexts/AuthContext.tsx`)
 
@@ -85,6 +110,9 @@ Deno serverless functions for user management, email notifications, and billing.
 See `docs/` for detailed specs:
 
 - `ARCHITECTURE.md` — full technical architecture (in Portuguese)
-- `Database.md` — schema documentation
-- `EDGE-Functions.md` — edge function specs
-- `Permissions.md` — RBAC role matrix
+- `DATABASE.md` — schema documentation
+- `EDGE-FUNCTIONS.md` — edge function specs
+- `PERMISSIONS.md` — RBAC role matrix
+- `DESIGN-SYSTEM.md` — design system tokens, components and patterns
+- `ROADMAP.md` — admin dashboard roadmap
+- `TESTING.md` — E2E testing guide

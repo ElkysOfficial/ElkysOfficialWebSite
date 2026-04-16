@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import PortalLoading from "@/components/portal/PortalLoading";
+import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { cn } from "@/design-system";
 
 const AdminTeam = lazy(() => import("@/pages/portal/admin/Team"));
