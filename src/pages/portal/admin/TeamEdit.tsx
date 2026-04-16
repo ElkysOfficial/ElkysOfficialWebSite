@@ -29,28 +29,56 @@ type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
 const ROLE_OPTIONS: { value: AppRole; label: string; description: string }[] = [
   {
     value: "admin_super",
-    label: "Super Admin",
-    description: "Acesso total - pode criar, editar e excluir tudo",
+    label: "Admin Super",
+    description:
+      "Acesso total à plataforma, incluindo ações críticas (exclusão permanente e operações irreversíveis).",
   },
   {
     value: "admin",
     label: "Admin",
-    description: "Acesso total exceto exclusões e cadastros de usuários",
+    description:
+      "Gestão operacional completa — cadastros, edição, finanças e equipe, sem ações irreversíveis.",
+  },
+  {
+    value: "comercial",
+    label: "Comercial",
+    description: "CRM, leads e propostas — ownership completo do funil comercial.",
+  },
+  {
+    value: "juridico",
+    label: "Jurídico",
+    description: "Contratos, anexos jurídicos e histórico de versões.",
+  },
+  {
+    value: "financeiro",
+    label: "Financeiro",
+    description: "Cobrança, visão financeira, despesas e régua automática (leitura operacional).",
   },
   {
     value: "marketing",
     label: "Marketing",
-    description: "Acesso a clientes, métricas e informações comerciais",
+    description: "Calendário editorial e documentos de Marketing & Design.",
   },
   {
     value: "developer",
-    label: "Desenvolvedor",
-    description: "Acesso a clientes e documentação técnica",
+    label: "Desenvolvimento — Developer",
+    description: "Projetos, tarefas técnicas, documentação de dev e suporte técnico.",
+  },
+  {
+    value: "designer",
+    label: "Desenvolvimento — Designer",
+    description: "Projetos, entregáveis visuais, UX/UI e documentação técnica.",
+  },
+  {
+    value: "po",
+    label: "Desenvolvimento — PO",
+    description:
+      "Projetos, gestão de entregas, tarefas e acompanhamento do time de desenvolvimento.",
   },
   {
     value: "support",
     label: "Suporte",
-    description: "Acesso exclusivo às solicitações de suporte",
+    description: "Pós-venda — tickets de suporte e histórico de atendimento.",
   },
 ];
 
@@ -60,7 +88,18 @@ const selectClass =
 const teamSchema = z.object({
   full_name: z.string().min(3, "Nome obrigatório"),
   phone: z.string().optional(),
-  system_role: z.enum(["admin_super", "admin", "marketing", "developer", "support"]),
+  system_role: z.enum([
+    "admin_super",
+    "admin",
+    "comercial",
+    "juridico",
+    "financeiro",
+    "marketing",
+    "developer",
+    "designer",
+    "po",
+    "support",
+  ]),
   status: z.enum(["active", "inactive"]),
 });
 

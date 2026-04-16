@@ -2273,7 +2273,18 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "admin_super" | "admin" | "cliente" | "marketing" | "developer" | "support";
+      app_role:
+        | "admin_super"
+        | "admin"
+        | "cliente"
+        | "marketing"
+        | "developer"
+        | "support"
+        | "financeiro"
+        | "comercial"
+        | "juridico"
+        | "designer"
+        | "po";
       billing_type: "mensal" | "projeto";
       client_origin: "lead" | "indicacao" | "inbound";
       contract_record_status: "rascunho" | "ativo" | "encerrado" | "cancelado";
@@ -2431,7 +2442,19 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ["admin_super", "admin", "cliente", "marketing", "developer", "support"],
+      app_role: [
+        "admin_super",
+        "admin",
+        "cliente",
+        "marketing",
+        "developer",
+        "support",
+        "financeiro",
+        "comercial",
+        "juridico",
+        "designer",
+        "po",
+      ],
       billing_type: ["mensal", "projeto"],
       client_origin: ["lead", "indicacao", "inbound"],
       contract_record_status: ["rascunho", "ativo", "encerrado", "cancelado"],
