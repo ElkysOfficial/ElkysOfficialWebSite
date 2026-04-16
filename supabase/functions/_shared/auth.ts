@@ -76,3 +76,61 @@ export async function requireAdminAccess(req: Request, headers: JsonHeaders) {
     return jsonResponse({ error: "Internal error" }, 500, headers);
   }
 }
+
+/**
+ * Valida acesso operacional — roles que executam ações no fluxo
+ * (admin, jurídico, comercial, po, financeiro).
+ * Usado por edge functions de email/notificação que são chamadas
+ * durante operações normais por qualquer membro da equipe.
+ */
+export async function requireOperationalAccess(req: Request, headers: JsonHeaders) {
+  try {
+    const token = getBearerToken(req);
+    if (!token) {
+      return jsonResponse({ error: "Missing authorization header" }, 401, headers);
+    }
+
+    const adminClient = createServiceRoleClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await adminClient.auth.getUser(token);
+
+    if (userError || !user) {
+      return jsonResponse({ error: "Invalid or expired session" }, 401, headers);
+    }
+
+    const { data: teamRole, error: roleError } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .in("role", [
+        "admin_super",
+        "admin",
+        "comercial",
+        "juridico",
+        "financeiro",
+        "po",
+        "developer",
+        "designer",
+        "support",
+      ])
+      .limit(1)
+      .maybeSingle();
+
+    if (roleError) {
+      console.error("[auth] failed to validate operational role", roleError);
+      return jsonResponse({ error: "Failed to validate permissions" }, 500, headers);
+    }
+
+    if (!teamRole) {
+      return jsonResponse({ error: "Insufficient permissions" }, 403, headers);
+    }
+
+    return { user, adminClient };
+  } catch (error) {
+    console.error("[auth] unexpected authorization failure", error);
+    return jsonResponse({ error: "Internal error" }, 500, headers);
+  }
+}
