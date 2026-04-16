@@ -183,6 +183,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
       },
+      {
+        label: "Projetos",
+        href: "/portal/admin/projetos",
+        icon: AgileMono,
+        roles: ["support"],
+      },
     ],
   },
   {
@@ -193,6 +199,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/calendario",
         icon: CalendarX,
         roles: ["admin_super", "admin", "marketing"],
+      },
+      {
+        label: "Leads (métricas)",
+        href: "/portal/admin/crm",
+        icon: Target,
+        roles: ["marketing"],
       },
       {
         label: "Documentos M&D",
