@@ -84,15 +84,16 @@ export default function Contracts() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [contractsRes, projectsRes, clientsRes, docsRes] = await Promise.all([
+    const [contractsRes, docsRes] = await Promise.all([
+      // Join via FK: traz projeto e cliente embutidos no contrato.
+      // Evita queries separadas que podem falhar por RLS de roles
+      // que têm acesso a contratos mas não a projetos/clientes diretamente.
       supabase
         .from("project_contracts")
         .select(
-          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at"
+          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at, projects(id, name), clients(id, full_name, client_type, nome_fantasia)"
         )
         .order("created_at", { ascending: false }),
-      supabase.from("projects").select("id, name"),
-      supabase.from("clients").select("id, full_name, client_type, nome_fantasia"),
       supabase
         .from("documents")
         .select("contract_id, url, external_url, created_at")
@@ -100,19 +101,33 @@ export default function Contracts() {
         .not("contract_id", "is", null)
         .order("created_at", { ascending: false }),
     ]);
-    const queryError = contractsRes.error ?? projectsRes.error ?? clientsRes.error;
-    if (queryError) {
-      setError(queryError.message);
+    if (contractsRes.error) {
+      setError(contractsRes.error.message);
       setLoading(false);
       return;
     }
-    setContracts((contractsRes.data ?? []) as ContractRow[]);
+
+    const rawContracts = (contractsRes.data ?? []) as Array<
+      ContractRow & {
+        projects: ProjectRef | null;
+        clients: ClientRef | null;
+      }
+    >;
+
     const pMap = new Map<string, ProjectRef>();
-    for (const p of (projectsRes.data ?? []) as ProjectRef[]) pMap.set(p.id, p);
-    setProjects(pMap);
     const cMap = new Map<string, ClientRef>();
-    for (const c of (clientsRes.data ?? []) as ClientRef[]) cMap.set(c.id, c);
+
+    const mappedContracts: ContractRow[] = rawContracts.map((row) => {
+      if (row.projects) pMap.set(row.projects.id, row.projects);
+      if (row.clients) cMap.set(row.clients.id, row.clients);
+      const { projects: _p, clients: _c, ...contract } = row;
+      return contract;
+    });
+
+    setContracts(mappedContracts);
+    setProjects(pMap);
     setClients(cMap);
+
     // Documents: mantem apenas o mais recente por contract_id (ordenado desc).
     const dMap = new Map<string, string>();
     for (const d of (docsRes.data ?? []) as Array<{
