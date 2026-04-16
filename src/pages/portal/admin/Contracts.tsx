@@ -56,6 +56,11 @@ type ClientRef = {
   full_name: string | null;
   client_type: string | null;
   nome_fantasia: string | null;
+  email: string | null;
+  cnpj: string | null;
+  cpf: string | null;
+  razao_social: string | null;
+  phone: string | null;
 };
 
 type StatusFilter = "all" | "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
@@ -111,7 +116,7 @@ export default function Contracts() {
       supabase
         .from("project_contracts")
         .select(
-          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at, projects(id, name, proposal_id), clients(id, full_name, client_type, nome_fantasia)"
+          "id, project_id, client_id, version_no, status, signed_at, starts_at, ends_at, total_amount, scope_summary, payment_model, created_at, projects(id, name, proposal_id), clients(id, full_name, client_type, nome_fantasia, email, cnpj, cpf, razao_social, phone)"
         )
         .order("created_at", { ascending: false }),
       supabase
@@ -370,11 +375,24 @@ export default function Contracts() {
                         </span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {client ? getClientDisplayName(client) : "Cliente desconhecido"} ·{" "}
+                        {client ? getClientDisplayName(client) : "Cliente desconhecido"}
+                        {client?.cnpj
+                          ? ` · CNPJ: ${client.cnpj}`
+                          : client?.cpf
+                            ? ` · CPF: ${client.cpf}`
+                            : ""}
+                        {" · "}
                         {contract.payment_model
                           ? (PAYMENT_MODEL_LABEL[contract.payment_model] ?? contract.payment_model)
                           : "—"}
                       </p>
+                      {client && (
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {client.razao_social ? `${client.razao_social} · ` : ""}
+                          {client.email ?? ""}
+                          {client.phone ? ` · ${client.phone}` : ""}
+                        </p>
+                      )}
                       {contractDocUrl ? (
                         <div className="mt-2">
                           <ProjectSiteLink url={contractDocUrl} label="Ver contrato" />
