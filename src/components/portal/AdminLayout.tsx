@@ -121,6 +121,12 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         roles: ["admin_super", "admin", "financeiro"],
       },
       {
+        label: "Projetos",
+        href: "/portal/admin/projetos",
+        icon: AgileMono,
+        roles: ["financeiro"],
+      },
+      {
         label: "Tarefas Financeiro",
         href: "/portal/admin/tarefas/financeiro",
         icon: CheckCircle,
