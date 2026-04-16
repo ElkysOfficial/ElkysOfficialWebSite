@@ -118,7 +118,7 @@ export default function ContractActionsButtons({
       ) : null}
       {status === "em_validacao" ? (
         <Button size="sm" disabled={submitting} onClick={() => void transitionTo("ativo")}>
-          Ativar contrato
+          Validar assinatura e ativar
         </Button>
       ) : null}
       {status === "ativo" ? (
