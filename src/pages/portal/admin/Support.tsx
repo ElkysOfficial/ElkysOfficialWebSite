@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { CheckCircle, Clock, Headphones, type IconProps, Search, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
+import Pagination from "@/components/portal/Pagination";
 import PortalLoading from "@/components/portal/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUrlState } from "@/hooks/useUrlState";
@@ -398,6 +399,19 @@ export default function AdminSupport() {
     return matchSearch && matchStatus;
   });
 
+  const TICKET_PAGE_SIZE = 15;
+  const [ticketPage, setTicketPage] = useState(0);
+  const totalTicketPages = Math.ceil(filtered.length / TICKET_PAGE_SIZE);
+  const paginatedTickets = filtered.slice(
+    ticketPage * TICKET_PAGE_SIZE,
+    (ticketPage + 1) * TICKET_PAGE_SIZE
+  );
+
+  // Reset page when filters change
+  useEffect(() => {
+    setTicketPage(0);
+  }, [search, statusFilter]);
+
   const openCount = tickets.filter((t) => t.status === "aberto").length;
   const inProgressCount = tickets.filter((t) => t.status === "em_andamento").length;
   const resolvedCount = tickets.filter((t) => t.status === "resolvido").length;
@@ -629,7 +643,7 @@ export default function AdminSupport() {
         />
       ) : (
         <div className="space-y-3">
-          {filtered.map((ticket) => {
+          {paginatedTickets.map((ticket) => {
             const cfg = STATUS_CONFIG[ticket.status];
             const isExpanded = expandedId === ticket.id;
             const msgs = messagesMap[ticket.id] ?? [];
@@ -822,6 +836,13 @@ export default function AdminSupport() {
               </article>
             );
           })}
+          <Pagination
+            page={ticketPage}
+            totalPages={totalTicketPages}
+            totalItems={filtered.length}
+            pageSize={TICKET_PAGE_SIZE}
+            onPageChange={setTicketPage}
+          />
         </div>
       )}
     </div>
