@@ -600,14 +600,18 @@ export default function Contracts() {
                       status={contract.status}
                       onTransitioned={() => void loadAll()}
                     />
-                    <AddContractLinkForm
-                      contractId={contract.id}
-                      projectId={contract.project_id ?? ""}
-                      clientId={contract.client_id}
-                      versionNo={contract.version_no}
-                      existingUrl={contractDocUrl ?? null}
-                      onSaved={() => void loadAll()}
-                    />
+                    {contractDocUrl ? (
+                      <ProjectSiteLink url={contractDocUrl} label="Contrato PDF" />
+                    ) : (
+                      <AddContractLinkForm
+                        contractId={contract.id}
+                        projectId={contract.project_id ?? ""}
+                        clientId={contract.client_id}
+                        versionNo={contract.version_no}
+                        existingUrl={null}
+                        onSaved={() => void loadAll()}
+                      />
+                    )}
                   </div>
 
                   {isExpanded ? (
