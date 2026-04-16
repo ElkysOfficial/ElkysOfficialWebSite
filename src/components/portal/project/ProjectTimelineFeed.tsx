@@ -12,7 +12,7 @@ import Pagination from "@/components/portal/shared/Pagination";
 import { cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
 import { type PortalTimelineEvent } from "@/lib/portal";
-import RelativeDate from "./RelativeDate";
+import RelativeDate from "@/components/portal/shared/RelativeDate";
 
 const EVENT_META: Record<
   string,
