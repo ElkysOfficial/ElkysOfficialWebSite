@@ -1154,6 +1154,8 @@ const DOMAIN_PRESETS: Record<string, { category: string; title: string }> = {
   financeiro: { category: "financeiro", title: "Tarefas — Financeiro" },
   juridico: { category: "juridico", title: "Tarefas — Jurídico" },
   desenvolvimento: { category: "desenvolvimento", title: "Tarefas — Desenvolvimento" },
+  suporte: { category: "suporte", title: "Tarefas — Suporte" },
+  marketing: { category: "marketing", title: "Tarefas — Marketing" },
 };
 
 export default function AdminTasks() {

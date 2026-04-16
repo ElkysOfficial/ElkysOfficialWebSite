@@ -166,7 +166,7 @@ export default function AdminSupport() {
         .order("created_at", { ascending: false });
 
       if (supportOnlyView) {
-        query = query.eq("status", "aberto");
+        query = query.in("status", ["aberto", "em_andamento"]);
       }
 
       const { data, error } = await query;
@@ -300,7 +300,7 @@ export default function AdminSupport() {
       const nextTickets = prev.map((ticket) =>
         ticket.id === ticketId ? { ...ticket, status: newStatus, ...resolvedAtUpdate } : ticket
       );
-      if (supportOnlyView && newStatus !== "aberto") {
+      if (supportOnlyView && newStatus !== "aberto" && newStatus !== "em_andamento") {
         return nextTickets.filter((ticket) => ticket.id !== ticketId);
       }
       return nextTickets;
