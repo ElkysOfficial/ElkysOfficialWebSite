@@ -834,6 +834,58 @@ export default function ProposalDetail() {
       return;
     }
 
+    const rpcResult = result as {
+      project_id?: string;
+      client_id?: string;
+      contract_id?: string;
+    };
+
+    // Enviar email de projeto criado ao cliente
+    if (rpcResult.client_id && rpcResult.project_id) {
+      try {
+        const headers = await getSupabaseFunctionAuthHeaders();
+        void supabase.functions.invoke("send-project-created", {
+          body: {
+            client_id: rpcResult.client_id,
+            project_name: proposal.title,
+            solution_type: proposal.solution_type,
+          },
+          headers,
+        });
+      } catch {
+        // Fire-and-forget
+      }
+    }
+
+    // Se proposta era de lead (sem client_id direto), enviar welcome email
+    // ao novo cliente convertido
+    if (proposal.lead_id && !proposal.client_id && rpcResult.client_id) {
+      try {
+        const { data: newClient } = await supabase
+          .from("clients")
+          .select("email, full_name, must_change_password")
+          .eq("id", rpcResult.client_id)
+          .single();
+
+        if (newClient?.email && newClient?.must_change_password) {
+          const headers = await getSupabaseFunctionAuthHeaders();
+          void supabase.functions.invoke("send-client-welcome", {
+            body: {
+              email: newClient.email,
+              name: newClient.full_name,
+              // A senha temporária já foi gerada pela RPC convert_lead_to_client
+              // e salva no auth.users. Não temos acesso a ela aqui, então
+              // enviamos orientação para reset via portal
+              temp_password: "Solicite a senha via 'Esqueci minha senha' no portal",
+            },
+            headers,
+          });
+        }
+      } catch {
+        // Fire-and-forget
+      }
+    }
+
     toast.success("Projeto e contrato criados com sucesso!");
     void loadData();
   }
