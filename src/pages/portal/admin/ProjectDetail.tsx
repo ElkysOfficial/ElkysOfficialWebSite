@@ -1007,6 +1007,25 @@ export default function AdminProjectDetail() {
           due_date: getLocalDateIso(new Date(Date.now() + 5 * 86400000)),
           created_by: user?.id ?? null,
         });
+
+        // L8: Email ao cliente informando que projeto entrou em validação
+        try {
+          const validationHeaders = await getSupabaseFunctionAuthHeaders();
+          void supabase.functions.invoke("send-client-action-required", {
+            body: {
+              client_id: client.id,
+              project_id: project.id,
+              project_name: projectForm.name.trim(),
+              step_title: "Validação do projeto",
+              step_description:
+                "O projeto entrou na etapa de validação. Acesse o portal para revisar e aprovar os entregáveis.",
+              action_type: "aprovacao",
+            },
+            headers: validationHeaders,
+          });
+        } catch {
+          // Fire-and-forget
+        }
       }
 
       // Status → Concluído: tarefas para marketing e comercial
@@ -2787,6 +2806,8 @@ export default function AdminProjectDetail() {
         {project ? (
           <ProjectAcceptanceCard
             projectId={project.id}
+            clientId={project.client_id}
+            projectName={project.name}
             acceptedAt={(project as { accepted_at?: string | null }).accepted_at ?? null}
             acceptedBy={(project as { accepted_by?: string | null }).accepted_by ?? null}
             acceptanceNotes={
