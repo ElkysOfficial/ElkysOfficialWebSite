@@ -36,6 +36,11 @@ interface AuthState {
   isMarketing: boolean;
   isDeveloper: boolean;
   isSupport: boolean;
+  isFinanceiro: boolean;
+  isComercial: boolean;
+  isJuridico: boolean;
+  isDesigner: boolean;
+  isPo: boolean;
   isTeamMember: boolean;
 }
 
@@ -63,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isMarketing: false,
     isDeveloper: false,
     isSupport: false,
+    isFinanceiro: false,
+    isComercial: false,
+    isJuridico: false,
+    isDesigner: false,
+    isPo: false,
     isTeamMember: false,
   });
 
@@ -90,12 +100,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isMarketing: roles.includes("marketing"),
         isDeveloper: roles.includes("developer"),
         isSupport: roles.includes("support"),
+        isFinanceiro: roles.includes("financeiro"),
+        isComercial: roles.includes("comercial"),
+        isJuridico: roles.includes("juridico"),
+        isDesigner: roles.includes("designer"),
+        isPo: roles.includes("po"),
         isTeamMember:
           roles.includes("admin_super") ||
           roles.includes("admin") ||
           roles.includes("marketing") ||
           roles.includes("developer") ||
-          roles.includes("support"),
+          roles.includes("support") ||
+          roles.includes("financeiro") ||
+          roles.includes("comercial") ||
+          roles.includes("juridico") ||
+          roles.includes("designer") ||
+          roles.includes("po"),
       });
     },
     []
