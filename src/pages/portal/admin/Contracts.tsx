@@ -44,13 +44,17 @@ type ClientRef = {
   nome_fantasia: string | null;
 };
 
-type StatusFilter = "all" | "rascunho" | "ativo" | "encerrado" | "cancelado";
+type StatusFilter = "all" | "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
 
 const STATUS_META: Record<
   string,
-  { label: string; tone: "primary" | "warning" | "success" | "destructive" | "secondary" }
+  {
+    label: string;
+    tone: "primary" | "warning" | "success" | "destructive" | "secondary" | "accent";
+  }
 > = {
   rascunho: { label: "Rascunho", tone: "secondary" },
+  em_validacao: { label: "Em validação", tone: "warning" },
   ativo: { label: "Ativo", tone: "success" },
   encerrado: { label: "Encerrado", tone: "primary" },
   cancelado: { label: "Cancelado", tone: "destructive" },
@@ -224,23 +228,23 @@ export default function Contracts() {
           className="max-w-md"
         />
         <div className="flex flex-wrap gap-2">
-          {(["all", "ativo", "rascunho", "encerrado", "cancelado"] as StatusFilter[]).map(
-            (status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setStatusFilter(status)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  statusFilter === status
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
-                )}
-              >
-                {status === "all" ? "Todos" : (STATUS_META[status]?.label ?? status)}
-              </button>
-            )
-          )}
+          {(
+            ["all", "ativo", "em_validacao", "rascunho", "encerrado", "cancelado"] as StatusFilter[]
+          ).map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                statusFilter === status
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
+              )}
+            >
+              {status === "all" ? "Todos" : (STATUS_META[status]?.label ?? status)}
+            </button>
+          ))}
         </div>
       </div>
 
