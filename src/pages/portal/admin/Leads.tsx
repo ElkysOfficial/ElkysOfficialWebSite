@@ -305,6 +305,7 @@ export default function Leads() {
     const map: Record<LeadStatus, LeadRow[]> = {
       novo: [],
       qualificado: [],
+      diagnostico: [],
       proposta: [],
       negociacao: [],
       ganho: [],
@@ -576,7 +577,7 @@ export default function Leads() {
           collisionDetection={closestCorners}
           onDragEnd={(e) => void handleDragEnd(e)}
         >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
             {STATUS_META.map((col) => {
               const columnLeads = grouped[col.key];
               const columnTotal = columnLeads.reduce(
