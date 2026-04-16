@@ -207,7 +207,15 @@ const PortalRoutes = () => (
           path="projetos"
           element={
             <PortalRoleGuard
-              allowedRoles={["admin_super", "admin", "developer", "designer", "po", "support"]}
+              allowedRoles={[
+                "admin_super",
+                "admin",
+                "developer",
+                "designer",
+                "po",
+                "support",
+                "financeiro",
+              ]}
             >
               <AdminProjects />
             </PortalRoleGuard>
@@ -225,7 +233,15 @@ const PortalRoutes = () => (
           path="projetos/:id"
           element={
             <PortalRoleGuard
-              allowedRoles={["admin_super", "admin", "developer", "designer", "po", "support"]}
+              allowedRoles={[
+                "admin_super",
+                "admin",
+                "developer",
+                "designer",
+                "po",
+                "support",
+                "financeiro",
+              ]}
             >
               <AdminProjectDetail />
             </PortalRoleGuard>
@@ -242,7 +258,7 @@ const PortalRoutes = () => (
         <Route
           path="financeiro/nova-despesa"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro"]}>
               <AdminExpenseCreate />
             </PortalRoleGuard>
           }
