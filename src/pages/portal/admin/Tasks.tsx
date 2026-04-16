@@ -166,8 +166,13 @@ const DEADLINE_OPTIONS = [
 
 const ASSIGNABLE_ROLES = [
   { value: "admin", label: "Admin" },
-  { value: "marketing", label: "Marketing" },
+  { value: "comercial", label: "Comercial" },
+  { value: "financeiro", label: "Financeiro" },
+  { value: "juridico", label: "Jurídico" },
   { value: "developer", label: "Desenvolvedor" },
+  { value: "designer", label: "Designer" },
+  { value: "po", label: "Product Owner" },
+  { value: "marketing", label: "Marketing" },
   { value: "support", label: "Suporte" },
 ];
 
