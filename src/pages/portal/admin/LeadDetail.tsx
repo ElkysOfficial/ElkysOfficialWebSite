@@ -532,7 +532,7 @@ export default function LeadDetail() {
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
-          {canTransition && (
+          {canTransition && isDiagnosisConcluded(diagnosis) && (
             <Link
               to={`/portal/admin/propostas/nova?lead_id=${id}`}
               className={buttonVariants({ size: "sm" })}
