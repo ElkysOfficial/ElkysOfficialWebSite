@@ -580,7 +580,7 @@ export default function Leads() {
         >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
             {STATUS_META.map((col) => {
-              const columnLeads = grouped[col.key];
+              const columnLeads = grouped[col.key] ?? [];
               const columnTotal = columnLeads.reduce(
                 (sum, lead) => sum + (lead.estimated_value ?? 0),
                 0
@@ -623,18 +623,16 @@ export default function Leads() {
                   {/* Cards — sortable + droppable column */}
                   <SortableContext
                     id={col.key}
-                    items={grouped[col.key].map((l) => l.id)}
+                    items={columnLeads.map((l) => l.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     <DroppableLeadColumn status={col.key}>
-                      {grouped[col.key].length === 0 ? (
+                      {columnLeads.length === 0 ? (
                         <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
                           <p className="text-center text-xs text-muted-foreground">Nenhum lead</p>
                         </div>
                       ) : (
-                        grouped[col.key].map((lead) => (
-                          <SortableLeadCard key={lead.id} lead={lead} />
-                        ))
+                        columnLeads.map((lead) => <SortableLeadCard key={lead.id} lead={lead} />)
                       )}
                     </DroppableLeadColumn>
                   </SortableContext>
