@@ -10,6 +10,9 @@ type HistoryRow = Database["public"]["Views"]["project_contract_history"]["Row"]
 
 type Props = {
   contractId: string | null;
+  clientId?: string;
+  projectName?: string;
+  scopeSummary?: string | null;
   className?: string;
 };
 
@@ -53,7 +56,13 @@ function formatDateTime(value: string | null) {
  *
  * Se houver apenas a versao 1 atual (sem historico), exibe estado vazio.
  */
-export default function ContractVersionHistory({ contractId, className }: Props) {
+export default function ContractVersionHistory({
+  contractId,
+  clientId,
+  projectName,
+  scopeSummary,
+  className,
+}: Props) {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,6 +136,9 @@ export default function ContractVersionHistory({ contractId, className }: Props)
         {!loading && currentStatus && contractId ? (
           <ContractActionsButtons
             contractId={contractId}
+            clientId={clientId ?? ""}
+            projectName={projectName ?? "Projeto"}
+            scopeSummary={scopeSummary}
             status={currentStatus}
             onTransitioned={() => void loadHistory()}
           />
