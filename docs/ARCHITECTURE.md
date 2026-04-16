@@ -77,12 +77,33 @@ Definido em `src/App.tsx` com React Router 6 e lazy loading em todos os componen
 
 ### Guards de Autenticação
 
-| Guard                          | Arquivo                                              | Função                                                                                                                                          |
-| ------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ProtectedRoute`               | `components/portal/ProtectedRoute.tsx`               | Verifica se o usuário está autenticado e tem o role base correto (`admin` ou `cliente`). Redireciona para `/login` se não autenticado.          |
-| `MustChangePasswordGuard`      | `components/portal/MustChangePasswordGuard.tsx`      | Redireciona para `/portal/cliente/alterar-senha` se `must_change_password = true` na tabela `clients`.                                          |
-| `MustChangePasswordGuardAdmin` | `components/portal/MustChangePasswordGuardAdmin.tsx` | Mesmo comportamento para membros da equipe (`team_members`).                                                                                    |
-| `PortalRoleGuard`              | `components/portal/PortalRoleGuard.tsx`              | Verifica se o usuário possui um dos `allowedRoles` para a rota específica. Redireciona para a rota padrão do role via `getDefaultAdminRoute()`. |
+| Guard                          | Arquivo                                                   | Função                                                                                                                                          |
+| ------------------------------ | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ProtectedRoute`               | `components/portal/auth/ProtectedRoute.tsx`               | Verifica se o usuário está autenticado e tem o role base correto (`admin` ou `cliente`). Redireciona para `/login` se não autenticado.          |
+| `MustChangePasswordGuard`      | `components/portal/auth/MustChangePasswordGuard.tsx`      | Redireciona para `/portal/cliente/alterar-senha` se `must_change_password = true` na tabela `clients`.                                          |
+| `MustChangePasswordGuardAdmin` | `components/portal/auth/MustChangePasswordGuardAdmin.tsx` | Mesmo comportamento para membros da equipe (`team_members`).                                                                                    |
+| `PortalRoleGuard`              | `components/portal/auth/PortalRoleGuard.tsx`              | Verifica se o usuário possui um dos `allowedRoles` para a rota específica. Redireciona para a rota padrão do role via `getDefaultAdminRoute()`. |
+
+### Componentes do Portal — Estrutura por dominio
+
+```
+src/components/portal/
+  admin/           — Layout, EmptyState, MetricCard, NotificationBell, PageHeader, PortalHome
+  client/          — ClientLayout, ClientRowIndicators
+  auth/            — ProtectedRoute, PortalRoleGuard, MustChangePasswordGuard(Admin)
+  project/         — AcceptanceCard, OnboardingChecklist, SiteLink, StageJourney,
+                     StageProgressDots, SupportCard, TimelineFeed, ValidationRounds
+  contract/        — ActionsButtons, AcceptanceStatusCard, VersionHistory, AddLinkForm
+  proposal/        — ExpiryCountdown, RejectModal
+  notification/    — NotificationBell (cliente)
+  shared/          — StatusBadge, Pagination, Breadcrumbs, Loading, ErrorBoundary,
+                     CollapsibleSection, ExportMenu, MetricTile, NameAvatar,
+                     RecurringBadge, RelativeDate, RowActionMenu, SurfaceStat,
+                     ContactLinks, ProfilePage
+```
+
+Cada subdiretorio agrupa componentes do mesmo dominio de negocio. Imports usam
+o caminho completo: `@/components/portal/project/ProjectAcceptanceCard`.
 
 ---
 
