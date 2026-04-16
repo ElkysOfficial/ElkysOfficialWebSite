@@ -1,7 +1,15 @@
+/**
+ * Pipeline Comercial — kanban com exibicao progressiva.
+ *
+ * Cada coluna mostra inicialmente N cards (responsivo ao viewport)
+ * priorizados por urgencia (overdue → prazo proximo → mais antigo).
+ * O botao "+N" expande/recolhe a coluna para mostrar todos os items.
+ */
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { AgileMono, Clock, FileText, Shield, Target } from "@/assets/icons";
+import { AgileMono, ChevronRight, Clock, FileText, Target } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
@@ -9,6 +17,7 @@ import { Button, Card, CardContent, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { formatBRL, getLocalDateIso } from "@/lib/masks";
+import { sortPipelineItems, getVisibleCardLimit } from "@/lib/pipeline-utils";
 import {
   PROJECT_STATUS_META,
   formatPortalDate,
@@ -57,6 +66,8 @@ type PipelineItem =
       stageLabel: string;
       dateLabel: string | null;
       isOverdue: boolean;
+      sortDate?: string | null;
+      createdAt?: string | null;
       link: string;
     }
   | {
@@ -67,6 +78,8 @@ type PipelineItem =
       status: string;
       value: number;
       dateLabel: string | null;
+      sortDate?: string | null;
+      createdAt?: string | null;
       link: string;
     };
 
@@ -188,6 +201,24 @@ export default function Pipeline() {
   const [items, setItems] = useState<PipelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedCols, setExpandedCols] = useState<Set<ColumnKey>>(new Set());
+  const [visibleLimit, setVisibleLimit] = useState(() => getVisibleCardLimit());
+
+  // Atualizar limite ao redimensionar
+  useEffect(() => {
+    const onResize = () => setVisibleLimit(getVisibleCardLimit());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const toggleColumn = useCallback((key: ColumnKey) => {
+    setExpandedCols((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -252,6 +283,8 @@ export default function Pipeline() {
           !!project.expected_delivery_date &&
           project.expected_delivery_date < todayStr &&
           !project.delivered_at,
+        sortDate: project.expected_delivery_date,
+        createdAt: project.started_at,
         link: `/portal/admin/projetos/${project.id}`,
       });
     }
@@ -281,6 +314,8 @@ export default function Pipeline() {
         status: proposal.status,
         value: Number(proposal.total_amount),
         dateLabel: proposal.sent_at ? `Enviada: ${formatPortalDate(proposal.sent_at)}` : null,
+        sortDate: proposal.sent_at,
+        createdAt: proposal.created_at,
         link: `/portal/admin/propostas/${proposal.id}`,
       });
     }
@@ -308,9 +343,13 @@ export default function Pipeline() {
           map[key].push(item);
         }
       } else {
-        // Proposals go to negociacao column (they represent active negotiations)
         map.negociacao.push(item);
       }
+    }
+
+    // Ordenar cada coluna por prioridade (overdue → prazo → antigo)
+    for (const key of Object.keys(map) as ColumnKey[]) {
+      map[key] = sortPipelineItems(map[key]);
     }
 
     return map;
@@ -400,15 +439,58 @@ export default function Pipeline() {
               </span>
             </div>
 
-            {/* Cards */}
+            {/* Cards — exibicao progressiva */}
             <div className="flex flex-1 flex-col gap-2 px-2 pb-3">
-              {grouped[col.key].length === 0 ? (
-                <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
-                  <p className="text-center text-xs text-muted-foreground">Nenhum projeto</p>
-                </div>
-              ) : (
-                grouped[col.key].map((item) => <PipelineCard key={item.id} item={item} />)
-              )}
+              {(() => {
+                const colItems = grouped[col.key];
+                if (colItems.length === 0) {
+                  return (
+                    <div className="flex flex-1 items-center justify-center rounded-xl bg-muted/20 p-6">
+                      <p className="text-center text-xs text-muted-foreground">Nenhum projeto</p>
+                    </div>
+                  );
+                }
+
+                const isExpanded = expandedCols.has(col.key);
+                const hiddenCount = colItems.length - visibleLimit;
+                const showToggle = hiddenCount > 0;
+                const visibleItems = isExpanded ? colItems : colItems.slice(0, visibleLimit);
+
+                return (
+                  <>
+                    {visibleItems.map((item) => (
+                      <PipelineCard key={item.id} item={item} />
+                    ))}
+                    {showToggle && (
+                      <button
+                        type="button"
+                        onClick={() => toggleColumn(col.key)}
+                        aria-expanded={isExpanded}
+                        aria-label={
+                          isExpanded
+                            ? `Recolher coluna ${col.label}`
+                            : `Mostrar mais ${hiddenCount} itens em ${col.label}`
+                        }
+                        className={cn(
+                          "flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-xs font-semibold transition-all",
+                          "text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5"
+                        )}
+                      >
+                        <ChevronRight
+                          size={14}
+                          className={cn(
+                            "shrink-0 transition-transform duration-200",
+                            isExpanded && "rotate-90"
+                          )}
+                        />
+                        {isExpanded
+                          ? "Recolher"
+                          : `+${hiddenCount} ${hiddenCount === 1 ? "item" : "itens"}`}
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         ))}

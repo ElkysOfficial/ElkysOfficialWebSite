@@ -252,6 +252,7 @@ function ProposalReadOnly({
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={onRequestReject}
               className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -970,7 +971,7 @@ export default function ProposalDetail() {
         </div>
 
         <Link to="/portal/admin/propostas">
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" size="sm">
             Voltar
           </Button>
         </Link>
@@ -1336,6 +1337,7 @@ export default function ProposalDetail() {
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => void handleSaveDraft()}
                 disabled={sending}
                 loading={saving}

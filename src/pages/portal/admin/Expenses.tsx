@@ -639,7 +639,7 @@ export default function AdminExpenses() {
                     ) : null}
 
                     <div className="flex flex-wrap justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={stopEditing}>
+                      <Button type="button" variant="outline" size="sm" onClick={stopEditing}>
                         Cancelar
                       </Button>
                       <Button
@@ -745,6 +745,7 @@ export default function AdminExpenses() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  size="sm"
                   disabled={page === 0}
                   onClick={() => setPage((current) => current - 1)}
                 >
@@ -753,6 +754,7 @@ export default function AdminExpenses() {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   size="sm"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((current) => current + 1)}
