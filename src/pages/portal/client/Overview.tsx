@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
-import { Clock, Folder, Headphones, Receipt } from "@/assets/icons";
+import { Clock, FileText, Folder, Headphones, Receipt } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/AdminEmptyState";
 import MetricTile from "@/components/portal/MetricTile";
 import StatusBadge from "@/components/portal/StatusBadge";
-import { buttonVariants } from "@/design-system";
+import { Button, buttonVariants, Card, CardContent } from "@/design-system";
 import { useClientId } from "@/hooks/useClientId";
 import { useClientOverview } from "@/hooks/useClientOverview";
 import { PROJECT_STATUS_META } from "@/lib/portal";
@@ -35,6 +35,8 @@ export default function ClientOverview() {
   const projects = data?.projects ?? [];
   const charges = data?.charges ?? [];
   const openTickets = data?.openTickets ?? 0;
+  const pendingProposals = data?.pendingProposals ?? [];
+  const pendingContracts = data?.pendingContracts ?? [];
 
   const loading = loadingClient || loadingOverview;
   const pageError = clientError ?? overviewError;
@@ -93,6 +95,58 @@ export default function ClientOverview() {
 
   return (
     <div className="space-y-8">
+      {/* ── Ações pendentes ── */}
+      {(pendingProposals.length > 0 || pendingContracts.length > 0) && (
+        <div className="space-y-3">
+          {pendingProposals.map((p) => (
+            <Card key={p.id} className="border-primary/40 bg-primary/5">
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                    <FileText size={18} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Proposta aguardando sua resposta
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.title} · {formatBRL(Number(p.total_amount))}
+                    </p>
+                  </div>
+                </div>
+                <Link to={`/portal/cliente/propostas/${p.id}`}>
+                  <Button size="sm">Avaliar proposta</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+          {pendingContracts.map((c) => (
+            <Card key={c.id} className="border-warning/40 bg-warning/5">
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-warning/10">
+                    <FileText size={18} className="text-warning" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Contrato aguardando seu aceite
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Revise os termos e confirme o aceite para prosseguir.
+                    </p>
+                  </div>
+                </div>
+                <Link to="/portal/cliente/contratos">
+                  <Button size="sm" variant="outline">
+                    Revisar contrato
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       {/* ── Metrics ── */}
       <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <MetricTile
