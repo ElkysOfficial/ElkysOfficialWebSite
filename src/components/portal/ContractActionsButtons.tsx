@@ -3,11 +3,15 @@ import { toast } from "sonner";
 
 import { Button, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
 type ContractStatus = "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
 
 type Props = {
   contractId: string;
+  clientId: string;
+  projectName: string;
+  scopeSummary?: string | null;
   status: ContractStatus | null;
   onTransitioned?: () => void;
   className?: string;
@@ -23,6 +27,9 @@ type Props = {
  */
 export default function ContractActionsButtons({
   contractId,
+  clientId,
+  projectName,
+  scopeSummary,
   status,
   onTransitioned,
   className,
@@ -49,6 +56,25 @@ export default function ContractActionsButtons({
         return;
       }
       toast.success(`Contrato ${toStatus}.`);
+
+      // Enviar email ao cliente quando contrato é enviado para validação
+      if (toStatus === "em_validacao" && clientId) {
+        try {
+          const headers = await getSupabaseFunctionAuthHeaders();
+          void supabase.functions.invoke("send-contract-validation", {
+            body: {
+              contract_id: contractId,
+              client_id: clientId,
+              project_name: projectName,
+              scope_summary: scopeSummary ?? undefined,
+            },
+            headers,
+          });
+        } catch {
+          // Fire-and-forget
+        }
+      }
+
       onTransitioned?.();
     } finally {
       setSubmitting(false);

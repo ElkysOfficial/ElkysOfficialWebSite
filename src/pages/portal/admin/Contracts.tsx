@@ -541,6 +541,9 @@ export default function Contracts() {
                   <div className="flex flex-wrap items-center gap-2">
                     <ContractActionsButtons
                       contractId={contract.id}
+                      clientId={contract.client_id}
+                      projectName={project?.name ?? "Projeto"}
+                      scopeSummary={contract.scope_summary}
                       status={contract.status}
                       onTransitioned={() => void loadAll()}
                     />
@@ -554,7 +557,14 @@ export default function Contracts() {
                     />
                   </div>
 
-                  {isExpanded ? <ContractVersionHistory contractId={contract.id} /> : null}
+                  {isExpanded ? (
+                    <ContractVersionHistory
+                      contractId={contract.id}
+                      clientId={contract.client_id}
+                      projectName={project?.name}
+                      scopeSummary={contract.scope_summary}
+                    />
+                  ) : null}
                 </CardContent>
               </Card>
             );

@@ -2667,7 +2667,14 @@ export default function AdminProjectDetail() {
           ) : null}
         </Card>
 
-        {contracts[0] ? <ContractVersionHistory contractId={contracts[0].id} /> : null}
+        {contracts[0] ? (
+          <ContractVersionHistory
+            contractId={contracts[0].id}
+            clientId={project?.client_id}
+            projectName={project?.name}
+            scopeSummary={contracts[0].scope_summary}
+          />
+        ) : null}
 
         {project ? (
           <ProjectOnboardingChecklist
