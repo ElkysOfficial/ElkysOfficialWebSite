@@ -174,7 +174,7 @@ const PortalRoutes = () => (
         <Route
           path="documentos/desenvolvedor"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer", "designer"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer", "designer", "po"]}>
               <AdminInternalDocuments audience="developer" />
             </PortalRoleGuard>
           }

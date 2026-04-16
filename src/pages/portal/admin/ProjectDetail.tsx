@@ -399,6 +399,9 @@ export default function AdminProjectDetail() {
   const [documents, setDocuments] = useState<Database["public"]["Tables"]["documents"]["Row"][]>(
     []
   );
+  const [projectDiagnosis, setProjectDiagnosis] = useState<Record<string, string | null> | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -593,6 +596,29 @@ export default function AdminProjectDetail() {
     const managedProjectSubscription = getManagedSubscription(subscriptionsRes.subscriptions);
 
     setProject(projectRes.project);
+
+    // Carregar diagnóstico do lead vinculado à proposta (se houver)
+    const projProposalId = (projectRes.project as { proposal_id?: string | null }).proposal_id;
+    if (projProposalId) {
+      const { data: proposalData } = await supabase
+        .from("proposals")
+        .select("lead_id")
+        .eq("id", projProposalId)
+        .maybeSingle();
+      if (proposalData?.lead_id) {
+        const { data: leadData } = await supabase
+          .from("leads")
+          .select("diagnosis")
+          .eq("id", proposalData.lead_id)
+          .maybeSingle();
+        setProjectDiagnosis((leadData?.diagnosis as Record<string, string | null> | null) ?? null);
+      } else {
+        setProjectDiagnosis(null);
+      }
+    } else {
+      setProjectDiagnosis(null);
+    }
+
     setClient((clientRes.data as PortalClient | null) ?? null);
     setContracts(contractsRes.contracts);
     setInstallments(installmentsRes.installments);
@@ -2982,10 +3008,75 @@ export default function AdminProjectDetail() {
       </div>
 
       {tab === "detalhes" ? (
-        <div className="grid gap-6 xl:grid-cols-2 [&>*>*]:h-full">
-          <div className="space-y-6">{summaryCard}</div>
-          <div className="space-y-6">{detailsWorkspaceCard}</div>
-        </div>
+        <>
+          <div className="grid gap-6 xl:grid-cols-2 [&>*>*]:h-full">
+            <div className="space-y-6">{summaryCard}</div>
+            <div className="space-y-6">{detailsWorkspaceCard}</div>
+          </div>
+
+          {/* Diagnóstico do lead — contexto herdado da negociação */}
+          {projectDiagnosis && Object.values(projectDiagnosis).some(Boolean) && (
+            <Card className="mt-6 rounded-2xl border-accent/20 bg-accent/5">
+              <CardContent className="space-y-3 p-4 sm:p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-accent">
+                  Contexto do diagnóstico comercial
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {projectDiagnosis.context && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Contexto
+                      </p>
+                      <p className="text-xs text-foreground">{projectDiagnosis.context}</p>
+                    </div>
+                  )}
+                  {projectDiagnosis.problem && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Problema
+                      </p>
+                      <p className="text-xs text-foreground">{projectDiagnosis.problem}</p>
+                    </div>
+                  )}
+                  {projectDiagnosis.objective && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Objetivo
+                      </p>
+                      <p className="text-xs text-foreground">{projectDiagnosis.objective}</p>
+                    </div>
+                  )}
+                  {projectDiagnosis.business_impact && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Impacto no negócio
+                      </p>
+                      <p className="text-xs text-foreground">{projectDiagnosis.business_impact}</p>
+                    </div>
+                  )}
+                  {projectDiagnosis.constraints && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Restrições
+                      </p>
+                      <p className="text-xs text-foreground">{projectDiagnosis.constraints}</p>
+                    </div>
+                  )}
+                  {projectDiagnosis.urgency && (
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        Urgência
+                      </p>
+                      <p className="text-xs capitalize text-foreground">
+                        {projectDiagnosis.urgency}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : null}
 
       {tab === "financeiro" ? (
