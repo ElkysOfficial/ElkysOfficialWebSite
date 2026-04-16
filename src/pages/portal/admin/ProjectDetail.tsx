@@ -991,6 +991,68 @@ export default function AdminProjectDetail() {
         }
       }
 
+      // ── Tarefas automáticas em transições de stage/status ──
+
+      // Stage → Validação: criar tarefa para solicitar validação
+      if (previousStage !== nextStage && nextStage === "Validacao & ativacao") {
+        void supabase.from("team_tasks").insert({
+          title: `Solicitar validação do cliente - ${projectForm.name.trim()}`,
+          description: `O projeto "${projectForm.name.trim()}" entrou na etapa de validação. Solicite a aprovação do cliente para os entregáveis.`,
+          category: "desenvolvimento",
+          status: "pendente",
+          priority: "alta",
+          project_id: project.id,
+          client_id: client.id,
+          role_visibility: ["admin_super", "admin", "developer", "po"],
+          due_date: getLocalDateIso(new Date(Date.now() + 5 * 86400000)),
+          created_by: user?.id ?? null,
+        });
+      }
+
+      // Status → Concluído: tarefas para marketing e comercial
+      if (previousStatus !== "concluido" && nextStatus === "concluido") {
+        void supabase.from("team_tasks").insert([
+          {
+            title: `Criar case de sucesso - ${projectForm.name.trim()}`,
+            description: `O projeto "${projectForm.name.trim()}" foi concluído. Avalie se pode ser transformado em case para o portfólio da Elkys.`,
+            category: "marketing",
+            status: "pendente",
+            priority: "media",
+            project_id: project.id,
+            client_id: client.id,
+            role_visibility: ["admin_super", "admin", "marketing"],
+            due_date: getLocalDateIso(new Date(Date.now() + 15 * 86400000)),
+            created_by: user?.id ?? null,
+          },
+          {
+            title: `Identificar expansão - ${projectForm.name.trim()}`,
+            description: `O projeto "${projectForm.name.trim()}" foi entregue. Verifique oportunidades de upsell ou novos projetos com este cliente.`,
+            category: "comercial",
+            status: "pendente",
+            priority: "media",
+            project_id: project.id,
+            client_id: client.id,
+            role_visibility: ["admin_super", "admin", "comercial"],
+            due_date: getLocalDateIso(new Date(Date.now() + 30 * 86400000)),
+            created_by: user?.id ?? null,
+          },
+        ]);
+      }
+
+      // Status → Pausado: notificação para admin e financeiro
+      if (previousStatus !== "pausado" && nextStatus === "pausado") {
+        void supabase.from("admin_notifications").insert({
+          type: "projeto_pausado",
+          title: `Projeto pausado: ${projectForm.name.trim()}`,
+          body: `O projeto "${projectForm.name.trim()}" foi pausado. Verifique impacto em cobranças e cronograma.`,
+          severity: "warning",
+          target_roles: ["admin_super", "admin", "financeiro"],
+          entity_type: "project",
+          entity_id: project.id,
+          action_url: `/portal/admin/projetos/${project.id}`,
+        });
+      }
+
       toast.success("Projeto atualizado.");
       await loadProject();
       setProjectUpdateOpen(false);
