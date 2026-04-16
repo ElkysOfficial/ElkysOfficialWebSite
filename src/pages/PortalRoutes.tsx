@@ -174,7 +174,7 @@ const PortalRoutes = () => (
         <Route
           path="documentos/desenvolvedor"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer", "designer"]}>
               <AdminInternalDocuments audience="developer" />
             </PortalRoleGuard>
           }
@@ -182,7 +182,7 @@ const PortalRoutes = () => (
         <Route
           path="clientes"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro", "comercial"]}>
               <AdminClients />
             </PortalRoleGuard>
           }
@@ -198,7 +198,7 @@ const PortalRoutes = () => (
         <Route
           path="clientes/:id"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro", "comercial"]}>
               <AdminClientDetail />
             </PortalRoleGuard>
           }
@@ -206,7 +206,7 @@ const PortalRoutes = () => (
         <Route
           path="projetos"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer", "designer", "po"]}>
               <AdminProjects />
             </PortalRoleGuard>
           }
@@ -222,7 +222,7 @@ const PortalRoutes = () => (
         <Route
           path="projetos/:id"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "developer", "designer", "po"]}>
               <AdminProjectDetail />
             </PortalRoleGuard>
           }
@@ -230,7 +230,7 @@ const PortalRoutes = () => (
         <Route
           path="financeiro"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro"]}>
               <AdminFinance />
             </PortalRoleGuard>
           }
@@ -246,7 +246,7 @@ const PortalRoutes = () => (
         <Route
           path="despesas"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro"]}>
               <Navigate to="/portal/admin/financeiro" replace state={{ financeTab: "despesas" }} />
             </PortalRoleGuard>
           }
@@ -333,7 +333,7 @@ const PortalRoutes = () => (
         <Route
           path="cobranca-automatica"
           element={
-            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
+            <PortalRoleGuard allowedRoles={["admin_super", "admin", "financeiro"]}>
               <AdminBillingAutomation />
             </PortalRoleGuard>
           }
