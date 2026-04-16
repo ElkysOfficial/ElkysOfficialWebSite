@@ -115,8 +115,21 @@ export default function ProposalView() {
         return;
       }
 
-      setProposal(data as ProposalRow);
+      const proposalData = data as ProposalRow;
+      setProposal(proposalData);
       setLoading(false);
+
+      // Marcar como visualizada pelo cliente (primeira vez, fire-and-forget)
+      if (
+        proposalData.status === "enviada" &&
+        !(proposalData as { viewed_at?: string | null }).viewed_at
+      ) {
+        void supabase
+          .from("proposals")
+          .update({ viewed_at: new Date().toISOString() })
+          .eq("id", proposalData.id)
+          .eq("client_id", resolvedCid);
+      }
     };
 
     void initialLoad();
