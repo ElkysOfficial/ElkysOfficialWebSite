@@ -4,7 +4,9 @@ import { Button, Card, CardContent, HexPattern } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
+
+// Asset servido direto de public/ — evita duplicacao no bundle.
+const backgroundPattern = "/imgs/icons/hexagonal.webp";
 
 /**
  * Cases Page - Portfolio de Projetos Elkys

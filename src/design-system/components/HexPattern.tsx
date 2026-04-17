@@ -1,5 +1,7 @@
 import { cn } from "@/design-system/utils/cn";
-import hexagonalBg from "../../../public/imgs/icons/hexagonal.webp";
+
+// Asset servido direto de public/ — evita duplicacao no bundle.
+const hexagonalBg = "/imgs/icons/hexagonal.webp";
 
 export interface HexPatternProps {
   /** Variante semântica do padrão hexagonal decorativo */

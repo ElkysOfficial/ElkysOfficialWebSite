@@ -30,8 +30,10 @@ const queryClient = new QueryClient({
       staleTime: 2 * 60 * 1000,
       // Keep inactive data in memory for 10 minutes
       gcTime: 10 * 60 * 1000,
-      // Background refetch when user returns to tab (only if stale)
-      refetchOnWindowFocus: "always",
+      // Background refetch when user returns to tab — apenas se stale
+      // (coerente com staleTime; antes estava "always", que forcava refetch
+      // mesmo dentro da janela fresca, contradizendo a intencao do staleTime).
+      refetchOnWindowFocus: true,
       // Don't refetch on mount if data is still fresh
       refetchOnMount: true,
       // Single retry on failure
