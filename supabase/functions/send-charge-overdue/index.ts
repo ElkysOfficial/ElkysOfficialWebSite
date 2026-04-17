@@ -13,6 +13,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { isServiceRoleRequest, requireOperationalAccess } from "../_shared/auth.ts";
 
 interface Payload {
   client_id: string;
@@ -37,6 +38,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
+    // Autenticacao: aceita cron (service-role) ou usuario operacional (admin/team).
+    // Sem isso qualquer requisicao anonima conseguiria disparar email em nome da Elkys.
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireOperationalAccess(req, CORS);
+      if (auth instanceof Response) return auth;
+    }
+
     const { client_id, charge_description, charge_amount, due_date } =
       (await req.json()) as Payload;
 

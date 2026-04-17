@@ -21,6 +21,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { escapeHtml } from "../_shared/validation.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
 
 interface Payload {
   ticket_id: string;
@@ -33,6 +34,11 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
+    // Cliente invoca ao abrir ticket. Aceita qualquer usuario autenticado valido
+    // (role nao e necessaria aqui — a origem do ticket ja e validada via RLS no insert).
+    const auth = await requireAuthenticatedUser(req, CORS);
+    if (auth instanceof Response) return auth;
+
     const { ticket_id, client_id, subject, body } = (await req.json()) as Payload;
 
     if (!ticket_id || !client_id || !subject || !body) {

@@ -13,6 +13,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { escapeHtml } from "../_shared/validation.ts";
+import { requireOperationalAccess } from "../_shared/auth.ts";
 
 type EventType = "em_andamento" | "resolvido" | "reply";
 
@@ -32,6 +33,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
+    // Acao operacional: apenas team (admin/support/etc) pode notificar cliente.
+    const auth = await requireOperationalAccess(req, CORS);
+    if (auth instanceof Response) return auth;
+
     const { ticket_id, event, reply_body } = (await req.json()) as Payload;
 
     const VALID_EVENTS: EventType[] = ["em_andamento", "resolvido", "reply"];
