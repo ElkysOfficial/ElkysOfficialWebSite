@@ -156,6 +156,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /**
+   * Detecta erros transientes que nao sao bugs reais: aborts de fetch em
+   * navegacao SPA (quando o usuario muda de rota antes da query completar),
+   * erros de rede intermitente, etc. Esses erros poluem o console sem valor
+   * diagnostico — sao esperados em navegacao rapida.
+   */
+  const isTransientFetchError = (error: unknown): boolean => {
+    if (!error) return false;
+    const msg = error instanceof Error ? error.message : String(error);
+    const name = error instanceof Error ? error.name : "";
+    return (
+      name === "AbortError" ||
+      msg.includes("Failed to fetch") ||
+      msg.includes("NetworkError") ||
+      msg.includes("net::ERR_")
+    );
+  };
+
   const handleSignOut = useCallback(async () => {
     clearTimeout(inactivityTimer.current);
     clearTimeout(warningTimer.current);
@@ -218,10 +236,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         updateState(session.user, session, roles);
       } catch (error) {
-        console.error("Failed to resolve auth state", error);
-
+        // Se ja ha outra resolucao em andamento (syncId obsoleto), este erro
+        // e apenas consequencia do fetch abortado pela navegacao — nao e bug
+        // real, a nova resolucao vai cuidar.
         if (syncId !== authSyncId.current) return;
 
+        // Aborts de fetch (navegacao SPA) e erros de rede transientes nao
+        // devem poluir o console — sao transientes por design. O state
+        // permanece como estava e a proxima interacao tentara de novo.
+        if (isTransientFetchError(error)) return;
+
+        console.error("Failed to resolve auth state", error);
         updateState(null, null, []);
       }
     },
@@ -296,7 +321,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void resolveSessionState(session);
       })
       .catch((error) => {
-        console.error("Failed to bootstrap auth session", error);
+        // Aborts/erros de rede transientes nao poluem o console — o proximo
+        // onAuthStateChange vai resolver. Bugs reais continuam sendo logados.
+        if (!isTransientFetchError(error)) {
+          console.error("Failed to bootstrap auth session", error);
+        }
         if (active) setState((prev) => ({ ...prev, isLoading: false }));
       });
 
