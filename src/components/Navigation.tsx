@@ -4,8 +4,9 @@ import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button, cn } from "@/design-system";
 import { services } from "@/data/services";
-import letteringPurple from "../../public/imgs/icons/lettering_elkys_purple.webp";
-import letteringWhite from "../../public/imgs/icons/lettering_elkys.webp";
+// Assets servidos direto de public/ — evita duplicacao no bundle.
+const letteringPurple = "/imgs/icons/lettering_elkys_purple.webp";
+const letteringWhite = "/imgs/icons/lettering_elkys.webp";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

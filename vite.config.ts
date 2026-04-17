@@ -169,6 +169,19 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       minify: isMinified ? "terser" : "esbuild",
       cssMinify: true,
+      // Com manualChunks definido, Vite por padrao gera <link modulepreload>
+      // para TODOS os vendor chunks no entry HTML. Isso forca a landing a
+      // baixar recharts-vendor (362 KB / 108 KB gzip) mesmo nunca usando
+      // charts. Filtrar manualmente o que nao e necessario no first paint
+      // da landing: recharts e supabase-vendor so aparecem em rotas
+      // autenticadas (React.lazy cuida do carregamento on-demand).
+      modulePreload: {
+        resolveDependencies: (_filename, deps) => {
+          return deps.filter(
+            (dep) => !dep.includes("recharts-vendor") && !dep.includes("supabase-vendor")
+          );
+        },
+      },
       rollupOptions: {
         output: {
           manualChunks: {
