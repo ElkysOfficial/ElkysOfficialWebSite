@@ -4,9 +4,30 @@ const path = require('path');
 const BASE_URL = 'https://elkys.com.br';
 const DIST_DIR = path.join(__dirname, '../dist');
 const PUBLIC_DIR = path.join(__dirname, '../public');
+const SERVICES_FILE = path.join(__dirname, '../src/data/services.ts');
 
-// Routes configuration
-const routes = [
+/**
+ * Extrai slugs de servicos do arquivo TS via regex. Evita depender de transpilar
+ * TypeScript no build do sitemap (mantem o script simples em CommonJS).
+ */
+function extractServiceSlugs() {
+  try {
+    const content = fs.readFileSync(SERVICES_FILE, 'utf8');
+    const regex = /slug:\s*["']([^"']+)["']/g;
+    const slugs = [];
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      slugs.push(match[1]);
+    }
+    return slugs;
+  } catch (err) {
+    console.warn('⚠️  Nao foi possivel ler services.ts, sitemap sem rotas dinamicas:', err.message);
+    return [];
+  }
+}
+
+// Routes configuration (estaticas + derivadas de src/data/services.ts)
+const staticRoutes = [
   {
     path: '/',
     changefreq: 'weekly',
@@ -16,6 +37,11 @@ const routes = [
     path: '/cases',
     changefreq: 'monthly',
     priority: 0.8,
+  },
+  {
+    path: '/como-trabalhamos',
+    changefreq: 'monthly',
+    priority: 0.7,
   },
   {
     path: '/terms-of-service',
@@ -33,6 +59,14 @@ const routes = [
     priority: 0.3,
   },
 ];
+
+const serviceRoutes = extractServiceSlugs().map((slug) => ({
+  path: `/servicos/${slug}`,
+  changefreq: 'monthly',
+  priority: 0.7,
+}));
+
+const routes = [...staticRoutes, ...serviceRoutes];
 
 function generateSitemap() {
   const today = new Date().toISOString().split('T')[0];
