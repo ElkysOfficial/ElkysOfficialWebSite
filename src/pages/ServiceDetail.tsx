@@ -6,7 +6,9 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import ServiceProcess from "@/components/ServiceProcess";
 import { getServiceBySlug } from "@/data/services";
-import backgroundPattern from "../../public/imgs/icons/hexagonal.webp";
+
+// Asset servido direto de public/ — evita duplicacao no bundle.
+const backgroundPattern = "/imgs/icons/hexagonal.webp";
 
 const ServiceDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -47,21 +49,21 @@ const ServiceDetail = () => {
         <Navigation />
         <main id="main-content">
           {/* Hero Section */}
-          <section className="min-h-[60vh] flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
+          <section className="min-h-[60svh] flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
             {/* Decorative background spheres */}
             <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl animate-float will-change-transform" />
+              <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl animate-float" />
               <div
-                className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-2xl animate-float will-change-transform"
+                className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-2xl animate-float"
                 style={{ animationDelay: "1s" }}
               />
               <div
-                className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-3xl animate-float will-change-transform"
+                className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-3xl animate-float"
                 style={{ animationDelay: "2s" }}
               />
             </div>
 
-            {/* Hexagonal pattern */}
+            {/* Hexagonal pattern — fundo decorativo, nao e LCP */}
             <div className="absolute -bottom-[400px] xs:-bottom-[500px] sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[600px] left-[30px] xs:left-[50px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[190px] scale-[1.75] xs:scale-[1.6] sm:scale-[1.25] md:scale-[1.6] lg:scale-[2] xl:scale-[0.8] 2xl:scale-[0.8] origin-bottom-left sm:origin-top-left">
               <img
                 src={backgroundPattern}
@@ -70,8 +72,7 @@ const ServiceDetail = () => {
                 width={1200}
                 height={1200}
                 loading="eager"
-                {...{ fetchpriority: "high" }}
-                className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15 will-change-transform"
+                className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
                 style={{ filter: "drop-shadow(0 0 40px hsl(var(--primary) / 0.3))" }}
               />
             </div>

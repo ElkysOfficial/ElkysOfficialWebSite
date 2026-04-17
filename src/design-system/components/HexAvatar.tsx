@@ -1,7 +1,9 @@
 import * as React from "react";
 
-import hexagonalBg from "../../../public/imgs/icons/hexagonal.webp";
 import { cn } from "@/design-system/utils/cn";
+
+// Asset servido direto de public/ — evita duplicacao no bundle.
+const hexagonalBg = "/imgs/icons/hexagonal.webp";
 
 const sizeStyles = {
   sm: "h-10 w-10",

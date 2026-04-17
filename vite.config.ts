@@ -176,6 +176,10 @@ export default defineConfig(({ mode }) => {
             "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
             "supabase-vendor": ["@supabase/supabase-js"],
             "query-vendor": ["@tanstack/react-query"],
+            // recharts e usado em Overview e Finance do admin. Isolar em chunk
+            // separado garante cache compartilhado entre as rotas admin e evita
+            // duplicacao silenciosa no bundle conforme o tree-shaking do Rollup.
+            "recharts-vendor": ["recharts"],
           },
         },
       },

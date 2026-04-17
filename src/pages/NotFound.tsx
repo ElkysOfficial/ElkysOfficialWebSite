@@ -4,7 +4,9 @@ import { Home, ArrowLeft } from "@/assets/icons";
 import { buttonVariants, cn } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import hexSrc from "../../public/imgs/icons/hexagonal.webp";
+
+// Asset servido direto de public/ — evita duplicacao no bundle.
+const hexSrc = "/imgs/icons/hexagonal.webp";
 
 /* ── Pixel grids (7 rows × 5 cols) ── */
 const DIGIT: Record<string, number[][]> = {
