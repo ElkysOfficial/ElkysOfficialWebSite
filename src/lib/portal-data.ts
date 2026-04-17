@@ -23,8 +23,38 @@ import type {
 
 type PortalTicket = Database["public"]["Tables"]["support_tickets"]["Row"];
 
-/** Resolve o registro `clients` vinculado ao auth user (via user_id ou client_contacts). */
+/**
+ * Resolve o registro `clients` vinculado ao auth user (via user_id direto
+ * ou client_contacts.auth_user_id).
+ *
+ * Usa o RPC get_client_for_portal_user que consolida o lookup em 1
+ * round-trip. Se o RPC falhar com "function does not exist" (migration
+ * ainda nao aplicada), cai no fluxo antigo de 2-3 queries sequenciais.
+ * O fallback pode ser removido quando a migration estiver em producao.
+ */
 export async function resolveClientForUser(userId: string) {
+  const rpcRes = await supabase
+    .rpc("get_client_for_portal_user", { _user_id: userId })
+    .maybeSingle();
+
+  // Sucesso do RPC (inclui caso data = null = usuario nao vinculado)
+  if (!rpcRes.error) {
+    return { client: (rpcRes.data as PortalClient | null) ?? null, error: null };
+  }
+
+  // Fallback quando RPC nao existe: 42883 = undefined_function no Postgres.
+  // Remover este bloco depois que a migration 20260419000000_get_client_for_portal_user
+  // estiver aplicada em todos os ambientes (prod + staging).
+  const isMissingRpc =
+    rpcRes.error.code === "42883" ||
+    rpcRes.error.message?.includes("function") ||
+    rpcRes.error.message?.includes("does not exist");
+
+  if (!isMissingRpc) {
+    return { client: null, error: rpcRes.error };
+  }
+
+  // Fluxo legado: 3 queries sequenciais
   const directClientRes = await supabase
     .from("clients")
     .select("*")
@@ -39,8 +69,6 @@ export async function resolveClientForUser(userId: string) {
     return { client: null, error: directClientRes.error };
   }
 
-  // Resolve via client_contacts — any linked contact, primary first.
-  // Aligns with the RLS function get_client_id_for_portal_user which does not filter is_primary.
   const contactRes = await supabase
     .from("client_contacts")
     .select("client_id")
