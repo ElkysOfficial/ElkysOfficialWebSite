@@ -13,10 +13,12 @@ const CookieConsent = () => {
 
     // Show banner only if user hasn't given consent yet
     if (!hasConsent) {
-      // Delay showing banner to not block initial render
+      // Delay > 2500ms tira o banner da janela de medicao de CLS do
+      // PageSpeed/Web Vitals (que considera os primeiros 2.5s). Tambem
+      // permite LCP pintar sem competir pelo main thread.
       const timer = setTimeout(() => {
         setIsVisible(true);
-      }, 1500);
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -45,8 +47,8 @@ const CookieConsent = () => {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 p-4 transition-all duration-300 ${
-        isClosing ? "translate-y-full opacity-0" : "translate-y-0 opacity-100"
+      className={`fixed bottom-0 left-0 right-0 z-50 p-4 transition-opacity duration-300 ${
+        isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
       aria-label="Banner de consentimento de cookies"

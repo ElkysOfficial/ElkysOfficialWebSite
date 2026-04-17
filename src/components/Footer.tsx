@@ -48,7 +48,7 @@ const Footer = () => {
                 }
                 alt="Elkys"
                 width={80}
-                height={40}
+                height={80}
                 loading="lazy"
                 className="h-14 w-auto transition-all duration-300"
               />

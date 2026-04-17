@@ -46,6 +46,16 @@ jobs:
         id: install
         run: npm ci
 
+      # Chromium requerido pelo scripts/prerender.cjs (Fase 4) para gerar
+      # HTML estatico das rotas publicas (LCP + SEO + share preview). Se
+      # falhar aqui, o script e graceful: warning + build continua sem
+      # pre-render. continue-on-error para nao bloquear deploy em caso de
+      # problema transiente no download do browser.
+      - name: Install Chromium for prerender
+        id: install_chromium
+        continue-on-error: true
+        run: npx playwright install chromium
+
       - name: Lint
         id: lint
         continue-on-error: true

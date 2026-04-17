@@ -46,9 +46,12 @@ const Hero = () => {
           src={backgroundPattern}
           alt=""
           aria-hidden="true"
-          width={1200}
-          height={1200}
+          width={1024}
+          height={1024}
           loading="eager"
+          // fetchpriority=low: decorativo e grande — sem o hint, Chrome pode
+          // identifica-lo como LCP candidate, competindo com o <h1> real.
+          {...{ fetchpriority: "low" }}
           className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
           style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
         />
