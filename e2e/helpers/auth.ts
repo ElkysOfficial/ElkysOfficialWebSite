@@ -114,34 +114,79 @@ export async function assertNoCrash(page: Page) {
 /**
  * Captura erros de console (TypeError, ReferenceError, etc).
  * Retorna array de mensagens de erro para verificação posterior.
+ *
+ * Alem de armazenar, imprime EM TEMPO REAL no stdout todos os eventos
+ * de console (error, warn, log, info, pageerror, HTTP failures) para
+ * visibilidade total durante o E2E. Apenas erros criticos entram no
+ * array retornado (que sera validado por assertNoConsoleErrors).
  */
 export function captureConsoleErrors(page: Page): string[] {
   const errors: string[] = [];
+
   page.on("pageerror", (err) => {
-    errors.push(`[pageerror] ${err.message}`);
+    const msg = `[pageerror] ${err.message}`;
+
+    console.log(`  🔴 ${msg}`);
+    if (err.stack) {
+      console.log(`     ${err.stack.split("\n").slice(0, 4).join("\n     ")}`);
+    }
+    errors.push(msg);
   });
+
   page.on("console", (msg) => {
-    if (msg.type() === "error") {
-      const text = msg.text();
-      // Ignorar erros de infra/rede (não são bugs da aplicação)
-      if (text.includes("favicon")) return;
-      if (text.includes("Content Security Policy")) return; // CSP requer deploy do .htaccess corrigido
-      if (text.includes("net::ERR_")) return; // Erros de rede transientes
-      if (text.includes("NetworkError")) return;
-      if (text.includes("Failed to fetch")) return; // Rede transiente (Supabase refresh token)
+    const type = msg.type();
+    const text = msg.text();
+
+    // Filtro de ruido para o log — esconde mensagens de infra/ambiente que nao
+    // sao bugs do app (evita poluir o output com centenas de linhas irrelevantes).
+    const isNoise =
+      text.includes("favicon") ||
+      text.includes("Content Security Policy") ||
+      text.includes("net::ERR_") ||
+      text.includes("NetworkError") ||
+      text.includes("Failed to fetch") ||
+      text.includes("Failed to load resource") || // GTM/GA DNS fail em ambiente local
+      text.includes("Failed to resolve auth state"); // AbortError em navegacao SPA rapida
+
+    if (!isNoise) {
+      const icon =
+        type === "error" ? "🔴" : type === "warning" ? "🟡" : type === "info" ? "🔵" : "⚪";
+
+      console.log(`  ${icon} [console.${type}] ${text}`);
+    }
+
+    if (type === "error" && !isNoise) {
       errors.push(`[console.error] ${text}`);
     }
   });
+
   // Capturar requests HTTP que falharam com detalhes da URL
   page.on("response", (response) => {
     const status = response.status();
     if (status >= 400 && status !== 404) {
       const url = response.url();
-      // Ignorar GA/tracking e favicon
+      // Imprimir todas as falhas HTTP (exceto GA/favicon) para visibilidade
       if (url.includes("google") || url.includes("favicon")) return;
+
+      console.log(`  🔴 [HTTP ${status}] ${url}`);
       errors.push(`[HTTP ${status}] ${url}`);
     }
   });
+
+  // Capturar requests que falharam antes de receber response (DNS, network, etc)
+  // Imprime URL + motivo para identificar quais hosts nao resolvem
+  page.on("requestfailed", (req) => {
+    const failure = req.failure();
+    const errorText = failure?.errorText ?? "unknown";
+    const url = req.url();
+    // Ignorar ruido previsivel: GA/GTM (DNS pode falhar em ambiente local, sem
+    // impacto funcional) e ERR_ABORTED (navegacao SPA aborta fetch, esperado).
+    if (url.includes("google") || url.includes("favicon")) return;
+    if (errorText === "net::ERR_ABORTED") return;
+
+    console.log(`  🟠 [requestfailed] ${errorText} → ${url}`);
+  });
+
   return errors;
 }
 

@@ -23,16 +23,74 @@ function getBearerToken(req: Request) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
 
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme !== "Bearer" || !token) return null;
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (!match) return null;
+  const token = match[1].trim();
+  return token.length > 0 ? token : null;
+}
 
-  return token;
+/**
+ * Compara duas strings em tempo constante para evitar timing attacks.
+ * Usar sempre que comparar segredos (tokens, API keys, etc).
+ */
+export function timingSafeEqualStr(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+/**
+ * Detecta se a request traz o service-role key como Bearer.
+ * Usado por cron/triggers SQL que chamam a função com service-role.
+ * Comparacao constant-time para mitigar timing attack.
+ */
+export function isServiceRoleRequest(req: Request): boolean {
+  const token = getBearerToken(req);
+  if (!token) return false;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!serviceKey) return false;
+  return timingSafeEqualStr(token, serviceKey);
 }
 
 export function createServiceRoleClient() {
   return createClient(getEnv("SUPABASE_URL"), getEnv("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+/**
+ * Valida que o request traz um Bearer token de usuário autenticado valido.
+ * Nao exige role especifica — util para funcoes invocadas por qualquer
+ * usuario logado (ex: cliente abrindo ticket).
+ * Retorna { user, adminClient } em sucesso, ou Response de erro.
+ */
+export async function requireAuthenticatedUser(req: Request, headers: JsonHeaders) {
+  try {
+    const token = getBearerToken(req);
+    if (!token) {
+      return jsonResponse({ error: "Missing authorization header" }, 401, headers);
+    }
+
+    const adminClient = createServiceRoleClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await adminClient.auth.getUser(token);
+
+    if (userError || !user) {
+      return jsonResponse({ error: "Invalid or expired session" }, 401, headers);
+    }
+
+    return { user, adminClient };
+  } catch (error) {
+    console.error("[auth] unexpected authorization failure", error);
+    return jsonResponse({ error: "Internal error" }, 500, headers);
+  }
 }
 
 export async function requireAdminAccess(req: Request, headers: JsonHeaders) {

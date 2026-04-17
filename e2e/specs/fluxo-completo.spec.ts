@@ -95,6 +95,17 @@ test.describe.serial("Fluxo Multi-Persona Completo", () => {
   // Captura erros de console em TODOS os testes com browser
   let consoleErrors: string[] = [];
   test.beforeEach(async ({ page }) => {
+    // Pré-aceita cookies ANTES da primeira navegação para evitar race condition:
+    // o banner tem delay de 1500ms e reaparece a cada context novo do Playwright,
+    // interceptando clicks em elementos logo apos login.
+    await page.addInitScript(() => {
+      try {
+        window.localStorage.setItem("cookie-consent", "accepted");
+        window.localStorage.setItem("cookie-consent-date", new Date().toISOString());
+      } catch {
+        /* localStorage indisponivel */
+      }
+    });
     consoleErrors = captureConsoleErrors(page);
   });
   test.afterEach(async ({ page: _page }, testInfo) => {
@@ -136,6 +147,12 @@ test.describe.serial("Fluxo Multi-Persona Completo", () => {
     await waitForPortalLoad(page);
     await page.locator(`a:has-text("${LEAD_NAME}")`).first().click();
     await waitForPortalLoad(page);
+    // LeadDetail abre na aba "Dados" por padrão; o formulário de diagnóstico
+    // só renderiza quando tab === "diagnostico" (LeadDetail.tsx:825).
+    await page
+      .getByRole("button", { name: /Diagnóstico/ })
+      .first()
+      .click();
     const ctx = page.locator('textarea[placeholder*="Quem"]');
     await ctx.scrollIntoViewIfNeeded();
     await ctx.fill(`${TEST_MARKER} - Sistema web para gestão de pedidos`);

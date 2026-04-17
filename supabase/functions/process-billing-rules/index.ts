@@ -1,5 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
+import {
+  requireAdminAccess,
+  createServiceRoleClient,
+  isServiceRoleRequest,
+} from "../_shared/auth.ts";
 import { buildEmail, sendEmail } from "../_shared/email-template.ts";
 import { escapeAndFormat } from "../_shared/validation.ts";
 
@@ -42,19 +46,6 @@ function replaceVars(
     .replace(/\{\{amount\}\}/g, vars.amount)
     .replace(/\{\{due_date\}\}/g, vars.due_date)
     .replace(/\{\{description\}\}/g, vars.description);
-}
-
-/**
- * Determines if request is from cron (service role key) or admin (bearer token).
- * Cron: Authorization header contains the service role key directly.
- * Manual: Authorization header contains the admin's bearer token.
- */
-function isServiceRoleRequest(req: Request): boolean {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader) return false;
-  const token = authHeader.replace("Bearer ", "");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  return token === serviceKey;
 }
 
 Deno.serve(async (req: Request) => {

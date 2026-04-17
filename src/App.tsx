@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import RootErrorBoundary from "@/components/RootErrorBoundary";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -40,69 +41,71 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <ScrollToTop />
-        <Suspense fallback={null}>
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<Index />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/cookie-policy" element={<CookiePolicy />} />
-            <Route path="/servicos/:slug" element={<ServiceDetail />} />
-            <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
+  <RootErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <Toaster />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <ScrollToTop />
+          <Suspense fallback={null}>
+            <Routes>
+              {/* Public */}
+              <Route path="/" element={<Index />} />
+              <Route path="/cases" element={<Cases />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/cookie-policy" element={<CookiePolicy />} />
+              <Route path="/servicos/:slug" element={<ServiceDetail />} />
+              <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
 
-            {/*
-             * Portal shell — pathless layout route.
-             * Renders AuthProvider (+ Supabase) only when a child route matches.
-             * Login and ForgotPassword are direct children so they are NOT
-             * wrapped in a path-consuming <Route>, avoiding the React Router
-             * descendant-Routes path-stripping bug.
-             */}
-            <Route
-              element={
-                <Suspense fallback={null}>
-                  <PortalShell />
-                </Suspense>
-              }
-            >
+              {/*
+               * Portal shell — pathless layout route.
+               * Renders AuthProvider (+ Supabase) only when a child route matches.
+               * Login and ForgotPassword are direct children so they are NOT
+               * wrapped in a path-consuming <Route>, avoiding the React Router
+               * descendant-Routes path-stripping bug.
+               */}
               <Route
-                path="/login"
                 element={
                   <Suspense fallback={null}>
-                    <Login />
+                    <PortalShell />
                   </Suspense>
                 }
-              />
-              <Route
-                path="/forgot-password"
-                element={
-                  <Suspense fallback={null}>
-                    <ForgotPassword />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/portal/*"
-                element={
-                  <Suspense fallback={null}>
-                    <PortalRoutes />
-                  </Suspense>
-                }
-              />
-            </Route>
+              >
+                <Route
+                  path="/login"
+                  element={
+                    <Suspense fallback={null}>
+                      <Login />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <Suspense fallback={null}>
+                      <ForgotPassword />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/portal/*"
+                  element={
+                    <Suspense fallback={null}>
+                      <PortalRoutes />
+                    </Suspense>
+                  }
+                />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        <CookieConsent />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </HelmetProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+          <CookieConsent />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </RootErrorBoundary>
 );
 
 export default App;
