@@ -12,7 +12,11 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
-  retries: 0,
+  // Testes dependem de timing entre escrita no Supabase e aparicao na UI
+  // (fluxo serial onde teste N-1 cria dado que teste N consome). Em rede
+  // real contra producao, isso varia. 2 retries absorvem flakiness sem
+  // esconder regressao real (bug deterministico falha nas 3 tentativas).
+  retries: 2,
   workers: 1,
   reporter: [["html", { open: "never" }], ["list"]],
   use: {

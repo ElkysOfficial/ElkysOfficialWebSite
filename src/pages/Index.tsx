@@ -1,15 +1,25 @@
 import { lazy, Suspense } from "react";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import About from "@/components/About";
-import Services from "@/components/Services";
-import ClientsCarousel from "@/components/ClientsCarousel";
-import Testimonials from "@/components/Testimonials";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
+// Tudo abaixo da dobra e lazy. Hero ocupa 100svh, entao About em diante
+// nao esta visivel na primeira renderizacao. Placeholders com altura minima
+// reservada evitam CLS quando o componente carrega (o conteudo acima da
+// dobra nao se move, so o espaco abaixo se expande para o tamanho real).
+const About = lazy(() => import("@/components/About"));
+const Services = lazy(() => import("@/components/Services"));
+const ClientsCarousel = lazy(() => import("@/components/ClientsCarousel"));
+const Testimonials = lazy(() => import("@/components/Testimonials"));
 const ContactForm = lazy(() => import("@/components/ContactForm"));
+const Contact = lazy(() => import("@/components/Contact"));
+const Footer = lazy(() => import("@/components/Footer"));
+
+/** Placeholder com altura reservada conservadora (menor que o real) para
+ * evitar empurrar conteudo acima ao hidratar a secao. */
+const SectionSkeleton = ({ minH }: { minH: string }) => (
+  <div aria-hidden="true" style={{ minHeight: minH }} />
+);
 
 const Index = () => {
   const jsonLd = {
@@ -37,20 +47,32 @@ const Index = () => {
         canonical="https://elkys.com.br/"
         jsonLd={jsonLd}
       />
-      <div className="min-h-screen">
+      <div className="min-h-[100svh]">
         <Navigation />
         <main id="main-content">
           <Hero />
-          <About />
-          <Services />
-          <ClientsCarousel />
-          <Testimonials />
-          <Suspense fallback={null}>
+          <Suspense fallback={<SectionSkeleton minH="400px" />}>
+            <About />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton minH="600px" />}>
+            <Services />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton minH="200px" />}>
+            <ClientsCarousel />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton minH="500px" />}>
+            <Testimonials />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton minH="400px" />}>
             <ContactForm />
           </Suspense>
-          <Contact />
+          <Suspense fallback={<SectionSkeleton minH="300px" />}>
+            <Contact />
+          </Suspense>
         </main>
-        <Footer />
+        <Suspense fallback={<SectionSkeleton minH="200px" />}>
+          <Footer />
+        </Suspense>
       </div>
     </>
   );
