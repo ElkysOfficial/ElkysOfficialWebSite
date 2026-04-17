@@ -718,8 +718,8 @@ export default function AdminLayout() {
                     : "/imgs/icons/lettering_elkys_purple.webp"
                 }
                 alt="Elkys"
-                width={90}
-                height={30}
+                width={60}
+                height={60}
                 className={cn("block h-auto", sidebarCollapsed ? "w-[48px]" : "w-[60px]")}
               />
             </Link>

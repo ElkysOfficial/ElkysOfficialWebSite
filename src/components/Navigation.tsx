@@ -200,7 +200,7 @@ const Navigation = () => {
               src={useWhiteLogo ? letteringWhite : letteringPurple}
               alt="Elkys"
               width={64}
-              height={32}
+              height={64}
               className="w-16 transition-all duration-500"
             />
             <span className="sr-only">Elkys</span>
