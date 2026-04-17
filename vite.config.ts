@@ -166,7 +166,10 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      sourcemap: false,
+      // sourcemap em producao fica off para nao expor codigo; pode ser ligado
+      // ad-hoc com VITE_SOURCEMAP=true para debugar stack trace de erro real
+      // (ex: investigar bugs vindos de libs minificadas como recharts).
+      sourcemap: process.env.VITE_SOURCEMAP === "true",
       minify: isMinified ? "terser" : "esbuild",
       cssMinify: true,
       // Com manualChunks definido, Vite por padrao gera <link modulepreload>

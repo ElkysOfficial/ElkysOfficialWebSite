@@ -1731,7 +1731,7 @@ function FinanceAnaliseTab() {
     const projectStatusCounts: Record<ProjectBucket, number> = {
       negociacao: 0,
       em_andamento: 0,
-      concluído: 0,
+      concluido: 0,
       pausado: 0,
     };
     projects.forEach((p) => {

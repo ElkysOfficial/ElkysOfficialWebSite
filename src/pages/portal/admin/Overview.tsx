@@ -216,7 +216,7 @@ const initialState: OverviewState = {
   projectStatusCounts: {
     negociacao: 0,
     em_andamento: 0,
-    concluído: 0,
+    concluido: 0,
     pausado: 0,
   },
   averageRecurringRevenuePerClient: 0,
@@ -951,7 +951,7 @@ async function fetchDashboard(): Promise<OverviewState> {
   const projectStatusCounts: Record<ProjectBucket, number> = {
     negociacao: 0,
     em_andamento: 0,
-    concluído: 0,
+    concluido: 0,
     pausado: 0,
   };
 
