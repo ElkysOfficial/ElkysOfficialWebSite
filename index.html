@@ -89,9 +89,10 @@
       content="Elkys - Soluções Inteligentes em Software & Automação B2B"
     />
 
-    <!-- DNS prefetch para scripts de analytics (reduz latência de conexão) -->
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <!-- Sem preconnect/dns-prefetch pra googletagmanager: o gtag so carrega
+         apos 30s ou na 1a interacao (ver bootstrap inline acima). Manter
+         preconnect t=0 abria conexao TCP+TLS desperdicada que ainda
+         consumia slot de conexao paralela competindo com fonts/JS. -->
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />

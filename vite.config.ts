@@ -7,118 +7,51 @@ import { createHtmlPlugin } from "vite-plugin-html";
 import { visualizer } from "rollup-plugin-visualizer";
 
 /**
- * Extracts critical CSS (custom properties, @font-face, base resets, keyframes)
- * and inlines it in the HTML. Converts the <link> to async preload so it no
- * longer blocks rendering (~360 ms saving).
+ * Plugin pos-build minimo: SO injeta modulepreload com fetchpriority=high
+ * pro entry chunk e pro Index-*.js (lazy chunk da landing). Quebra a cadeia
+ * critica de requests sem mexer no <link rel="stylesheet"> — CSS continua
+ * blocking (necessario pra LCP estilizado no primeiro paint; tentativa
+ * anterior de extrair "critical CSS" e tornar o restante async causava
+ * render delay de ~2s no LCP porque utilities Tailwind nao entravam no
+ * inline e o H1 do Hero so recebia estilo final quando o stylesheet
+ * async chegava).
  */
-function criticalCss(): Plugin {
+function modulePreloadHints(): Plugin {
   return {
-    name: "vite-plugin-critical-css",
+    name: "vite-plugin-modulepreload-hints",
     apply: "build",
     enforce: "post",
-    async closeBundle() {
+    closeBundle() {
       const distPath = path.resolve(__dirname, "dist");
       const htmlPath = path.join(distPath, "index.html");
       if (!fs.existsSync(htmlPath)) return;
 
-      const html = fs.readFileSync(htmlPath, "utf-8");
-
-      // Find the CSS link tag and its href
-      const linkMatch = html.match(
-        /<link\s+[^>]*href="(\/assets\/[^"]+\.css)"[^>]*rel="stylesheet"[^>]*>/
+      let html = fs.readFileSync(htmlPath, "utf-8");
+      const entryMatch = html.match(
+        /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
       );
-      if (!linkMatch) {
-        // Try alternate attribute order
-        const altMatch = html.match(
-          /<link\s+[^>]*rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/
-        );
-        if (!altMatch) {
-          console.log("⚠️  No CSS link found — skipping critical CSS extraction");
-          return;
+      if (!entryMatch) return;
+
+      const hints: string[] = [
+        `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`,
+      ];
+
+      const assetsDir = path.join(distPath, "assets");
+      if (fs.existsSync(assetsDir)) {
+        const indexChunk = fs
+          .readdirSync(assetsDir)
+          .find((f) => /^Index-[A-Za-z0-9_-]+\.js$/.test(f));
+        if (indexChunk) {
+          hints.push(
+            `<link rel="modulepreload" crossorigin fetchpriority="high" href="/assets/${indexChunk}">`
+          );
         }
-        return processLink(distPath, htmlPath, html, altMatch[0], altMatch[1]);
       }
-      return processLink(distPath, htmlPath, html, linkMatch[0], linkMatch[1]);
+
+      html = html.replace(entryMatch[0], hints.join("") + entryMatch[0]);
+      fs.writeFileSync(htmlPath, html);
     },
   };
-}
-
-function processLink(
-  distPath: string,
-  htmlPath: string,
-  html: string,
-  linkTag: string,
-  cssHref: string
-) {
-  const cssPath = path.join(distPath, cssHref);
-  if (!fs.existsSync(cssPath)) return;
-
-  const css = fs.readFileSync(cssPath, "utf-8");
-
-  // Extract critical blocks: :root / .dark vars, @font-face, @keyframes,
-  // *, html, body, #root selectors, and @layer base blocks
-  const criticalPatterns = [
-    // :root and .dark custom property blocks
-    /(?::root|\.dark)\s*\{[^}]*\}/g,
-    // @font-face declarations
-    /@font-face\s*\{[^}]*\}/g,
-    // @keyframes blocks
-    /@keyframes\s+[\w-]+\s*\{[^}]*(?:\{[^}]*\}[^}]*)*\}/g,
-    // Universal, html, body, #root base selectors (single-level only)
-    /(?:^|[,}])\s*(?:\*|html|body|#root)(?:\s*,\s*(?:\*|html|body|#root))*\s*\{[^}]*\}/g,
-  ];
-
-  const criticalRules: string[] = [];
-  for (const pattern of criticalPatterns) {
-    const matches = css.matchAll(pattern);
-    for (const m of matches) {
-      criticalRules.push(m[0].trim());
-    }
-  }
-
-  if (criticalRules.length === 0) {
-    console.log("⚠️  No critical CSS rules found — skipping");
-    return;
-  }
-
-  const inlineStyle = `<style>${criticalRules.join("")}</style>`;
-
-  // Convert blocking <link rel="stylesheet"> to async preload with swap fallback
-  const asyncLink =
-    `<link rel="preload" href="${cssHref}" as="style" onload="this.onload=null;this.rel='stylesheet'">` +
-    `<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`;
-
-  let result = html.replace(linkTag, inlineStyle + asyncLink);
-
-  // Add modulepreload for the entry-point JS to start downloading in parallel
-  // com o parsing do HTML, quebrando a cadeia critica de requests. fetchpriority=high
-  // promove o script acima das imagens decorativas e Google Analytics no
-  // agendamento de rede do browser, reduzindo o render delay do LCP.
-  const entryMatch = result.match(
-    /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
-  );
-  if (entryMatch) {
-    const preloadTag = `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`;
-    // Insert before the script tag itself
-    result = result.replace(entryMatch[0], preloadTag + entryMatch[0]);
-  }
-
-  // Preload do primeiro chunk lazy da landing (Index-*.js). Sem isso, ele so
-  // comeca a baixar apos o entry parsear e executar import() — adicionando
-  // uma round-trip inteira entre o parse do JS principal e o render do Hero.
-  const assetsDir = path.join(distPath, "assets");
-  if (fs.existsSync(assetsDir)) {
-    const indexChunk = fs.readdirSync(assetsDir).find((f) => /^Index-[A-Za-z0-9_-]+\.js$/.test(f));
-    if (indexChunk) {
-      const indexPreload = `<link rel="modulepreload" crossorigin fetchpriority="high" href="/assets/${indexChunk}">`;
-      result = result.replace(entryMatch![0], indexPreload + entryMatch![0]);
-    }
-  }
-
-  fs.writeFileSync(htmlPath, result);
-
-  const inlineKB = (Buffer.byteLength(inlineStyle) / 1024).toFixed(1);
-  console.log(`✅ Critical CSS inlined (${inlineKB} KB) — full stylesheet deferred`);
 }
 
 // https://vitejs.dev/config/
@@ -171,7 +104,7 @@ export default defineConfig(({ mode }) => {
         gzipSize: true,
         brotliSize: true,
       }),
-      criticalCss(),
+      modulePreloadHints(),
     ].filter(Boolean),
     resolve: {
       dedupe: ["react", "react-dom"],
