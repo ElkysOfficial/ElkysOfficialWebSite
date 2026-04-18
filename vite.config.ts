@@ -91,14 +91,28 @@ function processLink(
   let result = html.replace(linkTag, inlineStyle + asyncLink);
 
   // Add modulepreload for the entry-point JS to start downloading in parallel
-  // with HTML parsing, breaking the critical request chain.
+  // com o parsing do HTML, quebrando a cadeia critica de requests. fetchpriority=high
+  // promove o script acima das imagens decorativas e Google Analytics no
+  // agendamento de rede do browser, reduzindo o render delay do LCP.
   const entryMatch = result.match(
     /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
   );
   if (entryMatch) {
-    const preloadTag = `<link rel="modulepreload" crossorigin href="${entryMatch[1]}">`;
+    const preloadTag = `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`;
     // Insert before the script tag itself
     result = result.replace(entryMatch[0], preloadTag + entryMatch[0]);
+  }
+
+  // Preload do primeiro chunk lazy da landing (Index-*.js). Sem isso, ele so
+  // comeca a baixar apos o entry parsear e executar import() — adicionando
+  // uma round-trip inteira entre o parse do JS principal e o render do Hero.
+  const assetsDir = path.join(distPath, "assets");
+  if (fs.existsSync(assetsDir)) {
+    const indexChunk = fs.readdirSync(assetsDir).find((f) => /^Index-[A-Za-z0-9_-]+\.js$/.test(f));
+    if (indexChunk) {
+      const indexPreload = `<link rel="modulepreload" crossorigin fetchpriority="high" href="/assets/${indexChunk}">`;
+      result = result.replace(entryMatch![0], indexPreload + entryMatch![0]);
+    }
   }
 
   fs.writeFileSync(htmlPath, result);
