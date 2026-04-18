@@ -1,7 +1,7 @@
 import { cn } from "@/design-system/utils/cn";
 
-// Asset servido direto de public/ — evita duplicacao no bundle.
-const hexagonalBg = "/imgs/icons/hexagonal.webp";
+// Import via src/assets pra Vite aplicar fingerprint hash (cache-bust automatico).
+import hexagonalBg from "@/assets/icons/hexagonal.webp";
 
 export interface HexPatternProps {
   /** Variante semântica do padrão hexagonal decorativo */

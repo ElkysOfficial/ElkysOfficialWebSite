@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import hexagonalBg from "@/assets/icons/hexagonal.webp";
 
 const PHRASES = [
   "Preparando seus dados...",
@@ -43,7 +44,7 @@ export default function PortalLoading() {
           style={{ animationDelay: "0.6s" }}
         />
         <img
-          src="/imgs/icons/hexagonal.webp"
+          src={hexagonalBg}
           alt=""
           className="h-10 w-10 animate-portal-spin drop-shadow-[0_2px_8px_rgba(71,38,128,0.3)]"
           draggable={false}
