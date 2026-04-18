@@ -7,8 +7,8 @@ import SEO from "@/components/SEO";
 import ServiceProcess from "@/components/ServiceProcess";
 import { getServiceBySlug } from "@/data/services";
 
-// Asset servido direto de public/ — evita duplicacao no bundle.
-const backgroundPattern = "/imgs/icons/hexagonal.webp";
+// Import via src/assets pra Vite aplicar fingerprint hash (cache-bust automatico).
+import backgroundPattern from "@/assets/icons/hexagonal.webp";
 
 const ServiceDetail = () => {
   const { slug } = useParams<{ slug: string }>();

@@ -5,8 +5,8 @@ import { buttonVariants, cn } from "@/design-system";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
-// Asset servido direto de public/ — evita duplicacao no bundle.
-const hexSrc = "/imgs/icons/hexagonal.webp";
+// Import via src/assets pra Vite aplicar fingerprint hash (cache-bust automatico).
+import hexSrc from "@/assets/icons/hexagonal.webp";
 
 /* ── Pixel grids (7 rows × 5 cols) ── */
 const DIGIT: Record<string, number[][]> = {
