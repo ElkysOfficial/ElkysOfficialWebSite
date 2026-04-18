@@ -55,50 +55,134 @@ function modulePreloadHints(): Plugin {
 }
 
 /**
- * Inlina o stylesheet COMPLETO no HTML e remove o <link rel="stylesheet">.
+ * CSS split entre landing (inline no HTML) e portal (lazy via PortalShell).
  *
- * PSI mobile reportou "Renderizar solicitacoes de bloqueio - 220 ms" porque
- * o <link rel="stylesheet"> exige round-trip + parse antes de unblocar render.
- * Tentativa anterior de critical-CSS-async quebrou LCP (utilities Tailwind
- * nao entravam no inline; H1 do Hero ficava sem estilo ate CSS chegar).
+ * Problema anterior: inlinar o CSS completo (~90 KB raw) no HTML resolvia
+ * o bloqueio de renderizacao mas deixava ~11 KB de utilities Tailwind
+ * usadas SO pelo portal (Admin/Cliente/Login) inline na landing — PSI
+ * reportava "Reduza CSS nao usado 11 KiB".
  *
- * Inline integral elimina o request, o round-trip e o bloqueio. CSS atual
- * sao 91 KB raw / ~14 KB gzip — cabe sem pesar (HTML vai de ~17 KB raw pra
- * ~108 KB raw, ~8 KB transferidos a mais via gzip; mas elimina 1 RTT inteiro
- * que em mobile 4G + CPU throttle valia 220-450 ms).
+ * Estrategia atual:
+ * 1. Identifica chunks JS que rodam na landing (positive list por nome).
+ * 2. Roda PurgeCSS programatico contra esses chunks pra extrair somente
+ *    as regras CSS efetivamente referenciadas → landing.css subset.
+ * 3. Inlina o subset no <style> do HTML.
+ * 4. Mantem o CSS completo em /assets/index-*.css como arquivo fisico.
+ * 5. Injeta um <script>window.__ELKYS_FULL_CSS__</script> com o path
+ *    do CSS completo. PortalShell.tsx, ao montar, cria <link rel="stylesheet">
+ *    apontando pra esse path — assim portal carrega o restante do CSS so
+ *    quando o usuario entra em /login ou /portal/*.
  *
- * Trade-off: CSS deixa de ser cacheavel separadamente. Como e SPA com 1
- * index.html, todo usuario (landing OU portal) recebe o CSS junto do HTML
- * uma unica vez por sessao — portal nao paga round-trip extra de CSS depois.
+ * Safelist generoso pra cobrir classes geradas dinamicamente via cn()/cva()
+ * que PurgeCSS pode nao detectar no JS minificado.
  */
-function inlineStylesheet(): Plugin {
+function landingCssSplit(): Plugin {
   return {
-    name: "vite-plugin-inline-stylesheet",
+    name: "vite-plugin-landing-css-split",
     apply: "build",
     enforce: "post",
-    closeBundle() {
+    async closeBundle() {
       const distPath = path.resolve(__dirname, "dist");
       const htmlPath = path.join(distPath, "index.html");
-      if (!fs.existsSync(htmlPath)) return;
+      const assetsDir = path.join(distPath, "assets");
+      if (!fs.existsSync(htmlPath) || !fs.existsSync(assetsDir)) return;
 
       let html = fs.readFileSync(htmlPath, "utf-8");
       const linkMatch = html.match(
-        /<link[^>]+rel="stylesheet"[^>]+href="(\/assets\/[^"]+\.css)"[^>]*>/
+        /<link[^>]+rel="stylesheet"[^>]+href="(\/assets\/([^"]+\.css))"[^>]*>/
       );
       if (!linkMatch) return;
 
-      const cssPath = path.join(distPath, linkMatch[1]);
-      if (!fs.existsSync(cssPath)) return;
+      const cssRelPath = linkMatch[1];
+      const cssFileName = linkMatch[2];
+      const cssAbsPath = path.join(distPath, cssRelPath);
+      if (!fs.existsSync(cssAbsPath)) return;
 
-      const css = fs.readFileSync(cssPath, "utf-8");
-      const inlineTag = `<style>${css}</style>`;
-      html = html.replace(linkMatch[0], inlineTag);
+      const fullCss = fs.readFileSync(cssAbsPath, "utf-8");
+
+      // Positive list de chunks que carregam na landing path. Tudo que nao
+      // bate aqui e considerado portal — nao entra na escaneada do PurgeCSS.
+      const landingChunkPatterns: RegExp[] = [
+        /^index-/, // entry chunk
+        /^Index-/, // landing page (pages/Index.tsx)
+        /^Cases-/,
+        /^ServiceDetail-/,
+        /^ComoTrabalhamos-/,
+        /^TermsOfService-/,
+        /^PrivacyPolicy-/,
+        /^CookiePolicy-/,
+        /^NotFound-/,
+        /^Footer-/,
+        /^ClientsCarousel-/,
+        /^ContactForm-/,
+        /^Contact-/,
+        /^ContactLinks-/,
+        /^Hero-/,
+        /^Navigation-/,
+        /^About-/,
+        /^Services-/,
+        /^Testimonials-/,
+        /^SEO-/,
+        /^RootErrorBoundary-/,
+        /^ScrollToTop-/,
+        /^CookieConsent-/,
+        /^react-vendor-/,
+        /^query-vendor-/,
+        /^form-vendor-/,
+      ];
+
+      const landingChunks = fs
+        .readdirSync(assetsDir)
+        .filter((f) => f.endsWith(".js") && landingChunkPatterns.some((p) => p.test(f)))
+        .map((f) => path.join(assetsDir, f));
+
+      if (landingChunks.length === 0) {
+        console.log("⚠️  No landing chunks found — falling back to full CSS inline");
+        return;
+      }
+
+      // PurgeCSS programatico
+      const { PurgeCSS } = await import("purgecss");
+      const result = await new PurgeCSS().purge({
+        content: landingChunks.map((f) => ({ raw: fs.readFileSync(f, "utf-8"), extension: "js" })),
+        css: [{ raw: fullCss }],
+        // Safelist pra classes que podem ser geradas dinamicamente (cn()/cva())
+        // ou estados Tailwind que PurgeCSS as vezes nao extrai bem do JS minificado
+        safelist: {
+          standard: ["dark", "light", /^elk-/, /^gradient-/],
+          deep: [
+            /^animate-/,
+            /^hover:/,
+            /^focus:/,
+            /^focus-visible:/,
+            /^active:/,
+            /^disabled:/,
+            /^group-hover:/,
+            /^group-focus:/,
+            /^peer-/,
+            /^dark:/,
+            /^motion-safe:/,
+            /^motion-reduce:/,
+            /^data-\[/,
+            /^aria-\[/,
+          ],
+          greedy: [/^sm:/, /^md:/, /^lg:/, /^xl:/, /^2xl:/, /^xs:/],
+        },
+        defaultExtractor: (content) => content.match(/[\w\-:/[\]().%]+/g) || [],
+      });
+
+      const purgedCss = result[0]?.css || fullCss;
+
+      // Injeta script com path do CSS completo pra PortalShell consumir
+      const cssPathScript = `<script>window.__ELKYS_FULL_CSS__=${JSON.stringify(cssRelPath)}</script>`;
+      html = html.replace(linkMatch[0], `<style>${purgedCss}</style>${cssPathScript}`);
       fs.writeFileSync(htmlPath, html);
 
-      // Mantem o .css fisico em /assets pra servir como fallback caso
-      // alguem requisite por URL direta (ex: cache de CDN antigo).
-      const sizeKb = (Buffer.byteLength(inlineTag) / 1024).toFixed(1);
-      console.log(`✅ CSS inlined no HTML (${sizeKb} KB) — link blocking removido`);
+      const fullKb = (Buffer.byteLength(fullCss) / 1024).toFixed(1);
+      const purgedKb = (Buffer.byteLength(purgedCss) / 1024).toFixed(1);
+      console.log(
+        `✅ CSS split: landing inline ${purgedKb}KB (era ${fullKb}KB full). Portal CSS continua em ${cssFileName} (lazy via PortalShell).`
+      );
     },
   };
 }
@@ -154,7 +238,7 @@ export default defineConfig(({ mode }) => {
         brotliSize: true,
       }),
       modulePreloadHints(),
-      inlineStylesheet(),
+      landingCssSplit(),
     ].filter(Boolean),
     resolve: {
       dedupe: ["react", "react-dom"],
