@@ -40,9 +40,15 @@ const Hero = () => {
         />
       </div>
 
-      {/* Padrão hexagonal rotacionando — fundo decorativo, nao e LCP */}
+      {/* Padrão hexagonal rotacionando — fundo decorativo, nao e LCP.
+          No mobile antes a imagem tinha w-[1600px] + scale-[1.75], cobrindo
+          area renderizada maior que o H1 e o PageSpeed elegia a propria
+          hexagonal como LCP. Agora a imagem fica pequena em mobile
+          (w-[180px] + sem scale extra) e segue gigante em desktop
+          (sm:w-[1600px] + sm:scale-[1.25]+), mantendo o visual decorativo
+          em todos os viewports e deixando o H1 como LCP natural em mobile. */}
       {/* Wrapper controla posição e escala, img controla animação */}
-      <div className="absolute -bottom-[400px] xs:-bottom-[500px] sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[700px] left-[30px] xs:left-[50px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[200px] scale-[1.75] xs:scale-[1.6] sm:scale-[1.25] md:scale-[1.6] lg:scale-200 xl:scale-100 2xl:scale-90 origin-bottom-left sm:origin-top-left">
+      <div className="absolute -bottom-[60px] xs:-bottom-[80px] sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[700px] left-[20px] xs:left-[40px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[200px] scale-100 sm:scale-[1.25] md:scale-[1.6] lg:scale-200 xl:scale-100 2xl:scale-90 origin-bottom-left sm:origin-top-left">
         <img
           src={backgroundPattern}
           alt=""
@@ -52,7 +58,7 @@ const Hero = () => {
           loading="lazy"
           decoding="async"
           fetchPriority="low"
-          className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
+          className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[180px] sm:w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
           style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
         />
       </div>
