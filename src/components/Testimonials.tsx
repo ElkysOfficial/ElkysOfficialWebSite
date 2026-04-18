@@ -351,7 +351,13 @@ const Testimonials = () => {
               {extendedTestimonials.map((testimonial, index) => (
                 <Card
                   key={index}
-                  className="shadow-elegant hover:shadow-glow transition-all duration-300 group flex-shrink-0"
+                  // transition-shadow (nao transition-all): o card tem width
+                  // dinamico inline; transition-all faz o browser tratar a
+                  // animacao como nao-composited (width e propriedade de
+                  // layout). Audit "Evitar animacoes nao compostas" sinaliza
+                  // os 14 cards. Como o unico delta visual no hover e
+                  // shadow-elegant -> shadow-glow, transition-shadow basta.
+                  className="shadow-elegant hover:shadow-glow transition-shadow duration-300 group flex-shrink-0"
                   style={{ width: `${itemWidth}px` }}
                 >
                   <CardContent className="p-5 md:p-6 space-y-4">
