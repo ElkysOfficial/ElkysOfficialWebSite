@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "@/components/portal/auth/ProtectedRoute";
+import hexagonalBg from "@/assets/icons/hexagonal.webp";
 import MustChangePasswordGuard from "@/components/portal/auth/MustChangePasswordGuard";
 import MustChangePasswordGuardAdmin from "@/components/portal/auth/MustChangePasswordGuardAdmin";
 import PortalRoleGuard from "@/components/portal/auth/PortalRoleGuard";
@@ -46,12 +47,7 @@ const LoadingFallback = () => (
   <div className="flex min-h-screen items-center justify-center bg-background">
     <div className="relative flex items-center justify-center">
       <span className="absolute h-16 w-16 animate-portal-ring rounded-full border-2 border-primary/30" />
-      <img
-        src="/imgs/icons/hexagonal.webp"
-        alt=""
-        className="h-10 w-10 animate-portal-spin"
-        draggable={false}
-      />
+      <img src={hexagonalBg} alt="" className="h-10 w-10 animate-portal-spin" draggable={false} />
     </div>
   </div>
 );

@@ -2,8 +2,10 @@ import { ArrowRight, Code, Agile, Suporte } from "@/assets/icons";
 import { Button } from "@/design-system";
 import { Link } from "react-router-dom";
 
-// Asset servido direto de public/ — Vite NAO reprocessa (evita duplicacao no bundle).
-const backgroundPattern = "/imgs/icons/hexagonal.webp";
+// Import via src/assets pra Vite aplicar fingerprint hash no nome do arquivo.
+// Com cache-control immutable no .htaccess, mudar o binario sem mudar a URL
+// deixa PageSpeed e browsers servindo o asset antigo por ate 1 ano.
+import backgroundPattern from "@/assets/icons/hexagonal.webp";
 
 /**
  * Componente Hero - Seção principal da homepage

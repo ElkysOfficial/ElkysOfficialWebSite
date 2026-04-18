@@ -5,8 +5,8 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
-// Asset servido direto de public/ — evita duplicacao no bundle.
-const backgroundPattern = "/imgs/icons/hexagonal.webp";
+// Import via src/assets pra Vite aplicar fingerprint hash (cache-bust automatico).
+import backgroundPattern from "@/assets/icons/hexagonal.webp";
 
 /**
  * Cases Page - Portfolio de Projetos Elkys
