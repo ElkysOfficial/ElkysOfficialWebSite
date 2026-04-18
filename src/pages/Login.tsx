@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useDarkMode";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button, Input, cn } from "@/design-system";
 import { Field, Label, ErrorText } from "@/design-system";

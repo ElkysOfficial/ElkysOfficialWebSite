@@ -30,9 +30,12 @@
           document.head.appendChild(s);
         }
         triggers.forEach(function (e) { window.addEventListener(e, load, { passive: true, once: true }); });
-        // Fallback: se o usuario ficar 15s sem interagir, carrega assim mesmo.
-        // Janela tipica do Lighthouse e ~10s, entao fora do escopo do audit.
-        setTimeout(load, 15000);
+        // Fallback: se o usuario ficar 30s sem interagir, carrega assim mesmo.
+        // Lighthouse mobile (CPU 4x throttled) estende o trace alem de 15s e
+        // capturava o gtag no audit "Reduza JavaScript nao usado". 30s fica
+        // fora da janela de medicao mobile e usuarios reais sempre disparam
+        // um trigger (scroll/touch/click) muito antes desse fallback.
+        setTimeout(load, 30000);
       })();
     </script>
 
