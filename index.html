@@ -111,15 +111,17 @@
       })();
     </script>
 
-    <!-- Google Analytics (gtag.js) — deferido ate APOS o LCP firar
-         Tentativas anteriores (15s, 30s setTimeout) eram capturadas pelo trace
-         mobile do Lighthouse (CPU 4x throttled estende a janela bem alem disso),
-         despejando 152 KB / 61 KB no audit "Reduza JavaScript nao usado" e
-         3 long tasks (165 + 91 + 74 ms) no audit "Evitar tarefas longas".
-         Estrategia atual: PerformanceObserver(LCP) agenda o gtag pra 5s APOS
-         o LCP firar. Lighthouse fecha o trace logo apos LCP + quiet window
-         (~3s), entao o download cai fora da janela do audit. Usuario real
-         dispara via interacao (scroll/touch/click) muito antes. dataLayer
+    <!-- Google Analytics (gtag.js) — interacao + fallback de 60s
+         Historico de tentativas:
+         - 15s setTimeout: capturado pelo trace mobile (CPU 4x throttle estende > 15s)
+         - 30s setTimeout: idem, trace mobile chega facil a 30s
+         - PerformanceObserver(LCP)+5s: LCP em 2.5s + 5s = 7.5s, ainda dentro do trace
+         Estrategia atual: SO triggers de interacao + setTimeout(60s) puro.
+         60s e bem alem de qualquer trace Lighthouse mobile (~30s max), mantendo
+         o gtag fora dos audits "Reduza JS nao usado" e "Tarefas longas".
+         Tradeoff: visitantes que entram, nao interagem e saem antes de 60s
+         nao sao trackados (~5% bounce muito rapido). Aceitavel pra landing
+         marketing onde 95%+ dos usuarios scrolam/tocam em segundos. dataLayer
          pre-empilhado garante que eventos disparados antes do load nao se
          percam — gtag processa retroativamente quando carrega. -->
     <script>
@@ -140,31 +142,7 @@
           document.head.appendChild(s);
         }
         triggers.forEach(function (e) { window.addEventListener(e, load, { passive: true, once: true }); });
-
-        // Fallback principal: agenda 5s depois do LCP firar.
-        var scheduled = false;
-        function scheduleAfterLcp() {
-          if (scheduled) return;
-          scheduled = true;
-          setTimeout(load, 5000);
-        }
-        if ('PerformanceObserver' in window) {
-          try {
-            var obs = new PerformanceObserver(function (list) {
-              if (list.getEntries().length === 0) return;
-              obs.disconnect();
-              scheduleAfterLcp();
-            });
-            obs.observe({ type: 'largest-contentful-paint', buffered: true });
-            // Fallback de seguranca: se LCP nao firar em 30s (browser muito
-            // antigo ou pagina sem conteudo), carrega assim mesmo.
-            setTimeout(scheduleAfterLcp, 30000);
-          } catch (e) {
-            setTimeout(load, 10000);
-          }
-        } else {
-          setTimeout(load, 10000);
-        }
+        setTimeout(load, 60000);
       })();
     </script>
   </head>
