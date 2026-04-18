@@ -54,6 +54,55 @@ function modulePreloadHints(): Plugin {
   };
 }
 
+/**
+ * Inlina o stylesheet COMPLETO no HTML e remove o <link rel="stylesheet">.
+ *
+ * PSI mobile reportou "Renderizar solicitacoes de bloqueio - 220 ms" porque
+ * o <link rel="stylesheet"> exige round-trip + parse antes de unblocar render.
+ * Tentativa anterior de critical-CSS-async quebrou LCP (utilities Tailwind
+ * nao entravam no inline; H1 do Hero ficava sem estilo ate CSS chegar).
+ *
+ * Inline integral elimina o request, o round-trip e o bloqueio. CSS atual
+ * sao 91 KB raw / ~14 KB gzip — cabe sem pesar (HTML vai de ~17 KB raw pra
+ * ~108 KB raw, ~8 KB transferidos a mais via gzip; mas elimina 1 RTT inteiro
+ * que em mobile 4G + CPU throttle valia 220-450 ms).
+ *
+ * Trade-off: CSS deixa de ser cacheavel separadamente. Como e SPA com 1
+ * index.html, todo usuario (landing OU portal) recebe o CSS junto do HTML
+ * uma unica vez por sessao — portal nao paga round-trip extra de CSS depois.
+ */
+function inlineStylesheet(): Plugin {
+  return {
+    name: "vite-plugin-inline-stylesheet",
+    apply: "build",
+    enforce: "post",
+    closeBundle() {
+      const distPath = path.resolve(__dirname, "dist");
+      const htmlPath = path.join(distPath, "index.html");
+      if (!fs.existsSync(htmlPath)) return;
+
+      let html = fs.readFileSync(htmlPath, "utf-8");
+      const linkMatch = html.match(
+        /<link[^>]+rel="stylesheet"[^>]+href="(\/assets\/[^"]+\.css)"[^>]*>/
+      );
+      if (!linkMatch) return;
+
+      const cssPath = path.join(distPath, linkMatch[1]);
+      if (!fs.existsSync(cssPath)) return;
+
+      const css = fs.readFileSync(cssPath, "utf-8");
+      const inlineTag = `<style>${css}</style>`;
+      html = html.replace(linkMatch[0], inlineTag);
+      fs.writeFileSync(htmlPath, html);
+
+      // Mantem o .css fisico em /assets pra servir como fallback caso
+      // alguem requisite por URL direta (ex: cache de CDN antigo).
+      const sizeKb = (Buffer.byteLength(inlineTag) / 1024).toFixed(1);
+      console.log(`✅ CSS inlined no HTML (${sizeKb} KB) — link blocking removido`);
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isMinified = process.env.MINIFY === "true";
@@ -105,6 +154,7 @@ export default defineConfig(({ mode }) => {
         brotliSize: true,
       }),
       modulePreloadHints(),
+      inlineStylesheet(),
     ].filter(Boolean),
     resolve: {
       dedupe: ["react", "react-dom"],
