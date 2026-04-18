@@ -201,15 +201,43 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            "react-vendor": ["react", "react-dom", "react-router-dom"],
-            "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
-            "supabase-vendor": ["@supabase/supabase-js"],
-            "query-vendor": ["@tanstack/react-query"],
-            // recharts e usado em Overview e Finance do admin. Isolar em chunk
-            // separado garante cache compartilhado entre as rotas admin e evita
-            // duplicacao silenciosa no bundle conforme o tree-shaking do Rollup.
-            "recharts-vendor": ["recharts"],
+          // Funcao (em vez de objeto) pra isolar SOMENTE o pacote principal em
+          // cada chunk. O formato objeto causava leak de deps compartilhadas:
+          // "recharts-vendor":["recharts"] fazia o Rollup puxar tb "clsx"
+          // (dep transitiva do recharts + usado pelo nosso cn()) pra dentro
+          // do recharts-vendor. Como o main bundle importa clsx via cn(),
+          // ele acabava fazendo `import from "./recharts-vendor-*.js"` em
+          // TODA carga da landing, baixando 98 KB de biblioteca de graficos
+          // sem nunca renderizar um grafico. Filtrando por path do node_modules
+          // cada vendor chunk contem SO o pacote target; deps transitivas ficam
+          // com quem as usa (ou num chunk comum gerado automaticamente).
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (id.includes("/node_modules/recharts/")) return "recharts-vendor";
+            if (id.includes("/node_modules/@supabase/supabase-js/")) return "supabase-vendor";
+            if (id.includes("/node_modules/@tanstack/react-query/")) return "query-vendor";
+            if (
+              id.includes("/node_modules/react-hook-form/") ||
+              id.includes("/node_modules/@hookform/") ||
+              id.includes("/node_modules/zod/")
+            )
+              return "form-vendor";
+            // clsx + tailwind-merge sao usados por recharts E pelo nosso cn().
+            // Se deixar o Rollup decidir, ele posiciona esses 2 deps dentro
+            // do recharts-vendor; ai o main bundle faz `import from "./recharts-vendor-*"`
+            // so pra pegar o clsx, e a landing baixa 100 KB de libs de grafico
+            // sem usar nenhum grafico. Fixando em react-vendor (sempre carregado)
+            // o recharts-vendor nao precisa ser referenciado fora das rotas admin.
+            if (id.includes("/node_modules/clsx/") || id.includes("/node_modules/tailwind-merge/"))
+              return "react-vendor";
+            if (
+              id.includes("/node_modules/react/") ||
+              id.includes("/node_modules/react-dom/") ||
+              id.includes("/node_modules/react-router-dom/") ||
+              id.includes("/node_modules/react-router/") ||
+              id.includes("/node_modules/scheduler/")
+            )
+              return "react-vendor";
           },
         },
       },
