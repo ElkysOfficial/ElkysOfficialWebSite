@@ -1,13 +1,19 @@
+import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
-import AdminOverview from "@/pages/portal/admin/Overview";
+
+const AdminOverview = lazy(() => import("@/pages/portal/admin/Overview"));
 
 export default function AdminPortalHome() {
   const { roles } = useAuth();
 
   if (roles.includes("admin_super") || roles.includes("admin")) {
-    return <AdminOverview />;
+    return (
+      <Suspense fallback={null}>
+        <AdminOverview />
+      </Suspense>
+    );
   }
 
   if (roles.includes("juridico")) {
