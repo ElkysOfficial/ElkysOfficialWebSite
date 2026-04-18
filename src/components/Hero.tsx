@@ -29,15 +29,20 @@ const Hero = () => {
       id="hero"
       className="min-h-[100svh] flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
     >
-      {/* Esferas decorativas de fundo com animação float */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl animate-float" />
+      {/* Esferas decorativas de fundo com animacao float.
+          Animacao so ativa em sm+: blur-3xl/blur-2xl + animate-float em
+          mobile gerava repaint continuo da camada (filtro pesado animado)
+          e era um dos maiores contribuintes pra "Style & Layout" + "Other"
+          no main thread mobile. Em sm+ (>=640px) o GPU desktop/tablet
+          aguenta sem perda perceptivel. */}
+      <div className="absolute inset-0 opacity-10 motion-reduce:hidden">
+        <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl sm:animate-float" />
         <div
-          className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-2xl animate-float"
+          className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-2xl sm:animate-float"
           style={{ animationDelay: "1s" }}
         />
         <div
-          className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-3xl animate-float"
+          className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-3xl sm:animate-float"
           style={{ animationDelay: "2s" }}
         />
       </div>

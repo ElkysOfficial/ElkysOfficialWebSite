@@ -1,5 +1,4 @@
 import { createRoot } from "react-dom/client";
-import { ThemeProvider } from "next-themes";
 import App from "./App.tsx";
 import "./styles/index.scss";
 
@@ -57,14 +56,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
-  <ThemeProvider
-    attribute="class"
-    defaultTheme="system"
-    enableSystem
-    disableTransitionOnChange
-    storageKey="elkys-system-theme"
-  >
-    <App />
-  </ThemeProvider>
-);
+// ThemeProvider (next-themes) removido: o tema ja e aplicado inline em
+// index.html via matchMedia antes do React montar e o hook useDarkMode
+// (src/hooks/useDarkMode.ts) cobre o restante da API consumida.
+createRoot(document.getElementById("root")!).render(<App />);

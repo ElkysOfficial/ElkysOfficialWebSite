@@ -1,6 +1,6 @@
 import { ArrowUp, Mail, Phone, Linkedin, Github, Instagram } from "@/assets/icons";
 import { Link } from "react-router-dom";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useDarkMode";
 import { useEffect, useState } from "react";
 import { Button } from "@/design-system";
 import { services as serviceData } from "@/data/services";
