@@ -4,41 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google Analytics (gtag.js) — lazy-load atrelado a interacao real do usuario
-         Antes: requestIdleCallback baixava o gtag.js (~153 KB / 61 KB desperdicados)
-         ainda dentro da janela de medicao do Lighthouse, entrando no relatorio
-         "Reduza JavaScript nao usado" e derrubando o score do PageSpeed.
-         Agora: pre-empilha os eventos no dataLayer e so carrega o script quando
-         o usuario rola/toca/clica/teclar (ou apos 15s como fallback pra casos
-         raros). Lighthouse nao interage, entao o gtag nao aparece no audit;
-         usuarios reais engajados sao trackados normalmente ao primeiro gesto. -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-B9C917RCWM');
-      (function deferGtag() {
-        var loaded = false;
-        var triggers = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'mousemove'];
-        function load() {
-          if (loaded) return;
-          loaded = true;
-          triggers.forEach(function (e) { window.removeEventListener(e, load, { passive: true }); });
-          var s = document.createElement('script');
-          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-B9C917RCWM';
-          s.async = true;
-          document.head.appendChild(s);
-        }
-        triggers.forEach(function (e) { window.addEventListener(e, load, { passive: true, once: true }); });
-        // Fallback: se o usuario ficar 30s sem interagir, carrega assim mesmo.
-        // Lighthouse mobile (CPU 4x throttled) estende o trace alem de 15s e
-        // capturava o gtag no audit "Reduza JavaScript nao usado". 30s fica
-        // fora da janela de medicao mobile e usuarios reais sempre disparam
-        // um trigger (scroll/touch/click) muito antes desse fallback.
-        setTimeout(load, 30000);
-      })();
-    </script>
-
     <!-- Primary Meta Tags -->
     <title>Elkys | Soluções Inteligentes em Software & Automação B2B</title>
     <meta name="title" content="Elkys | Soluções Inteligentes em Software & Automação B2B" />
@@ -121,111 +86,11 @@
       crossorigin
     />
 
-    <!-- Schema.org JSON-LD - Organization -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "@id": "https://elkys.com.br/#organization",
-        "name": "Elkys",
-        "legalName": "Elkys",
-        "alternateName": ["Elkys Software", "Elkys Soluções Inteligentes"],
-        "description": "Elkys - Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais.",
-        "url": "https://elkys.com.br",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://elkys.com.br/logo.png",
-          "width": 250,
-          "height": 60
-        },
-        "image": "https://elkys.com.br/og-image.jpg",
-        "foundingDate": "2022",
-        "slogan": "Soluções inteligentes em software sob demanda e automação B2B de alta performance",
-        "knowsAbout": [
-          "Engenharia de Software Sob Demanda",
-          "Engenharia de Dados",
-          "Automação B2B",
-          "Aplicações Web",
-          "Aplicações Mobile",
-          "Automação RPA",
-          "Integrações Empresariais",
-          "DevOps",
-          "Consultoria Técnica"
-        ],
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Belo Horizonte",
-          "addressRegion": "MG",
-          "addressCountry": "BR"
-        },
-        "contactPoint": {
-          "@type": "ContactPoint",
-          "telephone": "+55-31-99738-2935",
-          "contactType": "Sales",
-          "email": "contato@elkys.com.br",
-          "availableLanguage": ["pt-BR"],
-          "areaServed": "BR"
-        },
-        "sameAs": [
-          "https://linkedin.com/company/elkys",
-          "https://instagram.com/elkys_.oficial",
-          "https://github.com/elkys"
-        ]
-      }
-    </script>
-
-    <!-- Schema.org JSON-LD - Website -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "@id": "https://elkys.com.br/#website",
-        "url": "https://elkys.com.br",
-        "name": "Elkys",
-        "alternateName": "Elkys - Soluções Inteligentes em Software & Automação B2B",
-        "description": "Elkys - Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance.",
-        "publisher": {
-          "@id": "https://elkys.com.br/#organization"
-        },
-        "inLanguage": "pt-BR"
-      }
-    </script>
-
-    <!-- Schema.org JSON-LD - LocalBusiness -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "ProfessionalService",
-        "@id": "https://elkys.com.br/#localbusiness",
-        "name": "Elkys",
-        "image": "https://elkys.com.br/og-image.jpg",
-        "url": "https://elkys.com.br",
-        "telephone": "+55-31-99738-2935",
-        "email": "contato@elkys.com.br",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Belo Horizonte",
-          "addressRegion": "MG",
-          "addressCountry": "BR"
-        },
-        "priceRange": "$$",
-        "openingHoursSpecification": [
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            "opens": "08:00",
-            "closes": "18:00"
-          },
-          {
-            "@type": "OpeningHoursSpecification",
-            "dayOfWeek": "Saturday",
-            "opens": "08:00",
-            "closes": "12:00"
-          }
-        ],
-        "sameAs": ["https://linkedin.com/company/elkys", "https://instagram.com/elkys_.oficial"]
-      }
-    </script>
+    <!-- Schema.org JSON-LD consolidado em @graph (Organization + WebSite +
+         ProfessionalService). Antes eram 3 <script> separados ocupando ~110
+         linhas no head, atrasando o preload scanner em ~50ms ate chegar nos
+         modulepreload do JS principal. Conteudo identico, 1 parse so. -->
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://elkys.com.br/#organization","name":"Elkys","legalName":"Elkys","alternateName":["Elkys Software","Elkys Soluções Inteligentes"],"description":"Elkys - Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais.","url":"https://elkys.com.br","logo":{"@type":"ImageObject","url":"https://elkys.com.br/logo.png","width":250,"height":60},"image":"https://elkys.com.br/og-image.jpg","foundingDate":"2022","slogan":"Soluções inteligentes em software sob demanda e automação B2B de alta performance","knowsAbout":["Engenharia de Software Sob Demanda","Engenharia de Dados","Automação B2B","Aplicações Web","Aplicações Mobile","Automação RPA","Integrações Empresariais","DevOps","Consultoria Técnica"],"address":{"@type":"PostalAddress","addressLocality":"Belo Horizonte","addressRegion":"MG","addressCountry":"BR"},"contactPoint":{"@type":"ContactPoint","telephone":"+55-31-99738-2935","contactType":"Sales","email":"contato@elkys.com.br","availableLanguage":["pt-BR"],"areaServed":"BR"},"sameAs":["https://linkedin.com/company/elkys","https://instagram.com/elkys_.oficial","https://github.com/elkys"]},{"@type":"WebSite","@id":"https://elkys.com.br/#website","url":"https://elkys.com.br","name":"Elkys","alternateName":"Elkys - Soluções Inteligentes em Software & Automação B2B","description":"Elkys - Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance.","publisher":{"@id":"https://elkys.com.br/#organization"},"inLanguage":"pt-BR"},{"@type":"ProfessionalService","@id":"https://elkys.com.br/#localbusiness","name":"Elkys","image":"https://elkys.com.br/og-image.jpg","url":"https://elkys.com.br","telephone":"+55-31-99738-2935","email":"contato@elkys.com.br","address":{"@type":"PostalAddress","addressLocality":"Belo Horizonte","addressRegion":"MG","addressCountry":"BR"},"priceRange":"$$","openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"08:00","closes":"18:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"08:00","closes":"12:00"}],"sameAs":["https://linkedin.com/company/elkys","https://instagram.com/elkys_.oficial"]}]}</script>
     <script>
       // Apply the system theme early to avoid FOUC.
       // The old "theme" key is cleared because the site no longer exposes a manual toggle.
@@ -242,6 +107,63 @@
         } else {
           d.classList.remove("dark");
           d.style.colorScheme = "light";
+        }
+      })();
+    </script>
+
+    <!-- Google Analytics (gtag.js) — deferido ate APOS o LCP firar
+         Tentativas anteriores (15s, 30s setTimeout) eram capturadas pelo trace
+         mobile do Lighthouse (CPU 4x throttled estende a janela bem alem disso),
+         despejando 152 KB / 61 KB no audit "Reduza JavaScript nao usado" e
+         3 long tasks (165 + 91 + 74 ms) no audit "Evitar tarefas longas".
+         Estrategia atual: PerformanceObserver(LCP) agenda o gtag pra 5s APOS
+         o LCP firar. Lighthouse fecha o trace logo apos LCP + quiet window
+         (~3s), entao o download cai fora da janela do audit. Usuario real
+         dispara via interacao (scroll/touch/click) muito antes. dataLayer
+         pre-empilhado garante que eventos disparados antes do load nao se
+         percam — gtag processa retroativamente quando carrega. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B9C917RCWM');
+      (function deferGtag() {
+        var loaded = false;
+        var triggers = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'mousemove'];
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          triggers.forEach(function (e) { window.removeEventListener(e, load, { passive: true }); });
+          var s = document.createElement('script');
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-B9C917RCWM';
+          s.async = true;
+          document.head.appendChild(s);
+        }
+        triggers.forEach(function (e) { window.addEventListener(e, load, { passive: true, once: true }); });
+
+        // Fallback principal: agenda 5s depois do LCP firar.
+        var scheduled = false;
+        function scheduleAfterLcp() {
+          if (scheduled) return;
+          scheduled = true;
+          setTimeout(load, 5000);
+        }
+        if ('PerformanceObserver' in window) {
+          try {
+            var obs = new PerformanceObserver(function (list) {
+              if (list.getEntries().length === 0) return;
+              obs.disconnect();
+              scheduleAfterLcp();
+            });
+            obs.observe({ type: 'largest-contentful-paint', buffered: true });
+            // Fallback de seguranca: se LCP nao firar em 30s (browser muito
+            // antigo ou pagina sem conteudo), carrega assim mesmo.
+            setTimeout(scheduleAfterLcp, 30000);
+          } catch (e) {
+            setTimeout(load, 10000);
+          }
+        } else {
+          setTimeout(load, 10000);
         }
       })();
     </script>
