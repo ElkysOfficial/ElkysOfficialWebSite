@@ -16,7 +16,8 @@ const backgroundPattern = "/imgs/icons/hexagonal.webp";
  * - Background animado com esferas e padrão hexagonal
  *
  * Performance:
- * - Imagem de fundo com loading="eager" e fetchPriority="high" (acima da dobra)
+ * - H1 e conteúdo acima da dobra sem animações CSS (evita render delay no LCP)
+ * - Imagem hexagonal decorativa com loading="lazy" e fetchPriority="low"
  * - will-change-transform para otimização de GPU
  * - Animações desabilitadas em mobile (<768px) via CSS
  */
@@ -46,9 +47,11 @@ const Hero = () => {
           src={backgroundPattern}
           alt=""
           aria-hidden="true"
-          width={1200}
-          height={1200}
-          loading="eager"
+          width={1189}
+          height={1145}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
           className="h-auto opacity-30 sm:opacity-50 dark:opacity-[0.15] dark:sm:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
           style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
         />
@@ -61,21 +64,18 @@ const Hero = () => {
           <div className="text-white space-y-6 md:space-y-8">
             {/* Headline e subtítulo */}
             <div className="space-y-4">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight animate-fade-in">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
                 Software sob medida para empresas que querem
                 <span className="text-accent"> crescer</span> além das soluções prontas
               </h1>
-              <p className="text-base md:text-lg text-white/80 leading-relaxed animate-slide-up">
+              <p className="text-base md:text-lg text-white/80 leading-relaxed">
                 Projetamos e entregamos sistemas que acompanham a evolução do seu negócio, com
                 arquitetura escalável, código limpo e gestão transparente do projeto.
               </p>
             </div>
 
             {/* Botões CTA: coluna em mobile, linha em desktop */}
-            <div
-              className="flex flex-col sm:flex-row gap-4 animate-slide-up"
-              style={{ animationDelay: "0.2s" }}
-            >
+            <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
                 variant="accent"
@@ -94,10 +94,7 @@ const Hero = () => {
             </div>
 
             {/* Estatísticas: grid 2 colunas mobile, flex horizontal desktop */}
-            <div
-              className="grid grid-cols-2 sm:flex sm:flex-wrap gap-6 md:gap-8 pt-6 md:pt-8 animate-fade-in"
-              style={{ animationDelay: "0.4s" }}
-            >
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-6 md:gap-8 pt-6 md:pt-8">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">20+</div>
                 <div className="text-xs md:text-sm text-white/80 mt-1">Projetos em produção</div>

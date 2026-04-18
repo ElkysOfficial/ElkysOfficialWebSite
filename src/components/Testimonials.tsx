@@ -343,7 +343,7 @@ const Testimonials = () => {
             <div
               className="flex gap-4 md:gap-6"
               style={{
-                transform: `translateX(-${currentIndex * (itemWidth + (window.innerWidth < 640 ? 16 : window.innerWidth < 768 ? 16 : 24))}px)`,
+                transform: `translateX(-${currentIndex * (itemWidth + (itemWidth < 320 ? 16 : 24))}px)`,
                 transition: transitionEnabled ? "transform 0.5s ease" : "none",
                 willChange: "transform",
               }}
@@ -376,15 +376,9 @@ const Testimonials = () => {
                           alt={testimonial.name}
                           className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                           loading="lazy"
+                          decoding="async"
                           width={48}
                           height={48}
-                          srcSet={`
-                            ${testimonial.image}?w=40&h=40&q=80 40w,
-                            ${testimonial.image}?w=48&h=48&q=80 48w,
-                            ${testimonial.image}?w=80&h=80&q=80 80w,
-                            ${testimonial.image}?w=96&h=96&q=80 96w
-                          `}
-                          sizes="48px"
                         />
                       ) : (
                         <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
