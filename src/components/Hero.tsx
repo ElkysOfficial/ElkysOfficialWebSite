@@ -47,8 +47,8 @@ const Hero = () => {
           src={backgroundPattern}
           alt=""
           aria-hidden="true"
-          width={1189}
-          height={1145}
+          width={512}
+          height={512}
           loading="lazy"
           decoding="async"
           fetchPriority="low"
