@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Menu, X, Hexagon, Building2, Target } from "@/assets/icons";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useDarkMode";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button, cn } from "@/design-system";
 import { services } from "@/data/services";
@@ -10,7 +10,8 @@ const letteringWhite = "/imgs/icons/lettering_elkys.webp";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
@@ -35,8 +36,22 @@ const Navigation = () => {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
+    // rAF throttle + threshold: so atualiza estado quando cruza 0 ou 900.
+    // Antes: setScrollY a cada evento de scroll (60+/s) re-renderizava o
+    // Navigation continuamente. Agora: estados booleanos + comparacao,
+    // setState so dispara em mudancas reais (3 transicoes possiveis).
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setHasScrolled(y > 0);
+        setPastHero(y > 900);
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -142,9 +157,8 @@ const Navigation = () => {
     { label: "Contato", href: isHomePage ? "#contact" : "/#contact", isRoute: false },
   ];
 
-  const isHeroVisible = hasHeroSection && scrollY <= 900;
+  const isHeroVisible = hasHeroSection && !pastHero;
   const useTransparent = isHeroVisible || isDarkTheme;
-  const hasScrolled = scrollY > 0;
 
   /**
    * Lógica da logo:

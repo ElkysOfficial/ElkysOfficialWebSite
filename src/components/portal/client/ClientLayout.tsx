@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import PortalErrorBoundary from "@/components/portal/shared/PortalErrorBoundary";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/hooks/useDarkMode";
 
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
