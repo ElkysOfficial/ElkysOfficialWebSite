@@ -4,6 +4,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import RootErrorBoundary from "@/components/RootErrorBoundary";
 
+// Index e SYNC (nao lazy): combina com o LCP instant shim injetado no
+// index.html. Se Index fosse lazy, a primeira commit do React renderiza
+// null (Suspense fallback) enquanto o chunk de Index baixa, deixando a
+// tela em branco atras do shim — removeLcpShim() em main.tsx removeria
+// o shim e o usuario veria flash branco ate o Hero montar. Com Index
+// sync, o Hero existe no DOM logo apos createRoot.render, e o shim pode
+// sair em 2 rAFs sem flash. Outras rotas continuam lazy.
+import Index from "./pages/Index";
+
 // CookieConsent so aparece apos 1500ms e somente pra quem nao deu consent.
 // Carregar lazy tira icones Cookie/X + Button + Link do bundle inicial.
 const CookieConsent = lazy(() => import("@/components/CookieConsent"));
@@ -13,8 +22,7 @@ const CookieConsent = lazy(() => import("@/components/CookieConsent"));
 // No portal, PortalShell.tsx monta. Tira ~10KB gzip do entry na landing
 // pra visitantes que nao chegam em form/portal.
 
-// Public pages
-const Index = lazy(() => import("./pages/Index"));
+// Public pages (exceto Index, ver acima)
 const Cases = lazy(() => import("./pages/Cases"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
