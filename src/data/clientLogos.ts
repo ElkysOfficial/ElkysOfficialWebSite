@@ -7,10 +7,10 @@
 export const clientLogos: readonly string[] = [
   "/imgs/logo/1umprintcomunicacao.svg",
   "/imgs/logo/AKProducoes.svg",
-  "/imgs/logo/Antônio Oliveira Advogados.webp",
-  "/imgs/logo/God of Baber.webp",
   "/imgs/logo/Hapvida.webp",
   "/imgs/logo/Logo Inline White.webp",
+  "/imgs/logo/antonio-oliveira-advogados.webp",
   "/imgs/logo/dps-celulares.webp",
+  "/imgs/logo/god-of-baber.webp",
   "/imgs/logo/plansCoop.webp",
 ];

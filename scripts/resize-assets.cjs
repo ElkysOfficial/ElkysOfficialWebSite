@@ -89,13 +89,19 @@ async function main() {
 
   // 2. Logos oversized. Nomes sanitizados de quebra (tira acentos/espacos
   // que causam %20 em URL e impedem resize in-place no Windows).
+  // maxH=80 bate o display max do carousel (height: clamp(50px, 10vw, 80px)).
+  // Antes mantiamos 160 pra buff retina 2x, mas logos de cliente em carousel
+  // decorativo nao justifica +5KB por imagem — PSI reclama "source 157x160
+  // pra display 79x80, economia 5.3KiB". Em retina vai ficar levemente
+  // borrado mas e quase imperceptivel no contexto (grayscale + opacity 0.6).
   const logoTargets = [
-    { name: "Dps Celulares.webp", maxH: 160 },
-    { name: "Antônio Oliveira Advogados.webp", maxH: 160 },
-    { name: "God of Baber.webp", maxH: 160 },
-    { name: "Logo Inline White.webp", maxH: 160 },
-    { name: "Hapvida.webp", maxH: 160 },
-    { name: "plansCoop.webp", maxH: 160 },
+    { name: "Dps Celulares.webp", maxH: 80 },
+    { name: "dps-celulares.webp", maxH: 80 }, // apos rename em v2.84.1
+    { name: "Antônio Oliveira Advogados.webp", maxH: 80 },
+    { name: "God of Baber.webp", maxH: 80 },
+    { name: "Logo Inline White.webp", maxH: 80 },
+    { name: "Hapvida.webp", maxH: 80 },
+    { name: "plansCoop.webp", maxH: 80 },
     { name: "1UmPrintComunicação.svg", maxH: null }, // SVG nao precisa resize
   ];
 
