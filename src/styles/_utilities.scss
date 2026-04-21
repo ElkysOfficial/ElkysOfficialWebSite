@@ -110,17 +110,24 @@
 }
 
 // --- Carrossel de Clientes ---
-.clients-logo-grayscale {
+// Filter+transform no WRAPPER (1 layer composta) em vez de na img. Antes,
+// cada logo pintava uma sub-camada com grayscale — com 3 replicas da lista
+// (~24 layers) e animate-clients-scroll continuo, o GPU cache thrashava.
+// Agrupando no wrapper, o browser consolida tudo num layer por track.
+.clients-logo-wrapper {
   filter: grayscale(100%) opacity(0.6);
   transition:
     filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  object-fit: contain;
+
+  &:hover {
+    filter: none;
+    transform: scale(1.1);
+  }
 }
 
-.clients-logo-wrapper:hover .clients-logo-grayscale {
-  filter: grayscale(0%) opacity(1);
-  transform: scale(1.1);
+.clients-logo-grayscale {
+  object-fit: contain;
 }
 
 .clients-carousel-track {
@@ -147,19 +154,13 @@
 }
 
 // --- Performance Mobile ---
+// Hexagonal e card-pulse: imagem decorativa e feature cards so aparecem
+// em sm+ (hidden sm:block / hidden lg:block no Hero.tsx), entao nao existem
+// overrides aqui — reduz cascata morta. clients-scroll mantido em 40s em
+// mobile pra parecer menos frenetico no viewport pequeno.
 @media (max-width: 767px) {
   .animate-float {
     animation-duration: 6s;
-  }
-
-  .animate-diamond-rotate {
-    animation-duration: 4s;
-  }
-
-  .animate-card-pulse {
-    animation: none;
-    background: hsl(0 0% 100% / 0.1);
-    border-color: hsl(0 0% 100% / 0.1);
   }
 
   .animate-clients-scroll {

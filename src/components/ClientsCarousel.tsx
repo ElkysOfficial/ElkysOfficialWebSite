@@ -1,32 +1,10 @@
-import { useState, useEffect } from "react";
+import { clientLogos } from "@/data/clientLogos";
+
+// Paths estaticos inlinados no bundle — era fetch('/imgs/logo/logos.json')
+// em useEffect, gerando 1 request extra + re-render quando os dados chegavam.
+const duplicatedLogos = [...clientLogos, ...clientLogos, ...clientLogos];
 
 const ClientsCarousel = () => {
-  const [logos, setLogos] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetch("/imgs/logo/logos.json")
-      .then((res) => res.json())
-      .then((data) => {
-        const logoPaths = data.logos.map((filename: string) => `/imgs/logo/${filename}`);
-        setLogos(logoPaths);
-      })
-      .catch((error) => {
-        console.error("Error loading logos:", error);
-        setLogos([
-          "/imgs/logo/1UmPrintComunicação.svg",
-          "/imgs/logo/AKProducoes.svg",
-          "/imgs/logo/Antônio Oliveira Advogados.webp",
-          "/imgs/logo/Dps Celulares.webp",
-          "/imgs/logo/God of Baber.webp",
-          "/imgs/logo/Hapvida.webp",
-          "/imgs/logo/Logo Inline White.webp",
-          "/imgs/logo/plansCoop.webp",
-        ]);
-      });
-  }, []);
-
-  const duplicatedLogos = [...logos, ...logos, ...logos];
-
   return (
     <section className="py-16 md:py-20 lg:py-24 bg-background border-y border-border overflow-hidden">
       <div className="container mx-auto px-4">

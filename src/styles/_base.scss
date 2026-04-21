@@ -12,3 +12,12 @@ body {
   font-family: "Poppins", system-ui, sans-serif;
   scroll-behavior: smooth;
 }
+
+// Scroll lock do menu mobile. Classe em <html> em vez de mutar
+// document.body.style.overflow: mutacoes diretas em style.* disparam reflow
+// global imediato mesmo quando o valor resultante nao muda. classList.toggle
+// batcha com o proximo ciclo e reduz INP no tap do hamburger.
+html.menu-open {
+  overflow: hidden;
+  touch-action: none;
+}

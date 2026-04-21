@@ -7,78 +7,35 @@ import { createHtmlPlugin } from "vite-plugin-html";
 import { visualizer } from "rollup-plugin-visualizer";
 
 /**
- * Plugin pos-build minimo: SO injeta modulepreload com fetchpriority=high
- * pro entry chunk e pro Index-*.js (lazy chunk da landing). Quebra a cadeia
- * critica de requests sem mexer no <link rel="stylesheet"> — CSS continua
- * blocking (necessario pra LCP estilizado no primeiro paint; tentativa
- * anterior de extrair "critical CSS" e tornar o restante async causava
- * render delay de ~2s no LCP porque utilities Tailwind nao entravam no
- * inline e o H1 do Hero so recebia estilo final quando o stylesheet
- * async chegava).
+ * Plugin unificado pos-build: CSS-split (landing vs portal) + modulepreload
+ * hints criticos antes do <style> inline.
+ *
+ * Combinado num unico closeBundle para garantir execucao sequencial: antes
+ * eram 2 plugins com enforce:"post" — Rollup roda closeBundle em paralelo
+ * entre plugins por padrao, entao o modulePreloadHints as vezes executava
+ * ANTES do landingCssSplit injetar o <style>, e os hints acabavam posicionados
+ * em fallback (antes do <script entry>) em vez de antes do <style>.
+ *
+ * O que este plugin faz, em ordem:
+ * 1. PURGECSS — roda contra os chunks JS que carregam na landing,
+ *    gera um subset da folha de estilo completa. O portal carrega o CSS
+ *    completo sob demanda via PortalShell (window.__ELKYS_FULL_CSS__).
+ * 2. SUBSTITUI <link rel=stylesheet> por <style>CSS purgado</style> + script
+ *    injetado com o path do CSS completo.
+ * 3. INJETA <link rel=modulepreload fetchpriority=high> para os chunks
+ *    criticos (entry + react-vendor + query-vendor + Navigation + Index)
+ *    ANTES do <style> inline. Browser descobre o JS critico e dispara fetch
+ *    paralelo enquanto ainda tokeniza os ~60KB de CSS.
+ *
+ * Porque CSS continua blocking: tentativa anterior de extrair "critical CSS"
+ * e tornar o restante async causou render delay de ~2s no LCP — utilities
+ * Tailwind nao entravam no inline e o H1 do Hero so recebia estilo final
+ * quando o stylesheet async chegava. Manter o CSS inline + hints antes dele
+ * da o melhor custo/beneficio observado.
  */
-function modulePreloadHints(): Plugin {
+function landingCssAndPreloads(): Plugin {
   return {
-    name: "vite-plugin-modulepreload-hints",
-    apply: "build",
-    enforce: "post",
-    closeBundle() {
-      const distPath = path.resolve(__dirname, "dist");
-      const htmlPath = path.join(distPath, "index.html");
-      if (!fs.existsSync(htmlPath)) return;
-
-      let html = fs.readFileSync(htmlPath, "utf-8");
-      const entryMatch = html.match(
-        /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
-      );
-      if (!entryMatch) return;
-
-      const hints: string[] = [
-        `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`,
-      ];
-
-      const assetsDir = path.join(distPath, "assets");
-      if (fs.existsSync(assetsDir)) {
-        const indexChunk = fs
-          .readdirSync(assetsDir)
-          .find((f) => /^Index-[A-Za-z0-9_-]+\.js$/.test(f));
-        if (indexChunk) {
-          hints.push(
-            `<link rel="modulepreload" crossorigin fetchpriority="high" href="/assets/${indexChunk}">`
-          );
-        }
-      }
-
-      html = html.replace(entryMatch[0], hints.join("") + entryMatch[0]);
-      fs.writeFileSync(htmlPath, html);
-    },
-  };
-}
-
-/**
- * CSS split entre landing (inline no HTML) e portal (lazy via PortalShell).
- *
- * Problema anterior: inlinar o CSS completo (~90 KB raw) no HTML resolvia
- * o bloqueio de renderizacao mas deixava ~11 KB de utilities Tailwind
- * usadas SO pelo portal (Admin/Cliente/Login) inline na landing — PSI
- * reportava "Reduza CSS nao usado 11 KiB".
- *
- * Estrategia atual:
- * 1. Identifica chunks JS que rodam na landing (positive list por nome).
- * 2. Roda PurgeCSS programatico contra esses chunks pra extrair somente
- *    as regras CSS efetivamente referenciadas → landing.css subset.
- * 3. Inlina o subset no <style> do HTML.
- * 4. Mantem o CSS completo em /assets/index-*.css como arquivo fisico.
- * 5. Injeta um <script>window.__ELKYS_FULL_CSS__</script> com o path
- *    do CSS completo. PortalShell.tsx, ao montar, cria <link rel="stylesheet">
- *    apontando pra esse path — assim portal carrega o restante do CSS so
- *    quando o usuario entra em /login ou /portal/*.
- *
- * Safelist generoso pra cobrir classes geradas dinamicamente via cn()/cva()
- * que PurgeCSS pode nao detectar no JS minificado.
- */
-function landingCssSplit(): Plugin {
-  return {
-    name: "vite-plugin-landing-css-split",
+    name: "vite-plugin-landing-css-and-preloads",
     apply: "build",
     enforce: "post",
     async closeBundle() {
@@ -173,15 +130,54 @@ function landingCssSplit(): Plugin {
 
       const purgedCss = result[0]?.css || fullCss;
 
-      // Injeta script com path do CSS completo pra PortalShell consumir
+      // Passo 2: substitui <link rel=stylesheet> por <style> inline +
+      // script com path do CSS completo pra PortalShell consumir.
       const cssPathScript = `<script>window.__ELKYS_FULL_CSS__=${JSON.stringify(cssRelPath)}</script>`;
       html = html.replace(linkMatch[0], `<style>${purgedCss}</style>${cssPathScript}`);
+
+      // Passo 3: injeta modulepreload hints ANTES do <style> inline recem
+      // injetado. Preload scanner do browser encontra o JS critico antes
+      // de tokenizar os ~60KB de CSS — fetch paralelo em vez de serializado.
+      const entryMatch = html.match(
+        /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
+      );
+      if (entryMatch) {
+        const hints: string[] = [
+          `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`,
+        ];
+        const files = fs.readdirSync(assetsDir);
+        // Patterns em ordem de prioridade (vendor compartilhado primeiro,
+        // depois page chunk). Tudo com fetchpriority=high — o entry JS e a
+        // cadeia critica pra render do H1 (LCP).
+        const criticalPatterns: RegExp[] = [
+          /^react-vendor-[A-Za-z0-9_-]+\.js$/,
+          /^query-vendor-[A-Za-z0-9_-]+\.js$/,
+          /^Navigation-[A-Za-z0-9_-]+\.js$/,
+          /^Index-[A-Za-z0-9_-]+\.js$/,
+        ];
+        for (const pattern of criticalPatterns) {
+          const chunk = files.find((f) => f.endsWith(".js") && pattern.test(f));
+          if (chunk) {
+            hints.push(
+              `<link rel="modulepreload" crossorigin fetchpriority="high" href="/assets/${chunk}">`
+            );
+          }
+        }
+        const styleIdx = html.indexOf("<style>");
+        if (styleIdx !== -1) {
+          html = html.slice(0, styleIdx) + hints.join("") + html.slice(styleIdx);
+        }
+      }
+
       fs.writeFileSync(htmlPath, html);
 
       const fullKb = (Buffer.byteLength(fullCss) / 1024).toFixed(1);
       const purgedKb = (Buffer.byteLength(purgedCss) / 1024).toFixed(1);
       console.log(
         `✅ CSS split: landing inline ${purgedKb}KB (era ${fullKb}KB full). Portal CSS continua em ${cssFileName} (lazy via PortalShell).`
+      );
+      console.log(
+        `✅ modulepreload hints injetados antes do <style> inline (entry + react-vendor + query-vendor + Navigation + Index).`
       );
     },
   };
@@ -237,8 +233,10 @@ export default defineConfig(({ mode }) => {
         gzipSize: true,
         brotliSize: true,
       }),
-      modulePreloadHints(),
-      landingCssSplit(),
+      // Plugin unificado: PurgeCSS + inline <style> + modulepreload hints
+      // ANTES do <style>. Tudo num unico closeBundle pra garantir ordem
+      // (Rollup nao garante sequencia entre plugins "post" distintos).
+      landingCssAndPreloads(),
     ].filter(Boolean),
     resolve: {
       dedupe: ["react", "react-dom"],
