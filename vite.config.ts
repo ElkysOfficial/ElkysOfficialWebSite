@@ -22,10 +22,15 @@ import { visualizer } from "rollup-plugin-visualizer";
  *    completo sob demanda via PortalShell (window.__ELKYS_FULL_CSS__).
  * 2. SUBSTITUI <link rel=stylesheet> por <style>CSS purgado</style> + script
  *    injetado com o path do CSS completo.
- * 3. INJETA <link rel=modulepreload fetchpriority=high> para os chunks
- *    criticos (entry + react-vendor + query-vendor + Navigation + Index)
- *    ANTES do <style> inline. Browser descobre o JS critico e dispara fetch
- *    paralelo enquanto ainda tokeniza os ~60KB de CSS.
+ * 3a. INJETA <link rel=modulepreload fetchpriority=high> pros chunks
+ *     auxiliares (react-vendor, query-vendor) ANTES do <style> inline.
+ *     Browser descobre esses imports enquanto ainda tokeniza o CSS.
+ * 3b. INLINE do entry JS no proprio HTML. Elimina o round-trip
+ *     "HTML -> entry.js" reportado pelo PSI como "Evite encadear
+ *     solicitacoes criticas". Com o entry ja no HTML, o browser comeca
+ *     a executar o bootstrap do React assim que termina de parsear o
+ *     <script type=module>. Imports do entry (react-vendor, etc) sao
+ *     carregados via os modulepreload hints de 3a.
  *
  * Porque CSS continua blocking: tentativa anterior de extrair "critical CSS"
  * e tornar o restante async causou render delay de ~2s no LCP — utilities
@@ -135,27 +140,25 @@ function landingCssAndPreloads(): Plugin {
       const cssPathScript = `<script>window.__ELKYS_FULL_CSS__=${JSON.stringify(cssRelPath)}</script>`;
       html = html.replace(linkMatch[0], `<style>${purgedCss}</style>${cssPathScript}`);
 
-      // Passo 3: injeta modulepreload hints ANTES do <style> inline recem
-      // injetado. Preload scanner do browser encontra o JS critico antes
-      // de tokenizar os ~60KB de CSS — fetch paralelo em vez de serializado.
-      const entryMatch = html.match(
-        /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)">/
+      // Passo 3a: encontra o <script type=module> do entry pra usar tanto
+      // no inline (passo 3c) como no modulepreload hint (passo 3b) dos
+      // vendors auxiliares.
+      const entryTagMatch = html.match(
+        /<script\s+type="module"\s+crossorigin\s+src="(\/assets\/[^"]+\.js)"><\/script>/
       );
-      if (entryMatch) {
-        const hints: string[] = [
-          `<link rel="modulepreload" crossorigin fetchpriority="high" href="${entryMatch[1]}">`,
-        ];
+
+      if (entryTagMatch) {
+        // Passo 3b: modulepreload hints ANTES do <style> inline pros chunks
+        // auxiliares (react-vendor, query-vendor). O entry em si NAO precisa
+        // de hint porque sera inlinado no passo 3c. Browser encontra o JS
+        // dos vendors enquanto ainda parseia o <style>.
         const files = fs.readdirSync(assetsDir);
-        // Patterns em ordem de prioridade (vendor compartilhado primeiro,
-        // depois page chunk). Tudo com fetchpriority=high — o entry JS e a
-        // cadeia critica pra render do H1 (LCP).
-        const criticalPatterns: RegExp[] = [
+        const hints: string[] = [];
+        const auxPatterns: RegExp[] = [
           /^react-vendor-[A-Za-z0-9_-]+\.js$/,
           /^query-vendor-[A-Za-z0-9_-]+\.js$/,
-          /^Navigation-[A-Za-z0-9_-]+\.js$/,
-          /^Index-[A-Za-z0-9_-]+\.js$/,
         ];
-        for (const pattern of criticalPatterns) {
+        for (const pattern of auxPatterns) {
           const chunk = files.find((f) => f.endsWith(".js") && pattern.test(f));
           if (chunk) {
             hints.push(
@@ -164,8 +167,26 @@ function landingCssAndPreloads(): Plugin {
           }
         }
         const styleIdx = html.indexOf("<style>");
-        if (styleIdx !== -1) {
+        if (styleIdx !== -1 && hints.length > 0) {
           html = html.slice(0, styleIdx) + hints.join("") + html.slice(styleIdx);
+        }
+
+        // Passo 3c: inline o entry.js no HTML pra eliminar o round-trip
+        // HTML -> entry.js que o PSI reportava como "Evite encadear
+        // solicitacoes criticas" (cadeia 798ms + 655ms do entry). Entry
+        // tem ~27KB gzip — absorvido no HTML, fica ~42KB gzip mas baixa
+        // tudo num unico request. Imports do entry (react-vendor etc)
+        // continuam como chunks separados cacheaveis, apontados pelos
+        // modulepreload hints acima. Apos inline, o arquivo original
+        // vira orfao (nada aponta pra ele) — apago do dist pra nao
+        // confundir deploy/auditoria de assets.
+        const entryRelPath = entryTagMatch[1];
+        const entryAbsPath = path.join(distPath, entryRelPath);
+        if (fs.existsSync(entryAbsPath)) {
+          const entryJs = fs.readFileSync(entryAbsPath, "utf-8");
+          const inlineTag = `<script type="module" crossorigin>${entryJs}</script>`;
+          html = html.replace(entryTagMatch[0], inlineTag);
+          fs.unlinkSync(entryAbsPath);
         }
       }
 
@@ -177,7 +198,7 @@ function landingCssAndPreloads(): Plugin {
         `✅ CSS split: landing inline ${purgedKb}KB (era ${fullKb}KB full). Portal CSS continua em ${cssFileName} (lazy via PortalShell).`
       );
       console.log(
-        `✅ modulepreload hints injetados antes do <style> inline (entry + react-vendor + query-vendor + Navigation + Index).`
+        `✅ Entry JS inlinado no HTML + modulepreload hints pros vendors (react-vendor, query-vendor) ANTES do <style> inline.`
       );
     },
   };
