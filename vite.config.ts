@@ -180,11 +180,20 @@ function landingCssAndPreloads(): Plugin {
         // modulepreload hints acima. Apos inline, o arquivo original
         // vira orfao (nada aponta pra ele) — apago do dist pra nao
         // confundir deploy/auditoria de assets.
+        //
+        // CRITICO: reescrever imports relativos do entry (./foo.js) para
+        // absolutos (/assets/foo.js) antes de inline. Quando o entry era
+        // servido em /assets/index-*.js, "./react-vendor-*.js" resolvia
+        // pra /assets/react-vendor-*.js. Agora que o script esta inline
+        // no HTML em "/" (ou /servicos/xxx etc), "./react-vendor-*.js"
+        // resolveria pra /react-vendor-*.js (ou /servicos/react-vendor-*.js)
+        // -> 404. Cobre tanto `from "./foo"` quanto `import("./foo")`.
         const entryRelPath = entryTagMatch[1];
         const entryAbsPath = path.join(distPath, entryRelPath);
         if (fs.existsSync(entryAbsPath)) {
           const entryJs = fs.readFileSync(entryAbsPath, "utf-8");
-          const inlineTag = `<script type="module" crossorigin>${entryJs}</script>`;
+          const rewritten = entryJs.replace(/(from\s*["']|import\s*\(\s*["'])\.\//g, "$1/assets/");
+          const inlineTag = `<script type="module" crossorigin>${rewritten}</script>`;
           html = html.replace(entryTagMatch[0], inlineTag);
           fs.unlinkSync(entryAbsPath);
         }
