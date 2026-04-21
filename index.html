@@ -54,10 +54,13 @@
       content="Elkys - Soluções Inteligentes em Software & Automação B2B"
     />
 
-    <!-- Sem preconnect/dns-prefetch pra googletagmanager: o gtag so carrega
-         apos 30s ou na 1a interacao (ver bootstrap inline acima). Manter
-         preconnect t=0 abria conexao TCP+TLS desperdicada que ainda
-         consumia slot de conexao paralela competindo com fonts/JS. -->
+    <!-- dns-prefetch pro GTM: resolve so o DNS sem abrir TCP/TLS (diferente
+         de preconnect). O gtag so carrega apos 1a interacao ou 60s, entao
+         preconnect desperdicaria slot de conexao competindo com fonts/JS;
+         dns-prefetch e leve (~1-2KB de overhead de DNS cache) e remove o
+         aviso "origens pre-conectadas" do PSI quando o GA eventualmente
+         dispara. -->
+    <link rel="dns-prefetch" href="//www.googletagmanager.com" />
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
