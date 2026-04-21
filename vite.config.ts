@@ -177,17 +177,26 @@ function landingCssAndPreloads(): Plugin {
         // tem ~27KB gzip — absorvido no HTML, fica ~42KB gzip mas baixa
         // tudo num unico request. Imports do entry (react-vendor etc)
         // continuam como chunks separados cacheaveis, apontados pelos
-        // modulepreload hints acima. Apos inline, o arquivo original
-        // vira orfao (nada aponta pra ele) — apago do dist pra nao
-        // confundir deploy/auditoria de assets.
+        // modulepreload hints acima.
         //
-        // CRITICO: reescrever imports relativos do entry (./foo.js) para
+        // CRITICO #1: reescrever imports relativos do entry (./foo.js) para
         // absolutos (/assets/foo.js) antes de inline. Quando o entry era
         // servido em /assets/index-*.js, "./react-vendor-*.js" resolvia
         // pra /assets/react-vendor-*.js. Agora que o script esta inline
         // no HTML em "/" (ou /servicos/xxx etc), "./react-vendor-*.js"
         // resolveria pra /react-vendor-*.js (ou /servicos/react-vendor-*.js)
         // -> 404. Cobre tanto `from "./foo"` quanto `import("./foo")`.
+        //
+        // CRITICO #2: MANTER o arquivo entry.js no dist. Rollup extrai
+        // deps compartilhadas (cn, cva, etc) pro entry chunk — os chunks
+        // lazy (About, Services, ContactForm...) fazem
+        // `import "./index-*.js"` pra pegar essas deps. Se deletar o
+        // arquivo, lazy chunks quebram com 404 em cascata (producao
+        // ficou quebrada em v2.85.1 -> v2.85.2). O entry existe em 2
+        // formas: inline no HTML (executa na boot) e arquivo em /assets/
+        // (importado por chunks lazy). A dupla execucao seria problema
+        // (createRoot 2x) mas e neutralizada pelo guard idempotente em
+        // main.tsx (window.__ELKYS_BOOTED__).
         const entryRelPath = entryTagMatch[1];
         const entryAbsPath = path.join(distPath, entryRelPath);
         if (fs.existsSync(entryAbsPath)) {
@@ -195,7 +204,8 @@ function landingCssAndPreloads(): Plugin {
           const rewritten = entryJs.replace(/(from\s*["']|import\s*\(\s*["'])\.\//g, "$1/assets/");
           const inlineTag = `<script type="module" crossorigin>${rewritten}</script>`;
           html = html.replace(entryTagMatch[0], inlineTag);
-          fs.unlinkSync(entryAbsPath);
+          // NAO deletar o entry.js — ele continua sendo importado por
+          // chunks lazy (About, Services, etc) que pegam shared deps dele.
         }
       }
 
