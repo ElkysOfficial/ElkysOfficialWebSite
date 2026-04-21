@@ -1,137 +1,183 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { Star, Quote } from "@/assets/icons";
 import { Card, CardContent } from "@/design-system";
 import ArrowLeft from "../../public/imgs/images/chevron-compact-left.svg";
 import ArrowRight from "../../public/imgs/images/chevron-compact-right.svg";
 
 /**
- * Componente Testimonials - Carrossel de depoimentos de clientes
+ * Carrossel de depoimentos.
  *
- * Features:
- * - Carrossel infinito com loop seamless
- * - Suporte a touch/swipe em dispositivos móveis
- * - Autoplay inteligente com pausa ao interagir
- * - Retomada automática após 2s de inatividade
- * - Largura de cards dinâmica baseada no viewport
- * - Setas de navegação (ocultas em mobile)
- * - Indicadores de posição (dots) para mobile
- * - Imagens otimizadas com srcset responsivo
- *
- * Controles:
- * - Setas: navegação manual (desktop) - pausa e retoma após 2s
- * - Swipe: deslize left/right (mobile) - pausa e retoma após 2s
- * - Dots: navegação direta por posição (mobile) - pausa e retoma após 2s
- * - Hover: pausa ao passar mouse, retoma após 2s ao sair
- * - Autoplay: avança automaticamente a cada 6s (lento e fluido)
- *
- * Performance:
- * - Largura responsiva: 280px (mobile), 300px (tablet), 320px (desktop)
- * - Loop infinito com duplicação de array para evitar gaps
- * - Imagens com lazy loading e múltiplos tamanhos (40w, 48w, 80w, 96w)
+ * Performance (mobile):
+ * - Largura dos cards e step do translateX vivem em CSS var --tw, trocada
+ *   por media query (sem listener de resize, sem layout thrashing).
+ * - Autoplay pausa via IntersectionObserver enquanto a secao esta fora do
+ *   viewport (mobile fica muito tempo no Hero antes de scrollar ate aqui).
+ * - TestimonialCard memoizado: o tick do autoplay so re-renderiza o wrapper
+ *   que move o transform, nao os 14 cards.
+ * - willChange: transform aplicado so durante a transicao (evita layer GPU
+ *   permanente).
  */
-const Testimonials = () => {
-  /** Array de depoimentos - adicionar novos depoimentos aqui */
-  const testimonialsData = [
-    {
-      name: "Guilherme Trindade Duarte",
-      role: "CEO",
-      company: "Aquele Bar",
-      image: "/imgs/testimonials/guilhermeTrindade.webp",
-      rating: 5,
-      quote:
-        "Serviço de consultoria e extração de informações realizado com excelente profissionalismo. A entrega ocorreu antes do prazo e os dados vieram precisos, bem estruturados e fáceis de analisar.",
-    },
-    {
-      name: "Lucas Alves",
-      role: "Profissional Autônomo",
-      company: "",
-      image: "/imgs/testimonials/lucasAlves.webp",
-      rating: 5,
-      quote:
-        "Muito satisfeito com o serviço de consultoria e extração de dados. Todo o processo foi profissional, ágil e entregue antes do prazo, com resultados organizados que facilitaram minha análise.",
-    },
-    {
-      name: "Ramiro Silva",
-      role: "Fundador",
-      company: "1UmPrintComunicação",
-      image: "/imgs/testimonials/ramiroSilva.webp",
-      rating: 5,
-      quote:
-        "Desenvolvimento do site superou minhas expectativas. Layout moderno, funcional, responsivo e entregue em tempo recorde, com total entendimento da necessidade do cliente e experiência intuitiva.",
-    },
-    {
-      name: "João Pedro Monteiro",
-      role: "Profissional Autônomo",
-      company: "",
-      image: "/imgs/testimonials/joaoMonteiro.webp",
-      rating: 5,
-      quote:
-        "Empresa de primeira categoria em tecnologia. Acompanham desde a ideia até a entrega, com produtos fáceis de usar, alta qualidade, responsabilidade com prazos e foco total na experiência do cliente.",
-    },
-    {
-      name: "Alexandre Silva",
-      role: "Proprietário",
-      company: "AK Produções",
-      image: "",
-      rating: 5,
-      quote:
-        "A criação do site para nossa dubladora e gravadora ficou impecável. Design moderno, rápido e profissional, com ótima estrutura para apresentar nossos trabalhos e identidade artística. Excelente execução.",
-    },
-    {
-      name: "Antonio Oliveira",
-      role: "Advogado",
-      company: "Escritório Antonio Oliveira",
-      image: "/imgs/testimonials/antonioOliveira.webp",
-      rating: 5,
-      quote:
-        "Site institucional moderno, claro e muito profissional. A entrega foi precisa, ágil e alinhada exatamente ao que eu precisava para meu escritório.",
-    },
-    {
-      name: "Heliel Souza",
-      role: "Proprietário",
-      company: "PlansCoop",
-      image: "/imgs/testimonials/helielSouza.webp",
-      rating: 5,
-      quote:
-        "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
-    },
-  ];
 
-  // Estados do carrossel
-  const [itemWidth, setItemWidth] = useState(320); // Largura dinâmica dos cards
+type Testimonial = {
+  name: string;
+  role: string;
+  company: string;
+  image: string;
+  rating: number;
+  quote: string;
+};
+
+const testimonialsData: Testimonial[] = [
+  {
+    name: "Guilherme Trindade Duarte",
+    role: "CEO",
+    company: "Aquele Bar",
+    image: "/imgs/testimonials/guilhermeTrindade.webp",
+    rating: 5,
+    quote:
+      "Serviço de consultoria e extração de informações realizado com excelente profissionalismo. A entrega ocorreu antes do prazo e os dados vieram precisos, bem estruturados e fáceis de analisar.",
+  },
+  {
+    name: "Lucas Alves",
+    role: "Profissional Autônomo",
+    company: "",
+    image: "/imgs/testimonials/lucasAlves.webp",
+    rating: 5,
+    quote:
+      "Muito satisfeito com o serviço de consultoria e extração de dados. Todo o processo foi profissional, ágil e entregue antes do prazo, com resultados organizados que facilitaram minha análise.",
+  },
+  {
+    name: "Ramiro Silva",
+    role: "Fundador",
+    company: "1UmPrintComunicação",
+    image: "/imgs/testimonials/ramiroSilva.webp",
+    rating: 5,
+    quote:
+      "Desenvolvimento do site superou minhas expectativas. Layout moderno, funcional, responsivo e entregue em tempo recorde, com total entendimento da necessidade do cliente e experiência intuitiva.",
+  },
+  {
+    name: "João Pedro Monteiro",
+    role: "Profissional Autônomo",
+    company: "",
+    image: "/imgs/testimonials/joaoMonteiro.webp",
+    rating: 5,
+    quote:
+      "Empresa de primeira categoria em tecnologia. Acompanham desde a ideia até a entrega, com produtos fáceis de usar, alta qualidade, responsabilidade com prazos e foco total na experiência do cliente.",
+  },
+  {
+    name: "Alexandre Silva",
+    role: "Proprietário",
+    company: "AK Produções",
+    image: "",
+    rating: 5,
+    quote:
+      "A criação do site para nossa dubladora e gravadora ficou impecável. Design moderno, rápido e profissional, com ótima estrutura para apresentar nossos trabalhos e identidade artística. Excelente execução.",
+  },
+  {
+    name: "Antonio Oliveira",
+    role: "Advogado",
+    company: "Escritório Antonio Oliveira",
+    image: "/imgs/testimonials/antonioOliveira.webp",
+    rating: 5,
+    quote:
+      "Site institucional moderno, claro e muito profissional. A entrega foi precisa, ágil e alinhada exatamente ao que eu precisava para meu escritório.",
+  },
+  {
+    name: "Heliel Souza",
+    role: "Proprietário",
+    company: "PlansCoop",
+    image: "/imgs/testimonials/helielSouza.webp",
+    rating: 5,
+    quote:
+      "O chat-bot de cotações ficou extremamente eficiente. Processo otimizado, respostas rápidas e uma solução clara e funcional que melhorou o atendimento e acelerou nossas cotações.",
+  },
+];
+
+const TestimonialCard = memo(({ testimonial }: { testimonial: Testimonial }) => (
+  // Largura via CSS var --tw, trocada por media query no wrapper. Sem style
+  // inline = props estaveis, memo evita re-render no tick do autoplay.
+  // transition-shadow (nao transition-all): unico delta visual no hover.
+  <Card className="shadow-elegant hover:shadow-glow transition-shadow duration-300 group flex-shrink-0 w-[280px] sm:w-[300px] md:w-[320px]">
+    <CardContent className="p-5 md:p-6 space-y-4">
+      <div className="text-primary/50">
+        <Quote className="h-7 md:h-8 w-7 md:w-8" />
+      </div>
+
+      <div className="flex space-x-1">
+        {[...Array(testimonial.rating)].map((_, i) => (
+          <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+        ))}
+      </div>
+
+      <p className="text-muted-foreground leading-relaxed text-sm min-h-[100px]">
+        "{testimonial.quote}"
+      </p>
+
+      <div className="flex items-center space-x-3 pt-4 border-t border-border">
+        {testimonial.image ? (
+          <img
+            src={testimonial.image}
+            alt={testimonial.name}
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+            loading="lazy"
+            decoding="async"
+            width={48}
+            height={48}
+          />
+        ) : (
+          <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-semibold text-sm">
+              {testimonial.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </span>
+          </div>
+        )}
+        <div className="min-w-0">
+          <div className="font-semibold text-foreground text-sm truncate">{testimonial.name}</div>
+          <div className="text-xs text-muted-foreground truncate">
+            {testimonial.role}
+            {testimonial.company && ` • ${testimonial.company}`}
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+));
+TestimonialCard.displayName = "TestimonialCard";
+
+const Testimonials = () => {
   const totalItems = testimonialsData.length;
-  const extendedTestimonials = [...testimonialsData, ...testimonialsData]; // Array duplicado para loop infinito
+  const extendedTestimonials = [...testimonialsData, ...testimonialsData];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const [isPaused, setIsPaused] = useState(false); // Pausa do autoplay
+  const [isPaused, setIsPaused] = useState(false);
+  // Autoplay so dispara enquanto a secao esta visivel. Em mobile o usuario
+  // costuma ficar varios segundos no Hero antes de scrollar; sem isto o
+  // autoplay rodava 5+ vezes durante esse periodo, cada tick custando
+  // re-render do carrossel.
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Estados para controle de touch/swipe
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Refs para controle de timeouts e referência do DOM
-  const animationTimeoutRef = useRef(null);
-  const autoplayTimeoutRef = useRef(null);
-  const resumeAutoplayTimeoutRef = useRef(null);
+  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoplayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resumeAutoplayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Atualiza largura dos cards baseado no viewport
   useEffect(() => {
-    const updateItemWidth = () => {
-      if (window.innerWidth < 640) {
-        setItemWidth(280); // Mobile
-      } else if (window.innerWidth < 768) {
-        setItemWidth(300); // Tablet
-      } else {
-        setItemWidth(320); // Desktop
-      }
-    };
-
-    updateItemWidth();
-    window.addEventListener("resize", updateItemWidth);
-    return () => window.removeEventListener("resize", updateItemWidth);
+    const target = sectionRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), {
+      threshold: 0.1,
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
   }, []);
 
   const handleNext = () => {
@@ -141,15 +187,9 @@ const Testimonials = () => {
     setCurrentIndex((prev) => prev + 1);
     setIsPaused(true);
 
-    // Cancela qualquer autoplay agendado
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-    if (resumeAutoplayTimeoutRef.current) {
-      clearTimeout(resumeAutoplayTimeoutRef.current);
-    }
+    if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+    if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
 
-    // Agenda retomada do autoplay após 2s
     resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
@@ -160,46 +200,28 @@ const Testimonials = () => {
     setCurrentIndex((prev) => prev - 1);
     setIsPaused(true);
 
-    // Cancela qualquer autoplay agendado
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-    if (resumeAutoplayTimeoutRef.current) {
-      clearTimeout(resumeAutoplayTimeoutRef.current);
-    }
+    if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+    if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
 
-    // Agenda retomada do autoplay após 2s
     resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
   const startAutoplay = React.useCallback(() => {
     autoplayTimeoutRef.current = setTimeout(() => {
-      if (!isPaused && !isAnimating) {
+      if (!isPaused && !isAnimating && isVisible) {
         setIsAnimating(true);
         setTransitionEnabled(true);
         setCurrentIndex((prev) => prev + 1);
       }
-    }, 6000); // Aumentado para 6s para transição mais lenta e fluida
-  }, [isPaused, isAnimating]);
-
-  const resetAutoplayTimer = React.useCallback(() => {
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-    startAutoplay();
-  }, [startAutoplay]);
+    }, 6000);
+  }, [isPaused, isAnimating, isVisible]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
     setIsPaused(true);
 
-    // Cancela qualquer autoplay agendado
-    if (autoplayTimeoutRef.current) {
-      clearTimeout(autoplayTimeoutRef.current);
-    }
-    if (resumeAutoplayTimeoutRef.current) {
-      clearTimeout(resumeAutoplayTimeoutRef.current);
-    }
+    if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+    if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -213,22 +235,13 @@ const Testimonials = () => {
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe) {
-      handleNext();
-    }
-    if (isRightSwipe) {
-      handlePrev();
-    }
+    if (isLeftSwipe) handleNext();
+    if (isRightSwipe) handlePrev();
 
     setTouchStart(0);
     setTouchEnd(0);
 
-    // Limpa timeout anterior se existir
-    if (resumeAutoplayTimeoutRef.current) {
-      clearTimeout(resumeAutoplayTimeoutRef.current);
-    }
-
-    // Retoma autoplay após 2 segundos de inatividade
+    if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
     resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
   };
 
@@ -247,7 +260,9 @@ const Testimonials = () => {
       }
     }, 500);
 
-    return () => clearTimeout(animationTimeoutRef.current);
+    return () => {
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+    };
   }, [currentIndex, isAnimating, totalItems]);
 
   useEffect(() => {
@@ -258,33 +273,21 @@ const Testimonials = () => {
   }, [transitionEnabled]);
 
   useEffect(() => {
-    startAutoplay();
-    return () => {
-      if (autoplayTimeoutRef.current) {
-        clearTimeout(autoplayTimeoutRef.current);
-      }
-      if (resumeAutoplayTimeoutRef.current) {
-        clearTimeout(resumeAutoplayTimeoutRef.current);
-      }
-    };
-  }, [startAutoplay]);
-
-  useEffect(() => {
-    if (!isAnimating && !isPaused) {
+    if (!isAnimating && !isPaused && isVisible) {
       startAutoplay();
     }
     return () => {
-      if (autoplayTimeoutRef.current) {
-        clearTimeout(autoplayTimeoutRef.current);
-      }
-      if (resumeAutoplayTimeoutRef.current) {
-        clearTimeout(resumeAutoplayTimeoutRef.current);
-      }
+      if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+      if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
     };
-  }, [isAnimating, isPaused, currentIndex, startAutoplay]);
+  }, [isAnimating, isPaused, isVisible, currentIndex, startAutoplay]);
 
   return (
-    <section id="testimonials" className="py-16 md:py-20 lg:py-24 bg-gradient-subtle">
+    <section
+      ref={sectionRef}
+      id="testimonials"
+      className="py-16 md:py-20 lg:py-24 bg-gradient-subtle"
+    >
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
@@ -315,25 +318,19 @@ const Testimonials = () => {
             />
           </button>
 
+          {/* --tw = card width + gap por breakpoint. Mobile: 280+16=296,
+              sm: 300+16=316, md: 320+24=344. Substitui o resize listener
+              por CSS puro (zero forced reflow). */}
           <div
             ref={carouselRef}
-            className="relative mb-8 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px] py-2"
+            className="relative mb-8 md:mb-12 overflow-hidden w-full max-w-[280px] sm:max-w-[600px] md:max-w-[680px] lg:max-w-[800px] py-2 [--tw:296px] sm:[--tw:316px] md:[--tw:344px]"
             onMouseEnter={() => {
-              // Cancela qualquer autoplay agendado
-              if (autoplayTimeoutRef.current) {
-                clearTimeout(autoplayTimeoutRef.current);
-              }
-              if (resumeAutoplayTimeoutRef.current) {
-                clearTimeout(resumeAutoplayTimeoutRef.current);
-              }
+              if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+              if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
               setIsPaused(true);
             }}
             onMouseLeave={() => {
-              // Cancela qualquer timeout de retomada anterior
-              if (resumeAutoplayTimeoutRef.current) {
-                clearTimeout(resumeAutoplayTimeoutRef.current);
-              }
-              // Agenda retomada do autoplay após 2s
+              if (resumeAutoplayTimeoutRef.current) clearTimeout(resumeAutoplayTimeoutRef.current);
               resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
             }}
             onTouchStart={handleTouchStart}
@@ -343,71 +340,13 @@ const Testimonials = () => {
             <div
               className="flex gap-4 md:gap-6"
               style={{
-                transform: `translateX(-${currentIndex * (itemWidth + (itemWidth < 320 ? 16 : 24))}px)`,
+                transform: `translateX(calc(var(--tw) * -${currentIndex}))`,
                 transition: transitionEnabled ? "transform 0.5s ease" : "none",
-                willChange: "transform",
+                willChange: isAnimating ? "transform" : "auto",
               }}
             >
               {extendedTestimonials.map((testimonial, index) => (
-                <Card
-                  key={index}
-                  // transition-shadow (nao transition-all): o card tem width
-                  // dinamico inline; transition-all faz o browser tratar a
-                  // animacao como nao-composited (width e propriedade de
-                  // layout). Audit "Evitar animacoes nao compostas" sinaliza
-                  // os 14 cards. Como o unico delta visual no hover e
-                  // shadow-elegant -> shadow-glow, transition-shadow basta.
-                  className="shadow-elegant hover:shadow-glow transition-shadow duration-300 group flex-shrink-0"
-                  style={{ width: `${itemWidth}px` }}
-                >
-                  <CardContent className="p-5 md:p-6 space-y-4">
-                    <div className="text-primary/50">
-                      <Quote className="h-7 md:h-8 w-7 md:w-8" />
-                    </div>
-
-                    <div className="flex space-x-1">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                      ))}
-                    </div>
-
-                    <p className="text-muted-foreground leading-relaxed text-sm min-h-[100px]">
-                      "{testimonial.quote}"
-                    </p>
-
-                    <div className="flex items-center space-x-3 pt-4 border-t border-border">
-                      {testimonial.image ? (
-                        <img
-                          src={testimonial.image}
-                          alt={testimonial.name}
-                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                          loading="lazy"
-                          decoding="async"
-                          width={48}
-                          height={48}
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-semibold text-sm">
-                            {testimonial.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </span>
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="font-semibold text-foreground text-sm truncate">
-                          {testimonial.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {testimonial.role}
-                          {testimonial.company && ` • ${testimonial.company}`}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <TestimonialCard key={index} testimonial={testimonial} />
               ))}
             </div>
 
@@ -422,15 +361,10 @@ const Testimonials = () => {
                     setCurrentIndex(index);
                     setIsPaused(true);
 
-                    // Cancela qualquer autoplay agendado
-                    if (autoplayTimeoutRef.current) {
-                      clearTimeout(autoplayTimeoutRef.current);
-                    }
-                    if (resumeAutoplayTimeoutRef.current) {
+                    if (autoplayTimeoutRef.current) clearTimeout(autoplayTimeoutRef.current);
+                    if (resumeAutoplayTimeoutRef.current)
                       clearTimeout(resumeAutoplayTimeoutRef.current);
-                    }
 
-                    // Agenda retomada do autoplay após 2s
                     resumeAutoplayTimeoutRef.current = setTimeout(() => setIsPaused(false), 2000);
                   }}
                   className="p-1.5 transition-all duration-300 ease-in-out"
