@@ -1,11 +1,17 @@
 import { lazy, Suspense } from "react";
-import { Toaster } from "@/design-system";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
 import ScrollToTop from "@/components/ScrollToTop";
-import CookieConsent from "@/components/CookieConsent";
 import RootErrorBoundary from "@/components/RootErrorBoundary";
+
+// CookieConsent so aparece apos 1500ms e somente pra quem nao deu consent.
+// Carregar lazy tira icones Cookie/X + Button + Link do bundle inicial.
+const CookieConsent = lazy(() => import("@/components/CookieConsent"));
+
+// Toaster (sonner) removido do root. Na landing, ContactForm.tsx monta o
+// seu proprio Toaster (lazy, so carrega quando o usuario rola ate o form).
+// No portal, PortalShell.tsx monta. Tira ~10KB gzip do entry na landing
+// pra visitantes que nao chegam em form/portal.
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -43,70 +49,72 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
+  // HelmetProvider removido: o componente SEO agora e imperativo (useEffect
+  // + document.querySelector), sem dependencia de react-helmet-async. Tira
+  // o virtual DOM paralelo de <head> do bundle inicial (~15 KB gzip).
   <RootErrorBoundary>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <Toaster />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <ScrollToTop />
-          <Suspense fallback={null}>
-            <Routes>
-              {/* Public */}
-              <Route path="/" element={<Index />} />
-              <Route path="/cases" element={<Cases />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/cookie-policy" element={<CookiePolicy />} />
-              <Route path="/servicos/:slug" element={<ServiceDetail />} />
-              <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <ScrollToTop />
+        <Suspense fallback={null}>
+          <Routes>
+            {/* Public */}
+            <Route path="/" element={<Index />} />
+            <Route path="/cases" element={<Cases />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/servicos/:slug" element={<ServiceDetail />} />
+            <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
 
-              {/*
-               * Portal shell — pathless layout route.
-               * Renders AuthProvider (+ Supabase) only when a child route matches.
-               * Login and ForgotPassword are direct children so they are NOT
-               * wrapped in a path-consuming <Route>, avoiding the React Router
-               * descendant-Routes path-stripping bug.
-               */}
+            {/*
+             * Portal shell — pathless layout route.
+             * Renders AuthProvider (+ Supabase) only when a child route matches.
+             * Login and ForgotPassword are direct children so they are NOT
+             * wrapped in a path-consuming <Route>, avoiding the React Router
+             * descendant-Routes path-stripping bug.
+             */}
+            <Route
+              element={
+                <Suspense fallback={null}>
+                  <PortalShell />
+                </Suspense>
+              }
+            >
               <Route
+                path="/login"
                 element={
                   <Suspense fallback={null}>
-                    <PortalShell />
+                    <Login />
                   </Suspense>
                 }
-              >
-                <Route
-                  path="/login"
-                  element={
-                    <Suspense fallback={null}>
-                      <Login />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/forgot-password"
-                  element={
-                    <Suspense fallback={null}>
-                      <ForgotPassword />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/portal/*"
-                  element={
-                    <Suspense fallback={null}>
-                      <PortalRoutes />
-                    </Suspense>
-                  }
-                />
-              </Route>
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  <Suspense fallback={null}>
+                    <ForgotPassword />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/portal/*"
+                element={
+                  <Suspense fallback={null}>
+                    <PortalRoutes />
+                  </Suspense>
+                }
+              />
+            </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+        <Suspense fallback={null}>
           <CookieConsent />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </HelmetProvider>
+        </Suspense>
+      </BrowserRouter>
+    </QueryClientProvider>
   </RootErrorBoundary>
 );
 

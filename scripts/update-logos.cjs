@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const LOGOS_DIR = path.join(__dirname, '../public/imgs/logo');
-const JSON_PATH = path.join(__dirname, '../public/imgs/logo/logos.json');
+const TS_PATH = path.join(__dirname, '../src/data/clientLogos.ts');
 
 const logoFiles = fs.readdirSync(LOGOS_DIR)
   .filter(file => {
@@ -15,13 +15,19 @@ const logoFiles = fs.readdirSync(LOGOS_DIR)
 
 console.log('📂 Found logos:', logoFiles);
 
-const logosJson = {
-  logos: logoFiles,
-  lastUpdated: new Date().toISOString()
-};
+const tsContent = `/**
+ * Paths dos logos de clientes exibidos no carrossel da landing.
+ * Mantido como modulo TS (em vez de fetch em /imgs/logo/logos.json)
+ * pra eliminar 1 request + re-render apos o JSON carregar.
+ * Atualizado via scripts/update-logos.cjs.
+ */
+export const clientLogos: readonly string[] = [
+${logoFiles.map((f) => `  "/imgs/logo/${f}",`).join('\n')}
+];
+`;
 
-fs.writeFileSync(JSON_PATH, JSON.stringify(logosJson, null, 2), 'utf8');
+fs.writeFileSync(TS_PATH, tsContent, 'utf8');
 
-console.log('✅ logos.json updated successfully!');
+console.log('✅ clientLogos.ts updated successfully!');
 console.log(`📊 Total logos: ${logoFiles.length}`);
-console.log('\n🎉 New logos will appear automatically when you refresh the page!');
+console.log('\n🎉 Run npm run build to bundle the new logos.');

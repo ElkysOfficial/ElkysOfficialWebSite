@@ -1,17 +1,15 @@
 import { ArrowUp, Mail, Phone, Linkedin, Github, Instagram } from "@/assets/icons";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/useDarkMode";
-import { useEffect, useState } from "react";
 import { Button } from "@/design-system";
 import { services as serviceData } from "@/data/services";
 
 const Footer = () => {
-  const [mounted, setMounted] = useState(false);
+  // useTheme ja le sincronamente o estado da classe .dark aplicada pelo
+  // script inline de index.html antes do React montar — nao precisa de
+  // mounted-flag que antes cobria a janela de hidratacao do next-themes.
   const { resolvedTheme } = useTheme();
-
-  useEffect(() => setMounted(true), []);
-
-  const isDarkTheme = mounted && resolvedTheme === "dark";
+  const isDarkTheme = resolvedTheme === "dark";
 
   const quickLinks = [
     { label: "Início", href: "#hero" },

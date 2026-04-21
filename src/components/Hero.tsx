@@ -27,22 +27,27 @@ const Hero = () => {
   return (
     <section
       id="hero"
-      className="min-h-[100svh] flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
+      className="min-h-[100svh] flex items-center bg-gradient-hero dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden [contain:layout_paint]"
     >
       {/* Esferas decorativas de fundo com animacao float.
           Animacao so ativa em sm+: blur-3xl/blur-2xl + animate-float em
           mobile gerava repaint continuo da camada (filtro pesado animado)
           e era um dos maiores contribuintes pra "Style & Layout" + "Other"
           no main thread mobile. Em sm+ (>=640px) o GPU desktop/tablet
-          aguenta sem perda perceptivel. */}
+          aguenta sem perda perceptivel.
+          Intensidade reduzida (blur-3xl -> blur-2xl, blur-2xl -> blur-xl):
+          filter:blur e recalculado por frame durante animate-float e era
+          visivel em Performance Insights como "Rendering tasks" contiguas.
+          opacity-10 + tamanhos pequenos ja diluem o blob o suficiente pra
+          a reducao do raio ser imperceptivel a olho nu. */}
       <div className="absolute inset-0 opacity-10 motion-reduce:hidden">
-        <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-3xl sm:animate-float" />
+        <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-2xl sm:animate-float" />
         <div
-          className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-2xl sm:animate-float"
+          className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-xl sm:animate-float"
           style={{ animationDelay: "1s" }}
         />
         <div
-          className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-3xl sm:animate-float"
+          className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-primary-light rounded-full blur-2xl sm:animate-float"
           style={{ animationDelay: "2s" }}
         />
       </div>
@@ -55,19 +60,38 @@ const Hero = () => {
           Com "hidden sm:block" a imagem nao e renderizada nem baixada
           em mobile; o H1 volta a ser o LCP natural. Em sm+ o visual
           original e preservado. */}
-      {/* Wrapper controla posição e escala, img controla animação */}
-      <div className="hidden sm:block absolute sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[700px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[200px] sm:scale-[1.25] md:scale-[1.6] lg:scale-200 xl:scale-100 2xl:scale-90 sm:origin-top-left">
+      {/* Wrapper controla posição e escala, img controla animação.
+          O "glow" roxo antes vinha de filter: drop-shadow(0 0 40px ...) aplicado
+          DIRETAMENTE na img de 1600px: drop-shadow respeita alpha do bitmap,
+          entao a cada frame da rotacao (animate-diamond-rotate) o compositor
+          re-rasterizava a sombra da imagem toda — principal contribuinte de
+          "forced reflow" no trace e item explicito em "animacoes nao compostas".
+          Substituido por um gradient radial num elemento irmao (layer propria,
+          pintada 1x e composta em GPU). A img segue so com transform animado.
+          No dark mode tiramos saturate-150 e hue-rotate-15 (eram 3 filtros em
+          serie recalculados por frame) — brightness-125 sozinho ja da o efeito
+          de destaque esperado no tema escuro. */}
+      <div
+        className="hidden sm:block absolute sm:bottom-auto sm:top-[600px] md:top-[950px] lg:top-[900px] xl:top-[700px] 2xl:top-[700px] sm:left-[80px] md:left-[100px] lg:left-[150px] xl:left-[200px] 2xl:left-[200px] sm:scale-[1.25] md:scale-[1.6] lg:scale-200 xl:scale-100 2xl:scale-90 sm:origin-top-left"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.3) 0%, transparent 60%)",
+            filter: "blur(40px)",
+          }}
+        />
         <img
           src={backgroundPattern}
           alt=""
-          aria-hidden="true"
           width={512}
           height={512}
           loading="lazy"
           decoding="async"
           fetchPriority="low"
-          className="h-auto opacity-50 dark:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-150 dark:saturate-150 dark:hue-rotate-15"
-          style={{ filter: "drop-shadow(0 0 40px rgba(168, 85, 247, 0.3))" }}
+          className="relative h-auto opacity-50 dark:opacity-[0.25] w-[1600px] animate-diamond-rotate dark:brightness-125"
         />
       </div>
 

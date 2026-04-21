@@ -1,6 +1,6 @@
+import { useEffect } from "react";
 import { ChevronRight, Home } from "@/assets/icons";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 
 interface BreadcrumbItem {
   label: string;
@@ -10,9 +10,7 @@ interface BreadcrumbItem {
 const Breadcrumbs = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
-
-  // Don't show breadcrumbs on homepage
-  if (location.pathname === "/") return null;
+  const isHome = location.pathname === "/";
 
   // Map paths to readable names
   const pathMap: Record<string, string> = {
@@ -33,24 +31,42 @@ const Breadcrumbs = () => {
     });
   });
 
-  // Generate Schema.org BreadcrumbList
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: breadcrumbItems.map((item, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: item.label,
-      item: `https://elkys.com.br${item.href}`,
-    })),
-  };
+  // Injeta o JSON-LD BreadcrumbList diretamente no <head> (era feito via
+  // <Helmet> — substituido por DOM direto pra eliminar react-helmet-async
+  // do bundle inicial). Marca com data-breadcrumbs="true" pra remover
+  // entre navegacoes sem afetar o @graph estatico do index.html.
+  useEffect(() => {
+    document.head.querySelectorAll('script[data-breadcrumbs="true"]').forEach((s) => s.remove());
+
+    if (isHome) return;
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: breadcrumbItems.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.label,
+        item: `https://elkys.com.br${item.href}`,
+      })),
+    };
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.dataset.breadcrumbs = "true";
+    script.text = JSON.stringify(schema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.querySelectorAll('script[data-breadcrumbs="true"]').forEach((s) => s.remove());
+    };
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Don't show breadcrumbs on homepage
+  if (isHome) return null;
 
   return (
     <>
-      <Helmet>
-        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-      </Helmet>
-
       <nav aria-label="Breadcrumb" className="bg-muted/30 border-b border-border">
         <div className="container mx-auto px-4 py-3">
           <ol className="flex items-center space-x-2 text-sm">

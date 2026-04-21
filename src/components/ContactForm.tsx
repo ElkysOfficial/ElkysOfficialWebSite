@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
   HexPattern,
+  Toaster,
 } from "@/design-system";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -84,6 +85,10 @@ const ContactForm = () => {
 
   return (
     <section id="contact-form" className="py-16 md:py-20 lg:py-24 bg-background">
+      {/* Toaster montado localmente (em vez de no root App.tsx): sonner so
+          entra no bundle quando o usuario rola ate esta secao (ContactForm
+          ja e React.lazy). Na home que e bounce rapido, sonner nao carrega. */}
+      <Toaster />
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
