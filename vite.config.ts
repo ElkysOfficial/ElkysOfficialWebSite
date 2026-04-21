@@ -103,32 +103,44 @@ function landingCssAndPreloads(): Plugin {
         return;
       }
 
-      // PurgeCSS programatico
+      // PurgeCSS programatico.
+      //
+      // SAFELIST: o `greedy` anterior (/^sm:/, /^md:/, .../^2xl:/) mantinha
+      // TODAS as utilities Tailwind com esses prefixos no CSS final, mesmo
+      // as nao usadas. PSI reportava 10KiB de "Reduza CSS nao usado" por
+      // causa disso. O extractor padrao ja captura tokens completos como
+      // "sm:flex" do JS minificado, entao o greedy era defensivo mas
+      // desnecessario. Removido. Classes estaticas em responsive (md:*, lg:*)
+      // continuam no CSS porque o extractor as encontra literalmente no JS.
+      // Classes geradas dinamicamente via template string (raro no projeto)
+      // precisam ser explicitamente listadas no standard/deep se necessario.
+      //
+      // EXTRACTOR: mantido o regex /[\w\-:/[\]().%]+/g que cobre classes
+      // Tailwind complexas com brackets (data-[...], aria-[...]) e
+      // arbitrary values (w-[1600px], text-[hsl(...)]).
       const { PurgeCSS } = await import("purgecss");
       const result = await new PurgeCSS().purge({
         content: landingChunks.map((f) => ({ raw: fs.readFileSync(f, "utf-8"), extension: "js" })),
         css: [{ raw: fullCss }],
-        // Safelist pra classes que podem ser geradas dinamicamente (cn()/cva())
-        // ou estados Tailwind que PurgeCSS as vezes nao extrai bem do JS minificado
         safelist: {
+          // Classes estaveis referenciadas fora do JS (index.html inline,
+          // script de theme) ou pelo tailwind internamente.
           standard: ["dark", "light", /^elk-/, /^gradient-/],
-          deep: [
-            /^animate-/,
-            /^hover:/,
-            /^focus:/,
-            /^focus-visible:/,
-            /^active:/,
-            /^disabled:/,
-            /^group-hover:/,
-            /^group-focus:/,
-            /^peer-/,
-            /^dark:/,
-            /^motion-safe:/,
-            /^motion-reduce:/,
-            /^data-\[/,
-            /^aria-\[/,
-          ],
-          greedy: [/^sm:/, /^md:/, /^lg:/, /^xl:/, /^2xl:/, /^xs:/],
+          // Mantidas apenas patterns que o extractor regex pode perder:
+          // - animate-*: keyframes com nomes customizados (card-pulse etc)
+          // - dark:*: toggled via classList.toggle em runtime, precisa
+          //   estar no CSS mesmo que nao apareca no JS naquele momento
+          // - data-[*] / aria-[*]: tailwind gera classes unicas por predicado
+          //
+          // Os patterns anteriores (/^hover:/, /^focus:/, /^focus-visible:/,
+          // /^active:/, /^disabled:/, /^group-hover:/, /^group-focus:/,
+          // /^peer-/, /^motion-safe:/, /^motion-reduce:/) foram REMOVIDOS:
+          // o extractor regex /[\w\-:/[\]().%]+/g captura essas classes
+          // literalmente do JS minificado (ex: "hover:text-accent" vira
+          // um token unico). Mantia-los no safelist deep mantinha TODAS as
+          // variantes hover:/focus:/etc no CSS, mesmo as nao usadas.
+          // PSI reportava 10KiB de "Reduza CSS nao usado" por causa disso.
+          deep: [/^animate-/, /^dark:/, /^data-\[/, /^aria-\[/],
         },
         defaultExtractor: (content) => content.match(/[\w\-:/[\]().%]+/g) || [],
       });
