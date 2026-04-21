@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/design-system";
 
 declare global {
   interface Window {
@@ -34,6 +35,10 @@ const PortalShell = () => {
 
   return (
     <AuthProvider>
+      {/* Toaster montado aqui (em vez de no root App.tsx): 39 dos 40
+          consumers de toast() vivem no portal, e PortalShell ja e lazy.
+          Visitantes que nao entram no portal/login nao baixam sonner. */}
+      <Toaster />
       <Outlet />
     </AuthProvider>
   );

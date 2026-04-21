@@ -1,27 +1,16 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const TermsOfService = () => {
   return (
     <>
-      <Helmet>
-        <title>Termos de Uso | Elkys - Condições de Serviço</title>
-        <meta
-          name="description"
-          content="Termos de Uso do website Elkys. Conheça as condições de uso, direitos, obrigações e políticas aplicáveis aos nossos serviços de desenvolvimento de software."
-        />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://elkys.com.br/terms-of-service" />
-        <meta property="og:title" content="Termos de Uso | Elkys" />
-        <meta
-          property="og:description"
-          content="Termos de Uso do website Elkys. Conheça as condições de uso e políticas aplicáveis aos nossos serviços."
-        />
-        <meta property="og:url" content="https://elkys.com.br/terms-of-service" />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Termos de Uso | Elkys - Condições de Serviço"
+        description="Termos de Uso do website Elkys. Conheça as condições de uso, direitos, obrigações e políticas aplicáveis aos nossos serviços de desenvolvimento de software."
+        canonical="https://elkys.com.br/terms-of-service"
+      />
       <div className="min-h-screen bg-background">
         <Navigation />
         <Breadcrumbs />

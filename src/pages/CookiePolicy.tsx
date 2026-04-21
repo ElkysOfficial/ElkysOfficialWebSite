@@ -1,27 +1,16 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const CookiePolicy = () => {
   return (
     <>
-      <Helmet>
-        <title>Política de Cookies | Elkys</title>
-        <meta
-          name="description"
-          content="Política de Cookies da Elkys. Saiba quais cookies utilizamos, suas finalidades e como gerenciá-los em seu navegador."
-        />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://elkys.com.br/cookie-policy" />
-        <meta property="og:title" content="Política de Cookies | Elkys" />
-        <meta
-          property="og:description"
-          content="Política de Cookies da Elkys. Saiba quais cookies utilizamos e como gerenciá-los."
-        />
-        <meta property="og:url" content="https://elkys.com.br/cookie-policy" />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Política de Cookies | Elkys"
+        description="Política de Cookies da Elkys. Saiba quais cookies utilizamos, suas finalidades e como gerenciá-los em seu navegador."
+        canonical="https://elkys.com.br/cookie-policy"
+      />
       <div className="min-h-screen bg-background">
         <Navigation />
         <Breadcrumbs />

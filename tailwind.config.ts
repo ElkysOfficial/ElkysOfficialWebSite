@@ -175,9 +175,14 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        // Rotacao linear continua (0 -> 360) em vez da oscilacao original
+        // (0 -> 8 -> 0): ease-in-out + reversao forcava o compositor a
+        // re-rasterizar o transform a cada inversao de direcao; linear
+        // infinito fica 100% composto em GPU. Visual e sutil (imagem decorativa
+        // no fundo, opacity 0.5 em light / 0.25 em dark).
         "diamond-rotate": {
-          "0%, 100%": { transform: "translate(-50%, -50%) rotate(0deg)" },
-          "50%": { transform: "translate(-50%, -50%) rotate(8deg)" },
+          from: { transform: "translate(-50%, -50%) rotate(0deg)" },
+          to: { transform: "translate(-50%, -50%) rotate(360deg)" },
         },
         "hex-spin": {
           "0%": { transform: "rotate(0deg)" },
@@ -186,24 +191,19 @@ export default {
 
         /**
          * ANIMAÇÕES DE INTERAÇÃO
-         * Usadas em cards e elementos interativos
+         * Usadas em cards e elementos interativos.
+         *
+         * card-pulse usa APENAS transform e opacity (composited properties):
+         * antes animava background + borderColor (paint puro) em cada step,
+         * listado no PSI como "Animações não compostas" e contribuia com
+         * ~8-15ms de paint por ciclo nos 3 cards do Hero desktop. O efeito
+         * "respirando" agora vem de opacity em vez de mudança de cor — layer
+         * GPU isolado, zero paint.
          */
         "card-pulse": {
-          "0%, 100%": {
-            transform: "scale(1)",
-            background: "rgba(255, 255, 255, 0.1)",
-            borderColor: "rgba(255, 255, 255, 0.1)",
-          },
-          "33.33%": {
-            transform: "scale(1.03)",
-            background: "rgba(255, 255, 255, 0.15)",
-            borderColor: "hsl(var(--elk-accent) / 0.5)",
-          },
-          "66.66%": {
-            transform: "scale(1)",
-            background: "rgba(255, 255, 255, 0.1)",
-            borderColor: "rgba(255, 255, 255, 0.1)",
-          },
+          "0%, 100%": { transform: "scale(1)", opacity: "1" },
+          "33.33%": { transform: "scale(1.03)", opacity: "0.85" },
+          "66.66%": { transform: "scale(1)", opacity: "1" },
         },
 
         /**
@@ -236,7 +236,9 @@ export default {
         "slide-up": "slide-up 0.8s ease-out",
         // Decorativas
         float: "float 3s ease-in-out infinite",
-        "diamond-rotate": "diamond-rotate 5s ease-in-out infinite",
+        // 60s linear pra que um giro completo seja imperceptivelmente lento
+        // (visual proximo ao original de oscilacao); composed puro em GPU.
+        "diamond-rotate": "diamond-rotate 60s linear infinite",
         "hex-spin": "hex-spin 20s ease-in-out infinite",
         // Interação
         "card-pulse": "card-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite",

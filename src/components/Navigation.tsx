@@ -12,7 +12,6 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -31,9 +30,11 @@ const Navigation = () => {
     location.pathname === "/cases" ||
     location.pathname.startsWith("/servicos/") ||
     location.pathname === "/como-trabalhamos";
-  const isDarkTheme = mounted && resolvedTheme === "dark";
-
-  useEffect(() => setMounted(true), []);
+  // useTheme ja inicializa sincronamente a partir do .dark class do <html>
+  // (aplicada pelo script inline em index.html antes do React montar), entao
+  // nao precisamos mais do mounted-flag que antigamente cobria o tempo
+  // morto do next-themes. Removido: eliminava 1 re-render completo do nav.
+  const isDarkTheme = resolvedTheme === "dark";
 
   useEffect(() => {
     // rAF throttle + threshold: so atualiza estado quando cruza 0 ou 900.
@@ -64,16 +65,13 @@ const Navigation = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Prevent body scroll when mobile menu is open
+  // Prevent body scroll when mobile menu is open.
+  // Classe no <html> em vez de mutar document.body.style: mutacoes diretas
+  // em style.* forcam reflow global mesmo quando o valor final e igual ao
+  // atual; classList.toggle batcha com o resto do ciclo do browser.
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.documentElement.classList.toggle("menu-open", isMenuOpen);
+    return () => document.documentElement.classList.remove("menu-open");
   }, [isMenuOpen]);
 
   const handleDropdownEnter = useCallback(() => {
@@ -198,10 +196,6 @@ const Navigation = () => {
       Portal
     </Link>
   );
-
-  if (!mounted) {
-    return <nav className="fixed top-0 left-0 right-0 z-50 h-16" />;
-  }
 
   return (
     <nav

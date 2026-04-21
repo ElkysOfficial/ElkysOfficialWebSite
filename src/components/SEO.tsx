@@ -1,15 +1,23 @@
 /**
- * @fileoverview Componente SEO para gerenciamento de meta tags
- * @description Gerencia todas as meta tags de SEO, Open Graph e Twitter Cards
- * usando react-helmet-async para renderização server-side friendly
+ * @fileoverview Componente SEO imperativo (sem react-helmet-async).
+ *
+ * Substituiu a versao baseada em <Helmet> — Helmet roda um virtual DOM
+ * paralelo pra reconciliar <head>, custando ~5-15ms de TBT em cada mount
+ * e levando ~15KB gzip no bundle inicial. Essa versao faz write direto
+ * via document.querySelector/setAttribute dentro de useEffect: sem VDOM,
+ * sem provider, sem dependencia externa.
+ *
+ * Funcionamento:
+ * - Meta tags existentes no HTML estatico (index.html) sao ATUALIZADAS
+ *   in-place (via selector). Se nao existirem, sao criadas.
+ * - JSON-LD dinamico: cada <script data-elk-seo="true"> injetado por um
+ *   SEO e removido antes do proximo ser inserido (navegacao entre rotas).
+ *   O JSON-LD estatico do index.html (@graph) nao e tocado — roda sempre.
+ * - Cleanup: nao reverte nada. A proxima rota monta seu SEO e sobrescreve.
+ *   Em SPA isso e suficiente porque cada rota sempre monta seu SEO.
  */
+import { useEffect } from "react";
 
-import { Helmet } from "react-helmet-async";
-
-/**
- * Props do componente SEO
- * @interface SEOProps
- */
 interface SEOProps {
   /** Título da página - aparece na aba do navegador e nos resultados de busca */
   title?: string;
@@ -25,88 +33,95 @@ interface SEOProps {
   twitterCard?: "summary" | "summary_large_image";
   /** Dados estruturados JSON-LD para rich snippets */
   jsonLd?: object;
+  /** robots meta (default: "index, follow") */
+  robots?: string;
 }
 
-/** Constantes de SEO da marca Elkys */
-const SEO_DEFAULTS = {
-  siteName: "Elkys",
-  locale: "pt_BR",
-  baseUrl: "https://elkys.com.br",
-} as const;
+const DEFAULTS = {
+  title: "Elkys | Soluções Inteligentes em Software & Automação B2B",
+  description:
+    "Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais em Belo Horizonte.",
+  canonical: "https://elkys.com.br/",
+  ogImage: "https://elkys.com.br/og-image.jpg",
+  ogType: "website",
+  twitterCard: "summary_large_image" as const,
+  robots: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+};
 
-/**
- * Componente SEO - Gerencia meta tags para otimização de mecanismos de busca
- *
- * @description
- * Este componente deve ser incluído em todas as páginas para garantir
- * SEO consistente. Ele gerencia:
- * - Meta tags primárias (title, description)
- * - Open Graph para compartilhamento em redes sociais
- * - Twitter Cards
- * - Dados estruturados JSON-LD
- *
- * @example
- * ```tsx
- * <SEO
- *   title="Elkys | Serviços"
- *   description="Conheça nossos serviços de desenvolvimento"
- *   canonical="https://elkys.com.br/servicos"
- * />
- * ```
- */
+function upsertMeta(selector: string, attrName: "name" | "property", key: string, value: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(selector);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attrName, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", value);
+}
+
+function upsertLink(rel: string, href: string) {
+  let el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", rel);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
 export default function SEO({
-  title = "Elkys | Soluções Inteligentes em Software & Automação B2B",
-  description = "Especialistas em desenvolvimento de software sob demanda. Engenharia de dados e automação B2B de alta performance. Aplicações web, mobile, RPA e integrações empresariais em Belo Horizonte.",
-  canonical = "https://elkys.com.br/",
-  ogImage = "https://elkys.com.br/og-image.jpg",
-  ogType = "website",
-  twitterCard = "summary_large_image",
+  title = DEFAULTS.title,
+  description = DEFAULTS.description,
+  canonical = DEFAULTS.canonical,
+  ogImage = DEFAULTS.ogImage,
+  ogType = DEFAULTS.ogType,
+  twitterCard = DEFAULTS.twitterCard,
   jsonLd,
+  robots = DEFAULTS.robots,
 }: SEOProps) {
-  return (
-    <Helmet>
-      {/* ========================================
-          PRIMARY META TAGS
-          Essenciais para SEO básico
-          ======================================== */}
-      <title>{title}</title>
-      <meta name="title" content={title} />
-      <meta name="description" content={description} />
-      <link rel="canonical" href={canonical} />
+  useEffect(() => {
+    document.title = title;
 
-      {/* ========================================
-          OPEN GRAPH / FACEBOOK
-          Para compartilhamento em redes sociais
-          ======================================== */}
-      <meta property="og:type" content={ogType} />
-      <meta property="og:url" content={canonical} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={ogImage} />
-      <meta property="og:image:secure_url" content={ogImage} />
-      <meta property="og:image:type" content="image/jpeg" />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={title} />
-      <meta property="og:locale" content={SEO_DEFAULTS.locale} />
-      <meta property="og:site_name" content={SEO_DEFAULTS.siteName} />
+    // Primary
+    upsertMeta('meta[name="title"]', "name", "title", title);
+    upsertMeta('meta[name="description"]', "name", "description", description);
+    upsertMeta('meta[name="robots"]', "name", "robots", robots);
+    upsertLink("canonical", canonical);
 
-      {/* ========================================
-          TWITTER CARDS
-          Para compartilhamento no Twitter/X
-          ======================================== */}
-      <meta name="twitter:card" content={twitterCard} />
-      <meta name="twitter:url" content={canonical} />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage.replace("og-image.jpg", "twitter-card.jpg")} />
-      <meta name="twitter:image:alt" content={title} />
+    // Open Graph
+    upsertMeta('meta[property="og:type"]', "property", "og:type", ogType);
+    upsertMeta('meta[property="og:url"]', "property", "og:url", canonical);
+    upsertMeta('meta[property="og:title"]', "property", "og:title", title);
+    upsertMeta('meta[property="og:description"]', "property", "og:description", description);
+    upsertMeta('meta[property="og:image"]', "property", "og:image", ogImage);
+    upsertMeta('meta[property="og:image:alt"]', "property", "og:image:alt", title);
 
-      {/* ========================================
-          JSON-LD STRUCTURED DATA
-          Para rich snippets nos resultados de busca
-          ======================================== */}
-      {jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}
-    </Helmet>
-  );
+    // Twitter
+    upsertMeta('meta[name="twitter:card"]', "name", "twitter:card", twitterCard);
+    upsertMeta('meta[name="twitter:url"]', "name", "twitter:url", canonical);
+    upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
+    upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", description);
+    upsertMeta(
+      'meta[name="twitter:image"]',
+      "name",
+      "twitter:image",
+      ogImage.replace("og-image.jpg", "twitter-card.jpg")
+    );
+    upsertMeta('meta[name="twitter:image:alt"]', "name", "twitter:image:alt", title);
+
+    // JSON-LD: remove os dinamicos anteriores e insere o novo. O JSON-LD
+    // estatico do @graph (index.html) NAO tem o data-elk-seo, preservado.
+    document.head
+      .querySelectorAll('script[type="application/ld+json"][data-elk-seo="true"]')
+      .forEach((s) => s.remove());
+
+    if (jsonLd) {
+      const script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.dataset.elkSeo = "true";
+      script.text = JSON.stringify(jsonLd);
+      document.head.appendChild(script);
+    }
+  }, [title, description, canonical, ogImage, ogType, twitterCard, robots, jsonLd]);
+
+  return null;
 }

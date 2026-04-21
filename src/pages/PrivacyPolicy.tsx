@@ -1,27 +1,16 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const PrivacyPolicy = () => {
   return (
     <>
-      <Helmet>
-        <title>Política de Privacidade | Elkys - Proteção de Dados LGPD</title>
-        <meta
-          name="description"
-          content="Política de Privacidade da Elkys em conformidade com a LGPD. Saiba como coletamos, usamos e protegemos seus dados pessoais."
-        />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://elkys.com.br/privacy-policy" />
-        <meta property="og:title" content="Política de Privacidade | Elkys" />
-        <meta
-          property="og:description"
-          content="Política de Privacidade da Elkys em conformidade com a LGPD. Saiba como protegemos seus dados pessoais."
-        />
-        <meta property="og:url" content="https://elkys.com.br/privacy-policy" />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Política de Privacidade | Elkys - Proteção de Dados LGPD"
+        description="Política de Privacidade da Elkys em conformidade com a LGPD. Saiba como coletamos, usamos e protegemos seus dados pessoais."
+        canonical="https://elkys.com.br/privacy-policy"
+      />
       <div className="min-h-screen bg-background">
         <Navigation />
         <Breadcrumbs />
