@@ -1,7 +1,15 @@
 import { cn } from "@/design-system/utils/cn";
 
-// Import via src/assets pra Vite aplicar fingerprint hash (cache-bust automatico).
-import hexagonalBg from "@/assets/icons/hexagonal.webp";
+// Servido direto de /public (sem fingerprint do Vite). Rollup estava
+// deduplicando agressivamente qualquer asset em @/assets/icons/ cujo nome
+// compartilhava prefixo com hexagonal.webp — o HexPattern acabava
+// referenciando a versao 512x512 do Hero (4688B) em vez da 256x256
+// otimizada. Com string literal apontando pra /public, o Vite nao
+// processa o asset e a resolucao do URL e feita em runtime. Cache-control
+// ja esta configurado no .htaccess (immutable 1y) pra arquivos webp.
+// Se trocar o conteudo desse arquivo, e preciso renomear (ex:
+// hex-pattern-sm-v2.webp) pra evitar stale cache.
+const hexagonalBg = "/imgs/icons/hex-pattern-sm.webp";
 
 export interface HexPatternProps {
   /** Variante semântica do padrão hexagonal decorativo */
