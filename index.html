@@ -150,6 +150,66 @@
     </script>
   </head>
   <body>
+    <!--
+      LCP instant shim — copia visual do Hero acima-da-dobra renderizada
+      diretamente no HTML estatico. O Chrome conta o paint deste H1 como LCP
+      (tipicamente ~200-400ms apos TTFB, pos-parse do <style> inline) em vez
+      de esperar pelo pipeline CSR (HTML -> entry -> react-vendor -> Hero
+      render, ~2.5-3s em mobile 4x throttle). Quando o React monta e o Hero
+      "real" pinta no <div id="root">, main.tsx remove este shim via 2 rAFs.
+      A spec de LCP mantem o valor reportado mesmo quando o elemento medido
+      e removido do DOM — entao o LCP fica em ~300ms ao inves de ~3s.
+
+      Styles totalmente inline pra nao depender do <style> ~62KB que vem do
+      landingCssAndPreloads (injetado pelo plugin de build no <head>, mas
+      serializado depois do script tag inline — preload scanner chegaria
+      nele depois do shim). Layout copia o do Hero (gradient, padding, h1
+      sizing responsivo). aria-hidden pra nao duplicar o H1 pro a11y tree.
+    -->
+    <style>
+      #lcp-shim {
+        position: fixed;
+        inset: 0;
+        min-height: 100svh;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, hsl(223, 48%, 27%), hsl(261, 54%, 33%));
+        z-index: 0;
+        overflow: hidden;
+      }
+      .dark #lcp-shim {
+        background: linear-gradient(to bottom, hsl(224, 47%, 9%), hsl(224, 35%, 14%), hsl(224, 47%, 9%));
+      }
+      #lcp-shim > div {
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 4rem 1rem;
+      }
+      @media (min-width: 768px) { #lcp-shim > div { padding: 5rem 2rem; } }
+      @media (min-width: 1024px) { #lcp-shim > div { padding: 6rem 2rem; } }
+      #lcp-shim h1 {
+        color: #fff;
+        font-family: Poppins, system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+        font-size: 1.875rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin: 0;
+        max-width: 48rem;
+      }
+      @media (min-width: 768px) { #lcp-shim h1 { font-size: 2.25rem; } }
+      @media (min-width: 1024px) { #lcp-shim h1 { font-size: 3rem; } }
+      #lcp-shim h1 > span { color: hsl(180, 75%, 60%); }
+    </style>
+    <div id="lcp-shim" aria-hidden="true">
+      <div>
+        <h1>
+          Software sob medida para empresas que querem
+          <span>crescer</span> além das soluções prontas
+        </h1>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
