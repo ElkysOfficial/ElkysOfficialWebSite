@@ -60,3 +60,19 @@ if (typeof window !== "undefined") {
 // index.html via matchMedia antes do React montar e o hook useDarkMode
 // (src/hooks/useDarkMode.ts) cobre o restante da API consumida.
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Remove o #lcp-shim (Hero estatico injetado em index.html pra servir como
+// alvo do LCP). Dois rAFs garantem: (1) React commit, (2) browser paint do
+// Hero real — so entao o shim some. Index e sync em App.tsx, entao o Hero
+// existe no DOM ja na primeira commit. Se trocar Index pra lazy, o shim
+// ficaria visivel ate o chunk de Index baixar (ou seja, sai como fallback
+// seguro, nao brigao branco). A spec de LCP mantem o paint reportado mesmo
+// quando o elemento e removido do DOM depois.
+if (typeof window !== "undefined" && typeof requestAnimationFrame !== "undefined") {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const shim = document.getElementById("lcp-shim");
+      if (shim) shim.remove();
+    });
+  });
+}
