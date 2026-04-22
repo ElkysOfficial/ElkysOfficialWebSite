@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { CheckCircle, Home, Users } from "@/assets/icons";
+import DraftBanner from "@/components/portal/shared/DraftBanner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import {
   Button,
   Card,
@@ -136,6 +139,7 @@ function ReviewRow({ label, value }: { label: string; value?: string | null }) {
 
 export default function AdminClientCreate() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -167,6 +171,21 @@ export default function AdminClientCreate() {
     setForm((current) => ({ ...current, [field]: value }));
     setFormError(null);
   };
+
+  /* ── Auto-save de rascunho local ── */
+  const draftKey = `elkys:admin:client-create:draft:${user?.id ?? "anon"}`;
+  const {
+    hasDraft: hasLocalDraft,
+    draftSavedAt: localDraftSavedAt,
+    restore: restoreLocalDraft,
+    discard: discardLocalDraft,
+    clearDraft: clearLocalDraft,
+  } = useFormDraftAutoSave<ClientForm>({
+    storageKey: draftKey,
+    values: form,
+    onRestore: (restored) => setForm(restored),
+    autoRestore: false,
+  });
 
   useEffect(() => {
     const cepDigits = unmaskDigits(form.cep);
@@ -330,6 +349,7 @@ export default function AdminClientCreate() {
       toast.success("Cliente criado com sucesso.", {
         description: "Agora vamos para o primeiro projeto desse cliente.",
       });
+      clearLocalDraft();
       navigate(`/portal/admin/projetos/novo?clientId=${clientData.id}`, { replace: true });
     } catch (error) {
       if (shouldRollbackUser && createdUserId) {
@@ -373,6 +393,15 @@ export default function AdminClientCreate() {
           Voltar
         </Link>
       </div>
+
+      {hasLocalDraft && (
+        <DraftBanner
+          savedAt={localDraftSavedAt}
+          onRestore={restoreLocalDraft}
+          onDiscard={discardLocalDraft}
+          title="Rascunho de cliente encontrado"
+        />
+      )}
 
       <Card className="border-border/70 bg-card/92 shadow-card">
         <CardHeader className="gap-4 border-b border-border/60">

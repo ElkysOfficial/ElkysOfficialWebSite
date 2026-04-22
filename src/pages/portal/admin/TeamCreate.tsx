@@ -18,6 +18,9 @@ import {
   Input,
   Label,
 } from "@/design-system";
+import DraftBanner from "@/components/portal/shared/DraftBanner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import { supabase } from "@/integrations/supabase/client";
 import { maskPhone } from "@/lib/masks";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
@@ -119,6 +122,7 @@ function generateTempPassword(): string {
 
 export default function AdminTeamCreate() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -127,6 +131,7 @@ export default function AdminTeamCreate() {
     handleSubmit,
     control,
     watch,
+    reset,
     formState: { errors },
   } = useForm<TeamForm>({
     resolver: zodResolver(teamSchema),
@@ -138,6 +143,22 @@ export default function AdminTeamCreate() {
 
   const selectedRole = watch("system_role");
   const roleInfo = ROLE_OPTIONS.find((r) => r.value === selectedRole);
+
+  /* ── Auto-save de rascunho local ── */
+  const watchedValues = watch();
+  const draftKey = `elkys:admin:team-create:draft:${user?.id ?? "anon"}`;
+  const {
+    hasDraft: hasLocalDraft,
+    draftSavedAt: localDraftSavedAt,
+    restore: restoreLocalDraft,
+    discard: discardLocalDraft,
+    clearDraft: clearLocalDraft,
+  } = useFormDraftAutoSave<TeamForm>({
+    storageKey: draftKey,
+    values: watchedValues,
+    onRestore: (restored) => reset(restored),
+    autoRestore: false,
+  });
 
   const onSubmit = async (data: TeamForm) => {
     if (submitting) return;
@@ -209,6 +230,7 @@ export default function AdminTeamCreate() {
       toast.success("Membro cadastrado com sucesso.", {
         description: `${data.full_name} receberá um e-mail com as credenciais de acesso.`,
       });
+      clearLocalDraft();
       navigate("/portal/admin/equipe", { replace: true });
     } catch (submitError) {
       if (shouldRollbackUser && createdUserId) {
@@ -241,6 +263,15 @@ export default function AdminTeamCreate() {
           Voltar para equipe
         </Link>
       </div>
+
+      {hasLocalDraft && (
+        <DraftBanner
+          savedAt={localDraftSavedAt}
+          onRestore={restoreLocalDraft}
+          onDiscard={discardLocalDraft}
+          title="Rascunho de membro encontrado"
+        />
+      )}
 
       <Card className="border-border/70 bg-card/92">
         <CardHeader className="border-b border-border/60">
