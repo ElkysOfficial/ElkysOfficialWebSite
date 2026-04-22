@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
+import DraftBanner from "@/components/portal/shared/DraftBanner";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProposalExpiryCountdown from "@/components/portal/proposal/ProposalExpiryCountdown";
 import ProposalRejectModal from "@/components/portal/proposal/ProposalRejectModal";
@@ -20,6 +21,7 @@ import {
   cn,
 } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildScopeSummaryFromDiagnosis,
@@ -442,6 +444,22 @@ export default function ProposalDetail() {
 
   const isReadOnly = isEditing && proposal !== null && proposal.status !== "rascunho";
 
+  /* ── Auto-save de rascunho local (so na criacao) ── */
+  const draftKey = `elkys:admin:proposal-create:draft:${user?.id ?? "anon"}`;
+  const {
+    hasDraft: hasLocalDraft,
+    draftSavedAt: localDraftSavedAt,
+    restore: restoreLocalDraft,
+    discard: discardLocalDraft,
+    clearDraft: clearLocalDraft,
+  } = useFormDraftAutoSave<FormState>({
+    storageKey: draftKey,
+    values: form,
+    onRestore: (restored) => setForm(restored),
+    disabled: isEditing,
+    autoRestore: false,
+  });
+
   const canSend =
     form.title.trim().length > 0 &&
     ((form.destination_type === "client" && form.client_id) ||
@@ -655,6 +673,7 @@ export default function ProposalDetail() {
         }
 
         toast.success("Proposta criada como rascunho.");
+        clearLocalDraft();
         navigate(`/portal/admin/propostas/${data.id}`);
       }
     } catch (err) {
@@ -762,6 +781,7 @@ export default function ProposalDetail() {
         }
 
         toast.success("Proposta criada e enviada.");
+        clearLocalDraft();
 
         // Notify client by email (fire-and-forget)
         if (form.destination_type === "client" && form.client_id) {
@@ -976,6 +996,16 @@ export default function ProposalDetail() {
           </Button>
         </Link>
       </div>
+
+      {/* ── Rascunho salvo localmente (so na criacao) ── */}
+      {!isEditing && hasLocalDraft && (
+        <DraftBanner
+          savedAt={localDraftSavedAt}
+          onRestore={restoreLocalDraft}
+          onDiscard={discardLocalDraft}
+          title="Rascunho de proposta encontrado"
+        />
+      )}
 
       {/* ── Read-only mode ── */}
       {isReadOnly && proposal ? (
