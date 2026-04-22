@@ -16,10 +16,10 @@ import {
   YAxis,
 } from "recharts";
 
-import type { ComponentType } from "react";
 import { CheckCircle, Clock, FileText, Receipt, Search } from "@/assets/icons";
-import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import SurfaceStat from "@/components/portal/shared/SurfaceStat";
@@ -119,62 +119,6 @@ function formatRevenueMonthLabel(monthKey: string) {
     month: "long",
     year: "numeric",
   });
-}
-
-/* ------------------------------------------------------------------ */
-/*  Metric tile                                                       */
-/* ------------------------------------------------------------------ */
-
-type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
-
-const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
-  accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
-  warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
-  primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
-  secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
-  success: { text: "text-success", icon: "bg-success/15 text-success" },
-  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
-};
-
-function MetricTile({
-  label,
-  value,
-  icon: Icon,
-  tone = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<IconProps>;
-  tone?: MetricTone;
-}) {
-  const t = METRIC_TONE[tone];
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-3 sm:p-5">
-      <div className="flex items-start gap-3 sm:gap-4">
-        <div
-          className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
-            t.icon
-          )}
-        >
-          <Icon size={18} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-            {label}
-          </p>
-          <p
-            className={cn(
-              "mt-0.5 whitespace-nowrap text-xl font-semibold tabular-nums tracking-tight sm:text-2xl",
-              t.text
-            )}
-          >
-            {value}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -592,7 +536,7 @@ function FinanceRevenueTab({
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <MetricTile
           label="Total da competencia"
           value={formatBRL(filteredTotal)}
@@ -794,11 +738,7 @@ function FinanceRevenueTab({
                       </Field>
                     </div>
 
-                    {editorError ? (
-                      <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-                        {editorError}
-                      </div>
-                    ) : null}
+                    {editorError ? <AlertBanner tone="destructive" title={editorError} /> : null}
 
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={stopEditing}>
@@ -1944,7 +1884,7 @@ function FinanceAnaliseTab() {
             {syncing ? "Sincronizando..." : "Sincronizar mensalidades"}
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <SurfaceStat label="MRR" value={formatBRL(state.currentMrr)} tone="success" />
           <SurfaceStat
             label="Receita de projetos"
@@ -1995,7 +1935,7 @@ function FinanceAnaliseTab() {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Recebiveis e cobrança
         </h3>
-        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <SurfaceStat
             label="A receber"
             value={formatBRL(state.pendingReceivables)}
@@ -2163,7 +2103,7 @@ function FinanceAnaliseTab() {
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Suporte
         </h3>
-        <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <SurfaceStat
             label="Tickets abertos"
             value={`${state.openTickets}`}
