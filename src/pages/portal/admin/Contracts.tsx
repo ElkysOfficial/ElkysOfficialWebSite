@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
 import AddContractLinkForm from "@/components/portal/contract/AddContractLinkForm";
 import ContractActionsButtons from "@/components/portal/contract/ContractActionsButtons";
 import ContractVersionHistory from "@/components/portal/contract/ContractVersionHistory";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
@@ -292,54 +293,59 @@ export default function Contracts() {
     <div className="space-y-6">
       {/* Alerta de contratos parados */}
       {juridicoSnapshot.staleInValidation > 0 && (
-        <Card className="border-destructive/40 bg-destructive/5">
-          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-destructive">
-                {juridicoSnapshot.staleInValidation === 1
-                  ? "1 contrato em validação há mais de 7 dias"
-                  : `${juridicoSnapshot.staleInValidation} contratos em validação há mais de 7 dias`}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Considere fazer follow-up com o cliente ou revisar internamente se ha bloqueio.
-              </p>
-            </div>
+        <AlertBanner
+          tone="destructive"
+          title={
+            juridicoSnapshot.staleInValidation === 1
+              ? "1 contrato em validação há mais de 7 dias"
+              : `${juridicoSnapshot.staleInValidation} contratos em validação há mais de 7 dias`
+          }
+          description="Considere fazer follow-up com o cliente ou revisar internamente se ha bloqueio."
+          action={
             <button
               type="button"
               onClick={() => setStatusFilter("em_validacao")}
-              className="self-start rounded-full border border-destructive/60 px-3 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:self-auto"
+              className="w-full rounded-full border border-destructive/60 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:w-auto"
             >
               Ver em validação
             </button>
-          </CardContent>
-        </Card>
+          }
+        />
       )}
 
       {/* Painel jurídico — saúde do setor (global, clicável) */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-        <button type="button" onClick={() => setStatusFilter("em_validacao")} className="text-left">
-          <AdminMetricCard
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+        <button
+          type="button"
+          onClick={() => setStatusFilter("em_validacao")}
+          className="block w-full rounded-2xl text-left transition-transform hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <MetricTile
             label="Em validação"
             value={String(juridicoSnapshot.inValidation)}
             icon={FileText}
             tone={juridicoSnapshot.staleInValidation > 0 ? "warning" : "primary"}
           />
         </button>
-        <button type="button" onClick={() => setStatusFilter("ativo")} className="text-left">
-          <AdminMetricCard
+        <button
+          type="button"
+          onClick={() => setStatusFilter("ativo")}
+          className="block w-full rounded-2xl text-left transition-transform hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <MetricTile
             label="Ativos"
             value={String(juridicoSnapshot.activeAll)}
             icon={Shield}
             tone="success"
           />
         </button>
-        <AdminMetricCard
+        <MetricTile
           label="Assinados na semana"
           value={String(juridicoSnapshot.signedThisWeek)}
           icon={TrendingUp}
           tone="accent"
         />
-        <AdminMetricCard
+        <MetricTile
           label={`Valor total (${totals.count})`}
           value={formatBRL(totals.total)}
           icon={TrendingUp}
@@ -348,14 +354,14 @@ export default function Contracts() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
           placeholder="Buscar por projeto, cliente ou escopo..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-md"
+          className="w-full sm:max-w-md"
         />
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
           {(
             ["all", "ativo", "em_validacao", "rascunho", "encerrado", "cancelado"] as StatusFilter[]
           ).map((status) => (
@@ -364,7 +370,7 @@ export default function Contracts() {
               type="button"
               onClick={() => setStatusFilter(status)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 statusFilter === status
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border/70 text-muted-foreground hover:border-border hover:text-foreground"
@@ -402,25 +408,25 @@ export default function Contracts() {
             return (
               <Card key={contract.id} className="border-border/70 bg-card/95">
                 <CardContent className="space-y-3 p-4 sm:p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         {project ? (
                           <Link
                             to={`/portal/admin/projetos/${project.id}`}
-                            className="text-sm font-semibold text-foreground hover:underline"
+                            className="truncate text-sm font-semibold text-foreground hover:underline"
                           >
                             {project.name}
                           </Link>
                         ) : (
-                          <span className="text-sm font-semibold text-muted-foreground">
+                          <span className="truncate text-sm font-semibold text-muted-foreground">
                             {contract.project_id
                               ? `Projeto #${contract.project_id.slice(0, 8)}`
                               : "Aguardando ativação"}
                           </span>
                         )}
                         {meta ? <StatusBadge label={meta.label} tone={meta.tone} /> : null}
-                        <span className="rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="whitespace-nowrap rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                           v{contract.version_no}
                         </span>
                       </div>
@@ -445,13 +451,12 @@ export default function Contracts() {
                           {client.phone ? ` · ${client.phone}` : ""}
                         </p>
                       )}
-                      {/* Link do PDF fica na seção de ações abaixo */}
                     </div>
-                    <div className="text-right">
-                      <p className="text-lg font-semibold tabular-nums text-foreground">
+                    <div className="text-left sm:text-right">
+                      <p className="whitespace-nowrap text-lg font-semibold tabular-nums text-foreground">
                         {formatBRL(Number(contract.total_amount ?? 0))}
                       </p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="whitespace-nowrap text-[11px] text-muted-foreground">
                         {contract.signed_at
                           ? `Assinado em ${formatPortalDate(contract.signed_at)}`
                           : "Não assinado"}
@@ -494,7 +499,7 @@ export default function Contracts() {
                           )}
 
                           {proposalCtx.diagnosis && (
-                            <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                               {proposalCtx.diagnosis.context && (
                                 <div>
                                   <p className="text-[10px] font-semibold uppercase text-muted-foreground">
@@ -622,20 +627,20 @@ export default function Contracts() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-3">
-                    <div className="text-[11px] text-muted-foreground">
+                  <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 truncate text-[11px] text-muted-foreground">
                       Vigência: {contract.starts_at ?? "—"} → {contract.ends_at ?? "—"}
                     </div>
                     <button
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : contract.id)}
-                      className="text-xs font-medium text-primary hover:underline"
+                      className="shrink-0 whitespace-nowrap text-xs font-medium text-primary hover:underline"
                     >
                       {isExpanded ? "Ocultar histórico" : "Ver histórico de versões"}
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0">
                     <ContractActionsButtons
                       contractId={contract.id}
                       clientId={contract.client_id}
