@@ -1,12 +1,11 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
-import type { ComponentType } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
-import type { IconProps } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import ClientRowIndicators from "@/components/portal/client/ClientRowIndicators";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAdminClients, type AdminClientIndicators } from "@/hooks/useAdminClients";
 import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
@@ -45,59 +44,6 @@ function formatClientSince(date: string) {
     year: "numeric",
   });
 }
-
-/* ------------------------------------------------------------------ */
-/*  Metric tile — uniform height, Apple-style density                 */
-/* ------------------------------------------------------------------ */
-
-type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
-
-const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
-  accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
-  warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
-  primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
-  secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
-  success: { text: "text-success", icon: "bg-success/15 text-success" },
-  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
-};
-
-function MetricTile({
-  label,
-  value,
-  icon: Icon,
-  tone = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<IconProps>;
-  tone?: MetricTone;
-}) {
-  const t = METRIC_TONE[tone];
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
-          t.icon
-        )}
-      >
-        <Icon size={18} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-          {label}
-        </p>
-        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Row action menu                                                    */
-/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  Client row — table-like, uniform columns + action menu             */
@@ -499,7 +445,7 @@ export default function AdminClients() {
       </div>
 
       {/* -- Metrics -- */}
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <MetricTile
           label="Clientes ativos"
           value={activeClients.toString()}

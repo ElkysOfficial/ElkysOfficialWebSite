@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { Clock, ExternalLink, Receipt, Shield } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
@@ -203,20 +203,20 @@ export default function Delinquency() {
     <div className="space-y-4">
       {/* Metrics */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <AdminMetricCard
+        <MetricTile
           label="Total em atraso"
           value={formatBRL(totalAmount)}
           icon={Receipt}
           tone="destructive"
           hint={`${filtered.length} cobrança(s)`}
         />
-        <AdminMetricCard
+        <MetricTile
           label="Clientes afetados"
           value={String(affectedClients)}
           icon={Shield}
           tone="warning"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Atraso medio"
           value={
             filtered.length > 0

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 import { Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { Button, Card, CardContent, Input, Label, Field, Textarea, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -300,20 +300,20 @@ export default function FinanceGoals() {
     <div className="space-y-4">
       {/* Metrics */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <AdminMetricCard
+        <MetricTile
           label="Meta total"
           value={formatBRL(totalTarget)}
           icon={TrendingUp}
           tone="primary"
           hint={`${goalsWithActual.length} meta(s)`}
         />
-        <AdminMetricCard
+        <MetricTile
           label="Realizado"
           value={formatBRL(totalActual)}
           icon={Wallet}
           tone={totalActual >= totalTarget && totalTarget > 0 ? "success" : "warning"}
         />
-        <AdminMetricCard
+        <MetricTile
           label="Metas atingidas"
           value={`${achievedCount}/${goalsWithActual.length}`}
           icon={Shield}

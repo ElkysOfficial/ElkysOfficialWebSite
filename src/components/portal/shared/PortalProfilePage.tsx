@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { CheckCircle, FileText, Hexagon, Shield, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Button,
@@ -872,11 +873,7 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
                   </p>
                 </Field>
 
-                {pwError && (
-                  <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-                    {pwError}
-                  </div>
-                )}
+                {pwError && <AlertBanner tone="destructive" title={pwError} />}
 
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button

@@ -1,11 +1,13 @@
-import { type ComponentType, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 
-import { type IconProps, Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
+import { Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import RelativeDate from "@/components/portal/shared/RelativeDate";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import {
@@ -128,51 +130,6 @@ const TYPE_BADGES: Record<string, { label: string; className: string }> = {
 
 const selectClass =
   "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
-
-/* ── Metric tile (same pattern as Team.tsx) ────────────────────── */
-
-type MetricTone = "accent" | "primary" | "success" | "destructive";
-
-const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
-  accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
-  primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
-  success: { text: "text-success", icon: "bg-success/15 text-success" },
-  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
-};
-
-function MetricTile({
-  label,
-  value,
-  icon: Icon,
-  tone = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<IconProps>;
-  tone?: MetricTone;
-}) {
-  const t = METRIC_TONE[tone];
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
-          t.icon
-        )}
-      >
-        <Icon size={18} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-          {label}
-        </p>
-        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 /* ── Schema ──────────────────────────────────────────────────────── */
 
@@ -566,8 +523,8 @@ export default function AdminNotifications() {
           </CardHeader>
           <CardContent className="pt-6">
             {formError ? (
-              <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-                {formError}
+              <div className="mb-5">
+                <AlertBanner tone="destructive" title={formError} />
               </div>
             ) : null}
 
@@ -734,7 +691,7 @@ export default function AdminNotifications() {
         <>
           {/* Metrics */}
           {historyLoaded ? (
-            <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
               <MetricTile
                 label="Total de envios"
                 value={metrics.total.toString()}

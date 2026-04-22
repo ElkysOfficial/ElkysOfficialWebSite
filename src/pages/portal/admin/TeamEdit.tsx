@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import {
   buttonVariants,
@@ -192,11 +193,7 @@ export default function AdminTeamEdit() {
   if (loading) return <PortalLoading />;
 
   if (loadError) {
-    return (
-      <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-6 text-sm text-destructive">
-        {loadError}
-      </div>
-    );
+    return <AlertBanner tone="destructive" title={loadError} />;
   }
 
   return (
@@ -214,8 +211,8 @@ export default function AdminTeamEdit() {
         </CardHeader>
         <CardContent className="pt-6">
           {formError ? (
-            <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-              {formError}
+            <div className="mb-5">
+              <AlertBanner tone="destructive" title={formError} />
             </div>
           ) : null}
 

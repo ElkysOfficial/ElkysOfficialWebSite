@@ -1,17 +1,10 @@
-import {
-  type ComponentType,
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 
-import { type IconProps, CheckCircle, Phone, Search, Users, Wrench, X, Zap } from "@/assets/icons";
+import { CheckCircle, Phone, Search, Users, Wrench, X, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import { buttonVariants, AlertDialog, Button, Input, cn } from "@/design-system";
@@ -36,53 +29,6 @@ interface AvatarInfo {
   avatar_zoom: number | null;
   avatar_position_x: number | null;
   avatar_position_y: number | null;
-}
-
-/* ── MetricTile ─────────────────────────────────────────────────── */
-
-type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
-
-const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
-  accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
-  warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
-  primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
-  secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
-  success: { text: "text-success", icon: "bg-success/15 text-success" },
-  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
-};
-
-function MetricTile({
-  label,
-  value,
-  icon: Icon,
-  tone = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<IconProps>;
-  tone?: MetricTone;
-}) {
-  const t = METRIC_TONE[tone];
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
-          t.icon
-        )}
-      >
-        <Icon size={18} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-          {label}
-        </p>
-        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
-          {value}
-        </p>
-      </div>
-    </div>
-  );
 }
 
 /* ── Page ────────────────────────────────────────────────────────── */

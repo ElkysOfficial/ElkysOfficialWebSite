@@ -15,7 +15,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Shield, Target, TrendingUp, Users, Search } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import NameAvatar from "@/components/portal/shared/NameAvatar";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
@@ -526,27 +526,22 @@ export default function Leads() {
     <div className="space-y-4">
       {/* Metrics row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <AdminMetricCard
-          label="Total de Leads"
-          value={String(totalLeads)}
-          icon={Users}
-          tone="primary"
-        />
-        <AdminMetricCard
+        <MetricTile label="Total de Leads" value={String(totalLeads)} icon={Users} tone="primary" />
+        <MetricTile
           label="Novos (7 dias)"
           value={String(newLast7Days)}
           icon={TrendingUp}
           tone={newLast7Days > 0 ? "accent" : "secondary"}
           hint="Criados na ultima semana"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Pipeline estimado"
           value={formatBRL(pipelineValue)}
           icon={TrendingUp}
           tone="accent"
           hint="Excluindo ganhos e perdidos"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Taxa de conversao"
           value={`${conversionRate}%`}
           icon={Target}
