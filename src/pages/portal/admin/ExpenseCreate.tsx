@@ -296,7 +296,7 @@ export default function AdminExpenseCreate() {
                   name="entry_mode"
                   control={control}
                   render={({ field }) => (
-                    <div className="grid gap-3 md:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {ENTRY_MODES.map((item) => {
                         const active = field.value === item.value;
                         return (
@@ -455,7 +455,7 @@ export default function AdminExpenseCreate() {
 
               <div className="rounded-xl border border-border/70 bg-background/60 p-4 md:col-span-2">
                 <p className="text-sm font-semibold text-foreground">Resumo antes de salvar</p>
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Formato
