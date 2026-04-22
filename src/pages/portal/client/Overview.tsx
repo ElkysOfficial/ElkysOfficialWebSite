@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 
 import { Clock, FileText, Folder, Headphones, Receipt } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, buttonVariants, Card, CardContent } from "@/design-system";
-import { cn } from "@/design-system/utils/cn";
 import { useClientId } from "@/hooks/useClientId";
 import { useClientOverview } from "@/hooks/useClientOverview";
 import { PROJECT_STATUS_META } from "@/lib/portal";
@@ -104,98 +104,68 @@ export default function ClientOverview() {
         pendingActions.length > 0) && (
         <div className="space-y-3">
           {pendingActions.length > 0 && (
-            <Card
-              className={
-                overdueActionsCount > 0
-                  ? "border-destructive/40 bg-destructive/5"
-                  : "border-warning/40 bg-warning/5"
+            <AlertBanner
+              tone={overdueActionsCount > 0 ? "destructive" : "warning"}
+              icon={Clock}
+              title={
+                pendingActions.length === 1
+                  ? "1 ação aguardando você"
+                  : `${pendingActions.length} ações aguardando você${
+                      overdueActionsCount > 0
+                        ? ` · ${overdueActionsCount === 1 ? "1 em atraso" : `${overdueActionsCount} em atraso`}`
+                        : ""
+                    }`
               }
-            >
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-xl",
-                      overdueActionsCount > 0 ? "bg-destructive/10" : "bg-warning/10"
-                    )}
+              description={`${pendingActions[0].project_name} · ${pendingActions[0].title}${
+                pendingActions.length > 1 ? ` + ${pendingActions.length - 1} outras` : ""
+              }`}
+              action={
+                <Link
+                  to={`/portal/cliente/projetos/${pendingActions[0].project_id}`}
+                  className="block"
+                >
+                  <Button
+                    size="sm"
+                    variant={overdueActionsCount > 0 ? "default" : "outline"}
+                    className="w-full sm:w-auto"
                   >
-                    <Clock
-                      size={18}
-                      className={overdueActionsCount > 0 ? "text-destructive" : "text-warning"}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {pendingActions.length === 1
-                        ? "1 ação aguardando você"
-                        : `${pendingActions.length} ações aguardando você`}
-                      {overdueActionsCount > 0 && (
-                        <span className="ml-2 text-xs font-medium text-destructive">
-                          {overdueActionsCount === 1
-                            ? "1 em atraso"
-                            : `${overdueActionsCount} em atraso`}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {pendingActions[0].project_name} · {pendingActions[0].title}
-                      {pendingActions.length > 1 && ` + ${pendingActions.length - 1} outras`}
-                    </p>
-                  </div>
-                </div>
-                <Link to={`/portal/cliente/projetos/${pendingActions[0].project_id}`}>
-                  <Button size="sm" variant={overdueActionsCount > 0 ? "default" : "outline"}>
                     Resolver agora
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
+              }
+            />
           )}
           {pendingProposals.map((p) => (
-            <Card key={p.id} className="border-primary/40 bg-primary/5">
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                    <FileText size={18} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Proposta aguardando sua resposta
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {p.title} · {formatBRL(Number(p.total_amount))}
-                    </p>
-                  </div>
-                </div>
-                <Link to={`/portal/cliente/propostas/${p.id}`}>
-                  <Button size="sm">Avaliar proposta</Button>
+            <AlertBanner
+              key={p.id}
+              tone="info"
+              icon={FileText}
+              title="Proposta aguardando sua resposta"
+              description={`${p.title} · ${formatBRL(Number(p.total_amount))}`}
+              action={
+                <Link to={`/portal/cliente/propostas/${p.id}`} className="block">
+                  <Button size="sm" className="w-full sm:w-auto">
+                    Avaliar proposta
+                  </Button>
                 </Link>
-              </CardContent>
-            </Card>
+              }
+            />
           ))}
           {pendingContracts.map((c) => (
-            <Card key={c.id} className="border-warning/40 bg-warning/5">
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-warning/10">
-                    <FileText size={18} className="text-warning" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Contrato aguardando seu aceite
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Revise os termos e confirme o aceite para prosseguir.
-                    </p>
-                  </div>
-                </div>
-                <Link to="/portal/cliente/contratos">
-                  <Button size="sm" variant="outline">
+            <AlertBanner
+              key={c.id}
+              tone="warning"
+              icon={FileText}
+              title="Contrato aguardando seu aceite"
+              description="Revise os termos e confirme o aceite para prosseguir."
+              action={
+                <Link to="/portal/cliente/contratos" className="block">
+                  <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     Revisar contrato
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
+              }
+            />
           ))}
         </div>
       )}
