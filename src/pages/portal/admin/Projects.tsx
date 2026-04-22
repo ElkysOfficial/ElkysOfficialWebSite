@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
 import ProjectStageProgressDots from "@/components/portal/project/ProjectStageProgressDots";
@@ -500,16 +501,15 @@ export default function AdminProjects() {
 
       {/* ── Alerta de projetos atrasados ── */}
       {overdueProjects > 0 && (
-        <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
-          <p className="text-sm font-semibold text-destructive">
-            {overdueProjects === 1
+        <AlertBanner
+          tone="destructive"
+          title={
+            overdueProjects === 1
               ? "1 projeto com data de entrega vencida"
-              : `${overdueProjects} projetos com data de entrega vencida`}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Revise o escopo ou renegocie prazo com o cliente pra nao acumular atraso.
-          </p>
-        </div>
+              : `${overdueProjects} projetos com data de entrega vencida`
+          }
+          description="Revise o escopo ou renegocie prazo com o cliente pra nao acumular atraso."
+        />
       )}
 
       {/* ── Metrics — uniform 4-col grid ── */}
