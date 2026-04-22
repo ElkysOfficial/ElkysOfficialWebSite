@@ -7,6 +7,7 @@ import { Clock, FileText, Search, TrendingUp } from "@/assets/icons";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
@@ -577,11 +578,7 @@ export default function AdminExpenses() {
                       </Field>
                     </div>
 
-                    {editorError ? (
-                      <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-                        {editorError}
-                      </div>
-                    ) : null}
+                    {editorError ? <AlertBanner tone="destructive" title={editorError} /> : null}
 
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={stopEditing}>

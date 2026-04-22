@@ -18,6 +18,7 @@ import {
   Input,
   Label,
 } from "@/design-system";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import DraftBanner from "@/components/portal/shared/DraftBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
@@ -282,8 +283,8 @@ export default function AdminTeamCreate() {
         </CardHeader>
         <CardContent className="pt-6">
           {formError ? (
-            <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-              {formError}
+            <div className="mb-5">
+              <AlertBanner tone="destructive" title={formError} />
             </div>
           ) : null}
 

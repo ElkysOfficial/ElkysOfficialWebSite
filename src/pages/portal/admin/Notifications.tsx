@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Bell, CheckCircle, Mail, Search, Send, Wrench, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import RelativeDate from "@/components/portal/shared/RelativeDate";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
@@ -522,8 +523,8 @@ export default function AdminNotifications() {
           </CardHeader>
           <CardContent className="pt-6">
             {formError ? (
-              <div className="mb-5 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-                {formError}
+              <div className="mb-5">
+                <AlertBanner tone="destructive" title={formError} />
               </div>
             ) : null}
 

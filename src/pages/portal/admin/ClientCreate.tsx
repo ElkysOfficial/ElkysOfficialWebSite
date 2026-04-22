@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { CheckCircle, Home, Users } from "@/assets/icons";
+import AlertBanner from "@/components/portal/shared/AlertBanner";
 import DraftBanner from "@/components/portal/shared/DraftBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
@@ -413,11 +414,7 @@ export default function AdminClientCreate() {
         </CardHeader>
 
         <CardContent className="space-y-6 pt-6">
-          {formError ? (
-            <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-              {formError}
-            </div>
-          ) : null}
+          {formError ? <AlertBanner tone="destructive" title={formError} /> : null}
 
           {step === 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
