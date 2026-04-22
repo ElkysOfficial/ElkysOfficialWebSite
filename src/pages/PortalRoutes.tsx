@@ -112,20 +112,7 @@ const PortalRoutes = () => (
         <Route
           path="calendario"
           element={
-            <PortalRoleGuard
-              allowedRoles={[
-                "admin_super",
-                "admin",
-                "comercial",
-                "juridico",
-                "financeiro",
-                "po",
-                "developer",
-                "designer",
-                "marketing",
-                "support",
-              ]}
-            >
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
               <AdminMarketingCalendar />
             </PortalRoleGuard>
           }
@@ -154,20 +141,7 @@ const PortalRoutes = () => (
         <Route
           path="tarefas"
           element={
-            <PortalRoleGuard
-              allowedRoles={[
-                "admin_super",
-                "admin",
-                "marketing",
-                "developer",
-                "designer",
-                "po",
-                "support",
-                "financeiro",
-                "comercial",
-                "juridico",
-              ]}
-            >
+            <PortalRoleGuard allowedRoles={["admin_super", "admin"]}>
               <AdminTasks />
             </PortalRoleGuard>
           }
