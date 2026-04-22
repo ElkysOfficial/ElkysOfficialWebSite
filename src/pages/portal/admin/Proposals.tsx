@@ -7,7 +7,7 @@ import { useAdminProposals } from "@/hooks/useAdminProposals";
 import { FileText, Search, Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import ProposalExpiryCountdown from "@/components/portal/proposal/ProposalExpiryCountdown";
@@ -362,20 +362,20 @@ export default function Proposals() {
 
       {/* ── Metrics ── */}
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:grid-cols-3">
-        <AdminMetricCard
+        <MetricTile
           label="Total propostas"
           value={metrics.total.toString()}
           icon={FileText}
           tone="primary"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Valor em negociacao"
           value={formatBRL(metrics.emNegociacaoValue)}
           hint="Propostas com status enviada"
           icon={Wallet}
           tone="accent"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Taxa aprovacao"
           value={`${metrics.taxaAprovacao}%`}
           hint="Aprovadas / (Aprovadas + Rejeitadas)"

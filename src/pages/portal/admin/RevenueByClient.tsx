@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { Shield, TrendingUp, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
-import AdminMetricCard from "@/components/portal/admin/AdminMetricCard";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import { Button, Card, cn } from "@/design-system";
@@ -201,20 +201,20 @@ export default function RevenueByClient() {
     <div className="space-y-4">
       {/* Metrics */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <AdminMetricCard
+        <MetricTile
           label="Receita total"
           value={formatBRL(grandTotal)}
           icon={TrendingUp}
           tone="success"
           hint={`${ranking.length} cliente(s)`}
         />
-        <AdminMetricCard
+        <MetricTile
           label="Ticket medio"
           value={formatBRL(avgTicket)}
           icon={Wallet}
           tone="primary"
         />
-        <AdminMetricCard
+        <MetricTile
           label="Top cliente"
           value={ranking[0] ? getClientDisplayName(ranking[0].client) : "—"}
           icon={Shield}

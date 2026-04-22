@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import AlertBanner from "@/components/portal/shared/AlertBanner";
+import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
 import ProjectStageProgressDots from "@/components/portal/project/ProjectStageProgressDots";
@@ -24,63 +25,12 @@ import {
   isProjectOperationallyOpen,
 } from "@/lib/portal";
 import { formatBRL, toCents } from "@/lib/masks";
-import type { ComponentType } from "react";
-import type { IconProps } from "@/assets/icons";
 
 const PAGE_SIZE = 8;
 
 type PortalProject = Database["public"]["Tables"]["projects"]["Row"];
 type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
 type StatusFilter = "all" | Database["public"]["Enums"]["project_status"];
-
-/* ------------------------------------------------------------------ */
-/*  Metric tile — uniform height, Apple-style density                 */
-/* ------------------------------------------------------------------ */
-
-type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
-
-const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
-  accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
-  warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
-  primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
-  secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
-  success: { text: "text-success", icon: "bg-success/15 text-success" },
-  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
-};
-
-function MetricTile({
-  label,
-  value,
-  icon: Icon,
-  tone = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<IconProps>;
-  tone?: MetricTone;
-}) {
-  const t = METRIC_TONE[tone];
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 sm:gap-4 sm:p-5">
-      <div
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10",
-          t.icon
-        )}
-      >
-        <Icon size={18} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
-          {label}
-        </p>
-        <p className={cn("mt-0.5 text-lg font-semibold tracking-tight sm:text-xl", t.text)}>
-          {value}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Delivery urgency badge                                             */

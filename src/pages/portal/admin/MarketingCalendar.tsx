@@ -1707,7 +1707,7 @@ export default function AdminMarketingCalendar() {
         </Button>
       </div>
 
-      <section className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         {periodMetrics.map((metric) => (
           <CompactMetricCard
             key={metric.label}

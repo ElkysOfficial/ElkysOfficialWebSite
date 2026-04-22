@@ -36,7 +36,13 @@
       "Bash(awk '{print $NF}')",
       "Bash(grep -B 5 -A 5 \"ends_at.*<\\\\|ends_at.*>\\\\|status.*ends_at\" \"C:\\\\Users\\\\lcvsilva\\\\Desktop\\\\ElkysOfficialWebSite/supabase/migrations\"/*.sql)",
       "Bash(grep *)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(git rebase *)",
+      "Bash(git stash *)",
+      "Bash(npx -p typescript tsc --noEmit -p tsconfig.app.json)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json)",
+      "Bash(node node_modules/vite/bin/vite.js build)",
+      "Bash(gh run *)"
     ]
   }
 }

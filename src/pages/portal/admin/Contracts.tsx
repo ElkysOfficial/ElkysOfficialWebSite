@@ -314,7 +314,7 @@ export default function Contracts() {
       )}
 
       {/* Painel jurídico — saúde do setor (global, clicável) */}
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <button
           type="button"
           onClick={() => setStatusFilter("em_validacao")}

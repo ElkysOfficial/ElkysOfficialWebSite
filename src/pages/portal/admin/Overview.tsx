@@ -1546,7 +1546,7 @@ export default function AdminOverview() {
           </Card>
 
           {/* KPI cards — essentials only */}
-          <section className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+          <section className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             <SurfaceStat
               label="MRR"
               value={formatBRL(summary.currentMrr)}
