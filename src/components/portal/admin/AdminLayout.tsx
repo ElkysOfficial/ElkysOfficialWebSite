@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import PortalErrorBoundary from "@/components/portal/shared/PortalErrorBoundary";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useTheme } from "@/hooks/useDarkMode";
+import { useSidebarBadges, resolveBadgeValue } from "@/hooks/useSidebarBadges";
 
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
@@ -46,6 +47,7 @@ type NavItem = {
   href: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   roles: AppRole[];
+  badge?: string;
 };
 
 type NavSection = {
@@ -90,6 +92,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas/comercial",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "comercial"],
+        badge: "tasks:comercial",
       },
       {
         label: "Calendário Comercial",
@@ -131,6 +134,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas/financeiro",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "financeiro"],
+        badge: "tasks:financeiro",
       },
       {
         label: "Calendário Financeiro",
@@ -148,12 +152,14 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/contratos",
         icon: FileText,
         roles: ["admin_super", "admin", "juridico"],
+        badge: "contracts:validating",
       },
       {
         label: "Tarefas Jurídico",
         href: "/portal/admin/tarefas/juridico",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "juridico"],
+        badge: "tasks:juridico",
       },
       {
         label: "Calendário Jurídico",
@@ -177,6 +183,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas/desenvolvimento",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "developer", "designer", "po"],
+        badge: "tasks:desenvolvimento",
       },
       {
         label: "Calendário Dev",
@@ -200,6 +207,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/suporte",
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
+        badge: "tickets:sla",
       },
       {
         label: "Projetos",
@@ -212,6 +220,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas/suporte",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "support"],
+        badge: "tasks:suporte",
       },
       {
         label: "Calendário Suporte",
@@ -241,6 +250,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas/marketing",
         icon: CheckCircle,
         roles: ["admin_super", "admin", "marketing"],
+        badge: "tasks:marketing",
       },
       {
         label: "Documentos M&D",
@@ -258,6 +268,7 @@ const ALL_NAV_SECTIONS: NavSection[] = [
         href: "/portal/admin/tarefas",
         icon: CheckCircle,
         roles: ["admin_super", "admin"],
+        badge: "tasks:all",
       },
       {
         label: "Calendário (geral)",
@@ -519,6 +530,7 @@ const SidebarClock = memo(function SidebarClock({ className }: { className?: str
 
 export default function AdminLayout() {
   const { user, roles, signOut } = useAuth();
+  const { data: sidebarBadges } = useSidebarBadges();
   const navSections = useMemo(
     () =>
       ALL_NAV_SECTIONS.map((section) => ({
@@ -768,9 +780,10 @@ export default function AdminLayout() {
                     </span>
                   ) : null}
 
-                  {section.items.map(({ label, href, icon: Icon, roles: _roles }) => {
+                  {section.items.map(({ label, href, icon: Icon, roles: _roles, badge }) => {
                     void _roles;
                     const active = isItemActive(location.pathname, href);
+                    const badgeCount = resolveBadgeValue(sidebarBadges, badge);
 
                     return (
                       <Link
@@ -828,6 +841,24 @@ export default function AdminLayout() {
                           <span className="relative z-10 min-w-0 flex-1 truncate text-xs font-medium">
                             {label}
                           </span>
+                        ) : null}
+
+                        {badgeCount > 0 ? (
+                          sidebarCollapsed ? (
+                            <span
+                              className="absolute right-1 top-1 z-20 flex h-2 w-2 rounded-full bg-destructive"
+                              aria-label={`${badgeCount} pendencia(s)`}
+                              title={`${badgeCount} pendencia(s)`}
+                            />
+                          ) : (
+                            <span
+                              className="relative z-10 inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-destructive/15 px-1 text-[10px] font-semibold text-destructive"
+                              aria-label={`${badgeCount} pendencia(s)`}
+                              title={`${badgeCount} pendencia(s)`}
+                            >
+                              {badgeCount > 99 ? "99+" : badgeCount}
+                            </span>
+                          )
                         ) : null}
                       </Link>
                     );
