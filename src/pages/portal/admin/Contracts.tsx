@@ -256,6 +256,25 @@ export default function Contracts() {
     return { total, active, draft, count: filtered.length };
   }, [filtered]);
 
+  const juridicoSnapshot = useMemo(() => {
+    const now = Date.now();
+    const weekAgoMs = now - 7 * 24 * 3600 * 1000;
+    const inValidation = contracts.filter((c) => c.status === "em_validacao");
+    const stale = inValidation.filter(
+      (c) => c.created_at && new Date(c.created_at).getTime() < weekAgoMs
+    );
+    const signedThisWeek = contracts.filter(
+      (c) => c.signed_at && new Date(c.signed_at).getTime() >= weekAgoMs
+    ).length;
+    const activeAll = contracts.filter((c) => c.status === "ativo").length;
+    return {
+      inValidation: inValidation.length,
+      staleInValidation: stale.length,
+      signedThisWeek,
+      activeAll,
+    };
+  }, [contracts]);
+
   if (loading) return <PortalLoading />;
 
   if (error) {
@@ -271,31 +290,60 @@ export default function Contracts() {
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
+      {/* Alerta de contratos parados */}
+      {juridicoSnapshot.staleInValidation > 0 && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-destructive">
+                {juridicoSnapshot.staleInValidation === 1
+                  ? "1 contrato em validação há mais de 7 dias"
+                  : `${juridicoSnapshot.staleInValidation} contratos em validação há mais de 7 dias`}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Considere fazer follow-up com o cliente ou revisar internamente se ha bloqueio.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("em_validacao")}
+              className="self-start rounded-full border border-destructive/60 px-3 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:self-auto"
+            >
+              Ver em validação
+            </button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Painel jurídico — saúde do setor (global, clicável) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <button type="button" onClick={() => setStatusFilter("em_validacao")} className="text-left">
+          <AdminMetricCard
+            label="Em validação"
+            value={String(juridicoSnapshot.inValidation)}
+            icon={FileText}
+            tone={juridicoSnapshot.staleInValidation > 0 ? "warning" : "primary"}
+          />
+        </button>
+        <button type="button" onClick={() => setStatusFilter("ativo")} className="text-left">
+          <AdminMetricCard
+            label="Ativos"
+            value={String(juridicoSnapshot.activeAll)}
+            icon={Shield}
+            tone="success"
+          />
+        </button>
         <AdminMetricCard
-          label="Contratos no filtro"
-          value={String(totals.count)}
-          icon={FileText}
-          tone="primary"
-        />
-        <AdminMetricCard
-          label="Ativos"
-          value={String(totals.active)}
-          icon={Shield}
-          tone="success"
-        />
-        <AdminMetricCard
-          label="Rascunhos"
-          value={String(totals.draft)}
-          icon={FileText}
-          tone="warning"
-        />
-        <AdminMetricCard
-          label="Valor total"
-          value={formatBRL(totals.total)}
+          label="Assinados na semana"
+          value={String(juridicoSnapshot.signedThisWeek)}
           icon={TrendingUp}
           tone="accent"
+        />
+        <AdminMetricCard
+          label={`Valor total (${totals.count})`}
+          value={formatBRL(totals.total)}
+          icon={TrendingUp}
+          tone="primary"
         />
       </div>
 

@@ -6,6 +6,7 @@ import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, buttonVariants, Card, CardContent } from "@/design-system";
+import { cn } from "@/design-system/utils/cn";
 import { useClientId } from "@/hooks/useClientId";
 import { useClientOverview } from "@/hooks/useClientOverview";
 import { PROJECT_STATUS_META } from "@/lib/portal";
@@ -37,6 +38,8 @@ export default function ClientOverview() {
   const openTickets = data?.openTickets ?? 0;
   const pendingProposals = data?.pendingProposals ?? [];
   const pendingContracts = data?.pendingContracts ?? [];
+  const pendingActions = data?.pendingActions ?? [];
+  const overdueActionsCount = pendingActions.filter((a) => a.overdue).length;
 
   const loading = loadingClient || loadingOverview;
   const pageError = clientError ?? overviewError;
@@ -96,8 +99,58 @@ export default function ClientOverview() {
   return (
     <div className="space-y-8">
       {/* ── Ações pendentes ── */}
-      {(pendingProposals.length > 0 || pendingContracts.length > 0) && (
+      {(pendingProposals.length > 0 ||
+        pendingContracts.length > 0 ||
+        pendingActions.length > 0) && (
         <div className="space-y-3">
+          {pendingActions.length > 0 && (
+            <Card
+              className={
+                overdueActionsCount > 0
+                  ? "border-destructive/40 bg-destructive/5"
+                  : "border-warning/40 bg-warning/5"
+              }
+            >
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-xl",
+                      overdueActionsCount > 0 ? "bg-destructive/10" : "bg-warning/10"
+                    )}
+                  >
+                    <Clock
+                      size={18}
+                      className={overdueActionsCount > 0 ? "text-destructive" : "text-warning"}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {pendingActions.length === 1
+                        ? "1 ação aguardando você"
+                        : `${pendingActions.length} ações aguardando você`}
+                      {overdueActionsCount > 0 && (
+                        <span className="ml-2 text-xs font-medium text-destructive">
+                          {overdueActionsCount === 1
+                            ? "1 em atraso"
+                            : `${overdueActionsCount} em atraso`}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {pendingActions[0].project_name} · {pendingActions[0].title}
+                      {pendingActions.length > 1 && ` + ${pendingActions.length - 1} outras`}
+                    </p>
+                  </div>
+                </div>
+                <Link to={`/portal/cliente/projetos/${pendingActions[0].project_id}`}>
+                  <Button size="sm" variant={overdueActionsCount > 0 ? "default" : "outline"}>
+                    Resolver agora
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
           {pendingProposals.map((p) => (
             <Card key={p.id} className="border-primary/40 bg-primary/5">
               <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">

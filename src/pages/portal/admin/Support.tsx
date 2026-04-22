@@ -33,6 +33,65 @@ interface Ticket {
   rating_feedback: string | null;
   first_response_at: string | null;
   resolved_at: string | null;
+  sla_deadline: string | null;
+}
+
+type SlaBadge = {
+  label: string;
+  className: string;
+  title: string;
+};
+
+function getSlaBadge(
+  deadline: string | null,
+  status: TicketStatus,
+  firstResponseAt: string | null
+): SlaBadge | null {
+  if (!deadline) return null;
+  if (status === "resolvido" || status === "fechado") return null;
+
+  const deadlineMs = new Date(deadline).getTime();
+  const nowMs = Date.now();
+  const diffMs = deadlineMs - nowMs;
+  const diffHours = diffMs / 3600000;
+
+  const prefix = firstResponseAt ? "SLA resolução" : "SLA 1ª resposta";
+
+  if (diffMs < 0) {
+    const overdueHours = Math.abs(diffHours);
+    const label =
+      overdueHours < 24
+        ? `${Math.round(overdueHours)}h atrasado`
+        : `${Math.floor(overdueHours / 24)}d atrasado`;
+    return {
+      label: `SLA vencido · ${label}`,
+      className: "bg-destructive/10 text-destructive",
+      title: `${prefix} venceu há ${label}`,
+    };
+  }
+
+  if (diffHours < 2) {
+    return {
+      label: `SLA em ${Math.max(1, Math.round(diffHours * 60))}min`,
+      className: "bg-destructive/10 text-destructive",
+      title: `${prefix} vence em menos de 2h`,
+    };
+  }
+
+  if (diffHours < 24) {
+    return {
+      label: `SLA em ${Math.round(diffHours)}h`,
+      className: "bg-warning/10 text-warning",
+      title: `${prefix} vence hoje`,
+    };
+  }
+
+  const days = Math.floor(diffHours / 24);
+  return {
+    label: `SLA em ${days}d`,
+    className: "bg-success/10 text-success",
+    title: `${prefix} vence em ${days} dia(s)`,
+  };
 }
 
 interface TicketMessage {
@@ -645,6 +704,11 @@ export default function AdminSupport() {
         <div className="space-y-3">
           {paginatedTickets.map((ticket) => {
             const cfg = STATUS_CONFIG[ticket.status];
+            const slaBadge = getSlaBadge(
+              ticket.sla_deadline,
+              ticket.status,
+              ticket.first_response_at
+            );
             const isExpanded = expandedId === ticket.id;
             const msgs = messagesMap[ticket.id] ?? [];
             const isLoadingMsgs = !!loadingMessages[ticket.id];
@@ -680,6 +744,17 @@ export default function AdminSupport() {
                         >
                           {cfg.label}
                         </span>
+                        {slaBadge && (
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                              slaBadge.className
+                            )}
+                            title={slaBadge.title}
+                          >
+                            {slaBadge.label}
+                          </span>
+                        )}
                         {ticket.rating && (
                           <span
                             className="inline-flex items-center gap-0.5 text-xs text-warning"

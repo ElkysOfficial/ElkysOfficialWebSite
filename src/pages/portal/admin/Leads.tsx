@@ -301,6 +301,22 @@ export default function Leads() {
     return Math.round((ganhos / totalLeads) * 100);
   }, [leads, totalLeads]);
 
+  const newLast7Days = useMemo(() => {
+    const cutoff = Date.now() - 7 * 24 * 3600 * 1000;
+    return leads.filter((l) => l.created_at && new Date(l.created_at).getTime() >= cutoff).length;
+  }, [leads]);
+
+  const topSources = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const l of leads) {
+      const s = l.source?.trim() || "nao_informada";
+      counts[s] = (counts[s] ?? 0) + 1;
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+  }, [leads]);
+
   // Grouped for Kanban
   const grouped = useMemo(() => {
     const map: Record<LeadStatus, LeadRow[]> = {
@@ -509,12 +525,19 @@ export default function Leads() {
   return (
     <div className="space-y-4">
       {/* Metrics row */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <AdminMetricCard
           label="Total de Leads"
           value={String(totalLeads)}
           icon={Users}
           tone="primary"
+        />
+        <AdminMetricCard
+          label="Novos (7 dias)"
+          value={String(newLast7Days)}
+          icon={TrendingUp}
+          tone={newLast7Days > 0 ? "accent" : "secondary"}
+          hint="Criados na ultima semana"
         />
         <AdminMetricCard
           label="Pipeline estimado"
@@ -530,6 +553,25 @@ export default function Leads() {
           tone="success"
         />
       </div>
+
+      {topSources.length > 0 && (
+        <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Top fontes
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {topSources.map(([source, count]) => (
+              <span
+                key={source}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-2.5 py-0.5 text-xs text-foreground"
+              >
+                <span className="font-medium capitalize">{source.replace(/_/g, " ")}</span>
+                <span className="text-muted-foreground">· {count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Toolbar: view toggle + new lead */}
       <div className="flex flex-wrap items-center justify-between gap-3">

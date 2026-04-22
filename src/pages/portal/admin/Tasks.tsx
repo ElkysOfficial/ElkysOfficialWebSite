@@ -1263,7 +1263,7 @@ export default function AdminTasks() {
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
-      if (isAdmin && scope === "minhas") {
+      if (scope === "minhas") {
         if (t.assigned_to !== user?.id && t.created_by !== user?.id) return false;
       }
       if (categoryFilter !== "todos" && t.category !== categoryFilter) return false;
@@ -1271,7 +1271,7 @@ export default function AdminTasks() {
       if (assignedFilter !== "todos" && t.assigned_to !== assignedFilter) return false;
       return true;
     });
-  }, [tasks, categoryFilter, priorityFilter, assignedFilter, scope, isAdmin, user?.id]);
+  }, [tasks, categoryFilter, priorityFilter, assignedFilter, scope, user?.id]);
 
   const grouped = useMemo(() => {
     const map: Record<ColumnKey, TeamTask[]> = {
@@ -1333,13 +1333,18 @@ export default function AdminTasks() {
     // Optimistic update
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: targetColumn } : t)));
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from("team_tasks")
       .update({ status: targetColumn } as never)
-      .eq("id", taskId);
+      .eq("id", taskId)
+      .select("id");
 
-    if (updateError) {
-      toast.error("Erro ao mover tarefa.");
+    // RLS silencioso: Postgres retorna 0 rows sem error quando a policy bloqueia.
+    // Sem esse check, o optimistic update fica na tela ate o refresh.
+    if (updateError || !data || data.length === 0) {
+      toast.error(
+        updateError ? "Erro ao mover tarefa." : "Voce nao tem permissao pra mover essa tarefa."
+      );
       setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: task.status } : t)));
     }
   };
@@ -1368,50 +1373,48 @@ export default function AdminTasks() {
       {/* Toolbar */}
       <Card className="rounded-2xl border-border/80 bg-card/95">
         <CardContent className="flex flex-wrap items-center gap-3 p-3 sm:p-4">
-          {isAdmin && (
-            <div className="flex rounded-lg border border-border/60 bg-background p-0.5">
-              <button
-                type="button"
-                onClick={() => setScope("minhas")}
+          <div className="flex rounded-lg border border-border/60 bg-background p-0.5">
+            <button
+              type="button"
+              onClick={() => setScope("minhas")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                scope === "minhas"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Minhas tarefas
+              <span
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                  scope === "minhas"
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
+                  scope === "minhas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
                 )}
               >
-                Minhas tarefas
-                <span
-                  className={cn(
-                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
-                    scope === "minhas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {myTasksCount}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setScope("todas")}
+                {myTasksCount}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope("todas")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                scope === "todas"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Todas
+              <span
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                  scope === "todas"
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
+                  scope === "todas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
                 )}
               >
-                Todas
-                <span
-                  className={cn(
-                    "inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
-                    scope === "todas" ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {tasks.length}
-                </span>
-              </button>
-            </div>
-          )}
+                {tasks.length}
+              </span>
+            </button>
+          </div>
 
           <select
             value={categoryFilter}

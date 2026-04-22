@@ -36,13 +36,15 @@ type StatusFilter = "all" | Database["public"]["Enums"]["project_status"];
 /*  Metric tile — uniform height, Apple-style density                 */
 /* ------------------------------------------------------------------ */
 
-type MetricTone = "accent" | "warning" | "primary" | "secondary";
+type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
 
 const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
   accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
   warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
   primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
   secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
+  success: { text: "text-success", icon: "bg-success/15 text-success" },
+  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
 };
 
 function MetricTile({
@@ -418,14 +420,29 @@ export default function AdminProjects() {
     setPage(0);
   };
 
-  const { totalProjects, activeProjects, pausedProjects } = useMemo(
-    () => ({
-      totalProjects: projects.length,
-      activeProjects: projects.filter(isProjectOperationallyOpen).length,
-      pausedProjects: projects.filter((project) => project.status === "pausado").length,
-    }),
-    [projects]
-  );
+  const { totalProjects, activeProjects, pausedProjects, overdueProjects, upcomingDeliveries } =
+    useMemo(() => {
+      const today = new Date().toISOString().slice(0, 10);
+      const in7Days = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+      const isOperational = (p: PortalProject) =>
+        p.status !== "concluido" && p.status !== "cancelado";
+
+      return {
+        totalProjects: projects.length,
+        activeProjects: projects.filter(isProjectOperationallyOpen).length,
+        pausedProjects: projects.filter((project) => project.status === "pausado").length,
+        overdueProjects: projects.filter(
+          (p) => isOperational(p) && p.expected_delivery_date && p.expected_delivery_date < today
+        ).length,
+        upcomingDeliveries: projects.filter(
+          (p) =>
+            isOperational(p) &&
+            p.expected_delivery_date &&
+            p.expected_delivery_date >= today &&
+            p.expected_delivery_date <= in7Days
+        ).length,
+      };
+    }, [projects]);
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
@@ -481,27 +498,46 @@ export default function AdminProjects() {
         </Link>
       </div>
 
+      {/* ── Alerta de projetos atrasados ── */}
+      {overdueProjects > 0 && (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+          <p className="text-sm font-semibold text-destructive">
+            {overdueProjects === 1
+              ? "1 projeto com data de entrega vencida"
+              : `${overdueProjects} projetos com data de entrega vencida`}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Revise o escopo ou renegocie prazo com o cliente pra nao acumular atraso.
+          </p>
+        </div>
+      )}
+
       {/* ── Metrics — uniform 4-col grid ── */}
       <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <MetricTile label="Ativos" value={activeProjects.toString()} icon={Zap} tone="accent" />
         <MetricTile
+          label="Em atraso"
+          value={overdueProjects.toString()}
+          icon={Clock}
+          tone={overdueProjects > 0 ? "destructive" : "success"}
+        />
+        <MetricTile
           label="Pausados"
           value={pausedProjects.toString()}
           icon={Clock}
-          tone="warning"
+          tone={pausedProjects > 0 ? "warning" : "secondary"}
         />
         <MetricTile
-          label="Carteira"
-          value={totalProjects.toString()}
+          label="Entregas 7 dias"
+          value={upcomingDeliveries.toString()}
           icon={Wallet}
-          tone="primary"
+          tone={upcomingDeliveries > 0 ? "primary" : "secondary"}
         />
-        <MetricTile
-          label="Valor contratado"
-          value={formatBRL(contractedValue)}
-          icon={PiggyBank}
-          tone="secondary"
-        />
+      </div>
+
+      <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3 text-xs text-muted-foreground">
+        Carteira total: <strong className="text-foreground">{totalProjects}</strong> · Valor
+        contratado: <strong className="text-foreground">{formatBRL(contractedValue)}</strong>
       </div>
 
       {/* ── Filters ── */}
