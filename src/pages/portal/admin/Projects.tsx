@@ -36,13 +36,15 @@ type StatusFilter = "all" | Database["public"]["Enums"]["project_status"];
 /*  Metric tile — uniform height, Apple-style density                 */
 /* ------------------------------------------------------------------ */
 
-type MetricTone = "accent" | "warning" | "primary" | "secondary";
+type MetricTone = "accent" | "warning" | "primary" | "secondary" | "success" | "destructive";
 
 const METRIC_TONE: Record<MetricTone, { text: string; icon: string }> = {
   accent: { text: "text-accent", icon: "bg-accent/10 text-accent" },
   warning: { text: "text-warning", icon: "bg-warning/10 text-warning" },
   primary: { text: "text-primary", icon: "bg-primary-soft text-primary dark:bg-primary/15" },
   secondary: { text: "text-secondary", icon: "bg-secondary/15 text-secondary" },
+  success: { text: "text-success", icon: "bg-success/15 text-success" },
+  destructive: { text: "text-destructive", icon: "bg-destructive/15 text-destructive" },
 };
 
 function MetricTile({
