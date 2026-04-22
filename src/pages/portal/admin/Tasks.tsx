@@ -1333,13 +1333,18 @@ export default function AdminTasks() {
     // Optimistic update
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: targetColumn } : t)));
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from("team_tasks")
       .update({ status: targetColumn } as never)
-      .eq("id", taskId);
+      .eq("id", taskId)
+      .select("id");
 
-    if (updateError) {
-      toast.error("Erro ao mover tarefa.");
+    // RLS silencioso: Postgres retorna 0 rows sem error quando a policy bloqueia.
+    // Sem esse check, o optimistic update fica na tela ate o refresh.
+    if (updateError || !data || data.length === 0) {
+      toast.error(
+        updateError ? "Erro ao mover tarefa." : "Voce nao tem permissao pra mover essa tarefa."
+      );
       setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: task.status } : t)));
     }
   };
