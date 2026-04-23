@@ -20,7 +20,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -121,7 +121,7 @@ serve(async (req) => {
       const html = buildEmail({
         preheader: `Lembrete: sua(s) fatura(s) de ${amountFormatted} vencem em ${DAYS_BEFORE} dia(s).`,
         title: "Lembrete de vencimento",
-        greeting: `Olá, ${firstName}!`,
+        greeting: `${getTimeGreeting()}, ${firstName}!`,
         body: isInadimplente
           ? `
             <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos uma <strong>pendência financeira</strong> em sua conta. Entre em contato com nossa equipe para regularizar a situação e garantir a continuidade dos serviços.</p>

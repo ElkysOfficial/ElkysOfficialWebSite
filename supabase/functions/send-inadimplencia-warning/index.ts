@@ -20,7 +20,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import {
   isServiceRoleRequest,
   requireOperationalAccess,
@@ -146,7 +146,7 @@ serve(async (req) => {
       const html = buildEmail({
         preheader: "Aviso sobre o status do seu contrato.",
         title: "Aviso importante sobre seu contrato",
-        greeting: `Olá, ${clientName}.`,
+        greeting: `${getTimeGreeting()}, ${clientName}.`,
         body: `
           <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Identificamos a existência de pendências financeiras em sua conta, o que ocasionou a alteração do status do seu contrato.</p>
           <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Para regularizar a situação, orientamos que acesse o portal e verifique os débitos em aberto. A regularização é importante para evitar a aplicação de medidas administrativas e eventuais restrições na continuidade dos serviços.</p>

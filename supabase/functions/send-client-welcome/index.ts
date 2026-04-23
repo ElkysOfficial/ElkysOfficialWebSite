@@ -44,7 +44,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Seu acesso ao portal Elkys está pronto, ${firstName}.`,
       title: "Bem-vindo ao Portal Elkys",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seja bem-vindo à <strong>Elkys</strong>. É um prazer ter você conosco.</p>
         <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seu acesso ao <strong>Portal do Cliente</strong> foi criado com sucesso. A partir de agora, você pode acompanhar seus projetos, documentos, financeiro e muito mais em um só lugar.</p>

@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 
 interface Payload {
@@ -90,7 +90,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `A Elkys enviou uma proposta comercial para ${displayName}.`,
       title: "Nova proposta comercial",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Uma nova <strong>proposta comercial</strong> foi preparada especialmente para você e já está disponível no seu portal.</p>
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acesse para visualizar todos os detalhes, incluindo escopo, condições de pagamento e valor. Você pode aprovar ou solicitar ajustes diretamente pelo portal.</p>

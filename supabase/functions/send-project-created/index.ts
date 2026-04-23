@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
 
 interface Payload {
@@ -67,7 +67,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Seu novo projeto "${project_name}" foi registrado no Portal Elkys.`,
       title: "Novo projeto registrado",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo projeto foi vinculado à sua conta no <strong>Portal Elkys</strong>.</p>
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A partir de agora, você pode acompanhar o andamento, etapas, documentos e financeiro diretamente pelo portal — tudo centralizado e atualizado em tempo real.</p>

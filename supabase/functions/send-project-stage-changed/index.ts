@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 
 interface Payload {
@@ -99,7 +99,7 @@ serve(async (req) => {
         ? `Seu projeto "${project_name}" avançou para ${to_value}.`
         : `O status do projeto "${project_name}" foi atualizado para ${to_value}.`,
       title,
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: bodyParagraphs,
       highlight: { title: "Detalhes da atualização", rows: highlightRows },
       button: {

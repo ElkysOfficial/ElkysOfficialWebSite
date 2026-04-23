@@ -630,6 +630,29 @@ export const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * Retorna a saudacao apropriada para o horario atual no timezone do Brasil.
+ * - 05h-11h59: "Bom dia"
+ * - 12h-17h59: "Boa tarde"
+ * - 18h-04h59: "Boa noite"
+ *
+ * Usa Intl.DateTimeFormat com timezone America/Sao_Paulo (respeita DST
+ * automaticamente se voltar a ser adotado).
+ *
+ * Uso: `greeting: `${getTimeGreeting()}, ${clientName}.`,`
+ */
+export function getTimeGreeting(tz: string = "America/Sao_Paulo"): string {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    hour12: false,
+  });
+  const hour = parseInt(fmt.format(new Date()), 10);
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 export async function sendEmail(opts: {
   to: string;
   subject: string;
