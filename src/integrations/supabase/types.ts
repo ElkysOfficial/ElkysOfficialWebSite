@@ -2337,6 +2337,13 @@ export type Database = {
         };
         Returns: Json;
       };
+      reconcile_inadimplencia_warnings: {
+        Args: never;
+        Returns: {
+          closed: number;
+          opened: number;
+        }[];
+      };
       register_contract_acceptance: {
         Args: { p_contract_id: string; p_ip?: string };
         Returns: Json;
