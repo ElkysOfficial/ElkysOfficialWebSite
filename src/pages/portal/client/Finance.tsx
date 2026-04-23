@@ -167,7 +167,7 @@ export default function ClientFinance() {
   return (
     <div className="space-y-8">
       {/* Metrics */}
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-3 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <MetricTile
           label="Proxima fatura"
           value={nextInvoice ? formatBRL(nextInvoiceAmount) : "Sem fatura"}
