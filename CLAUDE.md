@@ -89,6 +89,7 @@ Deno serverless functions for user management, email notifications, and billing.
 
 ## Key Conventions
 
+- **Padronização DS (auditoria 2026-04-22)**: Ver `docs/DESIGN-SYSTEM.md` §14 para regras canônicas de grids, StatusBadge, autosave, botões e sombras. Consultar antes de abrir PR nesses eixos.
 - **Styling**: Tailwind CSS with design-system tokens (CSS variables). Never hardcode slate/gray/blue colors — use DS tokens (`text-foreground`, `bg-muted`, `text-primary`, etc.).
 - **Hero dark mode**: Uses Tailwind slate classes (`dark:from-slate-900` etc.) — do NOT change these.
 - **Section spacing**: `py-16 md:py-20 lg:py-24` for all page sections.
