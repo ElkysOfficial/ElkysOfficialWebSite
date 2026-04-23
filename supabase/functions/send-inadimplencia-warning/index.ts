@@ -71,7 +71,7 @@ serve(async (req) => {
     for (const event of pending) {
       const { data: client } = await admin
         .from("clients")
-        .select("full_name, email, nome_fantasia, client_type, contract_status")
+        .select("full_name, email, nome_fantasia, client_type")
         .eq("id", event.client_id)
         .maybeSingle();
 
@@ -93,10 +93,19 @@ serve(async (req) => {
         continue;
       }
 
-      // Guarda extra: se o cliente nao estiver mais inadimplente, nao envia.
-      // O trigger deveria ter fechado o evento, mas cobre o caso de o trigger
-      // nao ter rodado (ex: migracao manual).
-      if (client.contract_status !== "inadimplente") {
+      // Guarda extra: re-checa via view client_financial_summary
+      // (fonte de verdade computada). clients.contract_status eh snapshot
+      // legado congelado pelo guard fn_guard_clients_legacy_snapshots,
+      // entao nao serve mais como check em tempo real. Se na janela entre
+      // reconcile (07h) e send (07h30) o cliente pagou as charges e deixou
+      // de ser inadimplente, essa checagem evita o email desatualizado.
+      const { data: summary } = await admin
+        .from("client_financial_summary")
+        .select("contract_status_calculated")
+        .eq("client_id", event.client_id)
+        .maybeSingle();
+
+      if (summary?.contract_status_calculated !== "inadimplente") {
         skipped++;
         await admin
           .from("client_inadimplencia_warnings")
