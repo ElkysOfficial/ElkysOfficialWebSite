@@ -8,6 +8,7 @@ import { useSidebarBadges, resolveBadgeValue } from "@/hooks/useSidebarBadges";
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
 import AdminNotificationBell from "@/components/portal/admin/AdminNotificationBell";
+import EnvironmentBanner from "@/components/portal/shared/EnvironmentBanner";
 import PortalBreadcrumbs from "@/components/portal/shared/PortalBreadcrumbs";
 import { resolveAdminBreadcrumbs } from "@/lib/admin-breadcrumbs";
 import { supabase } from "@/integrations/supabase/client";
@@ -699,6 +700,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <a href="#admin-main" className="skip-to-content">
+        Pular para o conteúdo
+      </a>
+      <EnvironmentBanner />
       {mobileOpen ? (
         <button
           type="button"
@@ -993,7 +998,11 @@ export default function AdminLayout() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8">
+          <main
+            id="admin-main"
+            tabIndex={-1}
+            className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8"
+          >
             <div className="mx-auto w-full max-w-[1400px]">
               <PortalBreadcrumbs trail={breadcrumbTrail} />
               <PortalErrorBoundary key={location.pathname}>

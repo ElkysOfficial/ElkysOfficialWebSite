@@ -26,6 +26,7 @@ import {
   X,
 } from "@/assets/icons";
 import NotificationBell from "@/components/portal/notification/NotificationBell";
+import EnvironmentBanner from "@/components/portal/shared/EnvironmentBanner";
 
 const SIDEBAR_STORAGE_KEY = "elkys-client-sidebar-collapsed";
 
@@ -271,6 +272,10 @@ export default function ClientLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <a href="#client-main" className="skip-to-content">
+        Pular para o conteúdo
+      </a>
+      <EnvironmentBanner />
       {mobileOpen ? (
         <button
           type="button"
@@ -514,7 +519,11 @@ export default function ClientLayout() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8">
+          <main
+            id="client-main"
+            tabIndex={-1}
+            className="flex-1 overflow-auto px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-8"
+          >
             <div className="mx-auto w-full max-w-[1400px]">
               <PortalErrorBoundary key={location.pathname}>
                 <Suspense fallback={<PortalLoading />}>
