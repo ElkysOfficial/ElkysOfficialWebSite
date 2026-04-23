@@ -10,7 +10,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireOperationalAccess, createServiceRoleClient } from "../_shared/auth.ts";
 
 interface Payload {
@@ -64,7 +64,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Seu contrato para o projeto "${project_name}" está pronto para validação.`,
       title: "Contrato disponível para validação",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">O contrato referente ao projeto <strong>${project_name}</strong> foi preparado pela nossa equipe jurídica e está disponível para sua análise e validação.</p>
         ${scopeBlock}

@@ -12,7 +12,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 
 interface ProposalRow {
   id: string;
@@ -99,7 +99,7 @@ serve(async (req) => {
       const html = buildEmail({
         preheader: `Sua proposta "${proposal.title}" expira em ${WARNING_DAYS} dia(s).`,
         title: "Proposta prestes a expirar",
-        greeting: `Olá, ${firstName}!`,
+        greeting: `${getTimeGreeting()}, ${firstName}!`,
         body: `
           <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua proposta <strong>${proposal.title}</strong> está aguardando avaliação e expira em <strong>${WARNING_DAYS} dia(s)</strong>.</p>
           <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Após o vencimento, ela sai automaticamente da validade e precisa ser renegociada. Se ainda tem interesse, é só entrar no portal e responder.</p>

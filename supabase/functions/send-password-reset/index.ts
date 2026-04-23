@@ -14,7 +14,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 
 interface Payload {
   email: string;
@@ -63,7 +63,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: "Você solicitou a redefinição de senha do Portal Elkys.",
       title: "Redefinição de senha",
-      greeting: "Olá!",
+      greeting: `${getTimeGreeting()}!`,
       body: `
         <p class="text-body" style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Recebemos uma solicitação para redefinir a senha da conta <strong>${email}</strong> no Portal Elkys.</p>
         <p class="text-body" style="margin:0;font-size:14px;line-height:22px;color:#333333;">Clique no botão abaixo para criar uma nova senha. O link é válido por <strong>1 hora</strong> e pode ser usado uma única vez.</p>

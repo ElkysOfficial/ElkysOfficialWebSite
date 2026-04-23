@@ -73,7 +73,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Um novo ${typeLabel} foi disponibilizado para você no Portal Elkys.`,
       title: "Novo documento disponível",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo documento foi disponibilizado no seu <strong>Portal Elkys</strong> e já está pronto para acesso.</p>
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Você pode visualizar, baixar ou compartilhar o arquivo a qualquer momento, de forma simples e segura.</p>

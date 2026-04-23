@@ -11,7 +11,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 import { escapeHtml } from "../_shared/validation.ts";
 
@@ -273,7 +273,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `${tpl.subjectPrefix}: ${step_title} — projeto ${project_name}`,
       title: tpl.title,
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">${tpl.intro(project_name)}</p>
         <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">${tpl.detail}</p>
