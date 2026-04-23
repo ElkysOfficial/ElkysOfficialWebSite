@@ -6,31 +6,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4";
   };
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
   public: {
     Tables: {
       admin_notifications: {
@@ -414,6 +389,51 @@ export type Database = {
           },
           {
             foreignKeyName: "client_contacts_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      client_inadimplencia_warnings: {
+        Row: {
+          client_id: string;
+          created_at: string;
+          entered_at: string;
+          exited_at: string | null;
+          id: string;
+          warning_error: string | null;
+          warning_sent_at: string | null;
+        };
+        Insert: {
+          client_id: string;
+          created_at?: string;
+          entered_at?: string;
+          exited_at?: string | null;
+          id?: string;
+          warning_error?: string | null;
+          warning_sent_at?: string | null;
+        };
+        Update: {
+          client_id?: string;
+          created_at?: string;
+          entered_at?: string;
+          exited_at?: string | null;
+          id?: string;
+          warning_error?: string | null;
+          warning_sent_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_inadimplencia_warnings_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "client_financial_summary";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "client_inadimplencia_warnings_client_id_fkey";
             columns: ["client_id"];
             isOneToOne: false;
             referencedRelation: "clients";
@@ -1146,13 +1166,16 @@ export type Database = {
       };
       project_contracts: {
         Row: {
+          acceptance_ip: string | null;
+          accepted_at: string | null;
+          accepted_by_user_id: string | null;
           client_id: string;
           created_at: string;
           created_by: string | null;
           ends_at: string | null;
           id: string;
           payment_model: Database["public"]["Enums"]["payment_model"];
-          project_id: string;
+          project_id: string | null;
           scope_summary: string | null;
           signed_at: string | null;
           starts_at: string | null;
@@ -1162,13 +1185,16 @@ export type Database = {
           version_no: number;
         };
         Insert: {
+          acceptance_ip?: string | null;
+          accepted_at?: string | null;
+          accepted_by_user_id?: string | null;
           client_id: string;
           created_at?: string;
           created_by?: string | null;
           ends_at?: string | null;
           id?: string;
           payment_model?: Database["public"]["Enums"]["payment_model"];
-          project_id: string;
+          project_id?: string | null;
           scope_summary?: string | null;
           signed_at?: string | null;
           starts_at?: string | null;
@@ -1178,13 +1204,16 @@ export type Database = {
           version_no?: number;
         };
         Update: {
+          acceptance_ip?: string | null;
+          accepted_at?: string | null;
+          accepted_by_user_id?: string | null;
           client_id?: string;
           created_at?: string;
           created_by?: string | null;
           ends_at?: string | null;
           id?: string;
           payment_model?: Database["public"]["Enums"]["payment_model"];
-          project_id?: string;
+          project_id?: string | null;
           scope_summary?: string | null;
           signed_at?: string | null;
           starts_at?: string | null;
@@ -1673,6 +1702,7 @@ export type Database = {
           total_amount: number;
           updated_at: string;
           valid_until: string | null;
+          viewed_at: string | null;
         };
         Insert: {
           approved_at?: string | null;
@@ -1697,6 +1727,7 @@ export type Database = {
           total_amount?: number;
           updated_at?: string;
           valid_until?: string | null;
+          viewed_at?: string | null;
         };
         Update: {
           approved_at?: string | null;
@@ -1721,6 +1752,7 @@ export type Database = {
           total_amount?: number;
           updated_at?: string;
           valid_until?: string | null;
+          viewed_at?: string | null;
         };
         Relationships: [
           {
@@ -2197,6 +2229,10 @@ export type Database = {
       };
     };
     Functions: {
+      activate_contract_to_project: {
+        Args: { p_contract_id: string };
+        Returns: Json;
+      };
       approve_proposal_to_project: {
         Args: { p_proposal_id: string };
         Returns: Json;
@@ -2212,7 +2248,48 @@ export type Database = {
       create_project_with_billing: { Args: { p_input: Json }; Returns: string };
       get_client_for_portal_user: {
         Args: { _user_id: string };
-        Returns: Database["public"]["Tables"]["clients"]["Row"] | null;
+        Returns: {
+          bairro: string | null;
+          cargo_representante: string | null;
+          cep: string | null;
+          city: string | null;
+          client_origin: Database["public"]["Enums"]["client_origin"] | null;
+          client_since: string;
+          client_type: string;
+          cnpj: string | null;
+          complemento: string | null;
+          contract_end: string | null;
+          contract_start: string | null;
+          contract_status: Database["public"]["Enums"]["contract_status"] | null;
+          contract_type: Database["public"]["Enums"]["contract_type"] | null;
+          country: string;
+          cpf: string | null;
+          created_at: string;
+          email: string;
+          full_name: string;
+          id: string;
+          is_active: boolean;
+          logradouro: string | null;
+          monthly_value: number;
+          must_change_password: boolean;
+          nome_fantasia: string | null;
+          numero: string | null;
+          payment_due_day: number | null;
+          phone: string | null;
+          project_total_value: number;
+          razao_social: string | null;
+          scope_summary: string | null;
+          state: string | null;
+          tags: string[];
+          updated_at: string;
+          user_id: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "clients";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       get_client_id_for_portal_user: {
         Args: { _user_id: string };
@@ -2220,6 +2297,10 @@ export type Database = {
       };
       get_client_id_for_user: { Args: { _user_id: string }; Returns: string };
       has_any_team_role: { Args: { _user_id: string }; Returns: boolean };
+      has_comercial_access: { Args: { _user_id: string }; Returns: boolean };
+      has_dev_access: { Args: { _user_id: string }; Returns: boolean };
+      has_finance_access: { Args: { _user_id: string }; Returns: boolean };
+      has_juridico_access: { Args: { _user_id: string }; Returns: boolean };
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"];
@@ -2235,6 +2316,7 @@ export type Database = {
         Returns: boolean;
       };
       is_admin: { Args: { _user_id: string }; Returns: boolean };
+      is_admin_or_juridico: { Args: { _user_id: string }; Returns: boolean };
       mark_overdue_charges: { Args: never; Returns: undefined };
       mark_overdue_clients_inadimplente: { Args: never; Returns: undefined };
       mark_validation_client: {
@@ -2253,6 +2335,10 @@ export type Database = {
           p_project_id: string;
           p_subject: string;
         };
+        Returns: Json;
+      };
+      register_contract_acceptance: {
+        Args: { p_contract_id: string; p_ip?: string };
         Returns: Json;
       };
       register_project_acceptance: {
@@ -2291,8 +2377,8 @@ export type Database = {
         | "po";
       billing_type: "mensal" | "projeto";
       client_origin: "lead" | "indicacao" | "inbound";
-      contract_record_status: "rascunho" | "ativo" | "encerrado" | "cancelado";
-      contract_status: "ativo" | "inadimplente" | "cancelado";
+      contract_record_status: "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
+      contract_status: "ativo" | "inadimplente" | "cancelado" | "encerrado";
       contract_type: "projeto" | "recorrente" | "hibrido";
       document_type: "contrato" | "aditivo" | "nota_fiscal" | "codigo_fonte" | "outro";
       document_visibility: "cliente" | "interno" | "ambos";
@@ -2441,9 +2527,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: [
@@ -2461,8 +2544,8 @@ export const Constants = {
       ],
       billing_type: ["mensal", "projeto"],
       client_origin: ["lead", "indicacao", "inbound"],
-      contract_record_status: ["rascunho", "ativo", "encerrado", "cancelado"],
-      contract_status: ["ativo", "inadimplente", "cancelado"],
+      contract_record_status: ["rascunho", "em_validacao", "ativo", "encerrado", "cancelado"],
+      contract_status: ["ativo", "inadimplente", "cancelado", "encerrado"],
       contract_type: ["projeto", "recorrente", "hibrido"],
       document_type: ["contrato", "aditivo", "nota_fiscal", "codigo_fonte", "outro"],
       document_visibility: ["cliente", "interno", "ambos"],
