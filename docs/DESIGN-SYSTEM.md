@@ -1432,6 +1432,8 @@ class="clients-logo-grayscale" class="clients-logo-wrapper"
 
 ---
 
+> **Auditoria complementar 2026-04-23**: achados específicos de inconsistência (file:linha) e backlog de QOL para equipe/cliente estão em [`docs/AUDIT-2026-04-23.md`](AUDIT-2026-04-23.md). Este §14 permanece como regra canônica evergreen; o doc de auditoria é ponto-no-tempo.
+
 ## 14. Padronização — Auditoria 2026-04-22
 
 Resultado da auditoria profunda feita em 2026-04-22 cobrindo **grids, status badges, autosave em forms, botões e sombras**. Esta seção é a fonte de verdade para divergências mapeadas e decisões de convergência. **Use-a como checklist** ao abrir PR em qualquer um desses eixos.
