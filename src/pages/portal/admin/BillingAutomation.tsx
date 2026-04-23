@@ -343,7 +343,7 @@ export default function BillingAutomation() {
           </div>
 
           {showRuleForm && (
-            <Card className="rounded-2xl border-primary/30 bg-card/95">
+            <Card className="rounded-2xl border-border/70 bg-card/95">
               <CardContent className="space-y-4 p-4">
                 <h3 className="text-sm font-semibold">
                   {editingRule ? "Editar regra" : "Nova regra"}
@@ -498,7 +498,7 @@ export default function BillingAutomation() {
           </div>
 
           {showTemplateForm && (
-            <Card className="rounded-2xl border-primary/30 bg-card/95">
+            <Card className="rounded-2xl border-border/70 bg-card/95">
               <CardContent className="space-y-4 p-4">
                 <h3 className="text-sm font-semibold">
                   {editingTemplate ? "Editar template" : "Novo template"}

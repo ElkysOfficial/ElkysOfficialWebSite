@@ -50,6 +50,18 @@
   --elk-warning: 38 92% 50%;
   --elk-warning-foreground: 0 0% 0%;
 
+  // --- Paleta de categoria (diferenciacao visual de buckets nao-semanticos;
+  // ex: categorias de tarefa). Nao reutilizar em status — para isso use tokens
+  // semanticos (primary/accent/success/warning/destructive). Ver §14 docs.
+  --elk-category-desenvolvimento: 217 91% 60%;
+  --elk-category-comercial: 189 94% 43%;
+  --elk-category-financeiro: 158 64% 45%;
+  --elk-category-juridico: 38 92% 50%;
+  --elk-category-marketing: 330 81% 60%;
+  --elk-category-suporte: 25 95% 53%;
+  --elk-category-reuniao: 261 65% 55%;
+  --elk-category-geral: 220 9% 64%;
+
   // --- Neutras ---
   --neutral-50: 220 14% 98%;
   --neutral-100: 220 14% 96%;
@@ -173,6 +185,16 @@
 
   --elk-warning: 38 88% 55%;
   --elk-warning-foreground: 0 0% 0%;
+
+  // --- Paleta de categoria (dark: mesmos tons com +5-10% de lightness) ---
+  --elk-category-desenvolvimento: 217 85% 65%;
+  --elk-category-comercial: 189 85% 52%;
+  --elk-category-financeiro: 158 58% 52%;
+  --elk-category-juridico: 38 88% 58%;
+  --elk-category-marketing: 330 75% 68%;
+  --elk-category-suporte: 25 90% 60%;
+  --elk-category-reuniao: 261 65% 65%;
+  --elk-category-geral: 220 10% 72%;
 
   // --- Neutras ---
   --neutral-50: 224 30% 18%;

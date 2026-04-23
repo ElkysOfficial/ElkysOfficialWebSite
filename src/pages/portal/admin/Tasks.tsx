@@ -98,46 +98,63 @@ const COLUMN_COUNT_BG: Record<ColumnKey, string> = {
   concluida: "bg-success/15 text-success",
 };
 
+// Paleta de categoria via tokens DS (--elk-category-*, ver _tokens.scss).
+// Dot usa `bg-[hsl(var(--...))]` — classe arbitraria reconhece tokens sem
+// precisar estender tailwind.config. Responde a dark mode via override do token.
 const CATEGORIES = [
-  { value: "desenvolvimento", label: "Desenvolvimento", color: "bg-blue-500" },
-  { value: "comercial", label: "Comercial", color: "bg-cyan-500" },
-  { value: "financeiro", label: "Financeiro", color: "bg-emerald-500" },
-  { value: "juridico", label: "Jurídico", color: "bg-amber-500" },
-  { value: "marketing", label: "Marketing", color: "bg-pink-500" },
-  { value: "suporte", label: "Suporte", color: "bg-orange-500" },
-  { value: "reuniao", label: "Reunião", color: "bg-purple-500" },
-  { value: "geral", label: "Geral", color: "bg-slate-400" },
+  {
+    value: "desenvolvimento",
+    label: "Desenvolvimento",
+    color: "bg-[hsl(var(--elk-category-desenvolvimento))]",
+  },
+  {
+    value: "comercial",
+    label: "Comercial",
+    color: "bg-[hsl(var(--elk-category-comercial))]",
+  },
+  {
+    value: "financeiro",
+    label: "Financeiro",
+    color: "bg-[hsl(var(--elk-category-financeiro))]",
+  },
+  { value: "juridico", label: "Jurídico", color: "bg-[hsl(var(--elk-category-juridico))]" },
+  { value: "marketing", label: "Marketing", color: "bg-[hsl(var(--elk-category-marketing))]" },
+  { value: "suporte", label: "Suporte", color: "bg-[hsl(var(--elk-category-suporte))]" },
+  { value: "reuniao", label: "Reunião", color: "bg-[hsl(var(--elk-category-reuniao))]" },
+  { value: "geral", label: "Geral", color: "bg-[hsl(var(--elk-category-geral))]" },
 ];
 
 const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c]));
 
+// Prioridades mapeadas para tokens semanticos (destructive/warning/accent/success)
+// — preserva gradiente de urgencia e dark-mode consistency do DS.
 const PRIORITIES = [
   {
     value: "urgente",
     label: "Urgente",
-    dot: "bg-red-500",
-    badge: "border-red-500/30 bg-red-500/15 text-red-600 dark:text-red-400",
+    dot: "bg-destructive",
+    badge: "border-destructive/30 bg-destructive/15 text-destructive",
     rank: 0,
   },
   {
     value: "alta",
     label: "Alta",
-    dot: "bg-orange-500",
-    badge: "border-orange-500/30 bg-orange-500/15 text-orange-600 dark:text-orange-400",
+    dot: "bg-warning",
+    badge: "border-warning/30 bg-warning/15 text-warning",
     rank: 1,
   },
   {
     value: "media",
     label: "Média",
-    dot: "bg-yellow-500",
-    badge: "border-yellow-500/30 bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+    dot: "bg-accent",
+    badge: "border-accent/30 bg-accent/15 text-accent",
     rank: 2,
   },
   {
     value: "baixa",
     label: "Baixa",
-    dot: "bg-green-500",
-    badge: "border-green-500/30 bg-green-500/15 text-green-700 dark:text-green-400",
+    dot: "bg-success",
+    badge: "border-success/30 bg-success/15 text-success",
     rank: 3,
   },
 ];
@@ -295,7 +312,7 @@ function TaskCardInner({
       <span
         className={cn(
           "absolute inset-y-0 left-0 w-[3px] rounded-l-xl",
-          cat?.color ?? "bg-slate-400"
+          cat?.color ?? "bg-[hsl(var(--elk-category-geral))]"
         )}
       />
 
