@@ -135,20 +135,23 @@ serve(async (req) => {
         continue;
       }
 
+      // Saudacao usa o nome completo: nome_fantasia pra PJ, full_name pra PF.
+      // Nao abreviar pro primeiro nome — "Olá, AK" perde identidade institucional
+      // pra clientes PJ e fica inapropriado em aviso financeiro.
       const clientName =
         client.client_type === "pj" && client.nome_fantasia
           ? client.nome_fantasia
           : client.full_name;
-      const firstName = clientName.split(" ")[0];
 
       const html = buildEmail({
         preheader: "Aviso sobre o status do seu contrato.",
         title: "Aviso importante sobre seu contrato",
-        greeting: `Olá, ${firstName}.`,
+        greeting: `Olá, ${clientName}.`,
         body: `
-          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos pendências financeiras em sua conta que resultaram na alteração do status do seu contrato.</p>
-          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Solicitamos a regularização da situação o quanto antes para evitar medidas administrativas e escalação do caso. Se os pagamentos já foram efetuados, desconsidere este aviso; caso precise negociar, entre em contato com nosso time financeiro pelo portal.</p>
-          <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Estamos à disposição para esclarecer dúvidas e encontrar a melhor solução em conjunto.</p>
+          <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Identificamos a existência de pendências financeiras em sua conta, o que ocasionou a alteração do status do seu contrato.</p>
+          <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Para regularizar a situação, orientamos que acesse o portal e verifique os débitos em aberto. A regularização é importante para evitar a aplicação de medidas administrativas e eventuais restrições na continuidade dos serviços.</p>
+          <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Caso o pagamento já tenha sido realizado, pedimos a gentileza de desconsiderar esta mensagem. Se houver necessidade de negociação ou esclarecimentos, nosso time financeiro está disponível para atendimento diretamente pelo portal.</p>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Permanecemos à disposição para qualquer suporte necessário.</p>
         `,
         button: {
           label: "Acessar financeiro →",
