@@ -12,7 +12,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { isServiceRoleRequest, requireOperationalAccess } from "../_shared/auth.ts";
 
 interface Payload {
@@ -81,7 +81,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `A cobrança "${charge_description}" está em atraso.`,
       title: "Cobrança em atraso",
-      greeting: `Olá, ${firstName}.`,
+      greeting: `${getTimeGreeting()}, ${firstName}.`,
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos que a cobrança abaixo ultrapassou a data de vencimento e consta como <strong>em atraso</strong> na sua conta.</p>
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Pedimos gentilmente que regularize a situação o mais breve possível para evitar impactos no andamento dos seus projetos.</p>

@@ -10,7 +10,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 
 interface Payload {
@@ -41,7 +41,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Bem-vindo à equipe Elkys, ${firstName}! Seu acesso ao painel está pronto.`,
       title: "Bem-vindo à equipe Elkys",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">É com grande satisfação que damos as boas-vindas a você na <strong>Elkys</strong>.</p>
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Aqui, somos mais do que uma equipe — somos uma estrutura integrada, orientada a resultados, colaboração e crescimento contínuo. Sua chegada fortalece esse compromisso.</p>

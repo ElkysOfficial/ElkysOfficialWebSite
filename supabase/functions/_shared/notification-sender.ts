@@ -7,7 +7,7 @@
  */
 
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail } from "./email-template.ts";
+import { buildEmail, sendEmail, getTimeGreeting } from "./email-template.ts";
 import { formatNotificationBody } from "./validation.ts";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -139,7 +139,7 @@ export async function processNotification(
     const html = buildEmail({
       preheader: `${typeLabel}: ${notification.title}`,
       title: typeLabel,
-      greeting: `Olá, ${firstName},`,
+      greeting: `${getTimeGreeting()}, ${firstName},`,
       body: `
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">
           ${formatNotificationBody(notification.body, PORTAL_URL)}

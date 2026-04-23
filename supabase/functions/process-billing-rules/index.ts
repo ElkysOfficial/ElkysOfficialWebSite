@@ -4,7 +4,7 @@ import {
   createServiceRoleClient,
   isServiceRoleRequest,
 } from "../_shared/auth.ts";
-import { buildEmail, sendEmail } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, getTimeGreeting } from "../_shared/email-template.ts";
 import { escapeAndFormat } from "../_shared/validation.ts";
 
 const CORS = {
@@ -146,7 +146,7 @@ Deno.serve(async (req: Request) => {
       const html = buildEmail({
         preheader: subject,
         title: "Elkys - Aviso Financeiro",
-        greeting: `Olá, ${clientName}`,
+        greeting: `${getTimeGreeting()}, ${clientName}`,
         body: `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">${escapeAndFormat(bodyText)}</p>`,
         button: { label: "Acessar portal", href: `${portalUrl}/financeiro` },
       });
@@ -278,7 +278,7 @@ Deno.serve(async (req: Request) => {
           const html = buildEmail({
             preheader: subject,
             title: "Elkys - Aviso Financeiro",
-            greeting: `Olá, ${clientName}`,
+            greeting: `${getTimeGreeting()}, ${clientName}`,
             body: `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">${escapeAndFormat(bodyText)}</p>`,
             button: {
               label: "Acessar portal",

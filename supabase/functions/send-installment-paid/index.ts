@@ -10,7 +10,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
 
 interface Payload {
@@ -113,7 +113,7 @@ serve(async (req) => {
     const html = buildEmail({
       preheader: `Pagamento confirmado: ${typeLabel} de ${amount} — ${project.name}`,
       title: "Pagamento confirmado",
-      greeting: `Olá, ${firstName}!`,
+      greeting: `${getTimeGreeting()}, ${firstName}!`,
       body: `
         <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">Confirmamos o recebimento do pagamento referente à parcela de <strong>${typeLabel.toLowerCase()}</strong> do projeto <strong>${project.name}</strong>.</p>
         <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">O registro foi processado e sua conta encontra-se em situação regular. Agradecemos pela pontualidade e pela confiança no nosso trabalho.</p>
