@@ -41,7 +41,22 @@ serve(async (req) => {
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/cliente";
     const admin = createServiceRoleClient();
 
-    const { data: pending, error: pendingError } = await admin
+    // Filtro opcional client_ids: util para disparos manuais direcionados
+    // (ex: admin invocando pra um cliente especifico via Dashboard).
+    // Quando omitido, processa toda a fila (comportamento do cron).
+    let clientIdFilter: string[] | null = null;
+    try {
+      const body = await req.json();
+      if (Array.isArray(body?.client_ids) && body.client_ids.length > 0) {
+        clientIdFilter = body.client_ids.filter(
+          (id: unknown): id is string => typeof id === "string"
+        );
+      }
+    } catch {
+      // sem body ou JSON invalido — ignora, processa tudo
+    }
+
+    let pendingQuery = admin
       .from("client_inadimplencia_warnings")
       .select("id, client_id, entered_at")
       .is("warning_sent_at", null)
@@ -49,6 +64,12 @@ serve(async (req) => {
       .is("warning_error", null)
       .order("entered_at", { ascending: true })
       .limit(MAX_PER_RUN);
+
+    if (clientIdFilter) {
+      pendingQuery = pendingQuery.in("client_id", clientIdFilter);
+    }
+
+    const { data: pending, error: pendingError } = await pendingQuery;
 
     if (pendingError) {
       console.error("[inadimplencia-warning] query error:", pendingError.message);
