@@ -1432,6 +1432,157 @@ class="clients-logo-grayscale" class="clients-logo-wrapper"
 
 ---
 
+## 14. Padronização — Auditoria 2026-04-22
+
+Resultado da auditoria profunda feita em 2026-04-22 cobrindo **grids, status badges, autosave em forms, botões e sombras**. Esta seção é a fonte de verdade para divergências mapeadas e decisões de convergência. **Use-a como checklist** ao abrir PR em qualquer um desses eixos.
+
+### 14.1 Grids — regra única
+
+O primitivo `<Grid>` existe (§5.4) mas **tem 0 uso no codebase** — toda a UI usa Tailwind cru, gerando divergências de `gap` e `cols` entre páginas semelhantes.
+
+**Padrão canônico por contexto:**
+
+| Contexto                                | Cols                                        | Gap               | Observação                         |
+| --------------------------------------- | ------------------------------------------- | ----------------- | ---------------------------------- |
+| Landing / marketing (hero, about)       | `lg:grid-cols-2`                            | `gap-8 md:gap-12` | Par lado-a-lado                    |
+| Cards de listagem pública (services)    | `md:grid-cols-2 lg:grid-cols-3`             | `gap-6 md:gap-8`  | Sem 4 cols                         |
+| Features / process (4 itens)            | `md:grid-cols-2 lg:grid-cols-4`             | `gap-6`           | —                                  |
+| KPI cards do admin (dashboards)         | `grid-cols-1 sm:grid-cols-2 xl:grid-cols-3` | `gap-3 sm:gap-4`  | Remover breakpoint `min-[400px]`   |
+| KPI cards 4 métricas (Finance overview) | `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` | `gap-3 sm:gap-4`  | Único caso que permite 4           |
+| Forms 2 colunas                         | `md:grid-cols-2`                            | `gap-4`           | **Nunca `gap-3` em form**          |
+| Forms 3 colunas (compactos)             | `md:grid-cols-3`                            | `gap-4`           | —                                  |
+| Tabelas custom (listagens admin)        | `grid-cols-[...fr...px]`                    | `gap-x-6 gap-y-3` | Manter template columns explícitas |
+
+**Divergências conhecidas a corrigir:**
+
+- `Finance.tsx` (KPI) usa `xl:grid-cols-3` e `xl:grid-cols-4` inconsistentes — unificar por qtd de métricas.
+- `ClientCreate.tsx` mistura `gap-3 md:grid-cols-3` com `gap-4 md:grid-cols-2` — padronizar em `gap-4`.
+- Breakpoint `min-[400px]` só aparece em admin KPI — **remover** em favor de `sm:`.
+
+**Regra de uso do `<Grid>` primitive:** obrigatório para KPI grids e cards de listagem do portal. Liberado (mas recomendado) no resto.
+
+### 14.2 Status Badges — fonte única de verdade
+
+**Estado atual:** `StatusBadge` existe (§7.3), mas há 3 problemas:
+
+1. Duplicação de tom dentro do mesmo domínio (Leads: `diagnostico` e `proposta` ambos `primary`).
+2. Label divergente entre admin e cliente para o mesmo status (contrato `em_validacao` = "Em validação" no admin vs "Aguardando seu aceite" no cliente).
+3. Badges ad-hoc inline (ex: `ContractAcceptanceStatusCard`, `Support.tsx`) usando `bg-warning/10 text-warning` sem passar pelo componente.
+
+**Regra canônica de tones por semântica:**
+
+| Semântica           | Tone          | Uso típico                                |
+| ------------------- | ------------- | ----------------------------------------- |
+| Neutro / rascunho   | `secondary`   | `rascunho`, `novo`, `fechado`             |
+| Em progresso / info | `accent`      | `em_andamento`, `enviada`, `qualificado`  |
+| Aguardando ação     | `warning`     | `em_validacao`, `pausado`, `negociacao`   |
+| Sucesso / final OK  | `success`     | `concluido`, `aprovada`, `ativo`, `ganho` |
+| Falha / bloqueio    | `destructive` | `cancelado`, `rejeitada`, `perdido`       |
+| Atenção passiva     | `primary`     | reservado para destaques de marca (raros) |
+
+**Mapas unificados** vivem em `src/lib/portal.ts` como `PROJECT_STATUS_META`, `LEAD_STATUS_META`, `PROPOSAL_STATUS_META`, `CONTRACT_STATUS_META`, `TICKET_STATUS_META`. Labels **admin** e **cliente** podem diferir — usar `label` e `labelClient` no mesmo objeto.
+
+**Indicadores adjacentes** (estilo linha-de-listagem, dot colorido + texto) seguem uma variante distinta — componentizar como `<IndicatorBadge>` em `portal/shared/` (usa `border-{tone}/30 bg-{tone}/10 text-{tone}`) para não sobrepor `StatusBadge`. Hoje `ClientRowIndicators.tsx` já usa esse padrão mas não está extraído.
+
+### 14.3 Autosave em Forms — padrão único
+
+**Estado atual (pós-evolução do hook):** `useFormDraftAutoSave` já suporta dois modos:
+
+- `autoRestore: true` (legado): restaura rascunho silenciosamente no mount — `ProjectCreate`, `Notifications`.
+- `autoRestore: false`: expõe `hasDraft`, `restore()`, `discard()` para UI escolher restaurar.
+
+`<DraftBanner>` (`portal/shared/DraftBanner.tsx`) é o componente canônico para o **modo banner** — mostra "Temos um rascunho salvo" + ações Restaurar/Descartar.
+
+**O que ainda falta:** um indicador **em tempo real** (`idle`/`pending`/`saving`/`saved`/`error`) visível durante a digitação. `DraftBanner` cobre só o momento de montagem. `ProjectCreate` tem um `<DraftStatus>` inline não-reutilizável que deveria virar `<AutosaveIndicator>`.
+
+**Padrão oficial:**
+
+1. **Hook**: `useFormDraftAutoSave` (já existe). Em forms novos **preferir `autoRestore: false`** + `<DraftBanner>` — é menos invasivo para o usuário.
+2. **Server autosave**: não existe no hook ainda. Quando precisar (forms financeiros), compor `useFormDraftAutoSave` com `useMutation` do React Query dentro do componente — hook não precisa inchar.
+3. **Indicador em tempo real**: criar `<AutosaveIndicator state lastSavedAt error />` em `portal/shared/` (pendente):
+   - `idle` → oculto
+   - `pending` (isPending=true) → dot amber pulsante + "Rascunho aguardando..."
+   - `saving` → dot amber spin + "Salvando..."
+   - `saved` (savedAt preenchido, !isPending) → dot success + "Salvo às HH:MM"
+   - `error` → dot destructive + botão "Tentar novamente"
+4. **Quando usar autosave:**
+   - Multi-step (>2 etapas) → **sempre** (localStorage com `DraftBanner`)
+   - Form longo (>8 campos) → localStorage draft via banner
+   - Form financeiro (valores R$) → localStorage + servidor com retry
+   - Form curto (<5 campos) → **não** autosave, só submit
+
+**Alvos de refactor prioritários:** `ClientCreate` (onboarding multi-step sem autosave), `ExpenseCreate` (financeiro), `ClientDetail` (seções editáveis). `ProjectCreate` pode migrar do `DraftStatus` inline para `<AutosaveIndicator>` quando este existir.
+
+### 14.4 Botões — hierarquia e uso
+
+Componente `<Button>` do DS (§4.1) é sólido — problema é uso.
+
+**Auditoria:** 106 `<button>` no src; ~70 via DS, ~36 crus. Divergências recorrentes:
+
+- Menu toggles com `p-2 min-h-[44px] min-w-[44px]` duplicando padding do DS (`Navigation.tsx:359`).
+- Icon buttons em tabelas/dropdowns usando `h-8 w-8` em vez de `size="icon"` (`RowActionMenu.tsx:32`).
+- Ícone-only sem `aria-label` (`Tasks.tsx:580, 963`, `MarketingCalendar.tsx:2100`).
+- Close buttons ad-hoc (`CookieConsent.tsx:105`, `Login.tsx:204` toggle senha).
+- Botões de carrossel (`Testimonials.tsx:305, 385`) com classes próprias.
+
+**Hierarquia canônica de CTA:**
+
+| Camada              | Variante              | Onde usar                                    |
+| ------------------- | --------------------- | -------------------------------------------- |
+| CTA principal Hero  | `gradient`            | Navbar "Fale Conosco", hero CTA de conversão |
+| CTA secundário Hero | `accent` (ciano)      | WhatsApp, call-to-actions alternativos       |
+| CTA hero em escuro  | `hero_outline`        | Botões sobre `gradient-hero`                 |
+| Ação principal app  | `default`             | Submit, salvar, confirmar (portal)           |
+| Suporte             | `secondary`/`outline` | Cancelar, voltar, alternar                   |
+| Navegação / ícones  | `ghost`               | Menu, dropdowns, ações de linha              |
+| Destrutiva          | `destructive`         | Excluir, cancelar projeto                    |
+| Inline em texto     | `link`                | Links que parecem texto                      |
+
+**Regras:**
+
+- `<button>` HTML cru só é aceitável dentro de componentes highly custom (carrossel, editor). Em qualquer outro contexto → DS.
+- Icon-only **sempre** requer `aria-label`. Criar ESLint rule (`jsx-a11y/control-has-associated-label`) já presente — ativar strict.
+- Nunca duplicar `p-2` quando `size="icon"` já define 44×44.
+- Links de react-router estilizados como botão: `<Link className={buttonVariants({ variant, size })}>` (padrão consistente, 15+ usos).
+
+### 14.5 Sombras — escala de elevação
+
+Tokens já existem (§2.4) mas uso é incoerente — shadows duplas em Card, dropdowns com tokens diferentes, drop-shadow hardcoded em hex.
+
+**Escala oficial de elevação (nomear por função, não por tamanho):**
+
+| Token                | Mapeamento atual           | Uso                                          |
+| -------------------- | -------------------------- | -------------------------------------------- |
+| `shadow-elevation-0` | sem shadow                 | Surface plana (`bg-card` sobre `background`) |
+| `shadow-elevation-1` | `shadow-sm` / `card`       | Card inativo, botão base                     |
+| `shadow-elevation-2` | `shadow-md` / `card-hover` | Card hover, botão hover                      |
+| `shadow-elevation-3` | `shadow-lg`                | Dropdowns, popovers, notification bell       |
+| `shadow-elevation-4` | `shadow-xl`                | Modais, AlertDialog, drawers                 |
+| `shadow-brand-md`    | `shadow-primary`           | Botões `gradient`, CTA hero                  |
+| `shadow-brand-lg`    | `shadow-primary-lg`        | Hover de CTAs de marca                       |
+
+**Regras:**
+
+- `<Card>` do DS **já aplica** `shadow-card` + `hover:shadow-card-hover`. **Nunca** sobrepor `shadow-xl`/`shadow-2xl` em `<Card className>` — se precisa de elevação maior, é porque o uso é modal → use `AlertDialog` ou um `<div>` próprio.
+- Dropdowns do portal padronizados em `shadow-elevation-3` (= `shadow-lg`). Corrigir `Navigation.tsx:248,304` (estava em `shadow-xl`).
+- **Proibido** `drop-shadow-[...rgba(...)]` com cor hex — usar `hsl(var(--elk-primary) / alpha)`. Corrigir `NotFound.tsx:64`.
+- `shadow-brand-*` reservado para elementos de marca; não usar em botões default/secondary.
+- Dark mode: não adicionar overrides manuais — tokens em `_tokens.scss` já tratam opacity.
+
+### 14.6 Plano de execução (ordem sugerida)
+
+1. **Docs** (concluído nesta versão): esta seção 14 + atualização do CLAUDE.md.
+2. **Extração de componentes faltantes:** `<AutosaveIndicator>`, `<IndicatorBadge>`.
+3. **Refactor de hook:** evoluir `useFormDraftAutoSave` → `useFormAutosave` mantendo API retrocompatível.
+4. **Correções de baixo risco:** `Navigation` dropdowns → `shadow-lg`; `NotFound` drop-shadow → HSL; `aria-label` nos icon-only (`Tasks`, `MarketingCalendar`).
+5. **Unificação status:** migrar badges ad-hoc em `ContractAcceptanceStatusCard` e `Support.tsx` para `<StatusBadge>`.
+6. **Grids:** padronizar KPI cards (Finance/Overview) e forms (ClientCreate).
+7. **Autosave:** aplicar em `ClientCreate`, `ExpenseCreate`, `ClientDetail`.
+
+Cada item vira um commit separado seguindo git-flow (`bugfix/ds-*` ou `feat/ds-*`).
+
+---
+
 ## Referência rápida
 
 ```tsx
