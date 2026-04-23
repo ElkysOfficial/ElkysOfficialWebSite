@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { Headphones, Mail, Phone, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, Card, CardContent, Field, Input, Label, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { CONTACT } from "@/constants";
@@ -38,16 +39,6 @@ interface TicketMessage {
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
-
-const STATUS_CONFIG: Record<TicketStatus, { label: string; className: string }> = {
-  aberto: { label: TICKET_STATUS_META.aberto.label, className: "bg-warning/10 text-warning" },
-  em_andamento: {
-    label: TICKET_STATUS_META.em_andamento.label,
-    className: "bg-primary/10 text-primary",
-  },
-  resolvido: { label: TICKET_STATUS_META.resolvido.label, className: "bg-success/10 text-success" },
-  fechado: { label: TICKET_STATUS_META.fechado.label, className: "bg-muted text-muted-foreground" },
-};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -632,7 +623,7 @@ export default function ClientSupport() {
           ) : (
             <div className="space-y-3">
               {tickets.map((ticket) => {
-                const cfg = STATUS_CONFIG[ticket.status];
+                const meta = TICKET_STATUS_META[ticket.status];
                 const isExpanded = expandedId === ticket.id;
                 const msgs = messagesMap[ticket.id] ?? [];
                 const isLoadingMsgs = !!loadingMessages[ticket.id];
@@ -661,14 +652,7 @@ export default function ClientSupport() {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={cn(
-                                "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                                cfg.className
-                              )}
-                            >
-                              {cfg.label}
-                            </span>
+                            <StatusBadge label={meta.label} tone={meta.tone} />
                             <p className="truncate text-sm font-semibold text-foreground">
                               {ticket.subject}
                             </p>

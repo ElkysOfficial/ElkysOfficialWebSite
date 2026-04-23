@@ -127,7 +127,7 @@ export default function AdminChangePassword() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPw ? "Ocultar" : "Mostrar"}
                   </button>
@@ -210,7 +210,7 @@ export default function AdminChangePassword() {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground/60 hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showConfirm ? "Ocultar" : "Mostrar"}
                   </button>

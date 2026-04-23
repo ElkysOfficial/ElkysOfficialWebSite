@@ -1,7 +1,7 @@
 import { Target, Eye, Heart, TrendingUp, ArrowRight } from "@/assets/icons";
 import { workPhilosophy } from "@/data/process";
 import { Link } from "react-router-dom";
-import { Card, CardContent, HexPattern } from "@/design-system";
+import { Card, CardContent, HexPattern, buttonVariants, cn } from "@/design-system";
 
 const About = () => {
   const values = [
@@ -127,10 +127,13 @@ const About = () => {
             })}
             <Link
               to="/como-trabalhamos"
-              className="group relative inline-flex items-center justify-between gap-2 min-h-[44px] px-6 rounded-md overflow-hidden bg-muted text-muted-foreground hover:bg-gradient-primary hover:text-white transition-all duration-300"
+              className={cn(
+                buttonVariants({ variant: "gradient_secondary" }),
+                "group relative overflow-hidden justify-between"
+              )}
             >
               <HexPattern variant="inline" />
-              <span className="relative z-10 text-sm font-medium">Ver processo completo</span>
+              <span className="relative z-10">Ver processo completo</span>
               <ArrowRight className="relative z-10 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>

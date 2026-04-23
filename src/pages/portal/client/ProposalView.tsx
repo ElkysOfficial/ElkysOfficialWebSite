@@ -324,7 +324,7 @@ export default function ProposalView() {
           <CardContent className="space-y-4 pt-5">
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   Valor total
                 </p>
                 <p className="mt-0.5 text-lg font-bold tabular-nums text-primary">
@@ -333,7 +333,7 @@ export default function ProposalView() {
               </div>
               {proposal.valid_until && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     Valida ate
                   </p>
                   <p className="mt-0.5 text-sm font-medium text-foreground">
@@ -343,7 +343,7 @@ export default function ProposalView() {
               )}
               {proposal.solution_type && (
                 <div>
-                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     Tipo de solucao
                   </p>
                   <p className="mt-0.5 text-sm font-medium text-foreground">
@@ -355,7 +355,9 @@ export default function ProposalView() {
 
             {proposal.scope_summary && (
               <div>
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Escopo</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  Escopo
+                </p>
                 <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
                   {proposal.scope_summary}
                 </p>
@@ -364,7 +366,7 @@ export default function ProposalView() {
 
             {proposal.payment_conditions && (
               <div>
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   Condicoes de pagamento
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
@@ -375,7 +377,7 @@ export default function ProposalView() {
 
             {proposal.observations && (
               <div>
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                   Observações
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
@@ -391,7 +393,7 @@ export default function ProposalView() {
           {proposal.document_url && (
             <Card className="border-border/70 bg-card/92">
               <CardContent className="p-4">
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">
                   Documento da proposta
                 </p>
                 <a
@@ -411,7 +413,7 @@ export default function ProposalView() {
           {proposal.technical_document_url && (
             <Card className="border-border/70 bg-card/92">
               <CardContent className="p-4">
-                <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-2">
                   Anexo tecnico
                 </p>
                 <a

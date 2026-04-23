@@ -13,6 +13,10 @@ import {
   CardTitle,
   HexPattern,
   Toaster,
+  Field,
+  Label,
+  ErrorText,
+  cn,
 } from "@/design-system";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -146,89 +150,70 @@ const ContactForm = () => {
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          Nome completo *
-                        </label>
+                      <Field>
+                        <Label htmlFor="name" required>
+                          Nome completo
+                        </Label>
                         <Input
                           id="name"
                           type="text"
                           placeholder="Seu nome"
-                          className="w-full"
+                          required
+                          aria-invalid={errors.name ? "true" : "false"}
                           {...register("name")}
                         />
-                        <p
-                          className={`text-destructive text-xs mt-1 ${errors.name ? "" : "invisible"}`}
-                        >
+                        <ErrorText className={cn(errors.name ? "" : "invisible")}>
                           {errors.name?.message || "\u00A0"}
-                        </p>
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-medium text-foreground mb-2"
-                        >
-                          E-mail *
-                        </label>
+                        </ErrorText>
+                      </Field>
+                      <Field>
+                        <Label htmlFor="email" required>
+                          E-mail
+                        </Label>
                         <Input
                           id="email"
                           type="email"
                           placeholder="seu.email@empresa.com"
-                          className="w-full"
+                          required
+                          aria-invalid={errors.email ? "true" : "false"}
                           {...register("email")}
                         />
-                        <p
-                          className={`text-destructive text-xs mt-1 ${errors.email ? "" : "invisible"}`}
-                        >
+                        <ErrorText className={cn(errors.email ? "" : "invisible")}>
                           {errors.email?.message || "\u00A0"}
-                        </p>
-                      </div>
+                        </ErrorText>
+                      </Field>
                     </div>
 
-                    <div>
-                      <label
-                        htmlFor="company"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Empresa
-                      </label>
+                    <Field>
+                      <Label htmlFor="company">Empresa</Label>
                       <Input
                         id="company"
                         type="text"
                         placeholder="Nome da sua empresa"
-                        className="w-full"
+                        aria-invalid={errors.company ? "true" : "false"}
                         {...register("company")}
                       />
-                      <p
-                        className={`text-destructive text-xs mt-1 ${errors.company ? "" : "invisible"}`}
-                      >
+                      <ErrorText className={cn(errors.company ? "" : "invisible")}>
                         {errors.company?.message || "\u00A0"}
-                      </p>
-                    </div>
+                      </ErrorText>
+                    </Field>
 
-                    <div>
-                      <label
-                        htmlFor="message"
-                        className="block text-sm font-medium text-foreground mb-2"
-                      >
-                        Mensagem *
-                      </label>
+                    <Field>
+                      <Label htmlFor="message" required>
+                        Mensagem
+                      </Label>
                       <Textarea
                         id="message"
                         placeholder="Descreva brevemente o contexto, os desafios técnicos e os objetivos do projeto..."
                         rows={5}
-                        className="w-full"
+                        required
+                        aria-invalid={errors.message ? "true" : "false"}
                         {...register("message")}
                       />
-                      <p
-                        className={`text-destructive text-xs mt-1 ${errors.message ? "" : "invisible"}`}
-                      >
+                      <ErrorText className={cn(errors.message ? "" : "invisible")}>
                         {errors.message?.message || "\u00A0"}
-                      </p>
-                    </div>
+                      </ErrorText>
+                    </Field>
 
                     <Button
                       type="submit"
