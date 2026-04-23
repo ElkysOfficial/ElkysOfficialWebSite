@@ -12,6 +12,17 @@ const sizeStyles = {
   hero: "h-36 w-36 md:h-44 md:w-44",
 } as const;
 
+// Pixels nominais usados como atributos width/height nos <img> — evitam CLS
+// ao reservar o espaco antes da imagem carregar. Hero responsivo usa o valor
+// mobile (144px); container escala com CSS.
+const sizePixels: Record<keyof typeof sizeStyles, number> = {
+  sm: 40,
+  md: 56,
+  lg: 80,
+  xl: 112,
+  hero: 144,
+};
+
 const insetStyles = {
   sm: "inset-[10%]",
   md: "inset-[9%]",
@@ -79,6 +90,9 @@ const HexAvatar = React.forwardRef<HTMLDivElement, HexAvatarProps>(
         src={hexagonalBg}
         alt=""
         aria-hidden="true"
+        width={sizePixels[size]}
+        height={sizePixels[size]}
+        decoding="async"
         className={cn(
           "pointer-events-none absolute inset-0 h-full w-full object-contain",
           backgroundClassName
@@ -97,6 +111,10 @@ const HexAvatar = React.forwardRef<HTMLDivElement, HexAvatarProps>(
           <img
             src={src}
             alt={alt}
+            width={sizePixels[size]}
+            height={sizePixels[size]}
+            loading={size === "hero" ? "eager" : "lazy"}
+            decoding="async"
             className={cn("h-full w-full object-cover", imageClassName)}
             style={imageStyle}
           />

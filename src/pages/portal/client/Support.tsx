@@ -478,12 +478,20 @@ export default function ClientSupport() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold tracking-tight text-foreground">Suporte</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Escolha o canal de atendimento mais adequado para sua necessidade.
           </p>
+        </div>
+        <div
+          role="note"
+          aria-label="Tempo medio de resposta"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success"
+        >
+          <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
+          Respondemos em até 24h úteis
         </div>
       </div>
 

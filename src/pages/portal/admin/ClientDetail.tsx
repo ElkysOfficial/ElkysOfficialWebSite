@@ -6,6 +6,7 @@ import { Building2, CheckCircle } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import CollapsibleSection from "@/components/portal/shared/CollapsibleSection";
 import ContactLinks from "@/components/portal/shared/ContactLinks";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -1372,6 +1373,7 @@ export default function AdminClientDetail() {
               Nova oportunidade
             </Link>
           ) : null}
+          <CopyLinkButton />
           <Link to="/portal/admin/clientes" className={buttonVariants({ variant: "outline" })}>
             Voltar
           </Link>
