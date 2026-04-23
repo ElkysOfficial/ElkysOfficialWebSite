@@ -8,7 +8,8 @@ import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { CHARGE_STATUS_META, formatPortalDate } from "@/lib/portal";
 import { loadChargesForClient, resolveClientForUser } from "@/lib/portal-data";
-import { formatBRL, toCents } from "@/lib/masks";
+import { cn } from "@/design-system";
+import { daysUntil, formatBRL, toCents } from "@/lib/masks";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -132,6 +133,11 @@ export default function ClientFinance() {
   // Metrics exclude historical and agendada
   const nextInvoice = financialItems.find((item) => item.bucket === "proxima_fatura") ?? null;
   const nextInvoiceAmount = nextInvoice?.amount ?? 0;
+  const nextInvoiceDaysLeft = daysUntil(nextInvoice?.dueDate);
+  // Urgente: vence em 7 dias ou menos (e ainda nao venceu). Vencido ja aparece
+  // em "Em atraso" com tone destructive proprio.
+  const isNextInvoiceUrgent =
+    nextInvoiceDaysLeft !== null && nextInvoiceDaysLeft >= 0 && nextInvoiceDaysLeft <= 7;
   const overdueAmount =
     financialItems
       .filter((item) => item.bucket === "em_atraso")
@@ -169,10 +175,16 @@ export default function ClientFinance() {
       {/* Metrics */}
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <MetricTile
-          label="Proxima fatura"
+          label={
+            isNextInvoiceUrgent
+              ? nextInvoiceDaysLeft === 0
+                ? "Vence hoje"
+                : `Vence em ${nextInvoiceDaysLeft} ${nextInvoiceDaysLeft === 1 ? "dia" : "dias"}`
+              : "Proxima fatura"
+          }
           value={nextInvoice ? formatBRL(nextInvoiceAmount) : "Sem fatura"}
           icon={Clock}
-          tone="primary"
+          tone={isNextInvoiceUrgent ? "destructive" : "primary"}
         />
         <MetricTile
           label="Em atraso"
@@ -203,21 +215,42 @@ export default function ClientFinance() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 Em aberto
               </p>
-              {upcomingItems.map((item) => (
-                <article
-                  key={item.id}
-                  className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background/60 px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{item.description}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·
-                      vencimento em {formatPortalDate(item.dueDate)}
-                    </p>
-                  </div>
-                  <StatusBadge label={item.badge.label} tone={item.badge.tone} />
-                </article>
-              ))}
+              {upcomingItems.map((item) => {
+                const daysLeft = daysUntil(item.dueDate);
+                const urgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
+                return (
+                  <article
+                    key={item.id}
+                    className={cn(
+                      "flex flex-col gap-2 rounded-xl border px-4 py-3 sm:px-5 sm:py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6",
+                      urgent
+                        ? "border-destructive/40 bg-destructive/5"
+                        : "border-border/50 bg-background/60"
+                    )}
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{item.description}</p>
+                      <p
+                        className={cn(
+                          "mt-1 text-sm",
+                          urgent ? "font-medium text-destructive" : "text-muted-foreground"
+                        )}
+                      >
+                        <span className="whitespace-nowrap">{formatBRL(item.amount)}</span> ·{" "}
+                        {urgent
+                          ? daysLeft === 0
+                            ? "vence hoje"
+                            : `vence em ${daysLeft} ${daysLeft === 1 ? "dia" : "dias"} (${formatPortalDate(item.dueDate)})`
+                          : `vencimento em ${formatPortalDate(item.dueDate)}`}
+                      </p>
+                    </div>
+                    <StatusBadge
+                      label={urgent ? "Vencimento próximo" : item.badge.label}
+                      tone={urgent ? "destructive" : item.badge.tone}
+                    />
+                  </article>
+                );
+              })}
             </section>
           )}
 

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { toast } from "sonner";
 
 import { ExternalLink, FileText, Shield } from "@/assets/icons";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import DraftBanner from "@/components/portal/shared/DraftBanner";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProposalExpiryCountdown from "@/components/portal/proposal/ProposalExpiryCountdown";
@@ -990,11 +991,14 @@ export default function ProposalDetail() {
           ) : null}
         </div>
 
-        <Link to="/portal/admin/propostas">
-          <Button type="button" variant="outline" size="sm">
-            Voltar
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          {isEditing ? <CopyLinkButton /> : null}
+          <Link to="/portal/admin/propostas">
+            <Button type="button" variant="outline" size="sm">
+              Voltar
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Rascunho salvo localmente (so na criacao) ── */}

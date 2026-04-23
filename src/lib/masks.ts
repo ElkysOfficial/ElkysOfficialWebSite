@@ -172,6 +172,57 @@ export function formatBRL(value: number): string {
 }
 
 /**
+ * Formata data em pt-BR no padrao legivel "25 de março de 2026".
+ * Aceita Date, string ISO (YYYY-MM-DD) ou timestamp. Retorna string vazia
+ * se o valor for invalido — nunca lanca.
+ */
+export function formatBRDate(value: Date | string | number | null | undefined): string {
+  if (value == null || value === "") return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+/**
+ * Formata data+hora em pt-BR no padrao "25/03/2026 as 14:32".
+ * Mesmas regras de formatBRDate para entrada invalida.
+ */
+export function formatBRDateTime(value: Date | string | number | null | undefined): string {
+  if (value == null || value === "") return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const datePart = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+  return `${datePart}\u00A0às\u00A0${timePart}`;
+}
+
+/**
+ * Calcula dias entre hoje e uma data-alvo (positivo = futuro, negativo = passado).
+ * Usado para destacar vencimentos iminentes.
+ */
+export function daysUntil(dateIso: string | Date | null | undefined): number | null {
+  if (!dateIso) return null;
+  const target = dateIso instanceof Date ? dateIso : new Date(dateIso);
+  if (Number.isNaN(target.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  const diffMs = target.getTime() - today.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
  * Converts a database numeric value (string or number) to integer centavos.
  * Use inside reduce/accumulation to avoid floating-point errors.
  * Divide the final sum by 100 to get back to reais.

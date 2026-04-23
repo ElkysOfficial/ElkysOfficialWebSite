@@ -196,6 +196,32 @@
   }
 }
 
+// --- Acessibilidade: Skip to content ---
+// Link invisivel que aparece ao receber foco via Tab. Pula a sidebar longa
+// e leva direto ao <main> — padrao WCAG 2.1. Colocado no inicio do layout.
+.skip-to-content {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--elk-primary-foreground));
+  background-color: hsl(var(--elk-primary));
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-150%);
+  transition: transform 0.15s ease-out;
+
+  &:focus,
+  &:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid hsl(var(--elk-ring));
+    outline-offset: 2px;
+  }
+}
+
 // --- Acessibilidade ---
 @media (prefers-reduced-motion: reduce) {
   .animate-float,

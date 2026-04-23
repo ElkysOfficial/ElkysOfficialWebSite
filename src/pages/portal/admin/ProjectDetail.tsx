@@ -12,6 +12,7 @@ import ProjectOnboardingChecklist from "@/components/portal/project/ProjectOnboa
 import ProjectSupportCard from "@/components/portal/project/ProjectSupportCard";
 import ProjectValidationRounds from "@/components/portal/project/ProjectValidationRounds";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import Pagination from "@/components/portal/shared/Pagination";
 import ProjectStageJourney from "@/components/portal/project/ProjectStageJourney";
@@ -3058,6 +3059,7 @@ export default function AdminProjectDetail() {
                 Ver cliente
               </Link>
             ) : null}
+            <CopyLinkButton />
             <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
               Voltar
             </Link>
