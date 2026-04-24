@@ -10,8 +10,9 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   installment_id: string;
@@ -89,7 +90,7 @@ serve(async (req) => {
     // Fetch client
     const { data: client, error: clientError } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, email_financeiro, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -100,7 +101,6 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
     const companyName = client.nome_fantasia || client.full_name;
     const typeLabel =
       INSTALLMENT_TYPE_LABEL[installment.installment_type] ?? installment.installment_type;
@@ -111,13 +111,13 @@ serve(async (req) => {
     const projectUrl = `${PORTAL_URL}/projetos/${project_id}`;
 
     const html = buildEmail({
-      preheader: `Pagamento confirmado: ${typeLabel} de ${amount} — ${project.name}`,
+      preheader: `Confirmamos o recebimento da parcela de ${typeLabel.toLowerCase()} no valor de ${amount}.`,
       title: "Pagamento confirmado",
-      greeting: `${getTimeGreeting()}, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: `
         <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">Confirmamos o recebimento do pagamento referente à parcela de <strong>${typeLabel.toLowerCase()}</strong> do projeto <strong>${project.name}</strong>.</p>
-        <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">O registro foi processado e sua conta encontra-se em situação regular. Agradecemos pela pontualidade e pela confiança no nosso trabalho.</p>
-        <p style="margin:0 0 22px;font-size:14px;line-height:22px;color:#333333;">Em caso de dúvidas sobre este ou qualquer outro pagamento, nossa equipe está à disposição pelo suporte do portal.</p>
+        <p style="margin:0 0 14px;font-size:14px;line-height:22px;color:#333333;">O registro foi processado e sua conta encontra-se em situação regular. Agradecemos pela pontualidade e pela confiança depositada em nosso trabalho.</p>
+        <p style="margin:0 0 22px;font-size:14px;line-height:22px;color:#333333;">Para dúvidas sobre este ou outros pagamentos, a equipe financeira permanece à disposição pelo portal.</p>
       `,
       highlight: {
         title: "Detalhes do pagamento",
@@ -128,19 +128,21 @@ serve(async (req) => {
           { label: "Valor", value: amount },
           { label: "Vencimento original", value: dueDate },
           { label: "Confirmação", value: paidAt },
-          { label: "Situação", value: "✓ Pago" },
+          { label: "Situação", value: "Pago" },
         ],
       },
       button: {
-        label: "Ver projeto no Portal →",
+        label: "Acessar o projeto",
         href: projectUrl,
       },
-      note: "Guarde este e-mail como comprovante do registro de pagamento.",
+      note: "Este e-mail serve como comprovante de registro do pagamento.",
     });
 
+    const recipientEmail = client.email_financeiro || client.email;
+
     const result = await sendEmail({
-      to: client.email,
-      subject: `[Elkys] Pagamento confirmado — ${project.name} · ${typeLabel} ${percentage}%`,
+      to: recipientEmail,
+      subject: `Pagamento confirmado — ${project.name} (${typeLabel} ${percentage}%)`,
       html,
     });
 

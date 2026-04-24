@@ -6,6 +6,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       admin_notifications: {
@@ -443,15 +468,21 @@ export type Database = {
       };
       clients: {
         Row: {
+          aceite_termos: boolean;
+          aceite_termos_at: string | null;
           bairro: string | null;
+          birth_date: string | null;
+          canal_assinatura: Database["public"]["Enums"]["canal_assinatura_type"] | null;
           cargo_representante: string | null;
           cep: string | null;
           city: string | null;
           client_origin: Database["public"]["Enums"]["client_origin"] | null;
           client_since: string;
           client_type: string;
+          cnae: string | null;
           cnpj: string | null;
           complemento: string | null;
+          contato_secundario: string | null;
           contract_end: string | null;
           contract_start: string | null;
           contract_status: Database["public"]["Enums"]["contract_status"] | null;
@@ -460,34 +491,54 @@ export type Database = {
           cpf: string | null;
           created_at: string;
           email: string;
+          email_financeiro: string | null;
+          forma_pagamento: Database["public"]["Enums"]["forma_pagamento_type"] | null;
           full_name: string;
+          gender: Database["public"]["Enums"]["gender_type"] | null;
           id: string;
+          inscricao_estadual: string | null;
+          inscricao_municipal: string | null;
           is_active: boolean;
+          limite_credito: number | null;
           logradouro: string | null;
           monthly_value: number;
           must_change_password: boolean;
           nome_fantasia: string | null;
+          notes_internal: string | null;
           numero: string | null;
+          owner_id: string | null;
           payment_due_day: number | null;
           phone: string | null;
           project_total_value: number;
           razao_social: string | null;
+          regime_tributario: Database["public"]["Enums"]["regime_tributario_type"] | null;
+          responsavel_financeiro: string | null;
+          responsavel_financeiro_phone: string | null;
+          rg: string | null;
           scope_summary: string | null;
+          sla_hours: number | null;
           state: string | null;
           tags: string[];
           updated_at: string;
           user_id: string | null;
+          whatsapp: string | null;
         };
         Insert: {
+          aceite_termos?: boolean;
+          aceite_termos_at?: string | null;
           bairro?: string | null;
+          birth_date?: string | null;
+          canal_assinatura?: Database["public"]["Enums"]["canal_assinatura_type"] | null;
           cargo_representante?: string | null;
           cep?: string | null;
           city?: string | null;
           client_origin?: Database["public"]["Enums"]["client_origin"] | null;
           client_since?: string;
           client_type?: string;
+          cnae?: string | null;
           cnpj?: string | null;
           complemento?: string | null;
+          contato_secundario?: string | null;
           contract_end?: string | null;
           contract_start?: string | null;
           contract_status?: Database["public"]["Enums"]["contract_status"] | null;
@@ -496,34 +547,54 @@ export type Database = {
           cpf?: string | null;
           created_at?: string;
           email: string;
+          email_financeiro?: string | null;
+          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento_type"] | null;
           full_name: string;
+          gender?: Database["public"]["Enums"]["gender_type"] | null;
           id?: string;
+          inscricao_estadual?: string | null;
+          inscricao_municipal?: string | null;
           is_active?: boolean;
+          limite_credito?: number | null;
           logradouro?: string | null;
           monthly_value?: number;
           must_change_password?: boolean;
           nome_fantasia?: string | null;
+          notes_internal?: string | null;
           numero?: string | null;
+          owner_id?: string | null;
           payment_due_day?: number | null;
           phone?: string | null;
           project_total_value?: number;
           razao_social?: string | null;
+          regime_tributario?: Database["public"]["Enums"]["regime_tributario_type"] | null;
+          responsavel_financeiro?: string | null;
+          responsavel_financeiro_phone?: string | null;
+          rg?: string | null;
           scope_summary?: string | null;
+          sla_hours?: number | null;
           state?: string | null;
           tags?: string[];
           updated_at?: string;
           user_id?: string | null;
+          whatsapp?: string | null;
         };
         Update: {
+          aceite_termos?: boolean;
+          aceite_termos_at?: string | null;
           bairro?: string | null;
+          birth_date?: string | null;
+          canal_assinatura?: Database["public"]["Enums"]["canal_assinatura_type"] | null;
           cargo_representante?: string | null;
           cep?: string | null;
           city?: string | null;
           client_origin?: Database["public"]["Enums"]["client_origin"] | null;
           client_since?: string;
           client_type?: string;
+          cnae?: string | null;
           cnpj?: string | null;
           complemento?: string | null;
+          contato_secundario?: string | null;
           contract_end?: string | null;
           contract_start?: string | null;
           contract_status?: Database["public"]["Enums"]["contract_status"] | null;
@@ -532,23 +603,37 @@ export type Database = {
           cpf?: string | null;
           created_at?: string;
           email?: string;
+          email_financeiro?: string | null;
+          forma_pagamento?: Database["public"]["Enums"]["forma_pagamento_type"] | null;
           full_name?: string;
+          gender?: Database["public"]["Enums"]["gender_type"] | null;
           id?: string;
+          inscricao_estadual?: string | null;
+          inscricao_municipal?: string | null;
           is_active?: boolean;
+          limite_credito?: number | null;
           logradouro?: string | null;
           monthly_value?: number;
           must_change_password?: boolean;
           nome_fantasia?: string | null;
+          notes_internal?: string | null;
           numero?: string | null;
+          owner_id?: string | null;
           payment_due_day?: number | null;
           phone?: string | null;
           project_total_value?: number;
           razao_social?: string | null;
+          regime_tributario?: Database["public"]["Enums"]["regime_tributario_type"] | null;
+          responsavel_financeiro?: string | null;
+          responsavel_financeiro_phone?: string | null;
+          rg?: string | null;
           scope_summary?: string | null;
+          sla_hours?: number | null;
           state?: string | null;
           tags?: string[];
           updated_at?: string;
           user_id?: string | null;
+          whatsapp?: string | null;
         };
         Relationships: [];
       };
@@ -1865,40 +1950,58 @@ export type Database = {
       };
       team_members: {
         Row: {
+          birth_date: string | null;
+          cpf: string | null;
           created_at: string;
           email: string;
           full_name: string;
+          gender: Database["public"]["Enums"]["gender_type"] | null;
           id: string;
           is_active: boolean;
+          last_login_at: string | null;
+          manager_id: string | null;
           must_change_password: boolean;
           phone: string | null;
           role_title: string;
+          senioridade: Database["public"]["Enums"]["senioridade_type"] | null;
           system_role: Database["public"]["Enums"]["app_role"] | null;
           updated_at: string;
           user_id: string | null;
         };
         Insert: {
+          birth_date?: string | null;
+          cpf?: string | null;
           created_at?: string;
           email: string;
           full_name: string;
+          gender?: Database["public"]["Enums"]["gender_type"] | null;
           id?: string;
           is_active?: boolean;
+          last_login_at?: string | null;
+          manager_id?: string | null;
           must_change_password?: boolean;
           phone?: string | null;
           role_title?: string;
+          senioridade?: Database["public"]["Enums"]["senioridade_type"] | null;
           system_role?: Database["public"]["Enums"]["app_role"] | null;
           updated_at?: string;
           user_id?: string | null;
         };
         Update: {
+          birth_date?: string | null;
+          cpf?: string | null;
           created_at?: string;
           email?: string;
           full_name?: string;
+          gender?: Database["public"]["Enums"]["gender_type"] | null;
           id?: string;
           is_active?: boolean;
+          last_login_at?: string | null;
+          manager_id?: string | null;
           must_change_password?: boolean;
           phone?: string | null;
           role_title?: string;
+          senioridade?: Database["public"]["Enums"]["senioridade_type"] | null;
           system_role?: Database["public"]["Enums"]["app_role"] | null;
           updated_at?: string;
           user_id?: string | null;
@@ -2249,15 +2352,21 @@ export type Database = {
       get_client_for_portal_user: {
         Args: { _user_id: string };
         Returns: {
+          aceite_termos: boolean;
+          aceite_termos_at: string | null;
           bairro: string | null;
+          birth_date: string | null;
+          canal_assinatura: Database["public"]["Enums"]["canal_assinatura_type"] | null;
           cargo_representante: string | null;
           cep: string | null;
           city: string | null;
           client_origin: Database["public"]["Enums"]["client_origin"] | null;
           client_since: string;
           client_type: string;
+          cnae: string | null;
           cnpj: string | null;
           complemento: string | null;
+          contato_secundario: string | null;
           contract_end: string | null;
           contract_start: string | null;
           contract_status: Database["public"]["Enums"]["contract_status"] | null;
@@ -2266,23 +2375,37 @@ export type Database = {
           cpf: string | null;
           created_at: string;
           email: string;
+          email_financeiro: string | null;
+          forma_pagamento: Database["public"]["Enums"]["forma_pagamento_type"] | null;
           full_name: string;
+          gender: Database["public"]["Enums"]["gender_type"] | null;
           id: string;
+          inscricao_estadual: string | null;
+          inscricao_municipal: string | null;
           is_active: boolean;
+          limite_credito: number | null;
           logradouro: string | null;
           monthly_value: number;
           must_change_password: boolean;
           nome_fantasia: string | null;
+          notes_internal: string | null;
           numero: string | null;
+          owner_id: string | null;
           payment_due_day: number | null;
           phone: string | null;
           project_total_value: number;
           razao_social: string | null;
+          regime_tributario: Database["public"]["Enums"]["regime_tributario_type"] | null;
+          responsavel_financeiro: string | null;
+          responsavel_financeiro_phone: string | null;
+          rg: string | null;
           scope_summary: string | null;
+          sla_hours: number | null;
           state: string | null;
           tags: string[];
           updated_at: string;
           user_id: string | null;
+          whatsapp: string | null;
         };
         SetofOptions: {
           from: "*";
@@ -2383,12 +2506,15 @@ export type Database = {
         | "designer"
         | "po";
       billing_type: "mensal" | "projeto";
+      canal_assinatura_type: "manual" | "govbr" | "clicksign" | "docusign" | "eletronico";
       client_origin: "lead" | "indicacao" | "inbound";
       contract_record_status: "rascunho" | "em_validacao" | "ativo" | "encerrado" | "cancelado";
       contract_status: "ativo" | "inadimplente" | "cancelado" | "encerrado";
       contract_type: "projeto" | "recorrente" | "hibrido";
       document_type: "contrato" | "aditivo" | "nota_fiscal" | "codigo_fonte" | "outro";
       document_visibility: "cliente" | "interno" | "ambos";
+      forma_pagamento_type: "pix" | "boleto" | "cartao" | "transferencia" | "dinheiro";
+      gender_type: "masculino" | "feminino";
       invoice_status: "pendente" | "pago" | "atrasado" | "cancelado" | "agendada";
       next_step_action_type:
         | "geral"
@@ -2410,6 +2536,8 @@ export type Database = {
       project_installment_type: "entrada" | "entrega";
       project_pause_reason: "financeiro" | "dependencia_cliente" | "interno" | "escopo" | "outro";
       project_status: "em_andamento" | "concluido" | "pausado" | "cancelado" | "negociacao";
+      regime_tributario_type: "mei" | "simples" | "lucro_presumido" | "lucro_real";
+      senioridade_type: "estagiario" | "junior" | "pleno" | "senior" | "lead" | "gerente";
       subscription_status: "agendada" | "ativa" | "pausada" | "encerrada";
     };
     CompositeTypes: {
@@ -2534,6 +2662,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: [
@@ -2550,12 +2681,15 @@ export const Constants = {
         "po",
       ],
       billing_type: ["mensal", "projeto"],
+      canal_assinatura_type: ["manual", "govbr", "clicksign", "docusign", "eletronico"],
       client_origin: ["lead", "indicacao", "inbound"],
       contract_record_status: ["rascunho", "em_validacao", "ativo", "encerrado", "cancelado"],
       contract_status: ["ativo", "inadimplente", "cancelado", "encerrado"],
       contract_type: ["projeto", "recorrente", "hibrido"],
       document_type: ["contrato", "aditivo", "nota_fiscal", "codigo_fonte", "outro"],
       document_visibility: ["cliente", "interno", "ambos"],
+      forma_pagamento_type: ["pix", "boleto", "cartao", "transferencia", "dinheiro"],
+      gender_type: ["masculino", "feminino"],
       invoice_status: ["pendente", "pago", "atrasado", "cancelado", "agendada"],
       next_step_action_type: [
         "geral",
@@ -2578,6 +2712,8 @@ export const Constants = {
       project_installment_type: ["entrada", "entrega"],
       project_pause_reason: ["financeiro", "dependencia_cliente", "interno", "escopo", "outro"],
       project_status: ["em_andamento", "concluido", "pausado", "cancelado", "negociacao"],
+      regime_tributario_type: ["mei", "simples", "lucro_presumido", "lucro_real"],
+      senioridade_type: ["estagiario", "junior", "pleno", "senior", "lead", "gerente"],
       subscription_status: ["agendada", "ativa", "pausada", "encerrada"],
     },
   },

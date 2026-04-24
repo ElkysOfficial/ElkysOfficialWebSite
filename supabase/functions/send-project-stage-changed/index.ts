@@ -10,8 +10,9 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   client_id: string;
@@ -57,7 +58,7 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -68,12 +69,11 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
     const isStageChange = change_type === "stage";
-    const title = isStageChange ? "Progresso do projeto" : "Atualização do projeto";
+    const title = isStageChange ? "Atualização de etapa" : "Atualização de status";
     const subject = isStageChange
-      ? `Progresso: ${project_name} avançou para ${to_value}`
-      : `Atualização: ${project_name} — ${to_value}`;
+      ? `Atualização de etapa — ${project_name}`
+      : `Atualização de status — ${project_name}`;
 
     const highlightRows = [
       { label: "Projeto", value: project_name },
@@ -85,28 +85,28 @@ serve(async (req) => {
 
     const bodyParagraphs = isStageChange
       ? `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Boas notícias! O seu projeto <strong>${project_name}</strong> avançou para uma nova etapa.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acompanhe o progresso completo, documentos e próximos passos diretamente no seu portal.</p>
-        ${client_visible_summary ? `<p style="margin:0;font-size:14px;line-height:22px;color:#333333;"><strong>Resumo:</strong> ${client_visible_summary}</p>` : ""}
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Informamos que o projeto <strong>${project_name}</strong> avançou para uma nova etapa.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">O progresso completo, documentos e próximos passos estão disponíveis no portal para consulta.</p>
+        ${client_visible_summary ? `<p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Atualização da equipe: <em>${client_visible_summary}</em></p>` : ""}
       `
       : `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">O status do seu projeto <strong>${project_name}</strong> foi atualizado.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Acesse o portal para conferir todos os detalhes.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">O status do projeto <strong>${project_name}</strong> foi atualizado.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Os detalhes completos encontram-se disponíveis no portal.</p>
       `;
 
     const html = buildEmail({
       preheader: isStageChange
-        ? `Seu projeto "${project_name}" avançou para ${to_value}.`
-        : `O status do projeto "${project_name}" foi atualizado para ${to_value}.`,
+        ? `O projeto "${project_name}" avançou para a etapa "${to_value}".`
+        : `O status do projeto "${project_name}" foi atualizado para "${to_value}".`,
       title,
-      greeting: `${getTimeGreeting()}, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: bodyParagraphs,
       highlight: { title: "Detalhes da atualização", rows: highlightRows },
       button: {
-        label: "Acompanhar no portal →",
+        label: "Acompanhar o projeto",
         href: `${PORTAL_URL}/projetos/${project_id}`,
       },
-      note: "Qualquer dúvida, nossa equipe está à disposição pelo suporte do portal.",
+      note: "Para dúvidas, a equipe permanece à disposição pelo suporte do portal.",
     });
 
     const result = await sendEmail({

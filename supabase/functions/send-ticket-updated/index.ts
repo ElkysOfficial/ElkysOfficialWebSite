@@ -14,6 +14,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { escapeHtml } from "../_shared/validation.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
+import { getFormalGreeting, nl2br, truncateAtWord } from "../_shared/greeting.ts";
 
 type EventType = "em_andamento" | "resolvido" | "reply";
 
@@ -24,7 +25,7 @@ interface Payload {
 }
 
 const EVENT_SUBJECT: Record<EventType, string> = {
-  em_andamento: "Seu ticket está sendo analisado",
+  em_andamento: "Seu ticket está em análise",
   resolvido: "Seu ticket foi resolvido",
   reply: "Nova resposta no seu ticket",
 };
@@ -66,7 +67,7 @@ serve(async (req) => {
     // Busca ticket + cliente
     const { data: ticket, error: ticketError } = await admin
       .from("support_tickets")
-      .select("subject, body, clients(full_name, email, nome_fantasia)")
+      .select("subject, body, clients(full_name, email, nome_fantasia, client_type, gender)")
       .eq("id", ticket_id)
       .maybeSingle();
 
@@ -81,7 +82,9 @@ serve(async (req) => {
     const client = ticket.clients as {
       full_name?: string;
       email?: string;
-      nome_fantasia?: string;
+      nome_fantasia?: string | null;
+      client_type?: string | null;
+      gender?: "masculino" | "feminino" | null;
     } | null;
 
     const clientEmail = client?.email ?? "";
@@ -92,32 +95,27 @@ serve(async (req) => {
       });
     }
 
-    const clientName = client?.nome_fantasia || client?.full_name || "Cliente";
     const subject = ticket.subject as string;
     const ticketUrl = `${PORTAL_URL}/suporte`;
+    const greeting = getFormalGreeting(client ?? {});
 
-    let greeting = "";
     let bodyHtml = "";
     let noteHtml: string | undefined;
 
     if (event === "em_andamento") {
-      greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi recebida pela equipe Elkys e já está sendo analisada. Retornaremos em breve com uma resposta.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Informamos que sua solicitação de suporte foi recebida e encontra-se em análise pela equipe Elkys. O retorno será enviado em breve.</p>`;
     } else if (event === "resolvido") {
-      greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi marcada como <strong>resolvida</strong>. Caso o problema persista ou surja uma nova dúvida, fique à vontade para abrir um novo ticket pelo portal.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi concluída e marcada como <strong>resolvida</strong>. Caso o problema persista ou surja uma nova dúvida, um novo ticket pode ser aberto a qualquer momento pelo portal.</p>`;
     } else if (event === "reply") {
-      greeting = `Olá, ${clientName}!`;
-      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A equipe Elkys respondeu ao seu ticket de suporte. Acesse o portal para visualizar a resposta completa e dar continuidade à conversa.</p>`;
+      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A equipe Elkys registrou uma resposta ao seu ticket. A resposta completa está disponível no portal para continuidade do atendimento.</p>`;
       if (reply_body) {
-        const raw = reply_body.length > 400 ? reply_body.slice(0, 397) + "..." : reply_body;
-        const preview = escapeHtml(raw);
+        const preview = nl2br(escapeHtml(truncateAtWord(reply_body, 400)));
         noteHtml = `<strong>Resposta da equipe:</strong><br/><em style="color:#52525b;">"${preview}"</em>`;
       }
     }
 
     const html = buildEmail({
-      preheader: `${EVENT_SUBJECT[event]}: "${subject}"`,
+      preheader: `${EVENT_SUBJECT[event]} — "${subject}".`,
       title: EVENT_SUBJECT[event],
       greeting,
       body: bodyHtml,
@@ -126,7 +124,7 @@ serve(async (req) => {
         rows: [{ label: "Assunto", value: subject }],
       },
       button: {
-        label: "Acessar suporte →",
+        label: "Acessar o ticket",
         href: ticketUrl,
       },
       note: noteHtml,
@@ -134,7 +132,7 @@ serve(async (req) => {
 
     const result = await sendEmail({
       to: clientEmail,
-      subject: `[Elkys Suporte] ${EVENT_SUBJECT[event]}: ${subject}`,
+      subject: `${EVENT_SUBJECT[event]} — ${subject}`,
       html,
     });
 

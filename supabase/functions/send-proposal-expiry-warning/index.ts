@@ -12,7 +12,8 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { getFormalGreeting, plural, type Gender } from "../_shared/greeting.ts";
 
 interface ProposalRow {
   id: string;
@@ -27,6 +28,8 @@ interface ClientRow {
   full_name: string;
   email: string;
   nome_fantasia: string | null;
+  client_type: string | null;
+  gender: Gender;
 }
 
 serve(async (req) => {
@@ -71,7 +74,7 @@ serve(async (req) => {
     const clientIds = [...new Set(rows.map((p) => p.client_id))];
     const { data: clientsData } = await admin
       .from("clients")
-      .select("id, full_name, email, nome_fantasia")
+      .select("id, full_name, email, nome_fantasia, client_type, gender")
       .in("id", clientIds);
 
     const clientMap = new Map(((clientsData ?? []) as ClientRow[]).map((c) => [c.id, c]));
@@ -86,7 +89,6 @@ serve(async (req) => {
         continue;
       }
 
-      const firstName = client.full_name.split(" ")[0];
       const formattedAmount = Number(proposal.total_amount).toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",
@@ -95,15 +97,16 @@ serve(async (req) => {
         "pt-BR",
         { day: "2-digit", month: "long", year: "numeric" }
       );
+      const warningLabel = plural(WARNING_DAYS, "dia", "dias");
 
       const html = buildEmail({
-        preheader: `Sua proposta "${proposal.title}" expira em ${WARNING_DAYS} dia(s).`,
+        preheader: `A proposta "${proposal.title}" perde validade em ${warningLabel}.`,
         title: "Proposta prestes a expirar",
-        greeting: `${getTimeGreeting()}, ${firstName}!`,
+        greeting: getFormalGreeting(client),
         body: `
-          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua proposta <strong>${proposal.title}</strong> está aguardando avaliação e expira em <strong>${WARNING_DAYS} dia(s)</strong>.</p>
-          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Após o vencimento, ela sai automaticamente da validade e precisa ser renegociada. Se ainda tem interesse, é só entrar no portal e responder.</p>
-          <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Qualquer dúvida, estamos à disposição.</p>
+          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A proposta <strong>${proposal.title}</strong> permanece aguardando avaliação e sua validade expira em <strong>${warningLabel}</strong>.</p>
+          <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Após o vencimento, a proposta perde validade automaticamente e uma nova negociação se faz necessária. Caso o interesse permaneça, solicitamos sua resposta pelo portal.</p>
+          <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Permanecemos à disposição para esclarecimentos.</p>
         `,
         highlight: {
           title: "Resumo da proposta",
@@ -114,15 +117,14 @@ serve(async (req) => {
           ],
         },
         button: {
-          label: "Responder agora →",
+          label: "Analisar proposta",
           href: `${PORTAL_URL}/propostas/${proposal.id}`,
         },
-        note: "Se preferir aprovar direto, é só clicar no botão acima.",
       });
 
       const result = await sendEmail({
         to: client.email,
-        subject: `Elkys — Sua proposta expira em ${WARNING_DAYS} dia(s): ${proposal.title}`,
+        subject: `Proposta expira em ${warningLabel} — ${proposal.title}`,
         html,
       });
 

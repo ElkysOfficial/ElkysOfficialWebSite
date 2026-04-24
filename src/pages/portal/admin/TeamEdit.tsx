@@ -21,11 +21,21 @@ import {
   Label,
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
-import { maskPhone } from "@/lib/masks";
+import {
+  formatDateInput,
+  isValidCPF,
+  maskCPF,
+  maskDate,
+  maskPhone,
+  parseFormDate,
+  unmaskDigits,
+} from "@/lib/masks";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 type TeamMember = Database["public"]["Tables"]["team_members"]["Row"];
+
+type ManagerOption = { user_id: string; full_name: string };
 
 const ROLE_OPTIONS: { value: AppRole; label: string; description: string }[] = [
   {
@@ -89,6 +99,13 @@ const selectClass =
 const teamSchema = z.object({
   full_name: z.string().min(3, "Nome obrigatório"),
   phone: z.string().optional(),
+  gender: z.enum(["", "masculino", "feminino"]).optional(),
+  cpf: z.string().optional(),
+  birth_date: z.string().optional(),
+  senioridade: z
+    .enum(["", "estagiario", "junior", "pleno", "senior", "lead", "gerente"])
+    .optional(),
+  manager_id: z.string().optional(),
   system_role: z.enum([
     "admin_super",
     "admin",
@@ -124,21 +141,54 @@ export default function AdminTeamEdit() {
     formState: { errors },
   } = useForm<TeamForm>({ resolver: zodResolver(teamSchema) });
 
+  const [managerOptions, setManagerOptions] = useState<ManagerOption[]>([]);
+
   useEffect(() => {
     if (!id) return;
     void (async () => {
-      const { data, error } = await supabase.from("team_members").select("*").eq("id", id).single();
+      const [memberRes, managersRes] = await Promise.all([
+        supabase.from("team_members").select("*").eq("id", id).single(),
+        supabase
+          .from("team_members")
+          .select("user_id, full_name")
+          .eq("is_active", true)
+          .not("user_id", "is", null)
+          .order("full_name", { ascending: true }),
+      ]);
 
+      const { data, error } = memberRes;
       if (error || !data) {
         setLoadError(error?.message ?? "Membro não encontrado.");
         setLoading(false);
         return;
       }
 
+      if (managersRes.data) {
+        setManagerOptions(
+          managersRes.data
+            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
+            .filter((t) => t.user_id !== data.user_id)
+            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
+        );
+      }
+
       setMember(data);
       reset({
         full_name: data.full_name,
         phone: data.phone ? maskPhone(data.phone) : "",
+        gender: (data.gender as "" | "masculino" | "feminino") ?? "",
+        cpf: data.cpf ? maskCPF(data.cpf) : "",
+        birth_date: data.birth_date ? formatDateInput(data.birth_date) : "",
+        senioridade:
+          (data.senioridade as
+            | ""
+            | "estagiario"
+            | "junior"
+            | "pleno"
+            | "senior"
+            | "lead"
+            | "gerente") ?? "",
+        manager_id: data.manager_id ?? "",
         system_role: data.system_role as AppRole,
         status: data.is_active ? "active" : "inactive",
       });
@@ -158,11 +208,20 @@ export default function AdminTeamEdit() {
       const roleLabel =
         ROLE_OPTIONS.find((r) => r.value === data.system_role)?.label ?? data.system_role;
 
+      if (data.cpf && !isValidCPF(unmaskDigits(data.cpf))) {
+        throw new Error("CPF inválido.");
+      }
+
       const { error: updateError } = await supabase
         .from("team_members")
         .update({
           full_name: data.full_name,
           phone: data.phone || null,
+          gender: data.gender || null,
+          cpf: data.cpf ? unmaskDigits(data.cpf) : null,
+          birth_date: parseFormDate(data.birth_date ?? ""),
+          senioridade: data.senioridade || null,
+          manager_id: data.manager_id || null,
           role_title: roleLabel,
           system_role: data.system_role,
           is_active: data.status === "active",
@@ -249,6 +308,73 @@ export default function AdminTeamEdit() {
                   />
                 )}
               />
+            </Field>
+
+            <Field>
+              <Label>Tratamento formal</Label>
+              <select {...register("gender")} className={selectClass}>
+                <option value="">Prezado(a) — não informado</option>
+                <option value="masculino">Sr. (masculino)</option>
+                <option value="feminino">Sra. (feminino)</option>
+              </select>
+            </Field>
+
+            <Field>
+              <Label>CPF</Label>
+              <Controller
+                name="cpf"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(event) => field.onChange(maskCPF(event.target.value))}
+                    placeholder="000.000.000-00"
+                  />
+                )}
+              />
+            </Field>
+
+            <Field>
+              <Label>Data de nascimento</Label>
+              <Controller
+                name="birth_date"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(event) => field.onChange(maskDate(event.target.value))}
+                    placeholder="DD/MM/AAAA"
+                    inputMode="numeric"
+                  />
+                )}
+              />
+            </Field>
+
+            <Field>
+              <Label>Senioridade</Label>
+              <select {...register("senioridade")} className={selectClass}>
+                <option value="">Não informado</option>
+                <option value="estagiario">Estagiário(a)</option>
+                <option value="junior">Júnior</option>
+                <option value="pleno">Pleno</option>
+                <option value="senior">Sênior</option>
+                <option value="lead">Lead / Tech Lead</option>
+                <option value="gerente">Gerente</option>
+              </select>
+            </Field>
+
+            <Field>
+              <Label>Líder direto</Label>
+              <select {...register("manager_id")} className={selectClass}>
+                <option value="">Não atribuído</option>
+                {managerOptions.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.full_name}
+                  </option>
+                ))}
+              </select>
             </Field>
 
             <Field>

@@ -10,8 +10,9 @@
  */
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess, createServiceRoleClient } from "../_shared/auth.ts";
+import { getFormalGreeting, truncateAtWord } from "../_shared/greeting.ts";
 
 interface Payload {
   contract_id: string;
@@ -40,7 +41,7 @@ serve(async (req) => {
 
     const { data: client } = await supabase
       .from("clients")
-      .select("full_name, email, nome_fantasia, client_type")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .single();
 
@@ -51,35 +52,31 @@ serve(async (req) => {
       });
     }
 
-    const clientName =
-      client.client_type === "pj" && client.nome_fantasia ? client.nome_fantasia : client.full_name;
-    const firstName = clientName.split(" ")[0];
-
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/cliente";
 
     const scopeBlock = scope_summary
-      ? `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Escopo resumido: <strong>${scope_summary.substring(0, 300)}${scope_summary.length > 300 ? "..." : ""}</strong></p>`
+      ? `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Escopo resumido: <strong>${truncateAtWord(scope_summary, 300)}</strong></p>`
       : "";
 
     const html = buildEmail({
-      preheader: `Seu contrato para o projeto "${project_name}" está pronto para validação.`,
-      title: "Contrato disponível para validação",
-      greeting: `${getTimeGreeting()}, ${firstName}!`,
+      preheader: `Contrato do projeto "${project_name}" aguardando sua validação.`,
+      title: "Contrato para validação",
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">O contrato referente ao projeto <strong>${project_name}</strong> foi preparado pela nossa equipe jurídica e está disponível para sua análise e validação.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">O contrato referente ao projeto <strong>${project_name}</strong> foi finalizado pela nossa equipe jurídica e encontra-se disponível para análise e validação.</p>
         ${scopeBlock}
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Acesse o portal para revisar os termos e confirmar o aceite do contrato.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Solicitamos a revisão dos termos e a confirmação de aceite diretamente pelo portal.</p>
       `,
       button: {
         label: "Revisar contrato",
         href: `${PORTAL_URL}/contratos`,
       },
-      note: "Se tiver dúvidas sobre os termos, entre em contato conosco antes de aceitar.",
+      note: "Em caso de dúvidas sobre qualquer cláusula, solicitamos contato prévio ao aceite.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Contrato disponível: ${project_name}`,
+      subject: `Contrato para validação — ${project_name}`,
       html,
     });
 

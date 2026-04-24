@@ -39,17 +39,30 @@ import {
 } from "@/lib/masks";
 
 type ClientType = "pf" | "pj";
+type Gender = "masculino" | "feminino" | "";
+type FormaPagamento = "pix" | "boleto" | "cartao" | "transferencia" | "dinheiro" | "";
+type CanalAssinatura = "manual" | "govbr" | "clicksign" | "docusign" | "eletronico" | "";
+type RegimeTributario = "mei" | "simples" | "lucro_presumido" | "lucro_real" | "";
 
 type ClientForm = {
   client_type: ClientType;
+  gender: Gender;
   full_name: string;
   email: string;
   phone: string;
+  whatsapp: string;
+  contato_secundario: string;
   cpf: string;
+  rg: string;
+  birth_date: string;
   cnpj: string;
   razao_social: string;
   nome_fantasia: string;
   cargo_representante: string;
+  inscricao_estadual: string;
+  inscricao_municipal: string;
+  cnae: string;
+  regime_tributario: RegimeTributario;
   cep: string;
   logradouro: string;
   numero: string;
@@ -59,18 +72,40 @@ type ClientForm = {
   state: string;
   country: string;
   client_since: string;
+  // Financeiro
+  email_financeiro: string;
+  responsavel_financeiro: string;
+  responsavel_financeiro_phone: string;
+  forma_pagamento: FormaPagamento;
+  limite_credito: string;
+  // Contratual
+  canal_assinatura: CanalAssinatura;
+  sla_hours: string;
+  // CRM
+  owner_id: string;
   notes_internal: string;
 };
 
 const STEPS = [
-  { label: "Identificação", description: "Dados da empresa e do contato principal.", icon: Users },
-  { label: "Endereço", description: "Dados institucionais e de localização.", icon: Home },
   {
-    label: "Revisao",
-    description: "Conferencia antes de criar o acesso e o cadastro.",
+    label: "Identificação",
+    description: "Dados pessoais ou institucionais do cliente.",
+    icon: Users,
+  },
+  { label: "Contato & Endereço", description: "Canais de contato e localização.", icon: Home },
+  {
+    label: "Comercial",
+    description: "Dados financeiros, contratuais e responsável interno.",
+    icon: Users,
+  },
+  {
+    label: "Revisão",
+    description: "Conferência antes de criar o acesso e o cadastro.",
     icon: CheckCircle,
   },
 ] as const;
+
+type TeamOption = { user_id: string; full_name: string };
 
 const selectClass =
   "flex h-10 min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -148,14 +183,23 @@ export default function AdminClientCreate() {
   const [lastResolvedCep, setLastResolvedCep] = useState("");
   const [form, setForm] = useState<ClientForm>({
     client_type: "pj",
+    gender: "",
     full_name: "",
     email: "",
     phone: "",
+    whatsapp: "",
+    contato_secundario: "",
     cpf: "",
+    rg: "",
+    birth_date: "",
     cnpj: "",
     razao_social: "",
     nome_fantasia: "",
     cargo_representante: "",
+    inscricao_estadual: "",
+    inscricao_municipal: "",
+    cnae: "",
+    regime_tributario: "",
     cep: "",
     logradouro: "",
     numero: "",
@@ -165,8 +209,40 @@ export default function AdminClientCreate() {
     state: "",
     country: "Brasil",
     client_since: formatDateInput(getLocalDateIso()),
+    email_financeiro: "",
+    responsavel_financeiro: "",
+    responsavel_financeiro_phone: "",
+    forma_pagamento: "",
+    limite_credito: "",
+    canal_assinatura: "",
+    sla_hours: "",
+    owner_id: "",
     notes_internal: "",
   });
+
+  const [teamOptions, setTeamOptions] = useState<TeamOption[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("team_members")
+        .select("user_id, full_name")
+        .eq("is_active", true)
+        .not("user_id", "is", null)
+        .order("full_name", { ascending: true });
+      if (active && data) {
+        setTeamOptions(
+          data
+            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
+            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setField = <K extends keyof ClientForm>(field: K, value: ClientForm[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -239,18 +315,36 @@ export default function AdminClientCreate() {
   const validateStep = () => {
     if (step >= 0) {
       if (form.full_name.trim().length < 3) return "Informe o nome do contato principal.";
-      if (!form.email.includes("@")) return "Informe um e-mail valido.";
-      if (unmaskDigits(form.phone).length < 10) return "Informe um telefone valido.";
-      if (!isValidCPF(unmaskDigits(form.cpf))) return "Informe um CPF valido.";
+      if (!form.email.includes("@")) return "Informe um e-mail válido.";
+      if (!isValidCPF(unmaskDigits(form.cpf))) return "Informe um CPF válido.";
+      if (form.birth_date && !parseFormDate(form.birth_date))
+        return "Informe uma data de nascimento válida.";
       if (form.client_type === "pj") {
-        if (!isValidCNPJ(unmaskDigits(form.cnpj))) return "Informe um CNPJ valido.";
-        if (form.razao_social.trim().length < 3) return "Informe a razao social.";
+        if (!isValidCNPJ(unmaskDigits(form.cnpj))) return "Informe um CNPJ válido.";
+        if (form.razao_social.trim().length < 3) return "Informe a razão social.";
       }
     }
 
     if (step >= 1) {
-      if (form.cep.trim() && unmaskDigits(form.cep).length !== 8) return "Informe um CEP valido.";
-      if (!parseFormDate(form.client_since)) return "Informe uma data valida para cliente desde.";
+      if (unmaskDigits(form.phone).length < 10) return "Informe um telefone válido.";
+      if (form.whatsapp && unmaskDigits(form.whatsapp).length < 10)
+        return "Informe um WhatsApp válido ou deixe em branco.";
+      if (form.cep.trim() && unmaskDigits(form.cep).length !== 8) return "Informe um CEP válido.";
+      if (!parseFormDate(form.client_since)) return "Informe uma data válida para cliente desde.";
+    }
+
+    if (step >= 2) {
+      if (form.email_financeiro && !form.email_financeiro.includes("@"))
+        return "Informe um e-mail financeiro válido ou deixe em branco.";
+      if (
+        form.responsavel_financeiro_phone &&
+        unmaskDigits(form.responsavel_financeiro_phone).length < 10
+      )
+        return "Informe um telefone válido para o responsável financeiro.";
+      if (form.limite_credito && Number.isNaN(Number(form.limite_credito)))
+        return "Informe um limite de crédito numérico.";
+      if (form.sla_hours && Number.isNaN(Number(form.sla_hours)))
+        return "Informe um SLA numérico em horas.";
     }
 
     return null;
@@ -305,11 +399,16 @@ export default function AdminClientCreate() {
           user_id: createdUserId,
           full_name: form.full_name.trim(),
           email: form.email.trim(),
-          // PROBLEMA 1: cpf NULL quando vazio (PJ nao tem CPF). Antes
-          // enviava '' e a segunda criacao de PJ violava UNIQUE.
+          // cpf NULL quando vazio (PJ não tem CPF). Antes enviava '' e a
+          // segunda criação de PJ violava UNIQUE.
           cpf: form.cpf ? unmaskDigits(form.cpf) || null : null,
           cnpj: form.cnpj ? unmaskDigits(form.cnpj) : null,
           phone: unmaskDigits(form.phone),
+          whatsapp: form.whatsapp ? unmaskDigits(form.whatsapp) : null,
+          contato_secundario: form.contato_secundario.trim() || null,
+          gender: form.gender || null,
+          rg: form.rg.trim() || null,
+          birth_date: parseFormDate(form.birth_date),
           logradouro: form.logradouro || null,
           numero: form.numero || null,
           complemento: form.complemento || null,
@@ -322,7 +421,22 @@ export default function AdminClientCreate() {
           razao_social: form.razao_social || null,
           nome_fantasia: form.nome_fantasia || null,
           cargo_representante: form.cargo_representante || null,
+          inscricao_estadual: form.inscricao_estadual.trim() || null,
+          inscricao_municipal: form.inscricao_municipal.trim() || null,
+          cnae: form.cnae.trim() || null,
+          regime_tributario: form.regime_tributario || null,
           client_since: parseFormDate(form.client_since) ?? getLocalDateIso(),
+          email_financeiro: form.email_financeiro.trim() || null,
+          responsavel_financeiro: form.responsavel_financeiro.trim() || null,
+          responsavel_financeiro_phone: form.responsavel_financeiro_phone
+            ? unmaskDigits(form.responsavel_financeiro_phone)
+            : null,
+          forma_pagamento: form.forma_pagamento || null,
+          limite_credito: form.limite_credito ? Number(form.limite_credito) : null,
+          canal_assinatura: form.canal_assinatura || null,
+          sla_hours: form.sla_hours ? Number(form.sla_hours) : null,
+          owner_id: form.owner_id || null,
+          notes_internal: form.notes_internal.trim() || null,
           must_change_password: true,
         })
         .select("id, full_name")
@@ -339,7 +453,14 @@ export default function AdminClientCreate() {
       shouldRollbackUser = false;
 
       const { error: emailError } = await supabase.functions.invoke("send-client-welcome", {
-        body: { email: form.email, name: form.full_name, temp_password: tempPassword },
+        body: {
+          email: form.email,
+          name: form.full_name,
+          temp_password: tempPassword,
+          gender: form.gender || null,
+          client_type: form.client_type,
+          nome_fantasia: form.nome_fantasia || null,
+        },
         headers: authHeaders,
       });
 
@@ -418,7 +539,7 @@ export default function AdminClientCreate() {
 
           {step === 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
-              <Field className="md:col-span-2">
+              <Field>
                 <Label htmlFor="client_type">Tipo de cliente</Label>
                 <select
                   id="client_type"
@@ -427,14 +548,28 @@ export default function AdminClientCreate() {
                   onChange={(event) => setField("client_type", event.target.value as ClientType)}
                   className={selectClass}
                 >
-                  <option value="pf">Pessoa fisica</option>
-                  <option value="pj">Pessoa juridica</option>
+                  <option value="pf">Pessoa física</option>
+                  <option value="pj">Pessoa jurídica</option>
+                </select>
+              </Field>
+              <Field>
+                <Label htmlFor="gender">Tratamento formal</Label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={form.gender}
+                  onChange={(event) => setField("gender", event.target.value as Gender)}
+                  className={selectClass}
+                >
+                  <option value="">Prezado(a) — não informado</option>
+                  <option value="masculino">Sr. (masculino)</option>
+                  <option value="feminino">Sra. (feminino)</option>
                 </select>
               </Field>
 
               <Field>
                 <Label htmlFor="full_name" required>
-                  Contato principal
+                  {form.client_type === "pj" ? "Nome do representante" : "Nome completo"}
                 </Label>
                 <Input
                   id="full_name"
@@ -456,25 +591,34 @@ export default function AdminClientCreate() {
                 />
               </Field>
               <Field>
-                <Label htmlFor="phone" required>
-                  Telefone
-                </Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={form.phone}
-                  onChange={(event) => setField("phone", maskPhone(event.target.value))}
-                />
-              </Field>
-              <Field>
                 <Label htmlFor="cpf" required>
-                  CPF do representante
+                  CPF {form.client_type === "pj" ? "do representante" : ""}
                 </Label>
                 <Input
                   id="cpf"
                   name="cpf"
                   value={form.cpf}
                   onChange={(event) => setField("cpf", maskCPF(event.target.value))}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="rg">RG</Label>
+                <Input
+                  id="rg"
+                  name="rg"
+                  value={form.rg}
+                  onChange={(event) => setField("rg", event.target.value)}
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="birth_date">Data de nascimento</Label>
+                <Input
+                  id="birth_date"
+                  name="birth_date"
+                  value={form.birth_date}
+                  onChange={(event) => setField("birth_date", maskDate(event.target.value))}
+                  placeholder="DD/MM/AAAA"
+                  inputMode="numeric"
                 />
               </Field>
 
@@ -493,7 +637,7 @@ export default function AdminClientCreate() {
                   </Field>
                   <Field>
                     <Label htmlFor="razao_social" required>
-                      Razao social
+                      Razão social
                     </Label>
                     <Input
                       id="razao_social"
@@ -520,135 +664,402 @@ export default function AdminClientCreate() {
                       onChange={(event) => setField("cargo_representante", event.target.value)}
                     />
                   </Field>
+                  <Field>
+                    <Label htmlFor="inscricao_estadual">Inscrição estadual</Label>
+                    <Input
+                      id="inscricao_estadual"
+                      name="inscricao_estadual"
+                      value={form.inscricao_estadual}
+                      onChange={(event) => setField("inscricao_estadual", event.target.value)}
+                      placeholder="ISENTO ou número"
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="inscricao_municipal">Inscrição municipal</Label>
+                    <Input
+                      id="inscricao_municipal"
+                      name="inscricao_municipal"
+                      value={form.inscricao_municipal}
+                      onChange={(event) => setField("inscricao_municipal", event.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="cnae">CNAE principal</Label>
+                    <Input
+                      id="cnae"
+                      name="cnae"
+                      value={form.cnae}
+                      onChange={(event) => setField("cnae", event.target.value)}
+                      placeholder="0000-0/00"
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="regime_tributario">Regime tributário</Label>
+                    <select
+                      id="regime_tributario"
+                      name="regime_tributario"
+                      value={form.regime_tributario}
+                      onChange={(event) =>
+                        setField("regime_tributario", event.target.value as RegimeTributario)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="mei">MEI</option>
+                      <option value="simples">Simples Nacional</option>
+                      <option value="lucro_presumido">Lucro Presumido</option>
+                      <option value="lucro_real">Lucro Real</option>
+                    </select>
+                  </Field>
                 </>
               ) : null}
             </div>
           ) : null}
 
           {step === 1 ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field>
-                <Label htmlFor="cep">CEP{cepLoading ? " - buscando..." : ""}</Label>
-                <Input
-                  id="cep"
-                  name="cep"
-                  value={form.cep}
-                  onChange={(event) => setField("cep", maskCEP(event.target.value))}
-                  placeholder="00000-000"
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="logradouro">Logradouro</Label>
-                <Input
-                  id="logradouro"
-                  name="logradouro"
-                  value={form.logradouro}
-                  onChange={(event) => setField("logradouro", event.target.value)}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="numero">Numero</Label>
-                <Input
-                  id="numero"
-                  name="numero"
-                  value={form.numero}
-                  onChange={(event) => setField("numero", event.target.value)}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="complemento">Complemento</Label>
-                <Input
-                  id="complemento"
-                  name="complemento"
-                  value={form.complemento}
-                  onChange={(event) => setField("complemento", event.target.value)}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="bairro">Bairro</Label>
-                <Input
-                  id="bairro"
-                  name="bairro"
-                  value={form.bairro}
-                  onChange={(event) => setField("bairro", event.target.value)}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="city">Cidade</Label>
-                <Input
-                  id="city"
-                  name="city"
-                  value={form.city}
-                  onChange={(event) => setField("city", event.target.value)}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="state">Estado</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  value={form.state}
-                  onChange={(event) => setField("state", event.target.value.toUpperCase())}
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="client_since">Cliente desde</Label>
-                <Input
-                  id="client_since"
-                  name="client_since"
-                  value={form.client_since}
-                  onChange={(event) => setField("client_since", maskDate(event.target.value))}
-                  placeholder="DD/MM/AAAA"
-                  inputMode="numeric"
-                />
-              </Field>
-              <Field className="md:col-span-2">
-                <Label htmlFor="notes_internal">Observações internas</Label>
-                <Textarea
-                  id="notes_internal"
-                  name="notes_internal"
-                  rows={4}
-                  value={form.notes_internal}
-                  onChange={(event) => setField("notes_internal", event.target.value)}
-                />
-              </Field>
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <Label htmlFor="phone" required>
+                    Telefone
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={(event) => setField("phone", maskPhone(event.target.value))}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    name="whatsapp"
+                    value={form.whatsapp}
+                    onChange={(event) => setField("whatsapp", maskPhone(event.target.value))}
+                    placeholder="Deixe em branco se for igual ao telefone"
+                  />
+                </Field>
+                <Field className="md:col-span-2">
+                  <Label htmlFor="contato_secundario">Contato secundário</Label>
+                  <Input
+                    id="contato_secundario"
+                    name="contato_secundario"
+                    value={form.contato_secundario}
+                    onChange={(event) => setField("contato_secundario", event.target.value)}
+                    placeholder="Nome + telefone/e-mail de backup"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <Label htmlFor="cep">CEP{cepLoading ? " — buscando..." : ""}</Label>
+                  <Input
+                    id="cep"
+                    name="cep"
+                    value={form.cep}
+                    onChange={(event) => setField("cep", maskCEP(event.target.value))}
+                    placeholder="00000-000"
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="logradouro">Logradouro</Label>
+                  <Input
+                    id="logradouro"
+                    name="logradouro"
+                    value={form.logradouro}
+                    onChange={(event) => setField("logradouro", event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="numero">Número</Label>
+                  <Input
+                    id="numero"
+                    name="numero"
+                    value={form.numero}
+                    onChange={(event) => setField("numero", event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="complemento">Complemento</Label>
+                  <Input
+                    id="complemento"
+                    name="complemento"
+                    value={form.complemento}
+                    onChange={(event) => setField("complemento", event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="bairro">Bairro</Label>
+                  <Input
+                    id="bairro"
+                    name="bairro"
+                    value={form.bairro}
+                    onChange={(event) => setField("bairro", event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="city">Cidade</Label>
+                  <Input
+                    id="city"
+                    name="city"
+                    value={form.city}
+                    onChange={(event) => setField("city", event.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="state">Estado</Label>
+                  <Input
+                    id="state"
+                    name="state"
+                    value={form.state}
+                    onChange={(event) => setField("state", event.target.value.toUpperCase())}
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="client_since">Cliente desde</Label>
+                  <Input
+                    id="client_since"
+                    name="client_since"
+                    value={form.client_since}
+                    onChange={(event) => setField("client_since", maskDate(event.target.value))}
+                    placeholder="DD/MM/AAAA"
+                    inputMode="numeric"
+                  />
+                </Field>
+              </div>
             </div>
           ) : null}
 
           {step === 2 ? (
+            <div className="space-y-6">
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Financeiro
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="email_financeiro">E-mail financeiro</Label>
+                    <Input
+                      id="email_financeiro"
+                      name="email_financeiro"
+                      type="email"
+                      value={form.email_financeiro}
+                      onChange={(event) => setField("email_financeiro", event.target.value)}
+                      placeholder="Deixe em branco para usar o e-mail principal"
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="responsavel_financeiro">Responsável financeiro</Label>
+                    <Input
+                      id="responsavel_financeiro"
+                      name="responsavel_financeiro"
+                      value={form.responsavel_financeiro}
+                      onChange={(event) => setField("responsavel_financeiro", event.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="responsavel_financeiro_phone">
+                      Telefone do responsável financeiro
+                    </Label>
+                    <Input
+                      id="responsavel_financeiro_phone"
+                      name="responsavel_financeiro_phone"
+                      value={form.responsavel_financeiro_phone}
+                      onChange={(event) =>
+                        setField("responsavel_financeiro_phone", maskPhone(event.target.value))
+                      }
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="forma_pagamento">Forma de pagamento</Label>
+                    <select
+                      id="forma_pagamento"
+                      name="forma_pagamento"
+                      value={form.forma_pagamento}
+                      onChange={(event) =>
+                        setField("forma_pagamento", event.target.value as FormaPagamento)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="pix">PIX</option>
+                      <option value="boleto">Boleto</option>
+                      <option value="cartao">Cartão</option>
+                      <option value="transferencia">Transferência</option>
+                      <option value="dinheiro">Dinheiro</option>
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label htmlFor="limite_credito">Limite de crédito (R$)</Label>
+                    <Input
+                      id="limite_credito"
+                      name="limite_credito"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form.limite_credito}
+                      onChange={(event) => setField("limite_credito", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Contratual
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="canal_assinatura">Canal de assinatura</Label>
+                    <select
+                      id="canal_assinatura"
+                      name="canal_assinatura"
+                      value={form.canal_assinatura}
+                      onChange={(event) =>
+                        setField("canal_assinatura", event.target.value as CanalAssinatura)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="manual">Manual (físico)</option>
+                      <option value="govbr">gov.br</option>
+                      <option value="clicksign">Clicksign</option>
+                      <option value="docusign">DocuSign</option>
+                      <option value="eletronico">Eletrônico (outro)</option>
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label htmlFor="sla_hours">SLA contratado (horas)</Label>
+                    <Input
+                      id="sla_hours"
+                      name="sla_hours"
+                      type="number"
+                      min={0}
+                      value={form.sla_hours}
+                      onChange={(event) => setField("sla_hours", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  CRM interno
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="owner_id">Responsável interno (owner)</Label>
+                    <select
+                      id="owner_id"
+                      name="owner_id"
+                      value={form.owner_id}
+                      onChange={(event) => setField("owner_id", event.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="">Não atribuído</option>
+                      {teamOptions.map((t) => (
+                        <option key={t.user_id} value={t.user_id}>
+                          {t.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field className="md:col-span-2">
+                    <Label htmlFor="notes_internal">Observações internas</Label>
+                    <Textarea
+                      id="notes_internal"
+                      name="notes_internal"
+                      rows={4}
+                      value={form.notes_internal}
+                      onChange={(event) => setField("notes_internal", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {step === 3 ? (
             <div className="space-y-5">
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Cliente
+                  Identificação
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <ReviewRow
                     label="Tipo"
-                    value={form.client_type === "pj" ? "Pessoa juridica" : "Pessoa fisica"}
+                    value={form.client_type === "pj" ? "Pessoa jurídica" : "Pessoa física"}
                   />
-                  <ReviewRow label="Contato" value={form.full_name} />
+                  <ReviewRow
+                    label="Tratamento"
+                    value={
+                      form.gender === "masculino"
+                        ? "Sr."
+                        : form.gender === "feminino"
+                          ? "Sra."
+                          : "Prezado(a)"
+                    }
+                  />
+                  <ReviewRow
+                    label={form.client_type === "pj" ? "Representante" : "Nome"}
+                    value={form.full_name}
+                  />
                   <ReviewRow label="E-mail" value={form.email} />
-                  <ReviewRow label="Telefone" value={form.phone} />
                   <ReviewRow label="CPF" value={form.cpf} />
-                  <ReviewRow label="CNPJ" value={form.cnpj} />
-                  <ReviewRow label="Razao social" value={form.razao_social} />
-                  <ReviewRow label="Nome fantasia" value={form.nome_fantasia} />
+                  <ReviewRow label="RG" value={form.rg} />
+                  <ReviewRow label="Data de nascimento" value={form.birth_date} />
+                  {form.client_type === "pj" ? (
+                    <>
+                      <ReviewRow label="CNPJ" value={form.cnpj} />
+                      <ReviewRow label="Razão social" value={form.razao_social} />
+                      <ReviewRow label="Nome fantasia" value={form.nome_fantasia} />
+                      <ReviewRow label="Cargo" value={form.cargo_representante} />
+                      <ReviewRow label="Inscrição estadual" value={form.inscricao_estadual} />
+                      <ReviewRow label="Inscrição municipal" value={form.inscricao_municipal} />
+                      <ReviewRow label="CNAE" value={form.cnae} />
+                      <ReviewRow label="Regime tributário" value={form.regime_tributario} />
+                    </>
+                  ) : null}
                 </div>
               </div>
 
               <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Endereço
+                  Contato & Endereço
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <ReviewRow label="Telefone" value={form.phone} />
+                  <ReviewRow label="WhatsApp" value={form.whatsapp} />
+                  <ReviewRow label="Contato secundário" value={form.contato_secundario} />
                   <ReviewRow label="CEP" value={form.cep} />
                   <ReviewRow label="Logradouro" value={form.logradouro} />
-                  <ReviewRow label="Numero" value={form.numero} />
+                  <ReviewRow label="Número" value={form.numero} />
                   <ReviewRow label="Complemento" value={form.complemento} />
                   <ReviewRow label="Bairro" value={form.bairro} />
                   <ReviewRow label="Cidade" value={form.city} />
                   <ReviewRow label="Estado" value={form.state} />
                   <ReviewRow label="Cliente desde" value={form.client_since} />
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-xl border border-border/70 bg-background/60 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Comercial
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <ReviewRow label="E-mail financeiro" value={form.email_financeiro} />
+                  <ReviewRow label="Resp. financeiro" value={form.responsavel_financeiro} />
+                  <ReviewRow label="Tel. financeiro" value={form.responsavel_financeiro_phone} />
+                  <ReviewRow label="Forma de pagamento" value={form.forma_pagamento} />
+                  <ReviewRow label="Limite de crédito" value={form.limite_credito} />
+                  <ReviewRow label="Canal de assinatura" value={form.canal_assinatura} />
+                  <ReviewRow label="SLA (h)" value={form.sla_hours} />
+                  <ReviewRow
+                    label="Owner"
+                    value={teamOptions.find((t) => t.user_id === form.owner_id)?.full_name ?? ""}
+                  />
                 </div>
               </div>
             </div>

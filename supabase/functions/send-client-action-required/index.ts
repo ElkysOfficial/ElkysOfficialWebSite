@@ -11,9 +11,10 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 import { escapeHtml } from "../_shared/validation.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 type ActionType =
   | "geral"
@@ -48,7 +49,6 @@ function formatDate(date?: string | null): string | null {
 /* ── Email content per action_type ────────────────────────────────── */
 
 interface ActionTemplate {
-  emoji: string;
   title: string;
   subjectPrefix: string;
   intro: (projectName: string) => string;
@@ -59,89 +59,80 @@ interface ActionTemplate {
 
 const ACTION_TEMPLATES: Record<ActionType, ActionTemplate> = {
   geral: {
-    emoji: "📋",
     title: "Ação necessária",
     subjectPrefix: "Ação necessária",
     intro: (p) =>
-      `Precisamos da sua colaboração para dar continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
-    detail: "Acesse o portal para visualizar os detalhes da solicitação e enviar sua resposta.",
-    buttonLabel: "Responder no portal →",
-    note: "Sua resposta é importante para o andamento do projeto. Em caso de dúvidas, abra um ticket pelo suporte do portal.",
+      `Solicitamos sua colaboração para darmos continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
+    detail: "Os detalhes da solicitação estão disponíveis no portal para análise e resposta.",
+    buttonLabel: "Responder no portal",
+    note: "Sua resposta é importante para o andamento do projeto. Em caso de dúvidas, um ticket pode ser aberto pelo suporte do portal.",
   },
   reuniao: {
-    emoji: "📅",
-    title: "Reunião pendente",
-    subjectPrefix: "Reunião",
+    title: "Agendamento de reunião",
+    subjectPrefix: "Agendamento de reunião",
     intro: (p) =>
-      `Gostaríamos de agendar uma <strong>reunião</strong> com você para alinhar os próximos passos do projeto <strong>${escapeHtml(p)}</strong>.`,
+      `Gostaríamos de agendar uma <strong>reunião</strong> para alinharmos os próximos passos do projeto <strong>${escapeHtml(p)}</strong>.`,
     detail:
-      "Escolha o melhor horário na sua agenda e confirme pelo botão abaixo. Caso nenhum dos horários funcione, entre em contato pelo portal.",
-    buttonLabel: "Agendar reunião →",
-    note: "A reunião é importante para garantir que o projeto avance conforme o planejado.",
+      "Solicitamos a escolha do melhor horário por meio do botão abaixo. Caso nenhuma das opções funcione, a equipe permanece à disposição pelo portal.",
+    buttonLabel: "Agendar reunião",
+    note: "A reunião é importante para garantirmos o avanço do projeto conforme o planejado.",
   },
   documento: {
-    emoji: "📄",
-    title: "Documento pendente",
-    subjectPrefix: "Documento necessário",
+    title: "Envio de documento",
+    subjectPrefix: "Envio de documento",
     intro: (p) =>
-      `Precisamos que você nos envie um <strong>documento</strong> para dar continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
-    detail: "Acesse o portal para verificar o documento solicitado e faça o envio de forma segura.",
-    buttonLabel: "Enviar documento →",
-    note: "Caso tenha dúvidas sobre o formato ou conteúdo do documento, entre em contato pelo suporte do portal.",
+      `Necessitamos do envio de um <strong>documento</strong> para darmos continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
+    detail: "Solicitamos o envio do documento indicado diretamente pelo portal, de forma segura.",
+    buttonLabel: "Enviar documento",
+    note: "Em caso de dúvidas sobre o formato ou conteúdo, a equipe permanece à disposição pelo suporte do portal.",
   },
   aprovacao: {
-    emoji: "✅",
-    title: "Aprovação necessária",
+    title: "Aprovação pendente",
     subjectPrefix: "Aprovação pendente",
     intro: (p) =>
-      `Uma entrega do projeto <strong>${escapeHtml(p)}</strong> está aguardando a sua <strong>aprovação</strong>.`,
+      `Uma entrega do projeto <strong>${escapeHtml(p)}</strong> aguarda sua <strong>aprovação</strong> para seguir adiante.`,
     detail:
-      "Acesse o portal para revisar os detalhes e confirmar sua aprovação. Caso precise de ajustes, você pode solicitar diretamente pelo portal.",
-    buttonLabel: "Revisar e aprovar →",
-    note: "Sua aprovação é necessária para avançarmos para a próxima etapa do projeto.",
+      "Solicitamos a revisão dos detalhes e a confirmação da aprovação pelo portal. Caso ajustes sejam necessários, a solicitação pode ser registrada pelo mesmo canal.",
+    buttonLabel: "Revisar e aprovar",
+    note: "A aprovação é necessária para avançarmos para a próxima etapa do projeto.",
   },
   informacao: {
-    emoji: "💬",
-    title: "Informação necessária",
-    subjectPrefix: "Informação pendente",
+    title: "Informações pendentes",
+    subjectPrefix: "Informações pendentes",
     intro: (p) =>
-      `Precisamos de algumas <strong>informações</strong> suas para avançar no projeto <strong>${escapeHtml(p)}</strong>.`,
-    detail: "Acesse o portal para ver os detalhes da solicitação e enviar sua resposta.",
-    buttonLabel: "Responder no portal →",
-    note: "Quanto antes recebermos as informações, mais rápido conseguimos avançar no projeto.",
+      `Necessitamos de algumas <strong>informações</strong> para prosseguirmos no projeto <strong>${escapeHtml(p)}</strong>.`,
+    detail: "Os detalhes da solicitação estão disponíveis no portal para sua resposta.",
+    buttonLabel: "Responder no portal",
+    note: "O retorno rápido nos permite avançar com o projeto dentro do planejamento.",
   },
   feedback: {
-    emoji: "🔍",
-    title: "Feedback solicitado",
-    subjectPrefix: "Feedback pendente",
+    title: "Feedback sobre entrega",
+    subjectPrefix: "Feedback sobre entrega",
     intro: (p) =>
-      `Uma entrega do projeto <strong>${escapeHtml(p)}</strong> está pronta para a sua <strong>avaliação</strong>.`,
+      `Uma entrega do projeto <strong>${escapeHtml(p)}</strong> está pronta para sua <strong>avaliação</strong>.`,
     detail:
-      "Acesse o portal para testar, revisar e nos enviar seu retorno. Seu feedback é essencial para garantir que tudo esteja conforme o esperado.",
-    buttonLabel: "Avaliar entrega →",
-    note: "Teste com calma e nos envie seu retorno detalhado. Ajustes serão realizados com base na sua avaliação.",
+      "Solicitamos o teste, a revisão e o envio do retorno pelo portal. O feedback é essencial para garantirmos a conformidade com o esperado.",
+    buttonLabel: "Avaliar entrega",
+    note: "Ajustes serão realizados com base no retorno enviado.",
   },
   acesso: {
-    emoji: "🔑",
-    title: "Acesso necessário",
-    subjectPrefix: "Acesso pendente",
+    title: "Credenciais pendentes",
+    subjectPrefix: "Credenciais pendentes",
     intro: (p) =>
-      `Precisamos de <strong>credenciais ou acessos</strong> do seu lado para dar continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
-    detail:
-      "Acesse o portal para ver os detalhes sobre o acesso necessário e envie as informações de forma segura.",
-    buttonLabel: "Enviar credenciais →",
-    note: "Por segurança, recomendamos enviar credenciais diretamente pelo portal. Nunca compartilhe senhas por e-mail.",
+      `Necessitamos de <strong>credenciais ou acessos</strong> para darmos continuidade ao projeto <strong>${escapeHtml(p)}</strong>.`,
+    detail: "Solicitamos o envio das credenciais pelo portal, de forma segura.",
+    buttonLabel: "Enviar credenciais",
+    note: "Por segurança, solicitamos o envio de credenciais exclusivamente pelo portal. Senhas não devem ser compartilhadas por e-mail.",
   },
   conteudo: {
-    emoji: "🎨",
-    title: "Conteúdo necessário",
-    subjectPrefix: "Conteúdo pendente",
+    title: "Materiais pendentes",
+    subjectPrefix: "Materiais pendentes",
     intro: (p) =>
-      `Precisamos que você nos envie <strong>materiais ou conteúdo</strong> para avançar no projeto <strong>${escapeHtml(p)}</strong>.`,
+      `Necessitamos de <strong>materiais ou conteúdo</strong> para avançarmos no projeto <strong>${escapeHtml(p)}</strong>.`,
     detail:
-      "Acesse o portal para ver os detalhes sobre o material solicitado (textos, imagens, logos, vídeos, etc.).",
-    buttonLabel: "Enviar conteúdo →",
-    note: "Para melhor qualidade, envie imagens em alta resolução e textos revisados. Caso tenha dúvidas sobre o formato, estamos à disposição.",
+      "Os detalhes sobre o material solicitado (textos, imagens, logotipos, vídeos, entre outros) estão disponíveis no portal.",
+    buttonLabel: "Enviar conteúdo",
+    note: "Para melhor qualidade final, solicitamos o envio de imagens em alta resolução e textos revisados.",
   },
 };
 
@@ -153,17 +144,8 @@ function buildDocumentBlock(title: string, description?: string): string {
       style="margin:0 0 22px 0;border:1px solid #e5e7eb;border-left:3px solid #472680;">
       <tr>
         <td style="padding:14px 16px;">
-          <table role="presentation" border="0" cellspacing="0" cellpadding="0">
-            <tr>
-              <td valign="top" style="padding-right:12px;">
-                <span style="font-size:24px;line-height:1;">📄</span>
-              </td>
-              <td valign="top">
-                <p style="margin:0 0 4px 0;font-size:14px;font-weight:700;color:#111111;">${escapeHtml(title)}</p>
-                ${description ? `<p style="margin:0;font-size:13px;color:#666666;line-height:20px;">${escapeHtml(description)}</p>` : `<p style="margin:0;font-size:12px;color:#999999;">Acesse o portal para mais detalhes</p>`}
-              </td>
-            </tr>
-          </table>
+          <p style="margin:0 0 4px 0;font-size:14px;font-weight:700;color:#111111;">${escapeHtml(title)}</p>
+          ${description ? `<p style="margin:0;font-size:13px;color:#666666;line-height:20px;">${escapeHtml(description)}</p>` : `<p style="margin:0;font-size:12px;color:#999999;">Detalhes adicionais disponíveis no portal.</p>`}
         </td>
       </tr>
     </table>`;
@@ -171,7 +153,15 @@ function buildDocumentBlock(title: string, description?: string): string {
 
 /* ── Meeting block with calendar button ───────────────────────────── */
 
+function sanitizeUrl(url: string): string {
+  // Aceita apenas http(s). Previne javascript: e data: em href.
+  return /^https?:\/\//i.test(url)
+    ? url.replace(/"/g, "%22").replace(/</g, "%3C").replace(/>/g, "%3E")
+    : "#";
+}
+
 function buildMeetingBlock(meetingLink: string): string {
+  const safeHref = sanitizeUrl(meetingLink);
   return `
     <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"
       style="margin:0 0 22px 0;border:1px solid #e5e7eb;border-left:3px solid #148f8f;">
@@ -179,13 +169,11 @@ function buildMeetingBlock(meetingLink: string): string {
         <td style="padding:14px 16px;">
           <table role="presentation" border="0" cellspacing="0" cellpadding="0">
             <tr>
-              <td valign="top" style="padding-right:12px;">
-                <span style="font-size:24px;line-height:1;">📅</span>
-              </td>
               <td valign="top">
-                <p style="margin:0 0 8px 0;font-size:14px;font-weight:700;color:#111111;">Agende o melhor horário</p>
-                <a href="${meetingLink}" target="_blank" style="display:inline-block;background-color:#148f8f;color:#ffffff;font-size:13px;font-weight:700;padding:10px 20px;text-decoration:none;">
-                  Escolher horário →
+                <p style="margin:0 0 8px 0;font-size:14px;font-weight:700;color:#111111;">Agendamento</p>
+                <p style="margin:0 0 10px 0;font-size:13px;color:#666666;line-height:20px;">Solicitamos a escolha do melhor horário pelo link abaixo.</p>
+                <a href="${safeHref}" target="_blank" style="display:inline-block;background-color:#148f8f;color:#ffffff;font-size:13px;font-weight:700;padding:10px 20px;text-decoration:none;">
+                  Escolher horário
                 </a>
               </td>
             </tr>
@@ -232,7 +220,7 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -243,7 +231,6 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
     const formattedDueDate = formatDate(due_date);
     const tpl = ACTION_TEMPLATES[action_type] ?? ACTION_TEMPLATES.geral;
 
@@ -271,9 +258,9 @@ serve(async (req) => {
         : `${PORTAL_URL}/projetos/${project_id}`;
 
     const html = buildEmail({
-      preheader: `${tpl.subjectPrefix}: ${step_title} — projeto ${project_name}`,
+      preheader: `${tpl.subjectPrefix} — ${step_title} (projeto ${project_name}).`,
       title: tpl.title,
-      greeting: `${getTimeGreeting()}, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">${tpl.intro(project_name)}</p>
         <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">${tpl.detail}</p>
@@ -287,7 +274,7 @@ serve(async (req) => {
 
     const result = await sendEmail({
       to: client.email,
-      subject: `${tpl.subjectPrefix}: ${step_title} — ${project_name}`,
+      subject: `${tpl.subjectPrefix} — ${step_title} (${project_name})`,
       html,
     });
 
