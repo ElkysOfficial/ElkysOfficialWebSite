@@ -14,7 +14,8 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { getGenericGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   email: string;
@@ -61,25 +62,26 @@ serve(async (req) => {
     const resetLink = data.properties.action_link;
 
     const html = buildEmail({
-      preheader: "Você solicitou a redefinição de senha do Portal Elkys.",
+      preheader: "Solicitação de redefinição de senha recebida.",
       title: "Redefinição de senha",
-      greeting: `${getTimeGreeting()}!`,
+      greeting: getGenericGreeting(),
       body: `
-        <p class="text-body" style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Recebemos uma solicitação para redefinir a senha da conta <strong>${email}</strong> no Portal Elkys.</p>
-        <p class="text-body" style="margin:0;font-size:14px;line-height:22px;color:#333333;">Clique no botão abaixo para criar uma nova senha. O link é válido por <strong>1 hora</strong> e pode ser usado uma única vez.</p>
+        <p class="text-body" style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Recebemos uma solicitação de redefinição de senha para a conta <strong>${email}</strong> no Portal Elkys.</p>
+        <p class="text-body" style="margin:0;font-size:14px;line-height:22px;color:#333333;">Para prosseguir, clique no botão abaixo e defina uma nova senha. O link tem validade limitada e pode ser utilizado uma única vez.</p>
       `,
       button: {
-        label: "Redefinir minha senha →",
+        label: "Redefinir senha",
         href: resetLink,
       },
       warning:
-        "Se você não solicitou esta redefinição, ignore este e-mail com tranquilidade. Sua senha permanece inalterada e sua conta está segura.",
-      note: `Link não funcionou? Copie e cole este endereço no navegador: <a href="${resetLink}" style="word-break:break-all;">${resetLink}</a>`,
+        "Caso o(a) senhor(a) não tenha solicitado esta redefinição, pode ignorar este e-mail com segurança — a senha permanece inalterada.",
+      note: `Caso o botão não funcione, copie e cole este endereço no navegador: <a href="${resetLink}" style="word-break:break-all;">${resetLink}</a>`,
+      showSecurityNote: true,
     });
 
     const result = await sendEmail({
       to: email,
-      subject: "Redefinição de senha — Portal Elkys",
+      subject: "Redefinição de senha do Portal Elkys",
       html,
     });
 

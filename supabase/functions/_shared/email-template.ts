@@ -19,6 +19,28 @@ interface EmailTemplateOptions {
     rows: { label: string; value: string }[];
   };
   warning?: string;
+  /**
+   * Exibe o parágrafo institucional no footer ("A Elkys é especializada..."),
+   * usado apenas em e-mails de primeiro contato (welcome). Default: false.
+   */
+  showInstitutional?: boolean;
+  /**
+   * Exibe o aviso de segurança ("Caso você não reconheça este acesso...").
+   * Default: false. Usado em welcome e password-reset.
+   */
+  showSecurityNote?: boolean;
+}
+
+/**
+ * Escapa aspas, sinais de maior/menor em URLs antes de interpolar em atributos
+ * href. Evita XSS quando o valor vier de input (admin).
+ */
+function escapeAttr(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 export function buildEmail(opts: EmailTemplateOptions): string {
@@ -86,6 +108,8 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                         </table>`
     : "";
 
+  const safeButtonHref = opts.button ? escapeAttr(opts.button.href) : "";
+  const safeButtonLabel = opts.button ? escapeHtml(opts.button.label) : "";
   const buttonBlock = opts.button
     ? `
                         <!-- BOTÃO -->
@@ -102,7 +126,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                               <!--[if mso]>
                                 <v:roundrect
                                   xmlns:v="urn:schemas-microsoft-com:vml"
-                                  href="${opts.button.href}"
+                                  href="${safeButtonHref}"
                                   style="height:42px;v-text-anchor:middle;width:176px;"
                                   arcsize="0%"
                                   strokecolor="#472680"
@@ -117,14 +141,14 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                       font-weight:bold;
                                     "
                                   >
-                                    ${opts.button.label}
+                                    ${safeButtonLabel}
                                   </center>
                                 </v:roundrect>
                               <![endif]-->
 
                               <!--[if !mso]><!-- -->
                               <a
-                                href="${opts.button.href}"
+                                href="${safeButtonHref}"
                                 target="_blank"
                                 class="button button-purple"
                                 style="
@@ -137,7 +161,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                   padding: 14px 28px;
                                 "
                               >
-                                ${opts.button.label}
+                                ${safeButtonLabel}
                               </a>
                               <!--<![endif]-->
                             </td>
@@ -304,6 +328,13 @@ export function buildEmail(opts: EmailTemplateOptions): string {
   </head>
 
   <body class="email-bg" style="margin: 0; padding: 0; background-color: #f3f4f6;">
+    <!-- PREHEADER (preview na inbox, invisível no corpo) -->
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#f3f4f6;opacity:0;">
+      ${escapeHtml(opts.preheader ?? "")}
+    </div>
+    <div style="display:none;max-height:0;overflow:hidden;">
+      &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+    </div>
     <center style="width: 100%; background-color: #f3f4f6;">
     <table
       role="presentation"
@@ -428,7 +459,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                           color: #333333;
                         "
                       >
-                        Cordialmente,
+                        Atenciosamente,
                       </p>
 
                       <p
@@ -441,10 +472,12 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                           font-weight: 700;
                         "
                       >
-                        Elkys
+                        Equipe Elkys
                       </p>
 
-                      <p
+                      ${
+                        opts.showInstitutional
+                          ? `<p
                         class="text-muted"
                         style="
                           margin: 0 0 12px 0;
@@ -459,9 +492,13 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                         construção de sistemas, automações e plataformas que sustentam operações
                         críticas, garantindo confiabilidade, escalabilidade e integridade dos dados
                         em todas as camadas da aplicação.
-                      </p>
+                      </p>`
+                          : ""
+                      }
 
-                      <p
+                      ${
+                        opts.showSecurityNote
+                          ? `<p
                         class="text-muted"
                         style="
                           margin: 0 0 12px 0;
@@ -471,9 +508,11 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                           font-style: italic;
                         "
                       >
-                        Caso você não reconheça este acesso ou não tenha solicitado este cadastro,
-                        entre em contato imediatamente com nossa equipe.
-                      </p>
+                        Caso o(a) senhor(a) não reconheça este acesso ou não tenha solicitado este
+                        cadastro, solicitamos contato imediato com nossa equipe.
+                      </p>`
+                          : ""
+                      }
 
                       <p
                         class="text-muted"
@@ -485,7 +524,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                           font-style: italic;
                         "
                       >
-                        Este é um e-mail automático. Não responda a esta mensagem.
+                        Permanecemos à disposição. Este e-mail aceita resposta direta.
                       </p>
                     </td>
                   </tr>
@@ -657,9 +696,12 @@ export async function sendEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  /** Reply-To opcional — default: REPLY_TO_EMAIL (secret) ou contato@elkys.com.br */
+  replyTo?: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
   const FROM_EMAIL = Deno.env.get("FROM_EMAIL") ?? "noreply@elkys.com.br";
+  const DEFAULT_REPLY_TO = Deno.env.get("REPLY_TO_EMAIL") ?? "contato@elkys.com.br";
 
   if (!RESEND_API_KEY) {
     console.error("[sendEmail] RESEND_API_KEY not configured");
@@ -677,6 +719,7 @@ export async function sendEmail(opts: {
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
+      reply_to: opts.replyTo ?? DEFAULT_REPLY_TO,
     }),
   });
 

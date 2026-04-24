@@ -23,11 +23,14 @@ import DraftBanner from "@/components/portal/shared/DraftBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFormDraftAutoSave } from "@/hooks/useFormDraftAutoSave";
 import { supabase } from "@/integrations/supabase/client";
-import { maskPhone } from "@/lib/masks";
+import { maskCPF, maskDate, maskPhone, isValidCPF, parseFormDate, unmaskDigits } from "@/lib/masks";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 import type { Database } from "@/integrations/supabase/types";
+import { useEffect } from "react";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+
+type TeamOption = { user_id: string; full_name: string };
 
 const ROLE_OPTIONS: { value: AppRole; label: string; description: string }[] = [
   {
@@ -92,6 +95,13 @@ const teamSchema = z.object({
   full_name: z.string().min(3, "Nome obrigatório"),
   email: z.string().email("E-mail inválido"),
   phone: z.string().optional(),
+  gender: z.enum(["", "masculino", "feminino"]).optional(),
+  cpf: z.string().optional(),
+  birth_date: z.string().optional(),
+  senioridade: z
+    .enum(["", "estagiario", "junior", "pleno", "senior", "lead", "gerente"])
+    .optional(),
+  manager_id: z.string().optional(),
   system_role: z.enum([
     "admin_super",
     "admin",
@@ -139,11 +149,38 @@ export default function AdminTeamCreate() {
     defaultValues: {
       status: "active",
       system_role: "developer",
+      gender: "",
+      senioridade: "",
+      manager_id: "",
     },
   });
 
   const selectedRole = watch("system_role");
   const roleInfo = ROLE_OPTIONS.find((r) => r.value === selectedRole);
+
+  const [managerOptions, setManagerOptions] = useState<TeamOption[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("team_members")
+        .select("user_id, full_name")
+        .eq("is_active", true)
+        .not("user_id", "is", null)
+        .order("full_name", { ascending: true });
+      if (active && data) {
+        setManagerOptions(
+          data
+            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
+            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   /* ── Auto-save de rascunho local ── */
   const watchedValues = watch();
@@ -174,6 +211,10 @@ export default function AdminTeamCreate() {
       const tempPassword = generateTempPassword();
       const authHeaders = await getSupabaseFunctionAuthHeaders();
 
+      if (data.cpf && !isValidCPF(unmaskDigits(data.cpf))) {
+        throw new Error("CPF inválido.");
+      }
+
       // 1. Create auth user via Admin API (no Supabase confirmation email)
       const { data: createData, error: createError } = await supabase.functions.invoke(
         "create-user",
@@ -196,6 +237,11 @@ export default function AdminTeamCreate() {
         full_name: data.full_name,
         email: data.email,
         phone: data.phone || null,
+        gender: data.gender || null,
+        cpf: data.cpf ? unmaskDigits(data.cpf) : null,
+        birth_date: parseFormDate(data.birth_date ?? ""),
+        senioridade: data.senioridade || null,
+        manager_id: data.manager_id || null,
         role_title: roleLabel,
         system_role: data.system_role,
         is_active: data.status === "active",
@@ -221,6 +267,7 @@ export default function AdminTeamCreate() {
           name: data.full_name,
           temp_password: tempPassword,
           role_label: roleLabel,
+          gender: data.gender || null,
         },
         headers: authHeaders,
       });
@@ -319,6 +366,73 @@ export default function AdminTeamCreate() {
                   />
                 )}
               />
+            </Field>
+
+            <Field>
+              <Label>Tratamento formal</Label>
+              <select {...register("gender")} className={selectClass}>
+                <option value="">Prezado(a) — não informado</option>
+                <option value="masculino">Sr. (masculino)</option>
+                <option value="feminino">Sra. (feminino)</option>
+              </select>
+            </Field>
+
+            <Field>
+              <Label>CPF</Label>
+              <Controller
+                name="cpf"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(event) => field.onChange(maskCPF(event.target.value))}
+                    placeholder="000.000.000-00"
+                  />
+                )}
+              />
+            </Field>
+
+            <Field>
+              <Label>Data de nascimento</Label>
+              <Controller
+                name="birth_date"
+                control={control}
+                defaultValue=""
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(event) => field.onChange(maskDate(event.target.value))}
+                    placeholder="DD/MM/AAAA"
+                    inputMode="numeric"
+                  />
+                )}
+              />
+            </Field>
+
+            <Field>
+              <Label>Senioridade</Label>
+              <select {...register("senioridade")} className={selectClass}>
+                <option value="">Não informado</option>
+                <option value="estagiario">Estagiário(a)</option>
+                <option value="junior">Júnior</option>
+                <option value="pleno">Pleno</option>
+                <option value="senior">Sênior</option>
+                <option value="lead">Lead / Tech Lead</option>
+                <option value="gerente">Gerente</option>
+              </select>
+            </Field>
+
+            <Field>
+              <Label>Líder direto</Label>
+              <select {...register("manager_id")} className={selectClass}>
+                <option value="">Não atribuído</option>
+                {managerOptions.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.full_name}
+                  </option>
+                ))}
+              </select>
             </Field>
 
             <Field>

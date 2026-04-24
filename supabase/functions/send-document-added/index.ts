@@ -12,6 +12,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   client_id: string;
@@ -56,7 +57,7 @@ serve(async (req) => {
     // Fetch client email and name
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -67,17 +68,22 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
     const typeLabel = DOC_TYPE_LABEL[document_type] ?? "Documento";
 
+    // Abre o documento diretamente quando houver URL; caso contrário
+    // direciona para a lista de documentos no portal.
+    const documentHref =
+      document_url && /^https?:\/\//i.test(document_url)
+        ? document_url
+        : `${PORTAL_URL}/documentos`;
+
     const html = buildEmail({
-      preheader: `Um novo ${typeLabel} foi disponibilizado para você no Portal Elkys.`,
+      preheader: `${typeLabel}: ${document_label} — disponível no portal.`,
       title: "Novo documento disponível",
-      greeting: `${getTimeGreeting()}, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo documento foi disponibilizado no seu <strong>Portal Elkys</strong> e já está pronto para acesso.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Você pode visualizar, baixar ou compartilhar o arquivo a qualquer momento, de forma simples e segura.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Mantemos todas as informações centralizadas para garantir organização e fácil acesso sempre que necessário.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo documento foi disponibilizado em sua área do <strong>Portal Elkys</strong>.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">O arquivo está disponível para visualização e download a qualquer momento, de forma segura.</p>
       `,
       highlight: {
         title: "Detalhes do documento",
@@ -87,15 +93,15 @@ serve(async (req) => {
         ],
       },
       button: {
-        label: "Ver documentos no Portal →",
-        href: `${PORTAL_URL}/documentos`,
+        label: document_url ? "Abrir documento" : "Acessar documentos",
+        href: documentHref,
       },
-      note: "Qualquer dúvida, nossa equipe está à disposição.",
+      note: "Para dúvidas sobre o documento, a equipe permanece à disposição pelo portal.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Novo documento disponível: ${document_label}`,
+      subject: `Novo documento disponível — ${document_label}`,
       html,
     });
 

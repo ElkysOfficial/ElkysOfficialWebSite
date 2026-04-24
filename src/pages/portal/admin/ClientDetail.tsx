@@ -115,16 +115,30 @@ type TabKey =
 type DialogAction = "toggle-active" | "delete" | null;
 type EditingSection = "dados" | "contrato" | null;
 
+type Gender = "masculino" | "feminino" | "";
+type FormaPagamento = "pix" | "boleto" | "cartao" | "transferencia" | "dinheiro" | "";
+type CanalAssinatura = "manual" | "govbr" | "clicksign" | "docusign" | "eletronico" | "";
+type RegimeTributario = "mei" | "simples" | "lucro_presumido" | "lucro_real" | "";
+
 type GeneralFormValues = {
   client_type: ClientType;
+  gender: Gender;
   full_name: string;
   email: string;
   phone: string;
+  whatsapp: string;
+  contato_secundario: string;
   cpf: string;
+  rg: string;
+  birth_date: string;
   cnpj: string;
   razao_social: string;
   nome_fantasia: string;
   cargo_representante: string;
+  inscricao_estadual: string;
+  inscricao_municipal: string;
+  cnae: string;
+  regime_tributario: RegimeTributario;
   cep: string;
   logradouro: string;
   numero: string;
@@ -133,6 +147,18 @@ type GeneralFormValues = {
   city: string;
   state: string;
   country: string;
+  // Financeiro
+  email_financeiro: string;
+  responsavel_financeiro: string;
+  responsavel_financeiro_phone: string;
+  forma_pagamento: FormaPagamento;
+  limite_credito: string;
+  // Contratual
+  canal_assinatura: CanalAssinatura;
+  sla_hours: string;
+  // CRM
+  owner_id: string;
+  notes_internal: string;
 };
 
 type ContractFormValues = {
@@ -224,16 +250,46 @@ function isValidEmail(email: string) {
 }
 
 function getGeneralFormDefaults(client: Client): GeneralFormValues {
+  const c = client as Client & {
+    gender?: string | null;
+    rg?: string | null;
+    birth_date?: string | null;
+    whatsapp?: string | null;
+    contato_secundario?: string | null;
+    inscricao_estadual?: string | null;
+    inscricao_municipal?: string | null;
+    cnae?: string | null;
+    regime_tributario?: string | null;
+    email_financeiro?: string | null;
+    responsavel_financeiro?: string | null;
+    responsavel_financeiro_phone?: string | null;
+    forma_pagamento?: string | null;
+    limite_credito?: number | string | null;
+    canal_assinatura?: string | null;
+    sla_hours?: number | null;
+    owner_id?: string | null;
+    notes_internal?: string | null;
+  };
+
   return {
     client_type: client.client_type === "pf" ? "pf" : "pj",
+    gender: (c.gender as Gender) ?? "",
     full_name: client.full_name,
     email: client.email,
     phone: client.phone ? maskPhone(client.phone) : "",
+    whatsapp: c.whatsapp ? maskPhone(c.whatsapp) : "",
+    contato_secundario: c.contato_secundario ?? "",
     cpf: maskCPF(client.cpf),
+    rg: c.rg ?? "",
+    birth_date: c.birth_date ? formatDateInput(c.birth_date) : "",
     cnpj: client.cnpj ? maskCNPJ(client.cnpj) : "",
     razao_social: client.razao_social ?? "",
     nome_fantasia: client.nome_fantasia ?? "",
     cargo_representante: client.cargo_representante ?? "",
+    inscricao_estadual: c.inscricao_estadual ?? "",
+    inscricao_municipal: c.inscricao_municipal ?? "",
+    cnae: c.cnae ?? "",
+    regime_tributario: (c.regime_tributario as RegimeTributario) ?? "",
     cep: client.cep ? maskCEP(client.cep) : "",
     logradouro: client.logradouro ?? "",
     numero: client.numero ?? "",
@@ -242,6 +298,17 @@ function getGeneralFormDefaults(client: Client): GeneralFormValues {
     city: client.city ?? "",
     state: client.state ?? "",
     country: client.country ?? "Brasil",
+    email_financeiro: c.email_financeiro ?? "",
+    responsavel_financeiro: c.responsavel_financeiro ?? "",
+    responsavel_financeiro_phone: c.responsavel_financeiro_phone
+      ? maskPhone(c.responsavel_financeiro_phone)
+      : "",
+    forma_pagamento: (c.forma_pagamento as FormaPagamento) ?? "",
+    limite_credito: c.limite_credito != null ? String(c.limite_credito) : "",
+    canal_assinatura: (c.canal_assinatura as CanalAssinatura) ?? "",
+    sla_hours: c.sla_hours != null ? String(c.sla_hours) : "",
+    owner_id: c.owner_id ?? "",
+    notes_internal: c.notes_internal ?? "",
   };
 }
 
@@ -356,6 +423,29 @@ function GeneralClientForm({
   const [errors, setErrors] = useState<GeneralFormErrors>({});
   const [cepLoading, setCepLoading] = useState(false);
   const [lastResolvedCep, setLastResolvedCep] = useState("");
+  const [teamOptions, setTeamOptions] = useState<{ user_id: string; full_name: string }[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("team_members")
+        .select("user_id, full_name")
+        .eq("is_active", true)
+        .not("user_id", "is", null)
+        .order("full_name", { ascending: true });
+      if (active && data) {
+        setTeamOptions(
+          data
+            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
+            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     setForm(getGeneralFormDefaults(client));
@@ -465,7 +555,7 @@ function GeneralClientForm({
             defaultOpen
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <Field className="md:col-span-2">
+              <Field>
                 <Label htmlFor="client_type">Tipo de cliente</Label>
                 <select
                   id="client_type"
@@ -476,6 +566,21 @@ function GeneralClientForm({
                 >
                   <option value="pf">Pessoa Física</option>
                   <option value="pj">Pessoa Jurídica</option>
+                </select>
+              </Field>
+
+              <Field>
+                <Label htmlFor="gender">Tratamento formal</Label>
+                <select
+                  id="gender"
+                  name="gender"
+                  value={form.gender}
+                  onChange={(event) => setField("gender", event.target.value as Gender)}
+                  className={selectClass}
+                >
+                  <option value="">Prezado(a) — não informado</option>
+                  <option value="masculino">Sr. (masculino)</option>
+                  <option value="feminino">Sra. (feminino)</option>
                 </select>
               </Field>
 
@@ -534,6 +639,50 @@ function GeneralClientForm({
                 </ErrorText>
               </Field>
 
+              <Field>
+                <Label htmlFor="rg">RG</Label>
+                <Input
+                  id="rg"
+                  name="rg"
+                  value={form.rg}
+                  onChange={(event) => setField("rg", event.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <Label htmlFor="birth_date">Data de nascimento</Label>
+                <Input
+                  id="birth_date"
+                  name="birth_date"
+                  value={form.birth_date}
+                  onChange={(event) => setField("birth_date", event.target.value)}
+                  placeholder="DD/MM/AAAA"
+                  inputMode="numeric"
+                />
+              </Field>
+
+              <Field>
+                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <Input
+                  id="whatsapp"
+                  name="whatsapp"
+                  value={form.whatsapp}
+                  onChange={(event) => setField("whatsapp", maskPhone(event.target.value))}
+                  placeholder="(31) 99999-9999"
+                />
+              </Field>
+
+              <Field className="md:col-span-2">
+                <Label htmlFor="contato_secundario">Contato secundário</Label>
+                <Input
+                  id="contato_secundario"
+                  name="contato_secundario"
+                  value={form.contato_secundario}
+                  onChange={(event) => setField("contato_secundario", event.target.value)}
+                  placeholder="Nome + telefone/e-mail de backup"
+                />
+              </Field>
+
               {form.client_type === "pj" ? (
                 <>
                   <Field>
@@ -581,6 +730,57 @@ function GeneralClientForm({
                       value={form.cargo_representante}
                       onChange={(event) => setField("cargo_representante", event.target.value)}
                     />
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="inscricao_estadual">Inscrição estadual</Label>
+                    <Input
+                      id="inscricao_estadual"
+                      name="inscricao_estadual"
+                      value={form.inscricao_estadual}
+                      onChange={(event) => setField("inscricao_estadual", event.target.value)}
+                      placeholder="ISENTO ou número"
+                    />
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="inscricao_municipal">Inscrição municipal</Label>
+                    <Input
+                      id="inscricao_municipal"
+                      name="inscricao_municipal"
+                      value={form.inscricao_municipal}
+                      onChange={(event) => setField("inscricao_municipal", event.target.value)}
+                    />
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="cnae">CNAE principal</Label>
+                    <Input
+                      id="cnae"
+                      name="cnae"
+                      value={form.cnae}
+                      onChange={(event) => setField("cnae", event.target.value)}
+                      placeholder="0000-0/00"
+                    />
+                  </Field>
+
+                  <Field>
+                    <Label htmlFor="regime_tributario">Regime tributário</Label>
+                    <select
+                      id="regime_tributario"
+                      name="regime_tributario"
+                      value={form.regime_tributario}
+                      onChange={(event) =>
+                        setField("regime_tributario", event.target.value as RegimeTributario)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="mei">MEI</option>
+                      <option value="simples">Simples Nacional</option>
+                      <option value="lucro_presumido">Lucro Presumido</option>
+                      <option value="lucro_real">Lucro Real</option>
+                    </select>
                   </Field>
                 </>
               ) : null}
@@ -677,6 +877,158 @@ function GeneralClientForm({
                   onChange={(event) => setField("country", event.target.value)}
                 />
               </Field>
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Comercial"
+            description="Dados financeiros, contratuais e responsável interno pela conta."
+          >
+            <div className="space-y-6">
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Financeiro
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="email_financeiro">E-mail financeiro</Label>
+                    <Input
+                      id="email_financeiro"
+                      name="email_financeiro"
+                      type="email"
+                      value={form.email_financeiro}
+                      onChange={(event) => setField("email_financeiro", event.target.value)}
+                      placeholder="Deixe em branco para usar o e-mail principal"
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="responsavel_financeiro">Responsável financeiro</Label>
+                    <Input
+                      id="responsavel_financeiro"
+                      name="responsavel_financeiro"
+                      value={form.responsavel_financeiro}
+                      onChange={(event) => setField("responsavel_financeiro", event.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="responsavel_financeiro_phone">
+                      Telefone do responsável financeiro
+                    </Label>
+                    <Input
+                      id="responsavel_financeiro_phone"
+                      name="responsavel_financeiro_phone"
+                      value={form.responsavel_financeiro_phone}
+                      onChange={(event) =>
+                        setField("responsavel_financeiro_phone", maskPhone(event.target.value))
+                      }
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="forma_pagamento">Forma de pagamento</Label>
+                    <select
+                      id="forma_pagamento"
+                      name="forma_pagamento"
+                      value={form.forma_pagamento}
+                      onChange={(event) =>
+                        setField("forma_pagamento", event.target.value as FormaPagamento)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="pix">PIX</option>
+                      <option value="boleto">Boleto</option>
+                      <option value="cartao">Cartão</option>
+                      <option value="transferencia">Transferência</option>
+                      <option value="dinheiro">Dinheiro</option>
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label htmlFor="limite_credito">Limite de crédito (R$)</Label>
+                    <Input
+                      id="limite_credito"
+                      name="limite_credito"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form.limite_credito}
+                      onChange={(event) => setField("limite_credito", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Contratual
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="canal_assinatura">Canal de assinatura</Label>
+                    <select
+                      id="canal_assinatura"
+                      name="canal_assinatura"
+                      value={form.canal_assinatura}
+                      onChange={(event) =>
+                        setField("canal_assinatura", event.target.value as CanalAssinatura)
+                      }
+                      className={selectClass}
+                    >
+                      <option value="">Não informado</option>
+                      <option value="manual">Manual (físico)</option>
+                      <option value="govbr">gov.br</option>
+                      <option value="clicksign">Clicksign</option>
+                      <option value="docusign">DocuSign</option>
+                      <option value="eletronico">Eletrônico (outro)</option>
+                    </select>
+                  </Field>
+                  <Field>
+                    <Label htmlFor="sla_hours">SLA contratado (horas)</Label>
+                    <Input
+                      id="sla_hours"
+                      name="sla_hours"
+                      type="number"
+                      min={0}
+                      value={form.sla_hours}
+                      onChange={(event) => setField("sla_hours", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  CRM interno
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <Label htmlFor="owner_id">Responsável interno (owner)</Label>
+                    <select
+                      id="owner_id"
+                      name="owner_id"
+                      value={form.owner_id}
+                      onChange={(event) => setField("owner_id", event.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="">Não atribuído</option>
+                      {teamOptions.map((t) => (
+                        <option key={t.user_id} value={t.user_id}>
+                          {t.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field className="md:col-span-2">
+                    <Label htmlFor="notes_internal">Observações internas</Label>
+                    <Textarea
+                      id="notes_internal"
+                      name="notes_internal"
+                      rows={4}
+                      value={form.notes_internal}
+                      onChange={(event) => setField("notes_internal", event.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
             </div>
           </CollapsibleSection>
 
@@ -1090,15 +1442,26 @@ export default function AdminClientDetail() {
 
       const payload: ClientUpdate = {
         client_type: values.client_type,
+        gender: values.gender || null,
         full_name: nextIdentity.full_name,
         email: nextIdentity.email,
         phone: nextIdentity.phone,
+        whatsapp: values.whatsapp ? unmaskDigits(values.whatsapp) : null,
+        contato_secundario: values.contato_secundario.trim() || null,
         cpf: unmaskDigits(values.cpf),
+        rg: values.rg.trim() || null,
+        birth_date: parseFormDate(values.birth_date),
         cnpj: values.client_type === "pj" ? unmaskDigits(values.cnpj) || null : null,
         razao_social: values.client_type === "pj" ? values.razao_social.trim() || null : null,
         nome_fantasia: values.client_type === "pj" ? values.nome_fantasia.trim() || null : null,
         cargo_representante:
           values.client_type === "pj" ? values.cargo_representante.trim() || null : null,
+        inscricao_estadual:
+          values.client_type === "pj" ? values.inscricao_estadual.trim() || null : null,
+        inscricao_municipal:
+          values.client_type === "pj" ? values.inscricao_municipal.trim() || null : null,
+        cnae: values.client_type === "pj" ? values.cnae.trim() || null : null,
+        regime_tributario: values.client_type === "pj" ? values.regime_tributario || null : null,
         cep: values.cep.trim() ? unmaskDigits(values.cep) : null,
         logradouro: values.logradouro.trim() || null,
         numero: values.numero.trim() || null,
@@ -1107,6 +1470,17 @@ export default function AdminClientDetail() {
         city: values.city.trim() || null,
         state: values.state.trim().toUpperCase() || null,
         country: values.country.trim() || "Brasil",
+        email_financeiro: values.email_financeiro.trim() || null,
+        responsavel_financeiro: values.responsavel_financeiro.trim() || null,
+        responsavel_financeiro_phone: values.responsavel_financeiro_phone
+          ? unmaskDigits(values.responsavel_financeiro_phone)
+          : null,
+        forma_pagamento: values.forma_pagamento || null,
+        limite_credito: values.limite_credito ? Number(values.limite_credito) : null,
+        canal_assinatura: values.canal_assinatura || null,
+        sla_hours: values.sla_hours ? Number(values.sla_hours) : null,
+        owner_id: values.owner_id || null,
+        notes_internal: values.notes_internal.trim() || null,
         updated_at: new Date().toISOString(),
       };
 
