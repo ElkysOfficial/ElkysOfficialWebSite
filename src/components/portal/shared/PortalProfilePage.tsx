@@ -21,6 +21,7 @@ import {
   buttonVariants,
   cn,
 } from "@/design-system";
+import { useAsyncButton } from "@/hooks/useAsyncButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { maskPhone } from "@/lib/masks";
@@ -112,7 +113,11 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  // useAsyncButton: loading + success state do botao "Salvar alterações"
+  // sao derivados do hook. O check verde aparece no CTA por ~1.6s apos
+  // salvar com sucesso, reforcando o toast visualmente no mesmo lugar
+  // que o usuario clicou.
+  const { run: runSaveProfile, loading: saving, success: saved } = useAsyncButton();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [avatarEditorPreviewUrl, setAvatarEditorPreviewUrl] = useState<string | null>(null);
@@ -507,36 +512,34 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
       return;
     }
 
-    setSaving(true);
-
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: nextName,
-          phone: nextPhoneDigits.length > 0 ? form.phone : null,
-        })
-        .eq("id", user.id);
+      await runSaveProfile(async () => {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            full_name: nextName,
+            phone: nextPhoneDigits.length > 0 ? form.phone : null,
+          })
+          .eq("id", user.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setProfile((current) =>
-        current
-          ? {
-              ...current,
-              full_name: nextName,
-              phone: nextPhoneDigits.length > 0 ? form.phone : null,
-            }
-          : current
-      );
+        setProfile((current) =>
+          current
+            ? {
+                ...current,
+                full_name: nextName,
+                phone: nextPhoneDigits.length > 0 ? form.phone : null,
+              }
+            : current
+        );
 
-      await syncProfileMetadata(nextName, avatarUrl, avatarTransform);
-      toast.success("Perfil atualizado.");
+        await syncProfileMetadata(nextName, avatarUrl, avatarTransform);
+        toast.success("Perfil atualizado.");
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível salvar o perfil.";
       toast.error("Erro ao salvar perfil.", { description: message });
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -691,6 +694,8 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
               onClick={() => void handleSaveProfile()}
               loading={saving}
               loadingText="Salvando..."
+              success={saved}
+              successLabel="Salvo!"
             >
               Salvar alterações
             </Button>
