@@ -1,106 +1,133 @@
-# Apache Configuration - Security Headers for Elkys Website
-# Use this file if hosting on Apache server
+# ====================================
+# Elkys — Apache Configuration (Hostinger)
+# ====================================
 
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ---- 1. Dominio canonico + HTTPS ----
+  # Ordem importa: www/dominio-incorreto primeiro evita double-hop quando o
+  # cliente entra via http://www.elkysb.com.br → 1 unico 301 para https://elkys.com.br/
+
+  # elkysb.com.br → elkys.com.br (dominio digitado errado)
+  RewriteCond %{HTTP_HOST} ^(www\.)?elkysb\.com\.br$ [NC]
+  RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
+
+  # www → non-www
+  RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
+  RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
+
+  # Forcar HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # ---- 2. Remover trailing slash (exceto raiz) ----
+  # Elimina duplicata /cases vs /cases/ que o Search Console marcava como
+  # "Pagina alternativa com tag canonica adequada".
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} ^(.+)/$
+  RewriteRule ^ %1 [R=301,L]
+
+  # ---- 3. SPA rewrite LIMITADO a /portal/* ----
+  # Rotas publicas sao pre-renderizadas (dist/<rota>/index.html) e servidas
+  # diretamente pelo Apache DirectoryIndex — nao entram aqui. Portal (auth)
+  # cai no React Router via index.html porque tem rotas dinamicas (/portal/
+  # admin/clients/:id) que nao podem ser pre-geradas.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^portal(/.*)?$ /index.html [L]
+</IfModule>
+
+# ---- 4. Portal nao deve ser indexado ----
+# Mesmo servindo index.html (com canonical apontando para home), o
+# X-Robots-Tag a nivel HTTP impede indexacao de qualquer URL sob /portal/.
 <IfModule mod_headers.c>
-  # Content Security Policy (CSP)
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.emailjs.com https://linkedin.com https://github.com https://instagram.com https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://njubtnsgtjcfmbnvjuqr.supabase.co wss://njubtnsgtjcfmbnvjuqr.supabase.co https://viacep.com.br; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-
-  # HTTP Strict Transport Security (HSTS)
-  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
-
-  # X-Frame-Options
-  Header always set X-Frame-Options "DENY"
-
-  # X-Content-Type-Options
-  Header always set X-Content-Type-Options "nosniff"
-
-  # Referrer Policy
-  Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
-  # Permissions Policy
-  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
-
-  # Cross-Origin-Opener-Policy
-  Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
-
-  # Cross-Origin-Resource-Policy
-  Header always set Cross-Origin-Resource-Policy "same-origin"
+  <IfModule mod_setenvif.c>
+    SetEnvIf Request_URI "^/portal" IS_PORTAL
+    Header set X-Robots-Tag "noindex, nofollow" env=IS_PORTAL
+  </IfModule>
 </IfModule>
 
-# Enable Compression
+# ---- 5. 404 real para URLs desconhecidas ----
+# Substitui o soft 404 anterior (qualquer URL invalida virava HTML da home
+# com status 200, que o Google classificava como "Rastreada, mas nao
+# indexada"). Agora URLs nao-existentes retornam 404 + pagina com noindex.
+ErrorDocument 404 /404.html
+
+# ====================================
+# Seguranca
+# ====================================
+
+Options -Indexes
+
+<FilesMatch "^\.">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+<FilesMatch "\.(env|log|sql|yml|yaml)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ====================================
+# Compressao
+# ====================================
+
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
 
-# Cache Control — mod_expires
+# ====================================
+# Cache
+# ====================================
+
 <IfModule mod_expires.c>
   ExpiresActive On
 
-  # Images
+  ExpiresByType image/jpg "access plus 1 year"
   ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
   ExpiresByType image/webp "access plus 1 year"
   ExpiresByType image/svg+xml "access plus 1 year"
 
-  # CSS and JavaScript
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 year"
 
-  # Fonts
-  ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
 
-  # HTML — sem cache: sempre revalida. Evita 404 em chunks apos deploy com
-  # dangerous-clean-slate, quando HTML em cache referencia hashes ja apagados.
+  # HTML sempre revalida: evita servir index.html cacheado que referencia
+  # chunks JS ja deletados pelo dangerous-clean-slate do deploy.
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
 
-# Cache Control — Cache-Control headers (fallback when mod_expires is ignored)
 <IfModule mod_headers.c>
-  # Hashed assets: immutable, 1 year
   <FilesMatch "\.(js|css)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
-
-  # Fonts: 1 year
   <FilesMatch "\.(woff2?|ttf|eot)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
-
-  # Images: 1 year
   <FilesMatch "\.(jpe?g|png|webp|svg|ico|gif|avif)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
-
-  # HTML: sempre revalida com a origem. O ganho de cache curto nao compensa
-  # servir index.html defasado apos deploy (usuario baixaria chunks 404
-  # que foram apagados pelo dangerous-clean-slate). Assets hasheados ja
-  # tem cache-control immutable, entao HTML fresco nao penaliza a rede.
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache, must-revalidate, max-age=0"
     Header set Pragma "no-cache"
   </FilesMatch>
 </IfModule>
 
-# Force HTTPS and Handle React Router
-<IfModule mod_rewrite.c>
-  RewriteEngine On
+# ====================================
+# Headers de seguranca
+# ====================================
 
-  # Force www to non-www (avoid duplicate content)
-  RewriteCond %{HTTP_HOST} ^www\.elkys\.com\.br$ [NC]
-  RewriteRule ^(.*)$ https://elkys.com.br/$1 [R=301,L]
-
-  # Force HTTPS
-  RewriteCond %{HTTPS} off
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-  # React Router - Redirect all requests to index.html
-  # Skip if the request is for an existing file
-  RewriteCond %{REQUEST_FILENAME} !-f
-  # Skip if the request is for an existing directory
-  RewriteCond %{REQUEST_FILENAME} !-d
-  # Skip if the request is for a file with an extension (assets)
-  RewriteCond %{REQUEST_URI} !^.*\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot|json)$ [NC]
-  # Redirect everything else to index.html
-  RewriteRule ^ index.html [L]
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
 </IfModule>
