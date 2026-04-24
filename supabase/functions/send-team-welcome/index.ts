@@ -12,11 +12,13 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { getTeamMemberGreeting, type Gender } from "../_shared/greeting.ts";
 
 interface Payload {
   email: string;
   name: string;
   temp_password: string;
+  gender?: Gender;
 }
 
 serve(async (req) => {
@@ -26,7 +28,7 @@ serve(async (req) => {
     const auth = await requireAdminAccess(req, CORS);
     if (auth instanceof Response) return auth;
 
-    const { email, name, temp_password } = (await req.json()) as Payload;
+    const { email, name, temp_password, gender } = (await req.json()) as Payload;
 
     if (!email || !name || !temp_password) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
@@ -36,19 +38,18 @@ serve(async (req) => {
     }
 
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/admin";
-    const firstName = name.split(" ")[0];
 
     const html = buildEmail({
-      preheader: `Bem-vindo à equipe Elkys, ${firstName}! Seu acesso ao painel está pronto.`,
-      title: "Bem-vindo à equipe Elkys",
-      greeting: `Olá, ${firstName}!`,
+      preheader: "Seu acesso ao painel interno da Elkys está ativo.",
+      title: "Boas-vindas à equipe Elkys",
+      greeting: getTeamMemberGreeting({ full_name: name, gender }),
       body: `
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">É com grande satisfação que damos as boas-vindas a você na <strong>Elkys</strong>.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Aqui, somos mais do que uma equipe — somos uma estrutura integrada, orientada a resultados, colaboração e crescimento contínuo. Sua chegada fortalece esse compromisso.</p>
-        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Abaixo estão suas credenciais de acesso ao painel interno. Por segurança, altere sua senha logo após o primeiro login.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">É com grande satisfação que damos as boas-vindas à equipe <strong>Elkys</strong>.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Nosso compromisso é com entregas de excelência, colaboração entre áreas e crescimento contínuo. Sua chegada fortalece esse trabalho.</p>
+        <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Abaixo estão as credenciais de acesso ao painel interno. <strong>Por segurança, será solicitada a alteração da senha no primeiro login.</strong></p>
       `,
       highlight: {
-        title: "Suas credenciais de acesso",
+        title: "Credenciais de acesso",
         rows: [
           { label: "E-mail", value: email },
           { label: "Senha temporária", value: temp_password },
@@ -58,11 +59,13 @@ serve(async (req) => {
         label: "Acessar o painel",
         href: PORTAL_URL,
       },
+      showInstitutional: true,
+      showSecurityNote: true,
     });
 
     const result = await sendEmail({
       to: email,
-      subject: `Bem-vindo à equipe Elkys`,
+      subject: `Boas-vindas à equipe Elkys`,
       html,
     });
 

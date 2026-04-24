@@ -15,11 +15,15 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { getFormalGreeting, getClientFirstName, type Gender } from "../_shared/greeting.ts";
 
 interface Payload {
   email: string;
   name: string;
   temp_password: string;
+  gender?: Gender;
+  client_type?: "pf" | "pj";
+  nome_fantasia?: string | null;
 }
 
 serve(async (req) => {
@@ -29,7 +33,8 @@ serve(async (req) => {
     const auth = await requireAdminAccess(req, CORS);
     if (auth instanceof Response) return auth;
 
-    const { email, name, temp_password } = (await req.json()) as Payload;
+    const { email, name, temp_password, gender, client_type, nome_fantasia } =
+      (await req.json()) as Payload;
 
     if (!email || !name || !temp_password) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
@@ -39,33 +44,41 @@ serve(async (req) => {
     }
 
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/cliente";
-    const firstName = name.split(" ")[0];
+    const client = {
+      full_name: name,
+      nome_fantasia: nome_fantasia ?? null,
+      client_type: client_type ?? "pf",
+      gender,
+    };
+    const displayName = getClientFirstName(client);
 
     const html = buildEmail({
-      preheader: `Seu acesso ao portal Elkys está pronto, ${firstName}.`,
-      title: "Bem-vindo ao Portal Elkys",
-      greeting: `Olá, ${firstName}!`,
+      preheader: "Seu acesso ao Portal Elkys está pronto.",
+      title: "Boas-vindas ao Portal Elkys",
+      greeting: getFormalGreeting(client),
       body: `
-        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seja bem-vindo à <strong>Elkys</strong>. É um prazer ter você conosco.</p>
-        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Seu acesso ao <strong>Portal do Cliente</strong> foi criado com sucesso. A partir de agora, você pode acompanhar seus projetos, documentos, financeiro e muito mais em um só lugar.</p>
-        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Utilize as credenciais abaixo para fazer seu primeiro acesso. Por segurança, recomendamos que altere sua senha logo após o login.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">É com satisfação que damos as boas-vindas à <strong>Elkys</strong>. Seu acesso ao <strong>Portal do Cliente</strong> foi criado e já está ativo.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">No portal, o(a) senhor(a) tem acesso centralizado a projetos, documentos, informações financeiras e canal de suporte direto com nossa equipe.</p>
+        <p class="text-body" style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Utilize as credenciais abaixo no primeiro acesso. <strong>Por segurança, será solicitada a alteração da senha logo após o login.</strong></p>
       `,
       highlight: {
-        title: "Suas credenciais de acesso",
+        title: "Credenciais de acesso",
         rows: [
           { label: "E-mail", value: email },
           { label: "Senha temporária", value: temp_password },
         ],
       },
       button: {
-        label: "Acessar meu portal",
+        label: "Acessar o Portal",
         href: PORTAL_URL,
       },
+      showInstitutional: true,
+      showSecurityNote: true,
     });
 
     const result = await sendEmail({
       to: email,
-      subject: `Bem-vindo ao Portal Elkys`,
+      subject: `Boas-vindas ao Portal Elkys — ${displayName}`,
       html,
     });
 

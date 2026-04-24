@@ -12,6 +12,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   client_id: string;
@@ -46,7 +47,7 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -57,7 +58,6 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
     const highlightRows = [
       { label: "Projeto", value: project_name },
       ...(solution_type ? [{ label: "Tipo", value: solution_type }] : []),
@@ -65,25 +65,25 @@ serve(async (req) => {
     ];
 
     const html = buildEmail({
-      preheader: `Seu novo projeto "${project_name}" foi registrado no Portal Elkys.`,
+      preheader: `O projeto "${project_name}" foi vinculado à sua conta.`,
       title: "Novo projeto registrado",
-      greeting: `Olá, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um novo projeto foi vinculado à sua conta no <strong>Portal Elkys</strong>.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A partir de agora, você pode acompanhar o andamento, etapas, documentos e financeiro diretamente pelo portal — tudo centralizado e atualizado em tempo real.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Confira os detalhes abaixo e acesse o portal para ter a visão completa do seu projeto.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Informamos que um novo projeto foi registrado e vinculado à sua conta no <strong>Portal Elkys</strong>.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A partir deste momento, o(a) senhor(a) pode acompanhar o andamento, etapas, documentos e informações financeiras diretamente pelo portal, com atualizações em tempo real.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Os detalhes iniciais estão relacionados abaixo.</p>
       `,
       highlight: { title: "Detalhes do projeto", rows: highlightRows },
       button: {
-        label: "Ver meus projetos →",
+        label: "Acessar o projeto",
         href: `${PORTAL_URL}/projetos`,
       },
-      note: "Qualquer dúvida, nossa equipe está à disposição pelo suporte do portal.",
+      note: "Para dúvidas sobre o projeto, a equipe permanece à disposição pelo suporte do portal.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Novo projeto registrado: ${project_name}`,
+      subject: `Novo projeto registrado — ${project_name}`,
       html,
     });
 

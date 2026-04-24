@@ -11,7 +11,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 
 function formatDate(date: string): string {
   return new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
@@ -95,7 +95,7 @@ serve(async (req) => {
       const html = buildEmail({
         preheader: `Você tem ${group.steps.length} solicitação(ões) pendente(s) que precisam da sua atenção.`,
         title: "Lembrete: solicitações pendentes",
-        greeting: `Olá, ${firstName}!`,
+        greeting: `${getTimeGreeting()}, ${firstName}!`,
         body: `
           <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Você tem <strong>${group.steps.length}</strong> solicitação(ões) pendente(s) que já ultrapassaram o prazo estimado.</p>
           <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua resposta é fundamental para o andamento dos projetos:</p>

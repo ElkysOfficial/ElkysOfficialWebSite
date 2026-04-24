@@ -22,6 +22,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { escapeHtml } from "../_shared/validation.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { getTimeGreeting, nl2br, truncateAtWord } from "../_shared/greeting.ts";
 
 interface Payload {
   ticket_id: string;
@@ -80,15 +81,15 @@ serve(async (req) => {
     const clientEmail = client?.email ?? "";
     const ticketUrl = `${PORTAL_URL}/suporte`;
 
-    // Truncate body preview for email
-    const bodyPreview = body.length > 300 ? body.slice(0, 297) + "..." : body;
+    // Truncate body preview for email (respeita fronteira de palavra)
+    const bodyPreview = truncateAtWord(body, 300);
 
     const html = buildEmail({
-      preheader: `Novo ticket aberto por ${clientName}: "${subject}"`,
+      preheader: `Ticket aberto por ${clientName}: "${subject}".`,
       title: "Novo ticket de suporte",
-      greeting: "Nova solicitação recebida",
+      greeting: `${getTimeGreeting()},`,
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Um cliente abriu um novo ticket de suporte no portal. Verifique e responda o mais breve possível.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">O cliente <strong>${escapeHtml(clientName)}</strong> abriu um novo ticket de suporte. Solicitamos atendimento assim que possível.</p>
       `,
       highlight: {
         title: "Detalhes da solicitação",
@@ -99,10 +100,10 @@ serve(async (req) => {
         ],
       },
       button: {
-        label: "Ver ticket no painel →",
+        label: "Acessar o ticket",
         href: ticketUrl,
       },
-      note: `<strong>Mensagem do cliente:</strong><br/><em style="color:#52525b;">"${escapeHtml(bodyPreview)}"</em>`,
+      note: `<strong>Mensagem do cliente:</strong><br/><em style="color:#52525b;">"${nl2br(escapeHtml(bodyPreview))}"</em>`,
     });
 
     // Send to all configured recipients
@@ -110,7 +111,7 @@ serve(async (req) => {
       notifyEmails.map((email) =>
         sendEmail({
           to: email,
-          subject: `[Suporte] Novo ticket: ${subject}`,
+          subject: `Novo ticket de suporte — ${subject}`,
           html,
         })
       )

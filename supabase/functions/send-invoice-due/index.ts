@@ -21,6 +21,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
+import { getFormalGreeting, plural } from "../_shared/greeting.ts";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -71,7 +72,9 @@ serve(async (req) => {
 
     const { data: clients, error: clientsError } = await admin
       .from("clients")
-      .select("id, full_name, email, nome_fantasia, contract_status")
+      .select(
+        "id, full_name, email, email_financeiro, nome_fantasia, contract_status, client_type, gender"
+      )
       .in("id", clientIds)
       .eq("is_active", true);
 
@@ -108,10 +111,13 @@ serve(async (req) => {
         continue;
       }
 
-      const firstName = client.full_name.split(" ")[0];
       const totalAmount = clientCharges.reduce((sum, c) => sum + Number(c.amount), 0);
       const amountFormatted = formatBRL(totalAmount);
       const isInadimplente = client.contract_status === "inadimplente";
+      const chargeCount = clientCharges.length;
+      const faturaLabel = chargeCount === 1 ? "fatura" : "faturas";
+      const verbo = chargeCount === 1 ? "vence" : "vencem";
+      const daysLabel = plural(DAYS_BEFORE, "dia", "dias");
 
       const chargeRows = clientCharges.map((c) => ({
         label: c.description,
@@ -119,16 +125,18 @@ serve(async (req) => {
       }));
 
       const html = buildEmail({
-        preheader: `Lembrete: sua(s) fatura(s) de ${amountFormatted} vencem em ${DAYS_BEFORE} dia(s).`,
-        title: "Lembrete de vencimento",
-        greeting: `Olá, ${firstName}!`,
+        preheader: isInadimplente
+          ? `Identificamos pendência financeira em aberto em sua conta.`
+          : `Sua ${faturaLabel} de ${amountFormatted} ${verbo} em ${daysLabel}.`,
+        title: isInadimplente ? "Pendência financeira" : "Lembrete de vencimento",
+        greeting: getFormalGreeting(client),
         body: isInadimplente
           ? `
-            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos uma <strong>pendência financeira</strong> em sua conta. Entre em contato com nossa equipe para regularizar a situação e garantir a continuidade dos serviços.</p>
+            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos uma <strong>pendência financeira</strong> em aberto em sua conta. Solicitamos a regularização o quanto antes para que os serviços permaneçam ativos.</p>
           `
           : `
-            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Este é um lembrete: sua(s) fatura(s) vence(m) em <strong>${DAYS_BEFORE} dia(s)</strong>, no dia <strong>${dueDateFormatted}</strong>.</p>
-            <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Mantenha o pagamento em dia para garantir a continuidade dos serviços sem interrupção.</p>
+            <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Enviamos este lembrete referente à sua ${faturaLabel} com vencimento em <strong>${dueDateFormatted}</strong> (${daysLabel}).</p>
+            <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Manter o pagamento em dia garante a continuidade dos serviços sem interrupção.</p>
           `,
         highlight: {
           title: "Resumo da cobrança",
@@ -138,26 +146,28 @@ serve(async (req) => {
             { label: "Vencimento", value: dueDateFormatted },
             {
               label: "Status",
-              value: isInadimplente ? "⚠ Inadimplente" : "✓ Ativo",
+              value: isInadimplente ? "Inadimplente" : "Ativo",
             },
           ],
         },
         button: {
-          label: "Acessar o portal →",
-          href: PORTAL_URL,
+          label: "Acessar o portal",
+          href: `${PORTAL_URL}/financeiro`,
         },
         ...(isInadimplente && {
           warning:
-            "Sua conta apresenta pendências financeiras. Entre em contato com nossa equipe para evitar a suspensão dos serviços.",
+            "A conta apresenta pendência financeira. Solicitamos contato com nossa equipe para evitar a suspensão dos serviços.",
         }),
-        note: "Em caso de dúvidas sobre cobranças, entre em contato pelo suporte do portal ou pelo WhatsApp.",
+        note: `Dúvidas sobre cobranças: atendimento pelo portal ou WhatsApp <a href="https://wa.me/553199738235" style="color:#472680;">wa.me/553199738235</a>.`,
       });
 
+      const recipientEmail = client.email_financeiro || client.email;
+
       const result = await sendEmail({
-        to: client.email,
+        to: recipientEmail,
         subject: isInadimplente
-          ? `[Elkys] Atenção: pendência financeira em sua conta`
-          : `[Elkys] Lembrete: fatura(s) vence(m) em ${DAYS_BEFORE} dia(s)`,
+          ? `Pendência financeira em aberto`
+          : `Lembrete: sua ${faturaLabel} ${verbo} em ${daysLabel}`,
         html,
       });
 

@@ -12,6 +12,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
+import { getFormalGreeting } from "../_shared/greeting.ts";
 
 interface Payload {
   client_id: string;
@@ -54,7 +55,7 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -65,16 +66,14 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
-
     const html = buildEmail({
-      preheader: `Seu projeto "${project_name}" foi entregue com sucesso!`,
-      title: "Projeto concluído",
-      greeting: `Parabéns, ${firstName}!`,
+      preheader: `O projeto "${project_name}" foi entregue e está concluído.`,
+      title: "Entrega concluída",
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Temos o prazer de informar que o projeto <strong>${project_name}</strong> foi concluído e entregue com sucesso.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Todos os detalhes, documentos e histórico do projeto continuam disponíveis no seu portal para consulta a qualquer momento.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Agradecemos a confiança e estamos prontos para os próximos passos juntos.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">É com satisfação que informamos a conclusão e entrega do projeto <strong>${project_name}</strong>.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Todos os detalhes, documentos e histórico permanecem disponíveis no portal para consulta a qualquer momento.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Agradecemos a confiança depositada em nosso trabalho e permanecemos à disposição para os próximos passos.</p>
       `,
       highlight: {
         title: "Resumo da entrega",
@@ -85,15 +84,15 @@ serve(async (req) => {
         ],
       },
       button: {
-        label: "Ver projeto no portal →",
+        label: "Acessar o projeto",
         href: `${PORTAL_URL}/projetos`,
       },
-      note: "Se precisar de qualquer ajuste ou suporte pós-entrega, estamos à disposição.",
+      note: "Para ajustes ou suporte pós-entrega, a equipe permanece à disposição pelo portal.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Projeto concluído: ${project_name}`,
+      subject: `Entrega concluída — ${project_name}`,
       html,
     });
 

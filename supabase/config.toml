@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.send-ticket-updated]
 verify_jwt = false
+
+[functions.send-inadimplencia-warning]
+verify_jwt = false

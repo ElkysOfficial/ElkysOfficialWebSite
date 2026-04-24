@@ -9,6 +9,7 @@
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail } from "./email-template.ts";
 import { formatNotificationBody } from "./validation.ts";
+import { getFormalGreeting } from "./greeting.ts";
 
 const TYPE_LABELS: Record<string, string> = {
   manutencao: "Manutenção programada",
@@ -19,11 +20,11 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_SUBJECTS: Record<string, string> = {
-  manutencao: "Manutenção programada -Elkys",
-  atualizacao: "Novidades -Elkys",
-  otimizacao: "Otimização em andamento -Elkys",
-  alerta: "Alerta importante -Elkys",
-  personalizado: "Comunicado -Elkys",
+  manutencao: "Manutenção programada — Elkys",
+  atualizacao: "Novidades — Elkys",
+  otimizacao: "Otimização em andamento — Elkys",
+  alerta: "Alerta importante — Elkys",
+  personalizado: "Comunicado — Elkys",
 };
 
 interface ProcessResult {
@@ -66,7 +67,7 @@ export async function processNotification(
   // 3. Resolve recipients based on filter_mode
   let clientQuery = adminClient
     .from("clients")
-    .select("id, user_id, full_name, email")
+    .select("id, user_id, full_name, email, nome_fantasia, client_type, gender")
     .eq("is_active", true);
 
   switch (notification.filter_mode) {
@@ -134,12 +135,10 @@ export async function processNotification(
   let errorCount = 0;
 
   for (const client of clients) {
-    const firstName = client.full_name?.split(" ")[0] ?? "Cliente";
-
     const html = buildEmail({
       preheader: `${typeLabel}: ${notification.title}`,
       title: typeLabel,
-      greeting: `Olá, ${firstName},`,
+      greeting: getFormalGreeting(client),
       body: `
         <p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">
           ${formatNotificationBody(notification.body, PORTAL_URL)}

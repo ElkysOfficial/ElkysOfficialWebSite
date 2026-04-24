@@ -12,6 +12,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
+import { getFormalGreeting, truncateAtWord } from "../_shared/greeting.ts";
 
 interface Payload {
   proposal_id: string;
@@ -45,7 +46,7 @@ serve(async (req) => {
     const [clientRes, proposalRes] = await Promise.all([
       admin
         .from("clients")
-        .select("full_name, email, nome_fantasia")
+        .select("full_name, email, nome_fantasia, client_type, gender")
         .eq("id", client_id)
         .maybeSingle(),
       admin
@@ -72,8 +73,6 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
-    const displayName = client.nome_fantasia || client.full_name;
     const formattedAmount = Number(proposal.total_amount).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
@@ -88,13 +87,13 @@ serve(async (req) => {
       : null;
 
     const html = buildEmail({
-      preheader: `A Elkys enviou uma proposta comercial para ${displayName}.`,
+      preheader: "Proposta comercial disponível para análise no portal.",
       title: "Nova proposta comercial",
-      greeting: `Olá, ${firstName}!`,
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Uma nova <strong>proposta comercial</strong> foi preparada especialmente para você e já está disponível no seu portal.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Acesse para visualizar todos os detalhes, incluindo escopo, condições de pagamento e valor. Você pode aprovar ou solicitar ajustes diretamente pelo portal.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Estamos à disposição para esclarecer qualquer dúvida.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Uma nova <strong>proposta comercial</strong> foi preparada e encontra-se disponível no portal para sua análise.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A proposta contempla escopo detalhado, condições de pagamento e investimento. A aprovação ou solicitação de ajustes pode ser realizada diretamente pelo portal.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Permanecemos à disposição para esclarecimentos.</p>
       `,
       highlight: {
         title: "Resumo da proposta",
@@ -103,20 +102,20 @@ serve(async (req) => {
           { label: "Valor", value: formattedAmount },
           ...(validUntilText ? [{ label: "Válida até", value: validUntilText }] : []),
           ...(proposal.scope_summary
-            ? [{ label: "Escopo", value: proposal.scope_summary.slice(0, 200) }]
+            ? [{ label: "Escopo", value: truncateAtWord(proposal.scope_summary, 200) }]
             : []),
         ],
       },
       button: {
-        label: "Ver proposta no portal →",
+        label: "Analisar proposta",
         href: `${PORTAL_URL}/propostas`,
       },
-      note: "Você pode aprovar ou solicitar ajustes diretamente pelo portal a qualquer momento.",
+      note: "A aprovação ou solicitação de ajustes pode ser realizada pelo portal a qualquer momento.",
     });
 
     const result = await sendEmail({
       to: client.email,
-      subject: `Elkys — Nova proposta: ${proposal.title}`,
+      subject: `Nova proposta comercial — ${proposal.title}`,
       html,
     });
 

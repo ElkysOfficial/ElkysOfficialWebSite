@@ -14,6 +14,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { isServiceRoleRequest, requireOperationalAccess } from "../_shared/auth.ts";
+import { getFormalGreeting, plural } from "../_shared/greeting.ts";
 
 interface Payload {
   client_id: string;
@@ -65,7 +66,7 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia")
+      .select("full_name, email, email_financeiro, nome_fantasia, client_type, gender")
       .eq("id", client_id)
       .maybeSingle();
 
@@ -76,16 +77,24 @@ serve(async (req) => {
       });
     }
 
-    const firstName = client.full_name.split(" ")[0];
+    // Calcula dias de atraso para uso no texto.
+    const dueDateObj = new Date(`${due_date}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysOverdue = Math.max(
+      1,
+      Math.floor((today.getTime() - dueDateObj.getTime()) / (1000 * 60 * 60 * 24))
+    );
+    const overdueLabel = plural(daysOverdue, "dia", "dias");
 
     const html = buildEmail({
-      preheader: `A cobrança "${charge_description}" está em atraso.`,
-      title: "Cobrança em atraso",
-      greeting: `Olá, ${firstName}.`,
+      preheader: `Identificamos uma pendência financeira vencida há ${overdueLabel}.`,
+      title: "Pendência financeira",
+      greeting: getFormalGreeting(client),
       body: `
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos que a cobrança abaixo ultrapassou a data de vencimento e consta como <strong>em atraso</strong> na sua conta.</p>
-        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Pedimos gentilmente que regularize a situação o mais breve possível para evitar impactos no andamento dos seus projetos.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Se já realizou o pagamento, desconsidere este aviso. Caso precise de suporte, estamos à disposição pelo portal.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Identificamos que a cobrança abaixo encontra-se vencida há <strong>${overdueLabel}</strong>.</p>
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Solicitamos a gentileza de regularizar a pendência o quanto antes para que os serviços em andamento não sofram interrupção.</p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Caso o pagamento já tenha sido realizado, favor desconsiderar este aviso. Para dúvidas ou negociação, a equipe financeira permanece à disposição.</p>
       `,
       highlight: {
         title: "Detalhes da cobrança",
@@ -93,20 +102,22 @@ serve(async (req) => {
           { label: "Descrição", value: charge_description },
           { label: "Valor", value: formatBRL(charge_amount) },
           { label: "Vencimento", value: formatDate(due_date) },
-          { label: "Situação", value: "Em atraso" },
+          { label: "Atraso", value: overdueLabel },
         ],
       },
       button: {
-        label: "Ver financeiro no portal →",
+        label: "Acessar o financeiro",
         href: `${PORTAL_URL}/financeiro`,
       },
-      warning:
-        "Mantenha seus pagamentos em dia para garantir a continuidade dos serviços sem interrupção.",
+      note: `Preferir tratar por WhatsApp? Fale diretamente com o financeiro: <a href="https://wa.me/553199738235" style="color:#472680;">wa.me/553199738235</a>`,
     });
 
+    // Prefere e-mail financeiro quando informado.
+    const recipientEmail = client.email_financeiro || client.email;
+
     const result = await sendEmail({
-      to: client.email,
-      subject: `Cobrança em atraso — ${charge_description}`,
+      to: recipientEmail,
+      subject: `Pendência financeira — ${charge_description}`,
       html,
     });
 
