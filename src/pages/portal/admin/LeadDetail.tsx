@@ -640,8 +640,13 @@ export default function LeadDetail() {
                   <Button variant="ghost" size="sm" disabled={saving} onClick={handleCancelEdit}>
                     Cancelar
                   </Button>
-                  <Button size="sm" disabled={saving} onClick={() => void handleSave()}>
-                    {saving ? "Salvando..." : "Salvar"}
+                  <Button
+                    size="sm"
+                    loading={saving}
+                    loadingText="Salvando..."
+                    onClick={() => void handleSave()}
+                  >
+                    Salvar
                   </Button>
                 </div>
               )}
@@ -795,10 +800,11 @@ export default function LeadDetail() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        disabled={markingLost}
+                        loading={markingLost}
+                        loadingText="Salvando..."
                         onClick={() => void handleMarkLost()}
                       >
-                        {markingLost ? "Salvando..." : "Confirmar"}
+                        Confirmar
                       </Button>
                       <Button
                         variant="ghost"
@@ -925,10 +931,11 @@ export default function LeadDetail() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={savingDiagnosis}
+                loading={savingDiagnosis}
+                loadingText="Salvando..."
                 onClick={() => void handleSaveDiagnosis()}
               >
-                {savingDiagnosis ? "Salvando..." : "Salvar"}
+                Salvar
               </Button>
               {!isDiagnosisConcluded(diagnosis) && (
                 <Button

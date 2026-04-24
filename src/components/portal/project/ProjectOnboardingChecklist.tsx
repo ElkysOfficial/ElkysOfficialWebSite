@@ -207,8 +207,14 @@ export default function ProjectOnboardingChecklist({
 
         {!isConcluded ? (
           <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3">
-            <Button variant="outline" size="sm" disabled={saving} onClick={() => void handleSave()}>
-              {saving ? "Salvando..." : "Salvar"}
+            <Button
+              variant="outline"
+              size="sm"
+              loading={saving}
+              loadingText="Salvando..."
+              onClick={() => void handleSave()}
+            >
+              Salvar
             </Button>
             <Button
               size="sm"

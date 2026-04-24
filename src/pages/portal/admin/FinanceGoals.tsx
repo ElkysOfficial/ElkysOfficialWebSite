@@ -406,8 +406,13 @@ export default function FinanceGoals() {
               />
             </Field>
             <div className="flex gap-2">
-              <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-                {saving ? "Salvando..." : editingGoal ? "Atualizar" : "Criar meta"}
+              <Button
+                type="button"
+                onClick={() => void handleSave()}
+                loading={saving}
+                loadingText="Salvando..."
+              >
+                {editingGoal ? "Atualizar" : "Criar meta"}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={resetForm}>
                 Cancelar

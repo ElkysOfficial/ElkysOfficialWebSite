@@ -484,10 +484,11 @@ export default function ProposalView() {
                         type="button"
                         variant="outline"
                         onClick={() => void handleReject()}
-                        disabled={actionLoading}
+                        loading={actionLoading}
+                        loadingText="Rejeitando..."
                         className="border-destructive/50 text-destructive hover:bg-destructive/10"
                       >
-                        {actionLoading ? "Rejeitando..." : "Confirmar rejeicao"}
+                        Confirmar rejeicao
                       </Button>
                       <Button
                         type="button"
@@ -503,9 +504,10 @@ export default function ProposalView() {
                     <Button
                       type="button"
                       onClick={() => void handleApprove()}
-                      disabled={actionLoading}
+                      loading={actionLoading}
+                      loadingText="Aprovando..."
                     >
-                      {actionLoading ? "Aprovando..." : "Aprovar proposta"}
+                      Aprovar proposta
                     </Button>
                     <Button
                       type="button"

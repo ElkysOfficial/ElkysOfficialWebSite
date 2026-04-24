@@ -393,8 +393,13 @@ export default function BillingAutomation() {
                   </Field>
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={() => void saveRule()} disabled={ruleSaving}>
-                    {ruleSaving ? "Salvando..." : editingRule ? "Atualizar" : "Criar"}
+                  <Button
+                    type="button"
+                    onClick={() => void saveRule()}
+                    loading={ruleSaving}
+                    loadingText="Salvando..."
+                  >
+                    {editingRule ? "Atualizar" : "Criar"}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={resetRuleForm}>
                     Cancelar
@@ -543,8 +548,13 @@ export default function BillingAutomation() {
                   />
                 </Field>
                 <div className="flex gap-2">
-                  <Button type="button" onClick={() => void saveTemplate()} disabled={tplSaving}>
-                    {tplSaving ? "Salvando..." : editingTemplate ? "Atualizar" : "Criar"}
+                  <Button
+                    type="button"
+                    onClick={() => void saveTemplate()}
+                    loading={tplSaving}
+                    loadingText="Salvando..."
+                  >
+                    {editingTemplate ? "Atualizar" : "Criar"}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={resetTemplateForm}>
                     Cancelar

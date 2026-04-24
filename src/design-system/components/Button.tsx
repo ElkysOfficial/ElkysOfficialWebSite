@@ -67,10 +67,23 @@ export interface ButtonProps
   loading?: boolean;
   /**
    * Texto opcional exibido ao lado do spinner enquanto loading=true.
+   * Se o texto terminar em "...", os pontos sao animados em cascata.
    * Se omitido, o conteúdo original do botão é escondido visualmente
    * mas mantido no DOM para preservar largura.
    */
   loadingText?: string;
+  /**
+   * Quando true, exibe um check verde (com animacao de entrada) em lugar
+   * do conteudo normal. Usado para feedback pos-acao bem-sucedida. O
+   * parent controla o timing (tipicamente setTimeout ~1.5s); o hook
+   * useAsyncButton (src/hooks/useAsyncButton.ts) faz esse ciclo auto.
+   */
+  success?: boolean;
+  /**
+   * Texto opcional ao lado do check de sucesso. Ex: "Salvo!", "Enviado!".
+   * Se omitido, aparece so o icone (largura preservada como em loading).
+   */
+  successLabel?: string;
 }
 
 const ButtonSpinner = () => (
@@ -80,25 +93,98 @@ const ButtonSpinner = () => (
   />
 );
 
+/**
+ * Renderiza o texto separando o sufixo "..." (animado) do resto (estatico).
+ * Se o texto nao termina em "...", renderiza inteiro sem animacao — assim
+ * loadingText="Aguarde" continua funcionando sem dots.
+ */
+const LoadingLabel = ({ text }: { text: string }) => {
+  if (!text.endsWith("...")) {
+    return <span>{text}</span>;
+  }
+  const prefix = text.slice(0, -3);
+  return (
+    <span>
+      {prefix}
+      <span aria-hidden="true" className="inline-flex">
+        <span className="animate-dot-pulse" style={{ animationDelay: "0ms" }}>
+          .
+        </span>
+        <span className="animate-dot-pulse" style={{ animationDelay: "200ms" }}>
+          .
+        </span>
+        <span className="animate-dot-pulse" style={{ animationDelay: "400ms" }}>
+          .
+        </span>
+      </span>
+      {/* texto acessivel sem animacao: screen readers leem "Salvando..." de uma vez */}
+      <span className="sr-only">...</span>
+    </span>
+  );
+};
+
+const CheckIcon = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 20 20"
+    fill="none"
+    className="h-4 w-4 animate-check-in"
+  >
+    <path
+      d="M4 10.5l4 4 8-9"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size, loading = false, loadingText, disabled, children, ...props },
+    {
+      className,
+      variant,
+      size,
+      loading = false,
+      loadingText,
+      success = false,
+      successLabel,
+      disabled,
+      children,
+      ...props
+    },
     ref
   ) => {
+    // success tem prioridade visual sobre loading (cobre o caso raro de
+    // flip simultaneo quando a promise resolve rapido). Nao desabilita —
+    // alguns fluxos permitem re-submit imediato apos success.
+    const showSuccess = success && !loading;
     const isDisabled = disabled || loading;
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={isDisabled}
         aria-busy={loading || undefined}
+        aria-live={loading || showSuccess ? "polite" : undefined}
         {...props}
       >
         {loading ? (
           <>
             <ButtonSpinner />
             {loadingText ? (
-              <span>{loadingText}</span>
+              <LoadingLabel text={loadingText} />
+            ) : (
+              <span className="invisible">{children}</span>
+            )}
+          </>
+        ) : showSuccess ? (
+          <>
+            <CheckIcon />
+            {successLabel ? (
+              <span>{successLabel}</span>
             ) : (
               <span className="invisible">{children}</span>
             )}

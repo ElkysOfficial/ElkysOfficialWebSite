@@ -406,8 +406,8 @@ export default function AdminTeamEdit() {
             </Field>
 
             <div className="flex justify-end md:col-span-2">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Salvando..." : "Salvar alterações"}
+              <Button type="submit" loading={submitting} loadingText="Salvando...">
+                Salvar alterações
               </Button>
             </div>
           </form>

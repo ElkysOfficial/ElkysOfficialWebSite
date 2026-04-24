@@ -229,6 +229,28 @@ export default {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(calc(-100% / 3))" },
         },
+
+        /**
+         * ANIMAÇÃO DE DOTS PULSANTES
+         * Usada no Button em estado loading: os três pontos de "Salvando..."
+         * pulsam em cascata (200ms de delay entre eles). So opacity — zero
+         * paint, composed em GPU. Delay aplicado inline via style.
+         */
+        "dot-pulse": {
+          "0%, 80%, 100%": { opacity: "0.25" },
+          "40%": { opacity: "1" },
+        },
+
+        /**
+         * ANIMAÇÃO DE SUCCESS CHECKMARK
+         * Entrada do icone de check apos acao bem-sucedida: scale + fade.
+         * Pequena bounce suave pra reforcar positividade.
+         */
+        "check-in": {
+          "0%": { opacity: "0", transform: "scale(0.5)" },
+          "60%": { opacity: "1", transform: "scale(1.15)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         // Entrada
@@ -247,6 +269,9 @@ export default {
         "portal-ring": "portal-ring 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         // Carrossel
         "clients-scroll": "clients-scroll 60s linear infinite",
+        // Button states
+        "dot-pulse": "dot-pulse 1.2s ease-in-out infinite",
+        "check-in": "check-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both",
       },
     },
   },

@@ -241,8 +241,13 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
               </Field>
 
               <div className="flex justify-end pt-2">
-                <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-                  {saving ? "Salvando..." : "Adicionar"}
+                <Button
+                  type="button"
+                  onClick={() => void handleSave()}
+                  loading={saving}
+                  loadingText="Salvando..."
+                >
+                  Adicionar
                 </Button>
               </div>
             </CardContent>
