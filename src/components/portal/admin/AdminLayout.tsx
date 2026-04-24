@@ -150,7 +150,10 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: "Contratos",
-        href: "/portal/admin/contratos",
+        // Query param alinha com o badge: o contador "contracts:validating"
+        // conta contratos em em_validacao, entao clicar leva direto pra lista
+        // ja filtrada por esse status.
+        href: "/portal/admin/contratos?status=em_validacao",
         icon: FileText,
         roles: ["admin_super", "admin", "juridico"],
         badge: "contracts:validating",
@@ -205,7 +208,10 @@ const ALL_NAV_SECTIONS: NavSection[] = [
     items: [
       {
         label: "Suporte",
-        href: "/portal/admin/suporte",
+        // Query param casa com o badge "tickets:sla": clicar quando ha contagem
+        // leva direto pra lista filtrada por SLA em risco. Sem o query, o
+        // numero na side ficava desconectado do trabalho a fazer.
+        href: "/portal/admin/suporte?sla=risk",
         icon: SuporteFill,
         roles: ["admin_super", "admin", "support"],
         badge: "tickets:sla",

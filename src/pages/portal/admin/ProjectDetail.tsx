@@ -3060,6 +3060,13 @@ export default function AdminProjectDetail() {
               </Link>
             ) : null}
             <CopyLinkButton />
+            <Link
+              to={`/portal/admin/audit-log?entity=project&entityId=${project.id}`}
+              className={buttonVariants({ variant: "outline" })}
+              title="Ver historico de alteracoes deste projeto"
+            >
+              Ver histórico
+            </Link>
             <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
               Voltar
             </Link>
