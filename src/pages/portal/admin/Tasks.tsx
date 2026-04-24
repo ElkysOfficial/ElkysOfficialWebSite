@@ -694,8 +694,13 @@ export function TaskDetailModal({
                 <Button type="button" variant="outline" size="sm" onClick={() => setEditing(false)}>
                   Cancelar
                 </Button>
-                <Button type="button" disabled={saving} onClick={() => void handleSave()}>
-                  {saving ? "Salvando..." : "Salvar"}
+                <Button
+                  type="button"
+                  loading={saving}
+                  loadingText="Salvando..."
+                  onClick={() => void handleSave()}
+                >
+                  Salvar
                 </Button>
               </div>
             </>
@@ -790,10 +795,11 @@ export function TaskDetailModal({
                   variant="outline"
                   size="sm"
                   className="text-destructive hover:bg-destructive/10"
-                  disabled={deleting}
+                  loading={deleting}
+                  loadingText="Excluindo..."
                   onClick={() => setConfirmingDelete(true)}
                 >
-                  {deleting ? "Excluindo..." : "Excluir"}
+                  Excluir
                 </Button>
                 <Button type="button" onClick={() => setEditing(true)}>
                   Editar
@@ -1153,8 +1159,8 @@ export function CreateTaskModal({
             <Button type="button" variant="outline" size="sm" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Criando..." : "Criar tarefa"}
+            <Button type="submit" loading={saving} loadingText="Criando...">
+              Criar tarefa
             </Button>
           </div>
         </form>

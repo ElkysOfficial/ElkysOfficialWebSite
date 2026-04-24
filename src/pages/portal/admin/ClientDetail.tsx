@@ -1282,8 +1282,8 @@ function ContractClientForm({
             <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar contrato"}
+            <Button type="submit" loading={saving} loadingText="Salvando...">
+              Salvar contrato
             </Button>
           </div>
         </form>

@@ -504,8 +504,13 @@ export default function Leads() {
         </Field>
 
         <div className="flex items-center gap-2">
-          <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-            {saving ? "Salvando..." : "Salvar Lead"}
+          <Button
+            type="button"
+            onClick={() => void handleSave()}
+            loading={saving}
+            loadingText="Salvando..."
+          >
+            Salvar Lead
           </Button>
           <Button
             type="button"

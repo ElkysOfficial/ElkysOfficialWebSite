@@ -818,12 +818,14 @@ export default function AdminSupport() {
                           <Button
                             type="button"
                             size="sm"
-                            disabled={!replyBody.trim() || isSending}
+                            loading={isSending}
+                            loadingText="Enviando..."
+                            disabled={!replyBody.trim()}
                             onClick={() => void handleSendReply(ticket)}
                             className="gap-2"
                           >
                             <Send size={14} />
-                            {isSending ? "Enviando..." : "Enviar resposta"}
+                            Enviar resposta
                           </Button>
                         </div>
                       </div>

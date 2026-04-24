@@ -198,9 +198,9 @@ function TicketForm({
       </Field>
 
       <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={submitting} className="gap-2">
+        <Button type="submit" loading={submitting} loadingText="Enviando..." className="gap-2">
           <Send size={15} />
-          {submitting ? "Enviando..." : "Enviar solicitação"}
+          Enviar solicitação
         </Button>
       </div>
     </form>
@@ -799,12 +799,14 @@ export default function ClientSupport() {
                               <Button
                                 type="button"
                                 size="sm"
-                                disabled={!replyBody.trim() || isSending}
+                                loading={isSending}
+                                loadingText="Enviando..."
+                                disabled={!replyBody.trim()}
                                 onClick={() => void handleSendReply(ticket)}
                                 className="gap-2"
                               >
                                 <Send size={14} />
-                                {isSending ? "Enviando..." : "Enviar mensagem"}
+                                Enviar mensagem
                               </Button>
                             </div>
                           </div>
@@ -863,12 +865,11 @@ export default function ClientSupport() {
                                   <Button
                                     type="button"
                                     size="sm"
-                                    disabled={submittingRating === ticket.id}
+                                    loading={submittingRating === ticket.id}
+                                    loadingText="Enviando..."
                                     onClick={() => void handleSubmitRating(ticket)}
                                   >
-                                    {submittingRating === ticket.id
-                                      ? "Enviando..."
-                                      : "Enviar avaliacao"}
+                                    Enviar avaliacao
                                   </Button>
                                 </div>
                               </div>

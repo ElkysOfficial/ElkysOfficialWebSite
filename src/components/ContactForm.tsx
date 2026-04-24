@@ -217,22 +217,14 @@ const ContactForm = () => {
 
                     <Button
                       type="submit"
-                      disabled={isSubmitting}
+                      loading={isSubmitting}
+                      loadingText="Enviando..."
                       variant="gradient"
                       size="lg"
                       className="w-full min-h-[44px]"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          Enviar solicitação
-                          <Send className="ml-2 h-4 w-4" />
-                        </>
-                      )}
+                      Enviar solicitação
+                      <Send className="ml-2 h-4 w-4" />
                     </Button>
 
                     <p className="text-xs text-muted-foreground text-center">

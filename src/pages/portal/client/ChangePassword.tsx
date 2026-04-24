@@ -245,9 +245,11 @@ export default function ChangePassword() {
                   type="submit"
                   className="w-full"
                   size="lg"
-                  disabled={submitting || !allPassed || !confirmMatch}
+                  loading={submitting}
+                  loadingText="Salvando..."
+                  disabled={!allPassed || !confirmMatch}
                 >
-                  {submitting ? "Salvando..." : "Definir nova senha"}
+                  Definir nova senha
                 </Button>
               </div>
             </form>

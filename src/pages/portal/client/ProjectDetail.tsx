@@ -466,13 +466,12 @@ export default function ClientProjectDetail() {
                           <Button
                             type="button"
                             size="sm"
-                            disabled={
-                              respondingId === stepItem.id ||
-                              !(responseTexts[stepItem.id] ?? "").trim()
-                            }
+                            loading={respondingId === stepItem.id}
+                            loadingText="Enviando..."
+                            disabled={!(responseTexts[stepItem.id] ?? "").trim()}
                             onClick={() => void handleRespondToStep(stepItem.id)}
                           >
-                            {respondingId === stepItem.id ? "Enviando..." : "Enviar resposta"}
+                            Enviar resposta
                           </Button>
                         </div>
                       )}

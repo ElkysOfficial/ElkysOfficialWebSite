@@ -686,8 +686,13 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
           </div>
 
           <div className="flex justify-end">
-            <Button type="button" onClick={() => void handleSaveProfile()} disabled={saving}>
-              {saving ? "Salvando..." : "Salvar alterações"}
+            <Button
+              type="button"
+              onClick={() => void handleSaveProfile()}
+              loading={saving}
+              loadingText="Salvando..."
+            >
+              Salvar alterações
             </Button>
           </div>
         </CardContent>
@@ -887,8 +892,13 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={pwSubmitting || !pwAllPassed || !pwConfirmMatch}>
-                    {pwSubmitting ? "Salvando..." : "Alterar senha"}
+                  <Button
+                    type="submit"
+                    loading={pwSubmitting}
+                    loadingText="Salvando..."
+                    disabled={!pwAllPassed || !pwConfirmMatch}
+                  >
+                    Alterar senha
                   </Button>
                 </div>
               </form>
@@ -1150,13 +1160,11 @@ export default function PortalProfilePage({ portal }: PortalProfilePageProps) {
                       <Button
                         type="button"
                         onClick={() => void handleSaveAvatarEditor()}
-                        disabled={!canSaveAvatarEditor || avatarEditorSubmitting}
+                        loading={avatarEditorSubmitting}
+                        loadingText="Salvando..."
+                        disabled={!canSaveAvatarEditor}
                       >
-                        {avatarEditorSubmitting
-                          ? "Salvando..."
-                          : pendingAvatarFile
-                            ? "Salvar foto"
-                            : "Salvar enquadramento"}
+                        {pendingAvatarFile ? "Salvar foto" : "Salvar enquadramento"}
                       </Button>
                     </div>
                   </div>
