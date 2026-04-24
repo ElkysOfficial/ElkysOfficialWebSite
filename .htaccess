@@ -2,6 +2,30 @@
 # Elkys — Apache Configuration (Hostinger)
 # ====================================
 
+# ---- 0. Identificacao de bots legitimos ----
+# Sinaliza crawlers reconhecidos via flag ALLOW_BOT. Usado para:
+#  (a) garantir que nenhuma regra futura neste .htaccess bloqueie bots
+#  (b) pular hotlink/referer-empty checks (Googlebot envia Referer vazio)
+#  (c) manter telemetria — se um dia adicionarmos deny rules, o env var
+#      torna trivial excetuar os bots.
+# ATENCAO: User-Agent e spoofavel. Validacao real de Googlebot exige
+# reverse DNS (*.googlebot.com, *.google.com) — impossivel em .htaccess.
+# Se precisar de garantia forte, fazer no app ou via firewall do hPanel.
+<IfModule mod_setenvif.c>
+  SetEnvIfNoCase User-Agent "Googlebot"            ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Googlebot-Image"      ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Googlebot-Mobile"     ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "AdsBot-Google"        ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Mediapartners-Google" ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Bingbot"              ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "DuckDuckBot"          ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "facebookexternalhit"  ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Twitterbot"           ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "LinkedInBot"          ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "Slackbot"             ALLOW_BOT=1
+  SetEnvIfNoCase User-Agent "WhatsApp"             ALLOW_BOT=1
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
@@ -131,3 +155,33 @@ Options -Indexes
   Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
   Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
 </IfModule>
+
+# ====================================
+# Troubleshooting 403 Googlebot (runbook)
+# ====================================
+#
+# Se o Search Console reportar "Bloqueado devido a acesso proibido (403)"
+# OU se "Inspecionar URL > Testar URL ativo" retornar 403, este .htaccess
+# ja nao tem nenhuma regra bloqueante. O 403 vem de uma camada acima:
+#
+# 1. hPanel > Seguranca > WAF / Firewall do site
+#    - Desativar temporariamente para isolar o problema.
+#    - Se sumir, reabilitar adicionando whitelist dos IPs/ASN do Google:
+#      https://developers.google.com/search/apis/ipranges/googlebot.json
+#
+# 2. hPanel > Seguranca > Protecao Hotlink
+#    - Se ativada, pode bloquear requests sem Referer (Googlebot envia
+#      Referer vazio). Desativar ou incluir elkys.com.br na whitelist.
+#
+# 3. hPanel > Seguranca > "Force HTTPS" duplicado
+#    - Se a Hostinger estiver forcando HTTPS no nivel de painel E este
+#      .htaccess tambem, gera loop/chain que algumas versoes do Googlebot
+#      marcam como 403. Manter APENAS no .htaccess (regra acima, secao 1).
+#
+# 4. ModSecurity via suporte Hostinger
+#    - Regras OWASP CRS 3.x geram false positives em UAs nao-browser.
+#      Abrir ticket pedindo whitelist por UA contendo "Googlebot" ou
+#      whitelist por User-Agent exato do log de acesso.
+#
+# Validacao: curl -A "Googlebot/2.1 (+http://www.google.com/bot.html)" \
+#              -I https://elkys.com.br/ → deve retornar 200.
