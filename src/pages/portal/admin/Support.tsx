@@ -92,6 +92,10 @@ export default function AdminSupport() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [search, setSearch] = useUrlState("q", "");
   const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
+  // ?sla=risk: tickets com SLA vencido ou a menos de 24h do deadline, ainda
+  // em aberto ou em andamento. Mesma regra do badge do sidebar — clicar nele
+  // leva pra lista ja filtrada por risco de SLA.
+  const [slaFilter, setSlaFilter] = useUrlState<"all" | "risk">("sla", "all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const supportOnlyView = isSupport && !isAdmin;
@@ -351,7 +355,14 @@ export default function AdminSupport() {
       (t.client_email ?? "").toLowerCase().includes(q);
     const matchStatus =
       supportOnlyView || statusFilter === "all" ? true : t.status === statusFilter;
-    return matchSearch && matchStatus;
+    let matchSla = true;
+    if (slaFilter === "risk") {
+      const deadline = t.sla_deadline ? new Date(t.sla_deadline).getTime() : null;
+      const isOpen = t.status === "aberto" || t.status === "em_andamento";
+      const threshold = Date.now() + 24 * 3600 * 1000;
+      matchSla = !!deadline && isOpen && deadline < threshold;
+    }
+    return matchSearch && matchStatus && matchSla;
   });
 
   const TICKET_PAGE_SIZE = 15;
@@ -365,7 +376,7 @@ export default function AdminSupport() {
   // Reset page when filters change
   useEffect(() => {
     setTicketPage(0);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, slaFilter]);
 
   const openCount = tickets.filter((t) => t.status === "aberto").length;
   const inProgressCount = tickets.filter((t) => t.status === "em_andamento").length;
@@ -571,6 +582,21 @@ export default function AdminSupport() {
           </select>
         )}
       </div>
+
+      {slaFilter === "risk" && (
+        <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs">
+          <span className="text-warning">
+            Mostrando apenas tickets com SLA vencido ou a menos de 24h do prazo.
+          </span>
+          <button
+            type="button"
+            className="font-medium text-warning underline underline-offset-2 hover:no-underline"
+            onClick={() => setSlaFilter("all")}
+          >
+            Limpar filtro
+          </button>
+        </div>
+      )}
 
       {/* Ticket list */}
       {pageError ? (
