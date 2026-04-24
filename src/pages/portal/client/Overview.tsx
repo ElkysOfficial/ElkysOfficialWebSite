@@ -198,18 +198,72 @@ export default function ClientOverview() {
         />
       </div>
 
-      {/* ── Next charge detail ── */}
-      {nextCharge && (
-        <div className="rounded-xl border border-border/60 bg-card px-4 py-3 sm:px-5 sm:py-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            Detalhe da proxima cobrança
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Vencimento dia {formatPortalDateLong(nextCharge.due_date)}.
-            {nextCharge.description ? ` ${nextCharge.description}` : ""}
-          </p>
-        </div>
-      )}
+      {/* ── Next charge detail ──
+          Realca a cobranca conforme a urgencia:
+            - atrasado                => destructive (acao imediata)
+            - <= 7 dias pro vencimento => warning (entra na janela critica)
+            - > 7 dias                  => neutro (informacional)
+          Tom e CTA variam juntos — o botao so faz sentido quando algo
+          esta cobrando acao do cliente. */}
+      {nextCharge && (() => {
+        const isOverdue = nextCharge.status === "atrasado";
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(`${nextCharge.due_date}T00:00:00`);
+        const daysToDue = Math.round(
+          (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const isImminent = !isOverdue && daysToDue >= 0 && daysToDue <= 7;
+
+        const toneClasses = isOverdue
+          ? "border-destructive/30 bg-destructive/5"
+          : isImminent
+            ? "border-warning/30 bg-warning/5"
+            : "border-border/60 bg-card";
+        const eyebrowTone = isOverdue
+          ? "text-destructive"
+          : isImminent
+            ? "text-warning"
+            : "text-muted-foreground";
+        const urgencyLabel = isOverdue
+          ? `Pagamento em atraso`
+          : daysToDue === 0
+            ? "Vence hoje"
+            : isImminent
+              ? `Vence em ${daysToDue} dia${daysToDue === 1 ? "" : "s"}`
+              : null;
+
+        return (
+          <div
+            className={`rounded-xl border px-4 py-3 sm:px-5 sm:py-4 ${toneClasses}`}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p
+                  className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${eyebrowTone}`}
+                >
+                  {urgencyLabel ?? "Detalhe da proxima cobrança"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Vencimento dia {formatPortalDateLong(nextCharge.due_date)}.
+                  {nextCharge.description ? ` ${nextCharge.description}` : ""}
+                </p>
+              </div>
+              {(isOverdue || isImminent) && (
+                <Link to="/portal/cliente/financeiro" className="shrink-0">
+                  <Button
+                    size="sm"
+                    variant={isOverdue ? "default" : "outline"}
+                    className="w-full sm:w-auto"
+                  >
+                    Ver financeiro
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Projects section ── */}
       <section className="space-y-4">

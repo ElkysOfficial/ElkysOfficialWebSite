@@ -39,8 +39,12 @@ const Hero = () => {
           filter:blur e recalculado por frame durante animate-float e era
           visivel em Performance Insights como "Rendering tasks" contiguas.
           opacity-10 + tamanhos pequenos ja diluem o blob o suficiente pra
-          a reducao do raio ser imperceptivel a olho nu. */}
-      <div className="absolute inset-0 opacity-10 motion-reduce:hidden">
+          a reducao do raio ser imperceptivel a olho nu.
+          Ocultas em mobile (hidden sm:block): em mobile o layout e vertical e
+          os stats (text-accent) caem sobre a esfera bg-primary-light, derrubando
+          contraste de ~3.2:1 para ~1.5:1 — flagged pelo Lighthouse mobile.
+          Desktop mantem as esferas (layout horizontal, stats nao sobrepoem). */}
+      <div className="absolute inset-0 opacity-10 motion-reduce:hidden hidden sm:block">
         <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 bg-primary rounded-full blur-2xl sm:animate-float" />
         <div
           className="absolute top-40 right-20 w-20 h-20 sm:w-24 sm:h-24 bg-accent rounded-full blur-xl sm:animate-float"
@@ -134,15 +138,15 @@ const Hero = () => {
             {/* Estatísticas: grid 2 colunas mobile, flex horizontal desktop */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-6 md:gap-8 pt-6 md:pt-8">
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">20+</div>
                 <div className="text-xs md:text-sm text-white/80 mt-1">Projetos em produção</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">98%</div>
                 <div className="text-xs md:text-sm text-white/80 mt-1">Retenção de clientes</div>
               </div>
               <div className="text-center col-span-2 sm:col-span-1">
-                <div className="text-2xl md:text-3xl font-bold text-accent">2+</div>
+                <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">2+</div>
                 <div className="text-xs md:text-sm text-white/80 mt-1">Anos de operação</div>
               </div>
             </div>

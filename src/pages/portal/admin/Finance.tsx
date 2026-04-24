@@ -19,10 +19,12 @@ import {
 import { CheckCircle, Clock, FileText, Receipt, Search } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import AlertBanner from "@/components/portal/shared/AlertBanner";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import SurfaceStat from "@/components/portal/shared/SurfaceStat";
+import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 
 // Lazy-load sub-tabs: only the active tab downloads its code
 const AdminExpenses = lazy(() => import("@/pages/portal/admin/Expenses"));
@@ -516,6 +518,43 @@ function FinanceRevenueTab({
     await onReload();
   };
 
+  // Export da lista de cobrancas exibidas (respeita periodo + filtros de status
+  // e busca), nao apenas a pagina visivel.
+  const chargeExportColumns: ExportColumn[] = [
+    { key: "due_date", label: "Vencimento" },
+    { key: "client", label: "Cliente" },
+    { key: "description", label: "Descrição" },
+    { key: "amount", label: "Valor", align: "right" },
+    { key: "status", label: "Status" },
+    { key: "paid_at", label: "Pago em" },
+  ];
+  const chargeExportRows = filteredCharges.map((c) => {
+    const client = clientsMap[c.client_id];
+    return {
+      due_date: formatPortalDate(c.due_date),
+      client: client ? (getClientDisplayName(client) ?? "-") : "-",
+      description: c.description,
+      amount: formatBRL(Number(c.amount)),
+      status: CHARGE_STATUS_META[c.status]?.label ?? c.status,
+      paid_at: c.paid_at ? formatPortalDate(c.paid_at) : "-",
+    };
+  });
+  const handleChargeExportCSV = () =>
+    exportCSV({
+      title: "Cobrancas",
+      filename: "cobrancas",
+      columns: chargeExportColumns,
+      rows: chargeExportRows,
+    });
+  const handleChargeExportPDF = () =>
+    exportPDF({
+      title: "Relatorio de Cobrancas",
+      subtitle: `${filteredCharges.length} lancamento(s) | Total: ${formatBRL(filteredTotal)} | Recebido: ${formatBRL(filteredPaid)}`,
+      filename: "cobrancas",
+      columns: chargeExportColumns,
+      rows: chargeExportRows,
+    });
+
   if (loading) return <PortalLoading />;
 
   return (
@@ -531,9 +570,15 @@ function FinanceRevenueTab({
               : (PERIOD_PRESETS.find((p) => p.value === periodPreset)?.label ?? "Mês atual")}
           </p>
         </div>
-        <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
-          Ver projetos
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportMenu
+            onExportCSV={handleChargeExportCSV}
+            onExportPDF={handleChargeExportPDF}
+          />
+          <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
+            Ver projetos
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-3">

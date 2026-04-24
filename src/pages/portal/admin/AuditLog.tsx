@@ -6,6 +6,7 @@ import Pagination from "@/components/portal/shared/Pagination";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import useResponsivePageSize from "@/hooks/useResponsivePageSize";
+import { useUrlState, useUrlStateNullable } from "@/hooks/useUrlState";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import RelativeDate from "@/components/portal/shared/RelativeDate";
@@ -137,7 +138,10 @@ export default function AuditLog() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [entityFilter, setEntityFilter] = useState<EntityFilter>("all");
+  // entity + entityId na URL pra permitir deep-link (ex: ClientDetail → Ver
+  // historico → abre AuditLog ja filtrado por este cliente).
+  const [entityFilter, setEntityFilter] = useUrlState<EntityFilter>("entity", "all");
+  const [entityId] = useUrlStateNullable<string>("entityId");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = useResponsivePageSize(5, 8, 10);
@@ -199,9 +203,13 @@ export default function AuditLog() {
   }, [teamMembers]);
 
   const filtered = useMemo(() => {
-    if (entityFilter === "all") return logs;
-    return logs.filter((log) => getEntityFilterKey(log.entity_type) === entityFilter);
-  }, [logs, entityFilter]);
+    return logs.filter((log) => {
+      const matchesEntity =
+        entityFilter === "all" || getEntityFilterKey(log.entity_type) === entityFilter;
+      const matchesId = !entityId || log.entity_id === entityId;
+      return matchesEntity && matchesId;
+    });
+  }, [logs, entityFilter, entityId]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -262,6 +270,11 @@ export default function AuditLog() {
             ))}
           </div>
           <span className="text-xs text-muted-foreground">{filtered.length} registro(s)</span>
+          {entityId && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[11px] font-medium text-primary">
+              Filtrado por ID: {entityId.slice(0, 8)}...
+            </span>
+          )}
         </CardContent>
       </Card>
 

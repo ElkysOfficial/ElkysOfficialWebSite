@@ -12,6 +12,7 @@ import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { TicketStatus } from "@/lib/portal";
 import { TICKET_STATUS_META } from "@/lib/portal";
+import { getSlaBadge } from "@/lib/portal-sla";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
 /* ------------------------------------------------------------------ */
@@ -37,63 +38,6 @@ interface Ticket {
   sla_deadline: string | null;
 }
 
-type SlaBadge = {
-  label: string;
-  className: string;
-  title: string;
-};
-
-function getSlaBadge(
-  deadline: string | null,
-  status: TicketStatus,
-  firstResponseAt: string | null
-): SlaBadge | null {
-  if (!deadline) return null;
-  if (status === "resolvido" || status === "fechado") return null;
-
-  const deadlineMs = new Date(deadline).getTime();
-  const nowMs = Date.now();
-  const diffMs = deadlineMs - nowMs;
-  const diffHours = diffMs / 3600000;
-
-  const prefix = firstResponseAt ? "SLA resolução" : "SLA 1ª resposta";
-
-  if (diffMs < 0) {
-    const overdueHours = Math.abs(diffHours);
-    const label =
-      overdueHours < 24
-        ? `${Math.round(overdueHours)}h atrasado`
-        : `${Math.floor(overdueHours / 24)}d atrasado`;
-    return {
-      label: `SLA vencido · ${label}`,
-      className: "bg-destructive/10 text-destructive",
-      title: `${prefix} venceu há ${label}`,
-    };
-  }
-
-  if (diffHours < 2) {
-    return {
-      label: `SLA em ${Math.max(1, Math.round(diffHours * 60))}min`,
-      className: "bg-destructive/10 text-destructive",
-      title: `${prefix} vence em menos de 2h`,
-    };
-  }
-
-  if (diffHours < 24) {
-    return {
-      label: `SLA em ${Math.round(diffHours)}h`,
-      className: "bg-warning/10 text-warning",
-      title: `${prefix} vence hoje`,
-    };
-  }
-
-  const days = Math.floor(diffHours / 24);
-  return {
-    label: `SLA em ${days}d`,
-    className: "bg-success/10 text-success",
-    title: `${prefix} vence em ${days} dia(s)`,
-  };
-}
 
 interface TicketMessage {
   id: string;
@@ -148,6 +92,10 @@ export default function AdminSupport() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [search, setSearch] = useUrlState("q", "");
   const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
+  // ?sla=risk: tickets com SLA vencido ou a menos de 24h do deadline, ainda
+  // em aberto ou em andamento. Mesma regra do badge do sidebar — clicar nele
+  // leva pra lista ja filtrada por risco de SLA.
+  const [slaFilter, setSlaFilter] = useUrlState<"all" | "risk">("sla", "all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const supportOnlyView = isSupport && !isAdmin;
@@ -407,7 +355,14 @@ export default function AdminSupport() {
       (t.client_email ?? "").toLowerCase().includes(q);
     const matchStatus =
       supportOnlyView || statusFilter === "all" ? true : t.status === statusFilter;
-    return matchSearch && matchStatus;
+    let matchSla = true;
+    if (slaFilter === "risk") {
+      const deadline = t.sla_deadline ? new Date(t.sla_deadline).getTime() : null;
+      const isOpen = t.status === "aberto" || t.status === "em_andamento";
+      const threshold = Date.now() + 24 * 3600 * 1000;
+      matchSla = !!deadline && isOpen && deadline < threshold;
+    }
+    return matchSearch && matchStatus && matchSla;
   });
 
   const TICKET_PAGE_SIZE = 15;
@@ -421,7 +376,7 @@ export default function AdminSupport() {
   // Reset page when filters change
   useEffect(() => {
     setTicketPage(0);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, slaFilter]);
 
   const openCount = tickets.filter((t) => t.status === "aberto").length;
   const inProgressCount = tickets.filter((t) => t.status === "em_andamento").length;
@@ -627,6 +582,21 @@ export default function AdminSupport() {
           </select>
         )}
       </div>
+
+      {slaFilter === "risk" && (
+        <div className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs">
+          <span className="text-warning">
+            Mostrando apenas tickets com SLA vencido ou a menos de 24h do prazo.
+          </span>
+          <button
+            type="button"
+            className="font-medium text-warning underline underline-offset-2 hover:no-underline"
+            onClick={() => setSlaFilter("all")}
+          >
+            Limpar filtro
+          </button>
+        </div>
+      )}
 
       {/* Ticket list */}
       {pageError ? (

@@ -122,9 +122,15 @@
          Estrategia atual: SO triggers de interacao + setTimeout(60s) puro.
          60s e bem alem de qualquer trace Lighthouse mobile (~30s max), mantendo
          o gtag fora dos audits "Reduza JS nao usado" e "Tarefas longas".
-         Tradeoff: visitantes que entram, nao interagem e saem antes de 60s
-         nao sao trackados (~5% bounce muito rapido). Aceitavel pra landing
-         marketing onde 95%+ dos usuarios scrolam/tocam em segundos. dataLayer
+         Triggers REMOVIDOS e porque:
+         - 'scroll': ScrollToTop.tsx dispara window.scrollTo no mount, e o
+           Lighthouse rola a pagina para medir CLS/screenshot — ambos caem
+           dentro do trace e carregam gtag durante a auditoria.
+         - 'mousemove': em desktop real, dispara em milissegundos apos load
+           (movimento residual do cursor), anulando o lazy-load pra ~90%
+           dos visitantes desktop. Nao e so Lighthouse — e UX real.
+         Triggers mantidos exigem intencao explicita: pointerdown (mouse+touch+pen),
+         keydown (a11y/teclado), touchstart (mobile fallback). dataLayer
          pre-empilhado garante que eventos disparados antes do load nao se
          percam — gtag processa retroativamente quando carrega. -->
     <script>
@@ -134,7 +140,7 @@
       gtag('config', 'G-B9C917RCWM');
       (function deferGtag() {
         var loaded = false;
-        var triggers = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'mousemove'];
+        var triggers = ['pointerdown', 'keydown', 'touchstart'];
         function load() {
           if (loaded) return;
           loaded = true;
