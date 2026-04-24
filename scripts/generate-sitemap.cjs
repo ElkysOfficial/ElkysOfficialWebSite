@@ -1,87 +1,25 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
+const { SITE_URL, getRoutes } = require("./routes-seo.cjs");
 
-const BASE_URL = 'https://elkys.com.br';
-const DIST_DIR = path.join(__dirname, '../dist');
-const PUBLIC_DIR = path.join(__dirname, '../public');
-const SERVICES_FILE = path.join(__dirname, '../src/data/services.ts');
-
-/**
- * Extrai slugs de servicos do arquivo TS via regex. Evita depender de transpilar
- * TypeScript no build do sitemap (mantem o script simples em CommonJS).
- */
-function extractServiceSlugs() {
-  try {
-    const content = fs.readFileSync(SERVICES_FILE, 'utf8');
-    const regex = /slug:\s*["']([^"']+)["']/g;
-    const slugs = [];
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-      slugs.push(match[1]);
-    }
-    return slugs;
-  } catch (err) {
-    console.warn('⚠️  Nao foi possivel ler services.ts, sitemap sem rotas dinamicas:', err.message);
-    return [];
-  }
-}
-
-// Routes configuration (estaticas + derivadas de src/data/services.ts)
-const staticRoutes = [
-  {
-    path: '/',
-    changefreq: 'weekly',
-    priority: 1.0,
-  },
-  {
-    path: '/cases',
-    changefreq: 'monthly',
-    priority: 0.8,
-  },
-  {
-    path: '/como-trabalhamos',
-    changefreq: 'monthly',
-    priority: 0.7,
-  },
-  {
-    path: '/terms-of-service',
-    changefreq: 'yearly',
-    priority: 0.3,
-  },
-  {
-    path: '/privacy-policy',
-    changefreq: 'yearly',
-    priority: 0.3,
-  },
-  {
-    path: '/cookie-policy',
-    changefreq: 'yearly',
-    priority: 0.3,
-  },
-];
-
-const serviceRoutes = extractServiceSlugs().map((slug) => ({
-  path: `/servicos/${slug}`,
-  changefreq: 'monthly',
-  priority: 0.7,
-}));
-
-const routes = [...staticRoutes, ...serviceRoutes];
+const DIST_DIR = path.join(__dirname, "../dist");
+const PUBLIC_DIR = path.join(__dirname, "../public");
 
 function generateSitemap() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
+  const routes = getRoutes();
 
   const urlsXml = routes
     .map(
       (route) => `
   <url>
-    <loc>${BASE_URL}${route.path}</loc>
+    <loc>${SITE_URL}${route.path}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
   </url>`
     )
-    .join('');
+    .join("");
 
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -90,24 +28,21 @@ ${urlsXml}
 </urlset>
 `;
 
-  // Write to public directory (for development)
-  const publicPath = path.join(PUBLIC_DIR, 'sitemap.xml');
-  fs.writeFileSync(publicPath, sitemapContent, 'utf8');
-  console.log('✅ Sitemap gerado em:', publicPath);
+  const publicPath = path.join(PUBLIC_DIR, "sitemap.xml");
+  fs.writeFileSync(publicPath, sitemapContent, "utf8");
+  console.log("✅ Sitemap gerado em:", publicPath);
 
-  // Write to dist directory (for production)
   if (fs.existsSync(DIST_DIR)) {
-    const distPath = path.join(DIST_DIR, 'sitemap.xml');
-    fs.writeFileSync(distPath, sitemapContent, 'utf8');
-    console.log('✅ Sitemap copiado para dist:', distPath);
+    const distPath = path.join(DIST_DIR, "sitemap.xml");
+    fs.writeFileSync(distPath, sitemapContent, "utf8");
+    console.log("✅ Sitemap copiado para dist:", distPath);
   }
 }
 
-// Execute
 try {
   generateSitemap();
-  console.log('🎉 Sitemap gerado com sucesso!');
+  console.log("🎉 Sitemap gerado com sucesso!");
 } catch (error) {
-  console.error('❌ Erro ao gerar sitemap:', error);
+  console.error("❌ Erro ao gerar sitemap:", error);
   process.exit(1);
 }
