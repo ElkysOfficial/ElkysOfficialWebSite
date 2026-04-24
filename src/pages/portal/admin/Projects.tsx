@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Clock, FileText, PiggyBank, Search, Wallet, Zap } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import AlertBanner from "@/components/portal/shared/AlertBanner";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
@@ -18,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AlertDialog, Button, Card, CardContent, Input, buttonVariants, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import {
   PROJECT_STATUS_META,
   formatPortalDate,
@@ -361,6 +363,48 @@ export default function AdminProjects() {
   const visibleProjects = filteredProjects.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / PAGE_SIZE));
 
+  // Export respeitando filtros ativos (busca, status, tag).
+  const exportColumns: ExportColumn[] = [
+    { key: "name", label: "Projeto" },
+    { key: "client", label: "Cliente" },
+    { key: "status", label: "Status" },
+    { key: "stage", label: "Etapa atual" },
+    { key: "started_at", label: "Início" },
+    { key: "expected_delivery_date", label: "Entrega prevista" },
+    { key: "delivered_at", label: "Entregue em" },
+    { key: "solution_type", label: "Tipo" },
+  ];
+  const exportRows = filteredProjects.map((p) => {
+    const client = clientsMap[p.client_id];
+    return {
+      name: p.name,
+      client: client ? (getClientDisplayName(client) ?? "-") : "-",
+      status: PROJECT_STATUS_META[p.status]?.label ?? p.status,
+      stage: p.current_stage ?? "-",
+      started_at: p.started_at ? formatPortalDate(p.started_at) : "-",
+      expected_delivery_date: p.expected_delivery_date
+        ? formatPortalDate(p.expected_delivery_date)
+        : "-",
+      delivered_at: p.delivered_at ? formatPortalDate(p.delivered_at) : "-",
+      solution_type: p.solution_type ?? "-",
+    };
+  });
+  const handleExportCSV = () =>
+    exportCSV({
+      title: "Projetos",
+      filename: "projetos",
+      columns: exportColumns,
+      rows: exportRows,
+    });
+  const handleExportPDF = () =>
+    exportPDF({
+      title: "Relatorio de Projetos",
+      subtitle: `${filteredProjects.length} projeto(s)`,
+      filename: "projetos",
+      columns: exportColumns,
+      rows: exportRows,
+    });
+
   const hasActiveProjectFilters =
     search.trim() !== "" || statusFilter !== "all" || tagFilter !== null;
 
@@ -444,9 +488,12 @@ export default function AdminProjects() {
             {totalProjects !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link to="/portal/admin/projetos/novo" className={buttonVariants({ variant: "default" })}>
-          Novo projeto
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportMenu onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+          <Link to="/portal/admin/projetos/novo" className={buttonVariants({ variant: "default" })}>
+            Novo projeto
+          </Link>
+        </div>
       </div>
 
       {/* ── Alerta de projetos atrasados ── */}
