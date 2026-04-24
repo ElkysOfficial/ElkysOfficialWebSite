@@ -379,17 +379,17 @@ const Cases = () => {
                     style={{ animationDelay: "0.4s" }}
                   >
                     <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold text-accent">20+</div>
+                      <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">20+</div>
                       <div className="text-xs md:text-sm text-white/60 mt-1">
                         Projetos em produção
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold text-accent">4</div>
+                      <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">4</div>
                       <div className="text-xs md:text-sm text-white/60 mt-1">Tipos de solução</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold text-accent">98%</div>
+                      <div className="text-2xl md:text-3xl font-bold text-[hsl(180,75%,60%)]">98%</div>
                       <div className="text-xs md:text-sm text-white/60 mt-1">
                         Retenção de clientes
                       </div>
