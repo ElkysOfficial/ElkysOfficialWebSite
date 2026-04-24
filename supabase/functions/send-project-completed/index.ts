@@ -48,6 +48,9 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/cliente";
+    // Link público de avaliação (Google Reviews, Trustpilot, etc.). Quando
+    // configurado, adiciona um CTA secundário pedindo review pós-entrega.
+    const REVIEW_URL = Deno.env.get("REVIEW_URL") ?? "";
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -66,6 +69,29 @@ serve(async (req) => {
       });
     }
 
+    // Bloco de avaliação (NPS/review) — só renderiza se REVIEW_URL estiver
+    // configurada. Visualmente distinto do note padrão: borda lateral cyan
+    // para chamar atenção sem parecer cobrança.
+    const reviewBlock = REVIEW_URL
+      ? `
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"
+          style="margin:0 0 18px 0;border:1px solid #e5e7eb;border-left:3px solid #148f8f;">
+          <tr>
+            <td style="padding:14px 16px;">
+              <p style="margin:0 0 6px 0;font-size:14px;font-weight:700;color:#111111;">Sua opinião vale muito</p>
+              <p style="margin:0 0 10px 0;font-size:13px;color:#555555;line-height:20px;">
+                Se a entrega atendeu às suas expectativas, agradecemos se puder compartilhar
+                uma avaliação pública. Isso ajuda outros clientes a nos conhecerem.
+              </p>
+              <a href="${REVIEW_URL}" target="_blank"
+                style="display:inline-block;background-color:#148f8f;color:#ffffff;font-size:13px;font-weight:700;padding:10px 20px;text-decoration:none;">
+                Deixar avaliação
+              </a>
+            </td>
+          </tr>
+        </table>`
+      : "";
+
     const html = buildEmail({
       preheader: `O projeto "${project_name}" foi entregue e está concluído.`,
       title: "Entrega concluída",
@@ -73,7 +99,8 @@ serve(async (req) => {
       body: `
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">É com satisfação que informamos a conclusão e entrega do projeto <strong>${project_name}</strong>.</p>
         <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Todos os detalhes, documentos e histórico permanecem disponíveis no portal para consulta a qualquer momento.</p>
-        <p style="margin:0;font-size:14px;line-height:22px;color:#333333;">Agradecemos a confiança depositada em nosso trabalho e permanecemos à disposição para os próximos passos.</p>
+        <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Agradecemos a confiança depositada em nosso trabalho e permanecemos à disposição para os próximos passos.</p>
+        ${reviewBlock}
       `,
       highlight: {
         title: "Resumo da entrega",

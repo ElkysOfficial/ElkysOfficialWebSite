@@ -99,13 +99,68 @@ serve(async (req) => {
     const ticketUrl = `${PORTAL_URL}/suporte`;
     const greeting = getFormalGreeting(client ?? {});
 
+    // Destinatário do feedback NPS (resolvido). Recai em SUPPORT_FEEDBACK_EMAIL,
+    // depois REPLY_TO_EMAIL, e por último o fallback padrão.
+    const FEEDBACK_EMAIL =
+      Deno.env.get("SUPPORT_FEEDBACK_EMAIL") ??
+      Deno.env.get("REPLY_TO_EMAIL") ??
+      "contato@elkys.com.br";
+
     let bodyHtml = "";
     let noteHtml: string | undefined;
 
     if (event === "em_andamento") {
       bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Informamos que sua solicitação de suporte foi recebida e encontra-se em análise pela equipe Elkys. O retorno será enviado em breve.</p>`;
     } else if (event === "resolvido") {
-      bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi concluída e marcada como <strong>resolvida</strong>. Caso o problema persista ou surja uma nova dúvida, um novo ticket pode ser aberto a qualquer momento pelo portal.</p>`;
+      // Mailto pré-preenchido — o cliente responde com 1 clique e o feedback
+      // cai na caixa de suporte identificado pelo ticket_id no subject.
+      const feedbackSubjectYes = encodeURIComponent(
+        `[Feedback] Ticket resolvido — ${subject} (${ticket_id})`
+      );
+      const feedbackSubjectNo = encodeURIComponent(
+        `[Feedback] Ticket não resolveu — ${subject} (${ticket_id})`
+      );
+      const feedbackBodyYes = encodeURIComponent(
+        "Confirmo que a solicitação foi resolvida. Comentário (opcional):\n\n"
+      );
+      const feedbackBodyNo = encodeURIComponent(
+        "A solicitação ainda não foi resolvida. Detalhes do que permanece em aberto:\n\n"
+      );
+      const mailtoYes = `mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubjectYes}&body=${feedbackBodyYes}`;
+      const mailtoNo = `mailto:${FEEDBACK_EMAIL}?subject=${feedbackSubjectNo}&body=${feedbackBodyNo}`;
+
+      bodyHtml = `
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">Sua solicitação de suporte foi concluída e marcada como <strong>resolvida</strong>.</p>
+        <p style="margin:0 0 18px;font-size:14px;line-height:22px;color:#333333;">Caso o problema persista ou surja uma nova dúvida, um novo ticket pode ser aberto a qualquer momento pelo portal.</p>
+
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"
+          style="margin:0 0 18px 0;border:1px solid #e5e7eb;border-left:3px solid #148f8f;">
+          <tr>
+            <td style="padding:14px 16px;">
+              <p style="margin:0 0 10px 0;font-size:14px;font-weight:700;color:#111111;">Esta resposta resolveu sua solicitação?</p>
+              <p style="margin:0 0 12px 0;font-size:13px;color:#555555;line-height:20px;">
+                Seu retorno é importante para aprimorarmos continuamente o atendimento.
+              </p>
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding-right:8px;">
+                    <a href="${mailtoYes}" target="_blank"
+                      style="display:inline-block;background-color:#148f8f;color:#ffffff;font-size:13px;font-weight:700;padding:10px 18px;text-decoration:none;">
+                      Sim, resolveu
+                    </a>
+                  </td>
+                  <td>
+                    <a href="${mailtoNo}" target="_blank"
+                      style="display:inline-block;background-color:#ffffff;color:#148f8f;border:1px solid #148f8f;font-size:13px;font-weight:700;padding:9px 18px;text-decoration:none;">
+                      Ainda não
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      `;
     } else if (event === "reply") {
       bodyHtml = `<p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#333333;">A equipe Elkys registrou uma resposta ao seu ticket. A resposta completa está disponível no portal para continuidade do atendimento.</p>`;
       if (reply_body) {
