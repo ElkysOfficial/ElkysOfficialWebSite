@@ -12,6 +12,7 @@ import { Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { TicketStatus } from "@/lib/portal";
 import { TICKET_STATUS_META } from "@/lib/portal";
+import { getSlaBadge } from "@/lib/portal-sla";
 import { getSupabaseFunctionAuthHeaders } from "@/lib/supabase-functions";
 
 /* ------------------------------------------------------------------ */
@@ -37,63 +38,6 @@ interface Ticket {
   sla_deadline: string | null;
 }
 
-type SlaBadge = {
-  label: string;
-  className: string;
-  title: string;
-};
-
-function getSlaBadge(
-  deadline: string | null,
-  status: TicketStatus,
-  firstResponseAt: string | null
-): SlaBadge | null {
-  if (!deadline) return null;
-  if (status === "resolvido" || status === "fechado") return null;
-
-  const deadlineMs = new Date(deadline).getTime();
-  const nowMs = Date.now();
-  const diffMs = deadlineMs - nowMs;
-  const diffHours = diffMs / 3600000;
-
-  const prefix = firstResponseAt ? "SLA resolução" : "SLA 1ª resposta";
-
-  if (diffMs < 0) {
-    const overdueHours = Math.abs(diffHours);
-    const label =
-      overdueHours < 24
-        ? `${Math.round(overdueHours)}h atrasado`
-        : `${Math.floor(overdueHours / 24)}d atrasado`;
-    return {
-      label: `SLA vencido · ${label}`,
-      className: "bg-destructive/10 text-destructive",
-      title: `${prefix} venceu há ${label}`,
-    };
-  }
-
-  if (diffHours < 2) {
-    return {
-      label: `SLA em ${Math.max(1, Math.round(diffHours * 60))}min`,
-      className: "bg-destructive/10 text-destructive",
-      title: `${prefix} vence em menos de 2h`,
-    };
-  }
-
-  if (diffHours < 24) {
-    return {
-      label: `SLA em ${Math.round(diffHours)}h`,
-      className: "bg-warning/10 text-warning",
-      title: `${prefix} vence hoje`,
-    };
-  }
-
-  const days = Math.floor(diffHours / 24);
-  return {
-    label: `SLA em ${days}d`,
-    className: "bg-success/10 text-success",
-    title: `${prefix} vence em ${days} dia(s)`,
-  };
-}
 
 interface TicketMessage {
   id: string;
