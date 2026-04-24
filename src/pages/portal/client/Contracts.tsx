@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
-import { Button, Card, CardContent, cn } from "@/design-system";
+import { AlertDialog, Button, Card, CardContent, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -56,11 +57,14 @@ const PAYMENT_MODEL_LABEL: Record<string, string> = {
  */
 export default function ClientContracts() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [contracts, setContracts] = useState<ContractRow[]>([]);
   const [projects, setProjects] = useState<Map<string, ProjectRef>>(new Map());
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [confirmContract, setConfirmContract] = useState<ContractRow | null>(null);
+  const [successContract, setSuccessContract] = useState<ContractRow | null>(null);
 
   const loadContracts = useCallback(async () => {
     if (!user?.id) {
@@ -106,17 +110,13 @@ export default function ClientContracts() {
     void loadContracts();
   }, [loadContracts]);
 
-  async function handleAccept(contractId: string) {
+  async function handleAccept(contract: ContractRow) {
     if (acceptingId) return;
-    const confirmed = window.confirm(
-      "Confirma o aceite formal deste contrato? Esta ação é registrada e não pode ser desfeita."
-    );
-    if (!confirmed) return;
 
-    setAcceptingId(contractId);
+    setAcceptingId(contract.id);
     try {
       const { error } = await supabase.rpc("register_contract_acceptance", {
-        p_contract_id: contractId,
+        p_contract_id: contract.id,
         p_ip: null,
       });
       if (error) {
@@ -131,11 +131,12 @@ export default function ClientContracts() {
         severity: "action_required",
         target_roles: ["admin_super", "admin", "juridico"],
         entity_type: "project_contract",
-        entity_id: contractId,
+        entity_id: contract.id,
         action_url: "/portal/admin/contratos",
       });
 
-      toast.success("Contrato aceito.");
+      setConfirmContract(null);
+      setSuccessContract(contract);
       void loadContracts();
     } finally {
       setAcceptingId(null);
@@ -233,7 +234,7 @@ export default function ClientContracts() {
                     size="sm"
                     className="mt-2"
                     disabled={isAccepting}
-                    onClick={() => void handleAccept(contract.id)}
+                    onClick={() => setConfirmContract(contract)}
                   >
                     {isAccepting ? "Registrando..." : "Aceitar contrato"}
                   </Button>
@@ -243,6 +244,36 @@ export default function ClientContracts() {
           </Card>
         );
       })}
+
+      <AlertDialog
+        open={confirmContract !== null}
+        title="Confirmar aceite do contrato"
+        description="Ao aceitar, o contrato passa a vigorar formalmente e a execução e liberada. A ação fica registrada e não pode ser desfeita pelo portal — qualquer ajuste depois precisa passar pela equipe Elkys."
+        confirmLabel="Sim, aceitar contrato"
+        cancelLabel="Revisar novamente"
+        loading={acceptingId !== null}
+        loadingLabel="Registrando..."
+        onConfirm={() => confirmContract && void handleAccept(confirmContract)}
+        onCancel={() => setConfirmContract(null)}
+      />
+
+      <AlertDialog
+        open={successContract !== null}
+        title="Contrato aceito"
+        description={
+          successContract
+            ? `O aceite do contrato do projeto "${projects.get(successContract.project_id ?? "")?.name ?? "—"}" foi registrado. A equipe Elkys foi notificada e dará inicio a proxima etapa. Acompanhe os proximos passos no projeto.`
+            : ""
+        }
+        confirmLabel="Ver projeto"
+        cancelLabel="Fechar"
+        onConfirm={() => {
+          const projectId = successContract?.project_id;
+          setSuccessContract(null);
+          if (projectId) navigate(`/portal/cliente/projetos/${projectId}`);
+        }}
+        onCancel={() => setSuccessContract(null)}
+      />
     </div>
   );
 }
