@@ -43,7 +43,6 @@ const ClientContracts = lazy(() => import("./portal/client/Contracts"));
 const ClientProfile = lazy(() => import("./portal/client/Profile"));
 const ChangePassword = lazy(() => import("./portal/client/ChangePassword"));
 const AdminChangePassword = lazy(() => import("./portal/admin/ChangePassword"));
-const TermsAcceptance = lazy(() => import("./portal/client/TermsAcceptance"));
 
 const LoadingFallback = () => (
   <div className="flex min-h-screen items-center justify-center bg-background">
@@ -70,20 +69,6 @@ const PortalRoutes = () => (
       element={
         <ProtectedRoute requiredRole="cliente">
           <ChangePassword />
-        </ProtectedRoute>
-      }
-    />
-
-    {/* First-access terms/privacy acceptance (client only, after password change) */}
-    <Route
-      path="cliente/aceitar-termos"
-      element={
-        <ProtectedRoute requiredRole="cliente">
-          <MustChangePasswordGuard>
-            <Suspense fallback={<LoadingFallback />}>
-              <TermsAcceptance />
-            </Suspense>
-          </MustChangePasswordGuard>
         </ProtectedRoute>
       }
     />
