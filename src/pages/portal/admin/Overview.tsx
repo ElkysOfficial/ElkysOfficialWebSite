@@ -75,7 +75,7 @@ type DashboardTicket = Pick<
 >;
 
 type ProjectBucket = "negociacao" | "em_andamento" | "concluido" | "pausado";
-type PeriodOption = 3 | 6 | 9 | 12;
+type PeriodOption = 1 | 3 | 6 | 9 | 12;
 type Tone = "brand" | "success" | "warning" | "destructive" | "neutral";
 
 type MonthlyPoint = {
@@ -150,6 +150,7 @@ interface OverviewState {
     daysUntil: number;
   }[];
   forecast: {
+    months1: { recurring: number; scheduled: number; total: number };
     months3: { recurring: number; scheduled: number; total: number };
     months6: { recurring: number; scheduled: number; total: number };
     months9: { recurring: number; scheduled: number; total: number };
@@ -167,7 +168,7 @@ type UpcomingCharge = {
   daysUntilDue: number;
 };
 
-const PERIOD_OPTIONS: PeriodOption[] = [3, 6, 9, 12];
+const PERIOD_OPTIONS: PeriodOption[] = [1, 3, 6, 9, 12];
 const CHART_COLORS = {
   brand: "hsl(var(--elk-primary))",
   accent: "hsl(var(--elk-accent))",
@@ -224,6 +225,7 @@ const initialState: OverviewState = {
   upcomingCharges: [],
   upcomingDeliveries: [],
   forecast: {
+    months1: { recurring: 0, scheduled: 0, total: 0 },
     months3: { recurring: 0, scheduled: 0, total: 0 },
     months6: { recurring: 0, scheduled: 0, total: 0 },
     months9: { recurring: 0, scheduled: 0, total: 0 },
@@ -1265,6 +1267,7 @@ async function fetchDashboard(): Promise<OverviewState> {
   };
 
   const forecast = {
+    months1: computeForecast(1),
     months3: computeForecast(3),
     months6: computeForecast(6),
     months9: computeForecast(9),
@@ -1362,6 +1365,7 @@ export default function AdminOverview() {
   );
 
   const currentForecast = useMemo(() => {
+    if (forecastPeriod === 1) return summary.forecast.months1;
     if (forecastPeriod === 3) return summary.forecast.months3;
     if (forecastPeriod === 6) return summary.forecast.months6;
     if (forecastPeriod === 9) return summary.forecast.months9;
@@ -1783,7 +1787,7 @@ export default function AdminOverview() {
                       Previsao de receita
                     </p>
                     <div className="inline-flex shrink-0 self-start rounded-full border border-border/80 bg-background/80 p-1">
-                      {([3, 6, 9, 12] as const).map((m) => (
+                      {([1, 3, 6, 9, 12] as const).map((m) => (
                         <button
                           key={m}
                           type="button"
