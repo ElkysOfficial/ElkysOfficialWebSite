@@ -219,37 +219,34 @@ const PrivacyBody = () => (
               <tr>
                 <td className="border border-border p-3">Supabase</td>
                 <td className="border border-border p-3">
-                  Banco de dados, autenticacao, edge functions e armazenamento de arquivos dos
-                  portais
+                  Infraestrutura de aplicacao e armazenamento de dados dos portais
                 </td>
                 <td className="border border-border p-3">EUA</td>
               </tr>
               <tr>
                 <td className="border border-border p-3">EmailJS</td>
                 <td className="border border-border p-3">
-                  Entrega de e-mails do formulario de contato publico
+                  Servico de envio de e-mails de contato publico
                 </td>
                 <td className="border border-border p-3">EUA</td>
               </tr>
               <tr>
                 <td className="border border-border p-3">Resend</td>
                 <td className="border border-border p-3">
-                  Entrega de e-mails transacionais do portal (cobranca, contratos, notificacoes)
+                  Servico de envio de e-mails transacionais
                 </td>
                 <td className="border border-border p-3">EUA</td>
               </tr>
               <tr>
                 <td className="border border-border p-3">Google Analytics 4</td>
                 <td className="border border-border p-3">
-                  Estatisticas agregadas de uso do website (carregado apenas apos consentimento)
+                  Estatisticas agregadas de uso do website, mediante consentimento previo
                 </td>
                 <td className="border border-border p-3">EUA</td>
               </tr>
               <tr>
                 <td className="border border-border p-3">Hostinger</td>
-                <td className="border border-border p-3">
-                  Hospedagem dos arquivos estaticos do website
-                </td>
+                <td className="border border-border p-3">Hospedagem do website</td>
                 <td className="border border-border p-3">Brasil/UE</td>
               </tr>
             </tbody>
@@ -272,32 +269,23 @@ const PrivacyBody = () => (
       </h2>
       <div className="space-y-4 text-muted-foreground leading-relaxed">
         <p>
-          <strong>7.1.</strong> A Elkys adota medidas tecnicas e organizacionais proporcionais ao
-          risco, incluindo:
+          <strong>7.1.</strong> A Elkys adota medidas administrativas, tecnicas e organizacionais
+          adequadas ao risco para proteger os dados pessoais contra acesso nao autorizado,
+          alteracao, divulgacao, perda ou destruicao indevida, em conformidade com o Art. 46 da
+          LGPD.
         </p>
-        <ul className="list-none ml-6 space-y-1">
-          <li>(a) Criptografia em transito em todas as comunicacoes;</li>
-          <li>(b) Criptografia em repouso para os dados armazenados;</li>
-          <li>
-            (c) Controle de acesso baseado em papeis com aplicacao do principio do privilegio
-            minimo;
-          </li>
-          <li>
-            (d) Restricao de leitura/escrita por usuario autenticado nas camadas de aplicacao e
-            banco de dados;
-          </li>
-          <li>
-            (e) Autenticacao por credenciais com expiracao de sessao por inatividade e troca
-            obrigatoria de senha no primeiro acesso;
-          </li>
-          <li>(f) Trilha de auditoria das acoes administrativas;</li>
-          <li>(g) Monitoramento continuo e backups automaticos.</li>
-        </ul>
-        <p className="mt-4">
-          <strong>7.2.</strong> Apesar das medidas adotadas, nenhum sistema e completamente imune a
-          riscos. Em caso de incidente de seguranca que possa acarretar risco ou dano relevante aos
-          titulares, a Elkys notificara a ANPD e os titulares afetados no prazo razoavel previsto
-          pela LGPD.
+        <p>
+          <strong>7.2.</strong> Tais medidas incluem, entre outras, criptografia em transito e em
+          repouso, controle de acesso autenticado baseado em papeis, registros de auditoria das
+          acoes administrativas, gestao de incidentes e rotinas de backup. Detalhes tecnicos
+          adicionais podem ser fornecidos a clientes corporativos sob acordo de confidencialidade.
+        </p>
+        <p>
+          <strong>7.3.</strong> Nenhum metodo de transmissao ou armazenamento de informacoes e
+          completamente seguro. A Elkys nao garante seguranca absoluta, mas trabalha continuamente
+          para mitigar riscos e responder a incidentes. Na hipotese de incidente de seguranca que
+          possa acarretar risco ou dano relevante aos titulares, a Elkys comunicara a ANPD e os
+          titulares afetados no prazo previsto pelo Art. 48 da LGPD.
         </p>
       </div>
     </section>
