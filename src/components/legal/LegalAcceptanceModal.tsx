@@ -95,8 +95,9 @@ export default function LegalAcceptanceModal({ onAccepted }: LegalAcceptanceModa
 
   // Aciona o dialogo nativo de impressao do navegador, que oferece
   // "Salvar como PDF" como destino. Vetorial, com texto pesquisavel,
-  // sem dependencias adicionais. O conteudo impresso e somente a area
-  // marcada com .legal-print-area (definido em index.css via @media print).
+  // sem dependencias adicionais. O conteudo impresso e somente o no
+  // marcado com #legal-print-area (regras em styles/_utilities.scss
+  // sob body.printing-legal @media print).
   const handleDownloadPdf = () => {
     const printRoot = document.getElementById("legal-print-area");
     if (!printRoot) return;
