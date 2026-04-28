@@ -236,13 +236,21 @@ function landingCssAndPreloads(): Plugin {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const isMinified = process.env.MINIFY === "true";
+  const isBuild = command === "build";
 
   return {
     server: {
       host: "::",
       port: 8080,
+    },
+    // Em build de producao removemos chamadas a console.* e debugger
+    // antes do empacotamento para evitar que logs de desenvolvimento
+    // exponham dados em prod. No modo terser (build:min) o drop tambem
+    // ocorre via terserOptions.compress.drop_console abaixo.
+    esbuild: {
+      drop: isBuild && !isMinified ? ["console", "debugger"] : [],
     },
     plugins: [
       react(),
