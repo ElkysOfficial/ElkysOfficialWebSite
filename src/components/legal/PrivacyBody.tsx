@@ -276,26 +276,22 @@ const PrivacyBody = () => (
           risco, incluindo:
         </p>
         <ul className="list-none ml-6 space-y-1">
-          <li>(a) Criptografia em transito (TLS/HTTPS) em todas as comunicacoes;</li>
+          <li>(a) Criptografia em transito em todas as comunicacoes;</li>
+          <li>(b) Criptografia em repouso para os dados armazenados;</li>
           <li>
-            (b) Criptografia em repouso fornecida pelo provedor de banco de dados
-            (Supabase/PostgreSQL);
+            (c) Controle de acesso baseado em papeis com aplicacao do principio do privilegio
+            minimo;
           </li>
           <li>
-            (c) Controle de acesso baseado em papeis (RBAC) com privilegio minimo no portal
-            administrativo;
+            (d) Restricao de leitura/escrita por usuario autenticado nas camadas de aplicacao e
+            banco de dados;
           </li>
           <li>
-            (d) Politicas de seguranca a nivel de linha (Row-Level Security) no banco de dados;
-          </li>
-          <li>
-            (e) Autenticacao por e-mail/senha com timeout de inatividade de 30 minutos e troca
+            (e) Autenticacao por credenciais com expiracao de sessao por inatividade e troca
             obrigatoria de senha no primeiro acesso;
           </li>
-          <li>
-            (f) Trilha de auditoria persistente das acoes administrativas com snapshot antes/depois;
-          </li>
-          <li>(g) Monitoramento e backups automaticos do banco de dados.</li>
+          <li>(f) Trilha de auditoria das acoes administrativas;</li>
+          <li>(g) Monitoramento continuo e backups automaticos.</li>
         </ul>
         <p className="mt-4">
           <strong>7.2.</strong> Apesar das medidas adotadas, nenhum sistema e completamente imune a
