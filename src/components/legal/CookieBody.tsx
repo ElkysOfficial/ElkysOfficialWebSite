@@ -125,26 +125,20 @@ const CookieBody = () => (
 
     <section className="mb-10">
       <h2 className="text-xl font-semibold mb-4 text-foreground border-l-4 border-primary pl-4">
-        5. Itens Armazenados (Inventario Detalhado)
+        5. Itens Armazenados por Categoria
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-muted/50">
               <th className="border border-border p-3 text-left font-semibold text-foreground">
-                Nome
+                Categoria
               </th>
               <th className="border border-border p-3 text-left font-semibold text-foreground">
-                Tipo
-              </th>
-              <th className="border border-border p-3 text-left font-semibold text-foreground">
-                Provedor
+                Origem
               </th>
               <th className="border border-border p-3 text-left font-semibold text-foreground">
                 Finalidade
-              </th>
-              <th className="border border-border p-3 text-left font-semibold text-foreground">
-                Categoria
               </th>
               <th className="border border-border p-3 text-left font-semibold text-foreground">
                 Duracao
@@ -153,82 +147,37 @@ const CookieBody = () => (
           </thead>
           <tbody className="text-muted-foreground">
             <tr>
-              <td className="border border-border p-3">cookie-consent</td>
-              <td className="border border-border p-3">localStorage</td>
-              <td className="border border-border p-3">Elkys (1a parte)</td>
+              <td className="border border-border p-3">Sessao e seguranca</td>
+              <td className="border border-border p-3">Primeira parte</td>
               <td className="border border-border p-3">
-                Registra a escolha do usuario (aceito/recusado)
+                Manter o usuario autenticado nos portais e proteger o fluxo de login
               </td>
-              <td className="border border-border p-3">Necessario</td>
-              <td className="border border-border p-3">Persistente</td>
-            </tr>
-            <tr>
-              <td className="border border-border p-3">cookie-consent-date</td>
-              <td className="border border-border p-3">localStorage</td>
-              <td className="border border-border p-3">Elkys (1a parte)</td>
-              <td className="border border-border p-3">
-                Carimba data/hora do consentimento (auditoria)
-              </td>
-              <td className="border border-border p-3">Necessario</td>
-              <td className="border border-border p-3">Persistente</td>
-            </tr>
-            <tr>
-              <td className="border border-border p-3">Token de sessao</td>
-              <td className="border border-border p-3">Armazenamento local</td>
-              <td className="border border-border p-3">Provedor de identidade</td>
-              <td className="border border-border p-3">
-                Manter a sessao autenticada nos portais admin e cliente
-              </td>
-              <td className="border border-border p-3">Necessario</td>
-              <td className="border border-border p-3">
-                Sessao (renovado automaticamente durante o uso)
-              </td>
-            </tr>
-            <tr>
-              <td className="border border-border p-3">Verificador de seguranca</td>
-              <td className="border border-border p-3">Armazenamento local</td>
-              <td className="border border-border p-3">Provedor de identidade</td>
-              <td className="border border-border p-3">
-                Auxilia o fluxo de login contra ataques de interceptacao
-              </td>
-              <td className="border border-border p-3">Necessario</td>
               <td className="border border-border p-3">Sessao</td>
             </tr>
             <tr>
-              <td className="border border-border p-3">theme</td>
-              <td className="border border-border p-3">localStorage</td>
-              <td className="border border-border p-3">Elkys (1a parte)</td>
+              <td className="border border-border p-3">Preferencias e consentimento</td>
+              <td className="border border-border p-3">Primeira parte</td>
               <td className="border border-border p-3">
-                Preferencia de tema visual (claro/escuro/sistema)
+                Registrar a escolha de cookies, tema visual e demais preferencias do usuario
               </td>
-              <td className="border border-border p-3">Funcional</td>
               <td className="border border-border p-3">Persistente</td>
             </tr>
             <tr>
-              <td className="border border-border p-3">_ga</td>
-              <td className="border border-border p-3">Cookie</td>
-              <td className="border border-border p-3">Google Analytics 4 (3a parte)</td>
+              <td className="border border-border p-3">Analise de uso (Google Analytics)</td>
+              <td className="border border-border p-3">Terceiros</td>
               <td className="border border-border p-3">
-                Identificador de cliente para estatisticas agregadas
+                Estatisticas agregadas de uso do website, mediante consentimento previo
               </td>
-              <td className="border border-border p-3">Analitico</td>
-              <td className="border border-border p-3">2 anos</td>
-            </tr>
-            <tr>
-              <td className="border border-border p-3">_ga_&lt;ID&gt;</td>
-              <td className="border border-border p-3">Cookie</td>
-              <td className="border border-border p-3">Google Analytics 4 (3a parte)</td>
-              <td className="border border-border p-3">Persistencia de estado de sessao GA4</td>
-              <td className="border border-border p-3">Analitico</td>
-              <td className="border border-border p-3">2 anos</td>
+              <td className="border border-border p-3">Ate 2 anos</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p className="text-sm mt-4">
-        <strong>Observacao:</strong> os itens armazenados no proprio navegador nao sao tecnicamente
-        cookies, mas estao listados aqui por possuirem funcao equivalente e por transparencia. Os
-        nomes tecnicos exatos podem variar conforme a versao do provedor utilizado.
+        <strong>Observacao:</strong> a tabela acima descreve as categorias funcionais de itens
+        armazenados no navegador. Itens em armazenamento local nao sao tecnicamente cookies, mas
+        estao agrupados aqui por exercerem funcao equivalente. Os nomes tecnicos exatos podem variar
+        conforme a versao dos provedores utilizados.
       </p>
     </section>
 
