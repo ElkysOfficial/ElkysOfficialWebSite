@@ -238,3 +238,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+// --- Impressao da tela de aceite legal ---
+// Quando o usuario clica em "Baixar PDF", aplicamos a classe
+// .printing-legal no body antes de chamar window.print(). O navegador
+// gera PDF vetorial nativo (texto pesquisavel, peso baixo) contendo
+// somente o documento legal — o restante da UI fica oculto.
+@media print {
+  body.printing-legal * {
+    visibility: hidden;
+  }
+
+  body.printing-legal #legal-print-area,
+  body.printing-legal #legal-print-area * {
+    visibility: visible;
+  }
+
+  body.printing-legal #legal-print-area {
+    position: absolute;
+    inset: 0;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  // Forca cores de tinta-amigaveis no documento impresso.
+  body.printing-legal #legal-print-area .bg-muted\/30,
+  body.printing-legal #legal-print-area .bg-muted\/50,
+  body.printing-legal #legal-print-area .bg-primary\/5 {
+    background: transparent !important;
+    border: 1px solid #ccc !important;
+  }
+
+  body.printing-legal #legal-print-area a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+}
