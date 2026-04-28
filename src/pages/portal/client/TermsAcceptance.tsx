@@ -50,22 +50,26 @@ export default function TermsAcceptance() {
   const handleAccept = async () => {
     if (!user || !canSubmit) return;
     setSubmitting(true);
-    const now = new Date().toISOString();
 
-    const { error } = await supabase
-      .from("clients")
-      .update({
-        terms_accepted_at: now,
-        terms_version: LEGAL_VERSION,
-        privacy_accepted_at: now,
-        privacy_version: LEGAL_VERSION,
-      } as never)
-      .eq("user_id", user.id);
+    // Usa RPC SECURITY DEFINER em vez de UPDATE direto: o UPDATE direto
+    // era silenciosamente bloqueado por RLS (sem erro, sem linhas
+    // afetadas), causando loop de redirecionamento.
+    const { data, error } = await supabase.rpc(
+      "client_accept_terms" as never,
+      {
+        p_version: LEGAL_VERSION,
+      } as never
+    );
 
     setSubmitting(false);
 
     if (error) {
       toast.error("Nao foi possivel registrar o aceite. Tente novamente.");
+      return;
+    }
+
+    if (data !== true) {
+      toast.error("Nao foi possivel localizar seu cadastro de cliente. Contate o suporte.");
       return;
     }
 
