@@ -173,25 +173,23 @@ const CookieBody = () => (
               <td className="border border-border p-3">Persistente</td>
             </tr>
             <tr>
-              <td className="border border-border p-3">sb-&lt;projeto&gt;-auth-token</td>
-              <td className="border border-border p-3">localStorage</td>
-              <td className="border border-border p-3">Supabase (1a parte)</td>
+              <td className="border border-border p-3">Token de sessao</td>
+              <td className="border border-border p-3">Armazenamento local</td>
+              <td className="border border-border p-3">Provedor de identidade</td>
               <td className="border border-border p-3">
-                Token de sessao autenticada nos portais admin e cliente
+                Manter a sessao autenticada nos portais admin e cliente
               </td>
               <td className="border border-border p-3">Necessario</td>
               <td className="border border-border p-3">
-                Sessao (renovado automaticamente; expira em 30 min de inatividade)
+                Sessao (renovado automaticamente durante o uso)
               </td>
             </tr>
             <tr>
+              <td className="border border-border p-3">Verificador de seguranca</td>
+              <td className="border border-border p-3">Armazenamento local</td>
+              <td className="border border-border p-3">Provedor de identidade</td>
               <td className="border border-border p-3">
-                sb-&lt;projeto&gt;-auth-token-code-verifier
-              </td>
-              <td className="border border-border p-3">localStorage</td>
-              <td className="border border-border p-3">Supabase (1a parte)</td>
-              <td className="border border-border p-3">
-                Verificador PKCE durante o fluxo de login (seguranca)
+                Auxilia o fluxo de login contra ataques de interceptacao
               </td>
               <td className="border border-border p-3">Necessario</td>
               <td className="border border-border p-3">Sessao</td>
@@ -228,10 +226,9 @@ const CookieBody = () => (
         </table>
       </div>
       <p className="text-sm mt-4">
-        <strong>Observacao:</strong> os itens em localStorage nao sao tecnicamente cookies, mas
-        estao listados aqui por possuirem funcao equivalente e por transparencia. A Elkys nao
-        utiliza <em>_gid</em>, <em>_gat</em> nem cookies do antigo Google Analytics Universal
-        (descontinuado).
+        <strong>Observacao:</strong> os itens armazenados no proprio navegador nao sao tecnicamente
+        cookies, mas estao listados aqui por possuirem funcao equivalente e por transparencia. Os
+        nomes tecnicos exatos podem variar conforme a versao do provedor utilizado.
       </p>
     </section>
 
