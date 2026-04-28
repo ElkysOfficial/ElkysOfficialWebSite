@@ -1326,10 +1326,14 @@ export default function AdminOverview() {
   } = useQuery({
     queryKey: ["admin-dashboard"],
     queryFn: fetchDashboard,
+    // Politica de refetch: foco da janela nao dispara refetch (evita
+    // triple-fetch quando o usuario alterna abas). Atualizacao periodica
+    // de 2min cobre o caso de painel aberto em segundo plano. Caso o
+    // usuario precise de dado fresco imediato, usar o botao "atualizar".
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: "always",
-    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 2 * 60 * 1000,
     retry: 1,
   });
 
