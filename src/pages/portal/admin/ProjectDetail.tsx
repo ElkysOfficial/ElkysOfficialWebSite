@@ -323,11 +323,12 @@ function AddProjectDocumentForm({
         </Field>
         <Button
           type="button"
-          disabled={submitting}
+          loading={submitting}
+          loadingText="Adicionando..."
           onClick={() => void handleAdd()}
           className="min-h-[44px]"
         >
-          {submitting ? "Adicionando..." : "Adicionar"}
+          Adicionar
         </Button>
       </div>
     </div>
@@ -1996,8 +1997,13 @@ export default function AdminProjectDetail() {
           <p className="text-xs text-muted-foreground mt-1">Visivel apenas para administradores.</p>
         </Field>
 
-        <Button type="button" disabled={saving} onClick={() => void handleSaveProject()}>
-          {saving ? "Salvando..." : "Salvar atualizacao"}
+        <Button
+          type="button"
+          loading={saving}
+          loadingText="Salvando..."
+          onClick={() => void handleSaveProject()}
+        >
+          Salvar atualizacao
         </Button>
       </CardContent>
     </Card>
@@ -2261,10 +2267,11 @@ export default function AdminProjectDetail() {
                         <Button
                           type="button"
                           size="sm"
-                          disabled={stepSavingId === step.id}
+                          loading={stepSavingId === step.id}
+                          loadingText="Salvando..."
                           onClick={() => void handleSaveNextStep(step.id)}
                         >
-                          {stepSavingId === step.id ? "Salvando..." : "Salvar"}
+                          Salvar
                         </Button>
                       </div>
                     </div>
@@ -2457,10 +2464,11 @@ export default function AdminProjectDetail() {
                     <Button
                       type="button"
                       size="sm"
-                      disabled={creatingStep}
+                      loading={creatingStep}
+                      loadingText="Adicionando..."
                       onClick={() => void handleCreateNextStep()}
                     >
-                      {creatingStep ? "Adicionando..." : "Adicionar pendência"}
+                      Adicionar pendência
                     </Button>
                   </div>
                 </div>
@@ -2915,9 +2923,11 @@ export default function AdminProjectDetail() {
                     type="button"
                     size="sm"
                     disabled={savingInstallments}
+                    loading={savingInstallmentId === installment.id}
+                    loadingText="Salvando..."
                     onClick={() => void handleSaveInstallments(installment.id)}
                   >
-                    {savingInstallmentId === installment.id ? "Salvando..." : "Salvar"}
+                    Salvar
                   </Button>
                 </div>
               </div>
@@ -3060,6 +3070,13 @@ export default function AdminProjectDetail() {
               </Link>
             ) : null}
             <CopyLinkButton />
+            <Link
+              to={`/portal/admin/audit-log?entity=project&entityId=${project.id}`}
+              className={buttonVariants({ variant: "outline" })}
+              title="Ver historico de alteracoes deste projeto"
+            >
+              Ver histórico
+            </Link>
             <Link to="/portal/admin/projetos" className={buttonVariants({ variant: "outline" })}>
               Voltar
             </Link>

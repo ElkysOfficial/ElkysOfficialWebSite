@@ -1283,8 +1283,13 @@ export default function AdminProjectCreate() {
                 Proximo
               </Button>
             ) : (
-              <Button type="button" disabled={submitting} onClick={() => void handleSubmit()}>
-                {submitting ? "Criando..." : "Criar projeto"}
+              <Button
+                type="button"
+                loading={submitting}
+                loadingText="Criando..."
+                onClick={() => void handleSubmit()}
+              >
+                Criar projeto
               </Button>
             )}
           </div>

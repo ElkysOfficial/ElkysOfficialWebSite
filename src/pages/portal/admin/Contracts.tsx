@@ -6,13 +6,16 @@ import AddContractLinkForm from "@/components/portal/contract/AddContractLinkFor
 import ContractActionsButtons from "@/components/portal/contract/ContractActionsButtons";
 import ContractVersionHistory from "@/components/portal/contract/ContractVersionHistory";
 import AlertBanner from "@/components/portal/shared/AlertBanner";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+import { useUrlState } from "@/hooks/useUrlState";
 import { Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import { formatBRL } from "@/lib/masks";
 import { formatPortalDate, getClientDisplayName } from "@/lib/portal";
 import { FileText, Shield, TrendingUp } from "@/assets/icons";
@@ -103,7 +106,10 @@ export default function Contracts() {
   const [contextExpandedId, setContextExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  // useUrlState em status: sidebar badge (contracts:validating) aponta pra
+  // /portal/admin/contratos?status=em_validacao, entao a URL precisa alimentar
+  // o filtro. Busca continua em useState — nao faz sentido viver na URL.
+  const [statusFilter, setStatusFilter] = useUrlState<StatusFilter>("status", "all");
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -276,6 +282,46 @@ export default function Contracts() {
     };
   }, [contracts]);
 
+  // Export da lista filtrada (respeitando busca + chip de status atual).
+  const exportColumns: ExportColumn[] = [
+    { key: "project", label: "Projeto" },
+    { key: "client", label: "Cliente" },
+    { key: "version", label: "Versão", align: "right" },
+    { key: "status", label: "Status" },
+    { key: "total", label: "Valor", align: "right" },
+    { key: "signed_at", label: "Assinado em" },
+    { key: "starts_at", label: "Vigência início" },
+    { key: "ends_at", label: "Vigência fim" },
+  ];
+  const exportRows = filtered.map((c) => {
+    const clientRef = clients.get(c.client_id);
+    return {
+      project: projects.get(c.project_id ?? "")?.name ?? "-",
+      client: clientRef ? (getClientDisplayName(clientRef) ?? "-") : "-",
+      version: String(c.version_no),
+      status: STATUS_META[c.status ?? ""]?.label ?? c.status ?? "-",
+      total: formatBRL(Number(c.total_amount ?? 0)),
+      signed_at: c.signed_at ? formatPortalDate(c.signed_at) : "-",
+      starts_at: c.starts_at ? formatPortalDate(c.starts_at) : "-",
+      ends_at: c.ends_at ? formatPortalDate(c.ends_at) : "-",
+    };
+  });
+  const handleExportCSV = () =>
+    exportCSV({
+      title: "Contratos",
+      filename: "contratos",
+      columns: exportColumns,
+      rows: exportRows,
+    });
+  const handleExportPDF = () =>
+    exportPDF({
+      title: "Relatorio de Contratos",
+      subtitle: `${filtered.length} contrato(s) | Valor total: ${formatBRL(totals.total)}`,
+      filename: "contratos",
+      columns: exportColumns,
+      rows: exportRows,
+    });
+
   if (loading) return <PortalLoading />;
 
   if (error) {
@@ -379,6 +425,9 @@ export default function Contracts() {
               {status === "all" ? "Todos" : (STATUS_META[status]?.label ?? status)}
             </button>
           ))}
+        </div>
+        <div className="sm:ml-auto">
+          <ExportMenu onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
         </div>
       </div>
 

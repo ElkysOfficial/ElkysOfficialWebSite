@@ -118,9 +118,11 @@ export default function ForgotPassword() {
                       type="submit"
                       className="w-full"
                       size="lg"
-                      disabled={submitting || !email.trim()}
+                      loading={submitting}
+                      loadingText="Enviando..."
+                      disabled={!email.trim()}
                     >
-                      {submitting ? "Enviando..." : "Enviar link de redefinição"}
+                      Enviar link de redefinição
                     </Button>
                   </div>
                 </form>

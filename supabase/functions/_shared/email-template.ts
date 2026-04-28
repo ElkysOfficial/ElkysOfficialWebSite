@@ -700,8 +700,20 @@ export async function sendEmail(opts: {
   replyTo?: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  const FROM_EMAIL = Deno.env.get("FROM_EMAIL") ?? "noreply@elkys.com.br";
+  // Fallback com display name: mailbox providers (Gmail/Outlook) mostram "Elkys"
+  // no lugar do endereco cru quando o From vem como "Nome <email@dominio>".
+  // O secret FROM_EMAIL no Supabase deve estar configurado com esse formato;
+  // esse fallback evita quebra caso o secret seja resetado.
+  const FROM_EMAIL = Deno.env.get("FROM_EMAIL") ?? "Elkys <noreply@elkys.com.br>";
   const DEFAULT_REPLY_TO = Deno.env.get("REPLY_TO_EMAIL") ?? "contato@elkys.com.br";
+  // List-Unsubscribe (RFC 2369 + RFC 8058 one-click).
+  // Gmail/Outlook exigem esse header em bulk senders para manter boa reputacao
+  // e expor o botao nativo de descadastro no cabecalho do email — sem ele,
+  // reports de spam caem direto na pontuacao do dominio. O endpoint mailto eh
+  // aceitavel como ponto de entrada; a implementacao de opt-out efetivo (honrar
+  // o pedido, remover da fila) fica com o time que recebe o inbox.
+  const UNSUBSCRIBE_MAILTO =
+    Deno.env.get("UNSUBSCRIBE_EMAIL") ?? "unsubscribe@elkys.com.br";
 
   if (!RESEND_API_KEY) {
     console.error("[sendEmail] RESEND_API_KEY not configured");
@@ -720,6 +732,10 @@ export async function sendEmail(opts: {
       subject: opts.subject,
       html: opts.html,
       reply_to: opts.replyTo ?? DEFAULT_REPLY_TO,
+      headers: {
+        "List-Unsubscribe": `<mailto:${UNSUBSCRIBE_MAILTO}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      },
     }),
   });
 

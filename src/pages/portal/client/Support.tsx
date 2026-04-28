@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Headphones, Mail, Phone, Send } from "@/assets/icons";
+import { Clock, Headphones, Mail, Phone, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
 import { Button, Card, CardContent, Field, Input, Label, cn } from "@/design-system";
@@ -10,6 +10,7 @@ import { CONTACT } from "@/constants";
 import { supabase } from "@/integrations/supabase/client";
 import type { TicketStatus } from "@/lib/portal";
 import { TICKET_STATUS_META } from "@/lib/portal";
+import { formatSlaPromise, getSlaBadge } from "@/lib/portal-sla";
 import { loadProjectsForClient, resolveClientForUser } from "@/lib/portal-data";
 
 /* ------------------------------------------------------------------ */
@@ -25,6 +26,8 @@ interface Ticket {
   project_name?: string;
   rating: number | null;
   rating_feedback: string | null;
+  sla_deadline: string | null;
+  first_response_at: string | null;
 }
 
 interface TicketMessage {
@@ -195,9 +198,9 @@ function TicketForm({
       </Field>
 
       <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={submitting} className="gap-2">
+        <Button type="submit" loading={submitting} loadingText="Enviando..." className="gap-2">
           <Send size={15} />
-          {submitting ? "Enviando..." : "Enviar solicitação"}
+          Enviar solicitação
         </Button>
       </div>
     </form>
@@ -215,6 +218,7 @@ export default function ClientSupport() {
   const [activeChannel, setActiveChannel] = useState<Channel>("ticket");
   const [clientId, setClientId] = useState<string | null>(null);
   const [clientName, setClientName] = useState<string>("Cliente");
+  const [slaHours, setSlaHours] = useState<number | null>(null);
   const [projectOptions, setProjectOptions] = useState<{ id: string; name: string }[]>([]);
   const [loadingClientId, setLoadingClientId] = useState(true);
 
@@ -300,6 +304,8 @@ export default function ClientSupport() {
         project_name: project?.name || undefined,
         rating: (t["rating"] as number | null) ?? null,
         rating_feedback: (t["rating_feedback"] as string | null) ?? null,
+        sla_deadline: (t["sla_deadline"] as string | null) ?? null,
+        first_response_at: (t["first_response_at"] as string | null) ?? null,
       };
     });
 
@@ -332,6 +338,7 @@ export default function ClientSupport() {
 
       setClientId(clientRes.client.id);
       setClientName(name);
+      setSlaHours(clientRes.client.sla_hours ?? null);
       setProjectOptions(
         projectsRes.projects.map((project) => ({ id: project.id, name: project.name }))
       );
@@ -546,6 +553,17 @@ export default function ClientSupport() {
                 </p>
               </div>
 
+              <div
+                className="flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2"
+                role="note"
+              >
+                <Clock size={15} className="mt-0.5 shrink-0 text-primary" />
+                <p className="text-xs leading-relaxed text-foreground">
+                  <span className="font-semibold">SLA de resposta:</span>{" "}
+                  <span className="text-muted-foreground">{formatSlaPromise(slaHours)}</span>
+                </p>
+              </div>
+
               {loadingClientId ? (
                 <div className="flex justify-center py-10">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -632,6 +650,11 @@ export default function ClientSupport() {
             <div className="space-y-3">
               {tickets.map((ticket) => {
                 const meta = TICKET_STATUS_META[ticket.status];
+                const slaBadge = getSlaBadge(
+                  ticket.sla_deadline,
+                  ticket.status,
+                  ticket.first_response_at
+                );
                 const isExpanded = expandedId === ticket.id;
                 const msgs = messagesMap[ticket.id] ?? [];
                 const isLoadingMsgs = !!loadingMessages[ticket.id];
@@ -661,6 +684,17 @@ export default function ClientSupport() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <StatusBadge label={meta.label} tone={meta.tone} />
+                            {slaBadge && (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium",
+                                  slaBadge.className
+                                )}
+                                title={slaBadge.title}
+                              >
+                                {slaBadge.label}
+                              </span>
+                            )}
                             <p className="truncate text-sm font-semibold text-foreground">
                               {ticket.subject}
                             </p>
@@ -765,12 +799,14 @@ export default function ClientSupport() {
                               <Button
                                 type="button"
                                 size="sm"
-                                disabled={!replyBody.trim() || isSending}
+                                loading={isSending}
+                                loadingText="Enviando..."
+                                disabled={!replyBody.trim()}
                                 onClick={() => void handleSendReply(ticket)}
                                 className="gap-2"
                               >
                                 <Send size={14} />
-                                {isSending ? "Enviando..." : "Enviar mensagem"}
+                                Enviar mensagem
                               </Button>
                             </div>
                           </div>
@@ -829,12 +865,11 @@ export default function ClientSupport() {
                                   <Button
                                     type="button"
                                     size="sm"
-                                    disabled={submittingRating === ticket.id}
+                                    loading={submittingRating === ticket.id}
+                                    loadingText="Enviando..."
                                     onClick={() => void handleSubmitRating(ticket)}
                                   >
-                                    {submittingRating === ticket.id
-                                      ? "Enviando..."
-                                      : "Enviar avaliacao"}
+                                    Enviar avaliacao
                                   </Button>
                                 </div>
                               </div>

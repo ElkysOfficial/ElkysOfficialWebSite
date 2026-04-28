@@ -1282,8 +1282,8 @@ function ContractClientForm({
             <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? "Salvando..." : "Salvar contrato"}
+            <Button type="submit" loading={saving} loadingText="Salvando...">
+              Salvar contrato
             </Button>
           </div>
         </form>
@@ -1748,6 +1748,13 @@ export default function AdminClientDetail() {
             </Link>
           ) : null}
           <CopyLinkButton />
+          <Link
+            to={`/portal/admin/audit-log?entity=client&entityId=${client.id}`}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+            title="Ver historico de alteracoes deste cliente"
+          >
+            Ver histórico
+          </Link>
           <Link to="/portal/admin/clientes" className={buttonVariants({ variant: "outline" })}>
             Voltar
           </Link>

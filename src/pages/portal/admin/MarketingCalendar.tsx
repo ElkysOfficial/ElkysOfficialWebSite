@@ -2326,8 +2326,13 @@ export default function AdminMarketingCalendar() {
                   >
                     Fechar
                   </Button>
-                  <Button type="button" onClick={() => void handleSave()} disabled={saving}>
-                    {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar evento"}
+                  <Button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    loading={saving}
+                    loadingText="Salvando..."
+                  >
+                    {editingId ? "Salvar alterações" : "Criar evento"}
                   </Button>
                 </div>
               </div>

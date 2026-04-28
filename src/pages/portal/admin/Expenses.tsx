@@ -587,9 +587,10 @@ export default function AdminExpenses() {
                       <Button
                         type="button"
                         onClick={() => void handleSaveExpense(expense.id)}
-                        disabled={savingExpenseId === expense.id}
+                        loading={savingExpenseId === expense.id}
+                        loadingText="Salvando..."
                       >
-                        {savingExpenseId === expense.id ? "Salvando..." : "Salvar"}
+                        Salvar
                       </Button>
                     </div>
                   </div>

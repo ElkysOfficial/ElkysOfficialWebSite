@@ -115,8 +115,8 @@ export default function AddContractLinkForm({
         />
       </Field>
       <div className="flex gap-2">
-        <Button size="sm" disabled={saving} onClick={() => void handleSave()}>
-          {saving ? "Salvando..." : "Salvar link"}
+        <Button size="sm" loading={saving} loadingText="Salvando..." onClick={() => void handleSave()}>
+          Salvar link
         </Button>
         <Button
           variant="ghost"

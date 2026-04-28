@@ -272,9 +272,14 @@ export default function ClientProjectDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Pause reason banner */}
+      {/* Pause reason banner.
+          "Desde quando": usamos project.updated_at como aproximacao — em projetos
+          pausados, o updated_at reflete o ultimo mudar de status (a tabela e
+          majoritariamente imutavel fora de status/stage/summary), o que basta
+          pra dar contexto temporal. Se isso perder precisao (ex: admin editar
+          descricao depois de pausar), avaliar coluna paused_at dedicada. */}
       {project.status === "pausado" && project.pause_reason && (
-        <div className="flex items-center gap-3 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3">
+        <div className="flex flex-col gap-1 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
           <span className="text-sm font-medium text-warning">Projeto pausado</span>
           <span className="text-sm text-muted-foreground">
             {project.pause_reason === "dependência_cliente"
@@ -287,6 +292,16 @@ export default function ClientProjectDetail() {
                     ? "Reorganizacao interna da equipe."
                     : "Motivo informado pela equipe."}
           </span>
+          {project.updated_at && (
+            <span className="text-xs text-muted-foreground sm:ml-auto">
+              Pausado desde{" "}
+              {new Date(project.updated_at).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          )}
         </div>
       )}
 
@@ -451,13 +466,12 @@ export default function ClientProjectDetail() {
                           <Button
                             type="button"
                             size="sm"
-                            disabled={
-                              respondingId === stepItem.id ||
-                              !(responseTexts[stepItem.id] ?? "").trim()
-                            }
+                            loading={respondingId === stepItem.id}
+                            loadingText="Enviando..."
+                            disabled={!(responseTexts[stepItem.id] ?? "").trim()}
                             onClick={() => void handleRespondToStep(stepItem.id)}
                           >
-                            {respondingId === stepItem.id ? "Enviando..." : "Enviar resposta"}
+                            Enviar resposta
                           </Button>
                         </div>
                       )}

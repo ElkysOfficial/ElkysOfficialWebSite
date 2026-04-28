@@ -1083,8 +1083,13 @@ export default function AdminClientCreate() {
                 Proximo
               </Button>
             ) : (
-              <Button type="button" disabled={submitting} onClick={() => void handleSubmit()}>
-                {submitting ? "Criando..." : "Criar cliente"}
+              <Button
+                type="button"
+                loading={submitting}
+                loadingText="Criando..."
+                onClick={() => void handleSubmit()}
+              >
+                Criar cliente
               </Button>
             )}
           </div>

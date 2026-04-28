@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Send, CheckCircle } from "@/assets/icons";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,6 +54,15 @@ const ContactForm = () => {
     mode: "onBlur",
   });
 
+  // Feedback visual de sucesso no botao (~1.6s). Complementa o toast: o
+  // toast some no canto; o check dentro do CTA reforca a confirmacao
+  // exatamente onde o usuario acabou de clicar.
+  const [sent, setSent] = useState(false);
+  const sentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (sentTimer.current) clearTimeout(sentTimer.current);
+  }, []);
+
   const onSubmit = async (data: ContactFormData) => {
     try {
       emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
@@ -79,6 +89,9 @@ const ContactForm = () => {
       });
 
       reset();
+      setSent(true);
+      if (sentTimer.current) clearTimeout(sentTimer.current);
+      sentTimer.current = setTimeout(() => setSent(false), 1600);
     } catch (error) {
       console.error("EmailJS Error:", error);
       toast.error("Erro ao enviar mensagem", {
@@ -217,22 +230,16 @@ const ContactForm = () => {
 
                     <Button
                       type="submit"
-                      disabled={isSubmitting}
+                      loading={isSubmitting}
+                      loadingText="Enviando..."
+                      success={sent}
+                      successLabel="Enviado!"
                       variant="gradient"
                       size="lg"
                       className="w-full min-h-[44px]"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          Enviar solicitação
-                          <Send className="ml-2 h-4 w-4" />
-                        </>
-                      )}
+                      Enviar solicitação
+                      <Send className="ml-2 h-4 w-4" />
                     </Button>
 
                     <p className="text-xs text-muted-foreground text-center">

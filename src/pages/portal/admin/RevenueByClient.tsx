@@ -31,11 +31,13 @@ type ClientRevenue = {
   percentOfTotal: number;
 };
 
-type PeriodOption = 3 | 6 | 12 | 0;
+type PeriodOption = 1 | 3 | 6 | 9 | 12 | 0;
 
 const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
+  { value: 1, label: "1M" },
   { value: 3, label: "3M" },
   { value: 6, label: "6M" },
+  { value: 9, label: "9M" },
   { value: 12, label: "12M" },
   { value: 0, label: "Todos" },
 ];
@@ -43,6 +45,11 @@ const PERIOD_OPTIONS: { value: PeriodOption; label: string }[] = [
 function getStartDate(months: PeriodOption): string | null {
   if (months === 0) return null;
   const d = new Date();
+  if (months === 1) {
+    // 1M = somente mês atual (sem projeção/regressão)
+    d.setDate(1);
+    return getLocalDateIso(d);
+  }
   d.setMonth(d.getMonth() - months);
   d.setDate(1);
   return getLocalDateIso(d);

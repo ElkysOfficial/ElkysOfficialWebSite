@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Building2, PiggyBank, Search, Wallet } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import ClientRowIndicators from "@/components/portal/client/ClientRowIndicators";
+import ExportMenu from "@/components/portal/shared/ExportMenu";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import { useAdminClients, type AdminClientIndicators } from "@/hooks/useAdminClients";
@@ -13,6 +14,7 @@ import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import { AlertDialog, buttonVariants, Button, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { exportCSV, exportPDF, type ExportColumn } from "@/lib/export";
 import { formatBRL } from "@/lib/masks";
 import {
   getProfileInitials,
@@ -350,6 +352,42 @@ export default function AdminClients() {
 
   const totalClients = clients.length;
 
+  // Export usa a lista filtrada (nao paginada) — o que o usuario esta vendo
+  // depois dos filtros e o que ele quer exportar.
+  const exportColumns: ExportColumn[] = [
+    { key: "name", label: "Nome" },
+    { key: "type", label: "Tipo" },
+    { key: "document", label: "CPF/CNPJ" },
+    { key: "email", label: "E-mail" },
+    { key: "phone", label: "Telefone" },
+    { key: "contract_status", label: "Status" },
+    { key: "monthly_value", label: "Mensal", align: "right" },
+    { key: "project_total_value", label: "Contratado", align: "right" },
+    { key: "client_since", label: "Cliente desde" },
+  ];
+  const exportRows = filteredClients.map((c) => ({
+    name: c.client_type === "pj" && c.nome_fantasia ? c.nome_fantasia : c.full_name,
+    type: c.client_type === "pj" ? "PJ" : "PF",
+    document: c.client_type === "pj" ? (c.cnpj ?? "-") : (c.cpf ?? "-"),
+    email: c.email ?? "-",
+    phone: c.phone ?? "-",
+    contract_status: c.contract_status ?? "-",
+    monthly_value: formatBRL(Number(c.monthly_value ?? 0)),
+    project_total_value: formatBRL(Number(c.project_total_value ?? 0)),
+    client_since: c.client_since ? formatClientSince(c.client_since) : "-",
+  }));
+
+  const handleExportCSV = () =>
+    exportCSV({ title: "Clientes", filename: "clientes", columns: exportColumns, rows: exportRows });
+  const handleExportPDF = () =>
+    exportPDF({
+      title: "Relatorio de Clientes",
+      subtitle: `${filteredClients.length} cliente(s) | Carteira: ${formatBRL(monthlyPortfolio)}`,
+      filename: "clientes",
+      columns: exportColumns,
+      rows: exportRows,
+    });
+
   const persistActiveFlag = async (client: Client, next: boolean) => {
     const { error } = await supabase
       .from("clients")
@@ -439,9 +477,12 @@ export default function AdminClients() {
             {totalClients !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link to="/portal/admin/clientes/novo" className={buttonVariants({ variant: "default" })}>
-          Novo cliente
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportMenu onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} />
+          <Link to="/portal/admin/clientes/novo" className={buttonVariants({ variant: "default" })}>
+            Novo cliente
+          </Link>
+        </div>
       </div>
 
       {/* -- Metrics -- */}
