@@ -13,5 +13,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    // PKCE: OAuth2 Authorization Code com Proof Key for Code Exchange — padrao
+    // recomendado para SPAs. Substitui o implicit flow (deprecated em OAuth2.1):
+    // o code_verifier nunca trafega na URL, eliminando vetor de interceptacao do
+    // access_token via referer/log/historico de browser.
+    flowType: "pkce",
+    // Processa fragmento/query do callback OAuth (#access_token=..., ?code=...)
+    // automaticamente ao montar o cliente. Sem isso, voltar do Google na pagina
+    // de callback nao popula sessao — usuario fica autenticado no Auth provider
+    // mas o cliente JS nao sabe.
+    detectSessionInUrl: true,
   },
 });

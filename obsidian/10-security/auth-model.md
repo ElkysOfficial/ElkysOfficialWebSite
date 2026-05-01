@@ -33,6 +33,11 @@ Supabase Auth (gotrue)
 - JWT refresh em `localStorage` (Supabase SDK default) — vetor XSS clássico.
 - Inactivity timeout 30min com warning de 2min.
 - `QueryClient.clear()` em troca de auth state.
+- **PKCE flow** ativo (`flowType: 'pkce'`) — code_verifier nunca trafega na URL.
+- **`detectSessionInUrl: true`** processa callback OAuth automaticamente.
+- **Intended route** preservado via `?redirect=` validado por `safeRedirectPath`.
+
+Detalhes em [[../12-decisions/ADR-011-pkce-intended-route]].
 
 ## Senhas
 
