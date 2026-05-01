@@ -2,6 +2,58 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🧠 Brain (Obsidian Vault) — leia ANTES de outras fontes
+
+Há um **second brain** estruturado em `obsidian/` que é a fonte canônica de:
+
+- diagnóstico técnico (HIGH/MEDIUM/LOW issues)
+- ADRs (decisões arquiteturais e por quê)
+- mapeamento domínio↔código com `arquivo:linha`
+- roadmap (ondas 1/2/3) com link para os issues
+- glossário de termos do produto
+
+### Regras de leitura (economia de tokens)
+
+NÃO leia o vault inteiro. Use estas portas de entrada conforme o tópico:
+
+| Tarefa do usuário                               | Leia primeiro                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------- |
+| Pergunta genérica sobre o projeto               | `obsidian/00-index/brain.md`                                               |
+| Bug, débito técnico, "o que tem de errado em X" | `obsidian/13-issues/index.md`                                              |
+| Roadmap, "o que falta", priorização             | `obsidian/14-roadmap/index.md`                                             |
+| Mexer em auth/permissões                        | `obsidian/04-flows/auth-flow.md` + `obsidian/10-security/rls-model.md`     |
+| Mexer em cobrança/financeiro                    | `obsidian/02-domains/charges.md` + `obsidian/03-features/billing-rules.md` |
+| Decisão arquitetural ("por que assim?")         | `obsidian/12-decisions/index.md`                                           |
+| Termo do domínio que não conhece                | `obsidian/15-glossary/index.md`                                            |
+| Dúvida sobre rota/página                        | `obsidian/07-frontend/routing.md`                                          |
+| Schema/tabela                                   | `obsidian/05-database/erd.md` ou `docs/DATABASE.md`                        |
+
+Cada nota linka para outras via `[[wikilinks]]` — siga só o que for relevante.
+
+### Regras de atualização (manter vivo)
+
+Após mudanças significativas no código, **proponha** (não execute silenciosamente) atualizações em:
+
+- **Issue resolvido** → mover nota de `obsidian/13-issues/<file>.md` para `obsidian/13-issues/_resolved/` e atualizar `index.md`.
+- **Decisão arquitetural nova** → criar `obsidian/12-decisions/ADR-<NN>-<slug>.md` e linkar em `12-decisions/index.md`.
+- **Novo domínio/tabela/fluxo/feature** → criar nota correspondente e linkar nos MOCs.
+- **Mudança de rota, schema ou edge function** → atualizar nota afetada (procure por wikilinks que apontam pra ela).
+- **Hipótese marcada `⚠️ Assumido`** que você confirmou no código → remover o marcador e atualizar.
+
+Sempre cite `arquivo:linha` ao referenciar código. Sempre que possível, use `[[wikilinks]]` em vez de citar caminho cru.
+
+Para sincronização ampla pós-sprint, use a skill `/update-brain` (ver `.claude/skills/update-brain/`).
+
+### Quando NÃO usar o brain
+
+- Para descobrir "onde está X no código" (use Grep/Glob — mais rápido e atual).
+- Para `git log` / `git blame` (use git diretamente).
+- Para detalhe de schema atual (use `supabase/migrations/` ou `src/integrations/supabase/types.ts` — fonte da verdade).
+
+O brain é **interpretação e diagnóstico**, não cópia da fonte.
+
+---
+
 ## Project Overview
 
 Elkys Software House platform — a React SPA with a public marketing site and two authenticated portals (Admin and Client). Static bundle deployed to Hostinger via FTP; backend is Supabase Cloud (Postgres + Auth + Edge Functions + Storage).
