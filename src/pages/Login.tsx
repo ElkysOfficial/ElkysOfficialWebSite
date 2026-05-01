@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTheme } from "@/hooks/useDarkMode";
 import { useAuth } from "@/contexts/AuthContext";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 import { Button, Input, cn } from "@/design-system";
 import { Field, Label, ErrorText } from "@/design-system";
 import { Eye, Mail } from "@/assets/icons";
@@ -20,6 +21,8 @@ export default function Login() {
   const { signInWithEmail, signInWithGoogle, user, isClient, isLoading, isTeamMember } = useAuth();
   const { resolvedTheme } = useTheme();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -43,13 +46,20 @@ export default function Login() {
     return () => window.removeEventListener("auth-no-access", handler);
   }, []);
 
-  // Redirect if already logged in
+  // Redirect if already logged in. Respeita ?redirect=<rota_original> capturado
+  // pelo ProtectedRoute, validado por safeRedirectPath para impedir escape
+  // para origin externo (//evil.com, https://...) ou path nao-interno. Quando
+  // o param e ausente/invalido, cai no fallback por role.
   useEffect(() => {
-    if (!isLoading && user) {
-      if (isTeamMember) navigate("/portal/admin", { replace: true });
-      else if (isClient) navigate("/portal/cliente", { replace: true });
-    }
-  }, [user, isClient, isLoading, isTeamMember, navigate]);
+    if (isLoading || !user) return;
+    const fallback = isTeamMember
+      ? "/portal/admin"
+      : isClient
+        ? "/portal/cliente"
+        : "/portal/cliente";
+    const dest = safeRedirectPath(redirectParam, fallback);
+    navigate(dest, { replace: true });
+  }, [user, isClient, isLoading, isTeamMember, navigate, redirectParam]);
 
   const isDarkTheme = mounted && resolvedTheme === "dark";
 
@@ -63,7 +73,11 @@ export default function Login() {
 
   const handleGoogle = async () => {
     setAuthError(null);
-    const { error } = await signInWithGoogle();
+    // Preserva intended route atraves do round-trip OAuth: re-anexa o ?redirect=
+    // atual ao redirectTo do Google. Apos o callback, o effect acima usa
+    // safeRedirectPath para fazer o navigate final.
+    const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : "";
+    const { error } = await signInWithGoogle(redirectQuery);
     if (error) setAuthError(error);
   };
 

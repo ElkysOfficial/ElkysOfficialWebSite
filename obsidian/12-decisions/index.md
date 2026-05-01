@@ -17,5 +17,6 @@ tags: [adr, decisions, moc]
 | [[ADR-008-no-state-library]]         | Apenas React Context + React Query (sem Zustand/Redux) | Aceito                   |
 | [[ADR-009-css-splitting-purgecss]]   | PurgeCSS para landing CSS-split + portal lazy          | Aceito                   |
 | [[ADR-010-edge-fn-verify-jwt-false]] | `verify_jwt=false` em 11 funções (cron + portal)       | Aceito (debt monitorado) |
+| [[ADR-011-pkce-intended-route]]      | PKCE + intended route via `?redirect=` + safeRedirect  | Aceito (v2.97.5)         |
 
 Padrão: cada ADR contém Contexto → Decisão → Alternativas → Consequências.
