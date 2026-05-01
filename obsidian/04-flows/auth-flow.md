@@ -14,11 +14,19 @@ A autenticação é o ponto de entrada para os dois portais. Como **roles vivem 
 
 ### Sequência completa
 
+> **A partir de v2.97.5** ([[../12-decisions/ADR-011-pkce-intended-route]]):
+>
+> - Supabase client usa **PKCE** (`flowType: 'pkce'`) e **detectSessionInUrl: true**.
+> - `ProtectedRoute` captura rota original via `?redirect=<path>` ao redirecionar para `/login`.
+> - `Login.tsx` valida via `safeRedirectPath` e navega para destino intencional pós-login (email **e** Google OAuth).
+
 ```
 ┌─ Browser ───────────────────────────────────────────────────────┐
-│ 1. User → /login                                                 │
+│ 1. User → /login (ou /login?redirect=<path>)                     │
 │ 2. PortalShell monta AuthProvider (lazy)                         │
-│ 3. signInWithPassword(email, password)                           │
+│ 3. signInWithPassword(email, password)  OU  signInWithOAuth(g)   │
+│    OAuth: PKCE code_verifier nunca trafega na URL.               │
+│    OAuth callback: ?code= processado por detectSessionInUrl.     │
 └─────────────────────┬────────────────────────────────────────────┘
                       ▼
               ┌───────────────┐
@@ -113,6 +121,7 @@ A autenticação é o ponto de entrada para os dois portais. Como **roles vivem 
 2. **Centralizar `isTeamRole`** em `portal-access.ts`; consumir em AuthContext.
 3. **Garantir UI de aviso de sessão** sempre montada via portal global (não condicional).
 4. Regenerar tipos do Supabase ao mudar `clients` para remover `as never` cast.
+5. ✅ **PKCE + intended route + safeRedirectPath** — implementado em v2.97.5 ([[../12-decisions/ADR-011-pkce-intended-route]]).
 
 ## Relações
 
