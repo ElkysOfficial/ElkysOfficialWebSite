@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
 
 export default function ProtectedRoute({ children, requiredRole }: Props) {
   const { user, isLoading, isAdmin, isClient, isTeamMember } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -20,7 +21,14 @@ export default function ProtectedRoute({ children, requiredRole }: Props) {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    // Captura rota original (path + search) para restauracao pos-login.
+    // Evita ?redirect=/login (loop). Em qualquer outro path, anexa ?redirect=.
+    const intended = `${location.pathname}${location.search}`;
+    const isLoginPath = location.pathname === "/login";
+    const redirectQuery = isLoginPath ? "" : `?redirect=${encodeURIComponent(intended)}`;
+    return <Navigate to={`/login${redirectQuery}`} replace />;
+  }
 
   // "admin" requiredRole now also accepts all team roles
   if (requiredRole === "admin" && !isTeamMember) {

@@ -66,7 +66,12 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
+  /**
+   * Inicia OAuth Google. Quando `redirectQuery` e fornecido (ex: "?redirect=%2Fportal%2Fcliente%2Fprojetos"),
+   * o Supabase devolve o usuario para `/login<redirectQuery>` apos o callback,
+   * preservando a intended route. Sem `redirectQuery`, cai em `/login` puro.
+   */
+  signInWithGoogle: (redirectQuery?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -346,10 +351,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (redirectQuery?: string) => {
+    // Preserva intended route apos callback OAuth: o usuario volta para
+    // /login?redirect=<original>, e o efeito de redirect em Login.tsx faz
+    // o navigate final para a rota intencional. redirectQuery deve vir
+    // ja com o prefixo "?" (ou string vazia/undefined).
+    const target = window.location.origin + "/login" + (redirectQuery ?? "");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/login" },
+      options: { redirectTo: target },
     });
     if (error) return { error: error.message };
     return { error: null };
