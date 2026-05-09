@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🧠 Brain (Obsidian Vault) — leia ANTES de outras fontes
 
-Há um **second brain** estruturado em `obsidian/` que é a fonte canônica de:
+Há um **second brain** estruturado em `obsidian_elkys/` que é a fonte canônica de:
 
 - diagnóstico técnico (HIGH/MEDIUM/LOW issues)
 - ADRs (decisões arquiteturais e por quê)
@@ -16,17 +16,17 @@ Há um **second brain** estruturado em `obsidian/` que é a fonte canônica de:
 
 NÃO leia o vault inteiro. Use estas portas de entrada conforme o tópico:
 
-| Tarefa do usuário                               | Leia primeiro                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------- |
-| Pergunta genérica sobre o projeto               | `obsidian/00-index/brain.md`                                               |
-| Bug, débito técnico, "o que tem de errado em X" | `obsidian/13-issues/index.md`                                              |
-| Roadmap, "o que falta", priorização             | `obsidian/14-roadmap/index.md`                                             |
-| Mexer em auth/permissões                        | `obsidian/04-flows/auth-flow.md` + `obsidian/10-security/rls-model.md`     |
-| Mexer em cobrança/financeiro                    | `obsidian/02-domains/charges.md` + `obsidian/03-features/billing-rules.md` |
-| Decisão arquitetural ("por que assim?")         | `obsidian/12-decisions/index.md`                                           |
-| Termo do domínio que não conhece                | `obsidian/15-glossary/index.md`                                            |
-| Dúvida sobre rota/página                        | `obsidian/07-frontend/routing.md`                                          |
-| Schema/tabela                                   | `obsidian/05-database/erd.md` ou `docs/DATABASE.md`                        |
+| Tarefa do usuário                               | Leia primeiro                                                                          |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Pergunta genérica sobre o projeto               | `obsidian_elkys/00-index/brain.md`                                                     |
+| Bug, débito técnico, "o que tem de errado em X" | `obsidian_elkys/13-issues/index.md`                                                    |
+| Roadmap, "o que falta", priorização             | `obsidian_elkys/14-roadmap/index.md`                                                   |
+| Mexer em auth/permissões                        | `obsidian_elkys/04-flows/auth-flow.md` + `obsidian_elkys/10-security/rls-model.md`     |
+| Mexer em cobrança/financeiro                    | `obsidian_elkys/02-domains/charges.md` + `obsidian_elkys/03-features/billing-rules.md` |
+| Decisão arquitetural ("por que assim?")         | `obsidian_elkys/12-decisions/index.md`                                                 |
+| Termo do domínio que não conhece                | `obsidian_elkys/15-glossary/index.md`                                                  |
+| Dúvida sobre rota/página                        | `obsidian_elkys/07-frontend/routing.md`                                                |
+| Schema/tabela                                   | `obsidian_elkys/05-database/erd.md` ou `docs/DATABASE.md`                              |
 
 Cada nota linka para outras via `[[wikilinks]]` — siga só o que for relevante.
 
@@ -34,8 +34,8 @@ Cada nota linka para outras via `[[wikilinks]]` — siga só o que for relevante
 
 Após mudanças significativas no código, **proponha** (não execute silenciosamente) atualizações em:
 
-- **Issue resolvido** → mover nota de `obsidian/13-issues/<file>.md` para `obsidian/13-issues/_resolved/` e atualizar `index.md`.
-- **Decisão arquitetural nova** → criar `obsidian/12-decisions/ADR-<NN>-<slug>.md` e linkar em `12-decisions/index.md`.
+- **Issue resolvido** → mover nota de `obsidian_elkys/13-issues/<file>.md` para `obsidian_elkys/13-issues/_resolved/` e atualizar `index.md`.
+- **Decisão arquitetural nova** → criar `obsidian_elkys/12-decisions/ADR-<NN>-<slug>.md` e linkar em `12-decisions/index.md`.
 - **Novo domínio/tabela/fluxo/feature** → criar nota correspondente e linkar nos MOCs.
 - **Mudança de rota, schema ou edge function** → atualizar nota afetada (procure por wikilinks que apontam pra ela).
 - **Hipótese marcada `⚠️ Assumido`** que você confirmou no código → remover o marcador e atualizar.
