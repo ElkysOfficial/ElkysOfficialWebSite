@@ -4,11 +4,11 @@
   },
   "permissions": {
     "allow": [
-      "Read(obsidian/**)",
-      "Edit(obsidian/**)",
-      "Write(obsidian/**)",
-      "Glob(obsidian/**)",
-      "Grep(obsidian/**)"
+      "Read(obsidian_elkys/**)",
+      "Edit(obsidian_elkys/**)",
+      "Write(obsidian_elkys/**)",
+      "Glob(obsidian_elkys/**)",
+      "Grep(obsidian_elkys/**)"
     ]
   }
 }

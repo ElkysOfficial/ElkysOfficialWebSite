@@ -1,18 +1,18 @@
 ---
 name: update-brain
-description: Sincroniza o second brain em obsidian/ com o estado atual do código e do projeto. Use quando o usuário pedir para "atualizar o brain", "atualizar obsidian", "sincronizar conhecimento", "registrar X no obsidian", após uma sprint/PR grande, ou após resolver um issue listado em obsidian/13-issues/. Também aciona ao concluir uma decisão arquitetural relevante (criar ADR) ou ao confirmar uma hipótese ⚠️ Assumido no vault.
+description: Sincroniza o second brain em obsidian_elkys/ com o estado atual do código e do projeto. Use quando o usuário pedir para "atualizar o brain", "atualizar obsidian", "sincronizar conhecimento", "registrar X no obsidian", após uma sprint/PR grande, ou após resolver um issue listado em obsidian_elkys/13-issues/. Também aciona ao concluir uma decisão arquitetural relevante (criar ADR) ou ao confirmar uma hipótese ⚠️ Assumido no vault.
 ---
 
 # Update Brain Skill
 
-Mantém o second brain (`obsidian/`) sincronizado com a realidade do projeto.
+Mantém o second brain (`obsidian_elkys/`) sincronizado com a realidade do projeto.
 
 ## Quando esta skill aciona
 
 Palavras-gatilho típicas (PT-BR ou EN):
 
 - "atualize o brain", "sincronize o obsidian", "registre isso no obsidian"
-- "fechei o issue X" (após mover issue de [[obsidian/13-issues/index]])
+- "fechei o issue X" (após mover issue de [[obsidian_elkys/13-issues/index]])
 - "tomei a decisão de fazer Y" (criar ADR)
 - "esse `⚠️ Assumido` é verdadeiro/falso, atualize"
 - "depois desse PR, atualize o brain"
@@ -24,10 +24,10 @@ Palavras-gatilho típicas (PT-BR ou EN):
 
 Antes de qualquer Edit, leia em **paralelo**:
 
-- `obsidian/00-index/brain.md` (MOC central)
-- `obsidian/13-issues/index.md` (lista atual de issues)
-- `obsidian/12-decisions/index.md` (lista atual de ADRs)
-- `obsidian/14-roadmap/index.md` (ondas)
+- `obsidian_elkys/00-index/brain.md` (MOC central)
+- `obsidian_elkys/13-issues/index.md` (lista atual de issues)
+- `obsidian_elkys/12-decisions/index.md` (lista atual de ADRs)
+- `obsidian_elkys/14-roadmap/index.md` (ondas)
 
 Depois execute em paralelo:
 
