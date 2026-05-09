@@ -7,7 +7,7 @@ tags: [meta]
 
 ## Abrir no Obsidian
 
-1. **File → Open vault → Open folder as vault** → selecione `D:/Elkys/ElkysOfficialWebSite/obsidian/`.
+1. **File → Open vault → Open folder as vault** → selecione `D:/Elkys/ElkysOfficialWebSite/obsidian_elkys/`.
 2. Aguarde indexação (alguns segundos).
 3. **Graph view**: Ctrl+G — visualize núcleos centrais (`clients`, `projects`, `charges`, `AuthContext`).
 
@@ -39,6 +39,6 @@ tags: [meta]
 
 ## Não confundir
 
-- `obsidian/` (este diretório) — vault de conhecimento humano-legível.
+- `obsidian_elkys/` (este diretório) — vault de conhecimento humano-legível.
 - `.obsidian/` (config Obsidian na raiz do repo) — configuração do app.
 - `docs/` — docs canônicos versionados (ARCHITECTURE.md, DATABASE.md, etc.). **Source of truth**; este Brain _expande_ esses docs com análise, links e diagnóstico.
