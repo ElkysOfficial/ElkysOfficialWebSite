@@ -1,6 +1,7 @@
 import { escapeHtml } from "./validation.ts";
 
-const LOGO_URL = "https://elkys.com.br/imgs/icons/lettering_elkys_email.png";
+const LOGO_URL = "https://elkys.com.br/imgs/icons/lettering_elkys.webp";
+const SITE_URL = "elkys.com.br";
 
 interface EmailButton {
   label: string;
@@ -57,6 +58,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                             width: 100%;
                             background-color: #f7f7f7;
                             border: 1px solid #dddddd;
+                            border-radius: 6px;
                             margin: 0 0 22px 0;
                           "
                         >
@@ -127,8 +129,8 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                 <v:roundrect
                                   xmlns:v="urn:schemas-microsoft-com:vml"
                                   href="${safeButtonHref}"
-                                  style="height:42px;v-text-anchor:middle;width:176px;"
-                                  arcsize="0%"
+                                  style="height:42px;v-text-anchor:middle;width:200px;"
+                                  arcsize="14%"
                                   strokecolor="#472680"
                                   fillcolor="#472680"
                                 >
@@ -159,6 +161,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                                   line-height: 14px;
                                   font-weight: 700;
                                   padding: 14px 28px;
+                                  border-radius: 6px;
                                 "
                               >
                                 ${safeButtonLabel}
@@ -372,9 +375,10 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                     <td align="left" style="padding: 0 0 28px 16px;">
                       <img
                         src="${LOGO_URL}"
-                        width="76"
+                        width="110"
+                        height="29"
                         alt="Elkys"
-                        style="display: block; width: 76px; max-width: 76px; height: auto;"
+                        style="display: block; width: 110px; max-width: 110px; height: auto;"
                       />
                     </td>
                   </tr>
@@ -426,7 +430,7 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                   <tr>
                     <td
                       class="mobile-content-padding"
-                      style="padding: 20px 16px 0 16px; background-color: #ffffff;"
+                      style="padding: 24px 24px 0 24px; background-color: #ffffff;"
                     >
                       <p
                         class="text-body"
@@ -649,6 +653,21 @@ export function buildEmail(opts: EmailTemplateOptions): string {
                           </td>
                         </tr>
                       </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      align="left"
+                      style="
+                        padding: 12px 0 0 16px;
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 11px;
+                        line-height: 16px;
+                        color: #edeff2;
+                        opacity: 0.7;
+                      "
+                    >
+                      &copy; ${new Date().getFullYear()} Elkys &middot; ${SITE_URL}
                     </td>
                   </tr>
                 </table>
