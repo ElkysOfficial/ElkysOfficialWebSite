@@ -15,6 +15,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { getFormalGreeting, plural, type Gender } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface ProposalRow {
   id: string;
@@ -31,6 +32,9 @@ interface ClientRow {
   nome_fantasia: string | null;
   client_type: string | null;
   gender: Gender;
+  phone: string | null;
+  whatsapp: string | null;
+  responsavel_financeiro_phone: string | null;
 }
 
 serve(async (req) => {
@@ -75,7 +79,9 @@ serve(async (req) => {
     const clientIds = [...new Set(rows.map((p) => p.client_id))];
     const { data: clientsData } = await admin
       .from("clients")
-      .select("id, full_name, email, nome_fantasia, client_type, gender")
+      .select(
+        "id, full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .in("id", clientIds);
 
     const clientMap = new Map(((clientsData ?? []) as ClientRow[]).map((c) => [c.id, c]));
@@ -100,9 +106,13 @@ serve(async (req) => {
       );
       const warningLabel = plural(WARNING_DAYS, "dia", "dias");
 
+      // Telefone para o WhatsApp.
+      const recipientPhone = client.whatsapp || client.phone || null;
+
       const tracking = await createCommunication({
         kind: "proposal_expiry",
         recipientEmail: client.email,
+        recipientPhone,
         clientId: proposal.client_id,
         entityType: "proposal",
         entityId: proposal.id,
@@ -139,7 +149,13 @@ serve(async (req) => {
         html,
       });
 
-      await tracking.finalize(result.ok);
+      // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+      let waStatus: "sent" | "failed" | "skipped" = "skipped";
+      if (recipientPhone) {
+        const waText = `*Elkys — Proposta prestes a expirar*\n\nA proposta "${proposal.title}" perde validade em ${warningLabel} (${validUntilText}). Caso o interesse permaneça, responda pelo portal.\n\nAnalisar proposta: ${proposalHref}`;
+        waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+      }
+      await tracking.finalize(result.ok, waStatus);
 
       if (result.ok) sent++;
       else failed++;

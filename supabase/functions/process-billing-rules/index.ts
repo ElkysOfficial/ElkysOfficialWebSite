@@ -7,6 +7,7 @@ import {
 import { buildEmail, sendEmail, getTimeGreeting } from "../_shared/email-template.ts";
 import { escapeAndFormat } from "../_shared/validation.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -107,7 +108,9 @@ Deno.serve(async (req: Request) => {
 
       const { data: client } = await supabase
         .from("clients")
-        .select("full_name, email, nome_fantasia, client_type")
+        .select(
+          "full_name, email, nome_fantasia, client_type, phone, whatsapp, responsavel_financeiro_phone"
+        )
         .eq("id", charge.client_id)
         .single();
 
@@ -145,9 +148,14 @@ Deno.serve(async (req: Request) => {
       // Rastreio da comunicacao: registra a communication, encurta o link
       // do botao e injeta o pixel de abertura. Modo no-op se a gravacao
       // falhar -- nunca bloqueia o envio do e-mail.
+      // Telefone para o WhatsApp: prefere o do responsavel financeiro.
+      const recipientPhone =
+        client.responsavel_financeiro_phone || client.whatsapp || client.phone || null;
+
       const tracking = await createCommunication({
         kind: forceTemplateType === "agradecimento" ? "installment_paid" : forceTemplateType,
         recipientEmail: client.email,
+        recipientPhone,
         clientId: charge.client_id,
         entityType: "charge",
         entityId: charge.id,
@@ -166,7 +174,15 @@ Deno.serve(async (req: Request) => {
       });
 
       const result = await sendEmail({ to: client.email, subject, html });
-      await tracking.finalize(result.ok);
+
+      // Espelha o aviso financeiro no WhatsApp (curto + link). Falha nao
+      // afeta o e-mail. Nao repete o corpo do template, apenas resume.
+      let waStatus: "sent" | "failed" | "skipped" = "skipped";
+      if (recipientPhone) {
+        const waText = `*Elkys — Aviso financeiro*\n\n${subject}\nCobrança: ${vars.description} — ${vars.amount} (vencimento ${vars.due_date}).\n\nAcessar o financeiro: ${portalHref}`;
+        waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+      }
+      await tracking.finalize(result.ok, waStatus);
 
       const { error: logError } = await supabase.from("billing_actions_log").insert({
         charge_id: charge.id,
@@ -265,7 +281,9 @@ Deno.serve(async (req: Request) => {
         // Get client info
         const { data: client } = await supabase
           .from("clients")
-          .select("full_name, email, nome_fantasia, client_type")
+          .select(
+            "full_name, email, nome_fantasia, client_type, phone, whatsapp, responsavel_financeiro_phone"
+          )
           .eq("id", charge.client_id)
           .single();
 
@@ -290,9 +308,14 @@ Deno.serve(async (req: Request) => {
           // Rastreio: lembrete (trigger negativo/zero) entra como invoice_due,
           // cobranca em atraso (trigger positivo) como charge_overdue -- assim
           // aparece no dashboard de Comunicacoes com pixel e link curto.
+          // Telefone para o WhatsApp: prefere o do responsavel financeiro.
+          const recipientPhone =
+            client.responsavel_financeiro_phone || client.whatsapp || client.phone || null;
+
           const tracking = await createCommunication({
             kind: rule.trigger_days > 0 ? "charge_overdue" : "invoice_due",
             recipientEmail: client.email,
+            recipientPhone,
             clientId: charge.client_id,
             entityType: "charge",
             entityId: charge.id,
@@ -315,7 +338,18 @@ Deno.serve(async (req: Request) => {
           });
 
           const result = await sendEmail({ to: client.email, subject, html });
-          await tracking.finalize(result.ok);
+
+          // Espelha o aviso financeiro no WhatsApp (curto + link). Falha nao
+          // afeta o e-mail. Nao repete o corpo do template, apenas resume.
+          let waStatus: "sent" | "failed" | "skipped" = "skipped";
+          if (recipientPhone) {
+            const waText =
+              rule.trigger_days > 0
+                ? `*Elkys — Cobrança em atraso*\n\n${subject}\nCobrança: ${vars.description} — ${vars.amount} (venceu em ${vars.due_date}).\n\nAcessar o financeiro: ${portalHref}`
+                : `*Elkys — Aviso financeiro*\n\n${subject}\nCobrança: ${vars.description} — ${vars.amount} (vencimento ${vars.due_date}).\n\nAcessar o financeiro: ${portalHref}`;
+            waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+          }
+          await tracking.finalize(result.ok, waStatus);
           if (!result.ok) {
             status = "falha";
             errorMessage = result.error ?? "Unknown error";

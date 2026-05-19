@@ -16,6 +16,7 @@ import { escapeHtml } from "../_shared/validation.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
 import { getFormalGreeting, nl2br, truncateAtWord } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 type EventType = "em_andamento" | "resolvido" | "reply";
 
@@ -68,7 +69,9 @@ serve(async (req) => {
     // Busca ticket + cliente
     const { data: ticket, error: ticketError } = await admin
       .from("support_tickets")
-      .select("subject, body, clients(id, full_name, email, nome_fantasia, client_type, gender)")
+      .select(
+        "subject, body, clients(id, full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone)"
+      )
       .eq("id", ticket_id)
       .maybeSingle();
 
@@ -87,9 +90,14 @@ serve(async (req) => {
       nome_fantasia?: string | null;
       client_type?: string | null;
       gender?: "masculino" | "feminino" | null;
+      phone?: string | null;
+      whatsapp?: string | null;
+      responsavel_financeiro_phone?: string | null;
     } | null;
 
     const clientEmail = client?.email ?? "";
+    // Telefone para o WhatsApp.
+    const recipientPhone = client?.whatsapp || client?.phone || null;
     if (!clientEmail) {
       console.warn("[send-ticket-updated] client has no email — skipping");
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
@@ -174,6 +182,7 @@ serve(async (req) => {
     const tracking = await createCommunication({
       kind: "ticket_updated",
       recipientEmail: clientEmail,
+      recipientPhone,
       clientId: client?.id ?? null,
       entityType: "ticket",
       entityId: ticket_id,
@@ -203,7 +212,20 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      let waText: string;
+      if (event === "em_andamento") {
+        waText = `*Elkys — Ticket em análise*\n\nSua solicitação de suporte "${subject}" foi recebida e está em análise pela equipe Elkys.\n\nAcessar o ticket: ${ticketHref}`;
+      } else if (event === "resolvido") {
+        waText = `*Elkys — Ticket resolvido*\n\nSua solicitação de suporte "${subject}" foi concluída e marcada como resolvida.\n\nAcessar o ticket: ${ticketHref}`;
+      } else {
+        waText = `*Elkys — Nova resposta no seu ticket*\n\nA equipe Elkys registrou uma resposta ao seu ticket "${subject}". A resposta completa está no portal.\n\nAcessar o ticket: ${ticketHref}`;
+      }
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       console.error("[send-ticket-updated] email failed:", result.error);
