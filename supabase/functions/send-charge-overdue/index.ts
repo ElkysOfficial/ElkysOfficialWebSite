@@ -16,6 +16,7 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { isServiceRoleRequest, requireOperationalAccess } from "../_shared/auth.ts";
 import { getFormalGreeting, plural } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   client_id: string;
@@ -67,7 +68,9 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, email_financeiro, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, email_financeiro, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .maybeSingle();
 
@@ -90,10 +93,14 @@ serve(async (req) => {
 
     // Prefere e-mail financeiro quando informado.
     const recipientEmail = client.email_financeiro || client.email;
+    // Telefone para o WhatsApp: prefere o do responsavel financeiro.
+    const recipientPhone =
+      client.responsavel_financeiro_phone || client.whatsapp || client.phone || null;
 
     const tracking = await createCommunication({
       kind: "charge_overdue",
       recipientEmail,
+      recipientPhone,
       clientId: client_id,
       entityType: "charge",
       entityId: null,
@@ -132,7 +139,13 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Pendência financeira*\n\nIdentificamos a cobrança "${charge_description}" (${formatBRL(charge_amount)}) vencida há ${overdueLabel}. Pedimos a regularização o quanto antes.\n\nAcesse o financeiro: ${financeiroHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {

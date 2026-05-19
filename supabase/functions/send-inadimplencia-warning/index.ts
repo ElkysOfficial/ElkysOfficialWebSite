@@ -27,6 +27,7 @@ import {
   createServiceRoleClient,
 } from "../_shared/auth.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 const MAX_PER_RUN = 200;
 
@@ -93,7 +94,9 @@ serve(async (req) => {
     for (const event of pending) {
       const { data: client } = await admin
         .from("clients")
-        .select("full_name, email, nome_fantasia, client_type")
+        .select(
+          "full_name, email, nome_fantasia, client_type, phone, whatsapp, responsavel_financeiro_phone"
+        )
         .eq("id", event.client_id)
         .maybeSingle();
 
@@ -144,9 +147,14 @@ serve(async (req) => {
           ? client.nome_fantasia
           : client.full_name;
 
+      // Telefone para o WhatsApp: prefere o do responsavel financeiro.
+      const recipientPhone =
+        client.responsavel_financeiro_phone || client.whatsapp || client.phone || null;
+
       const tracking = await createCommunication({
         kind: "inadimplencia_warning",
         recipientEmail: client.email,
+        recipientPhone,
         clientId: event.client_id,
         entityType: "charge",
         entityId: null,
@@ -176,7 +184,13 @@ serve(async (req) => {
         html,
       });
 
-      await tracking.finalize(result.ok);
+      // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+      let waStatus: "sent" | "failed" | "skipped" = "skipped";
+      if (recipientPhone) {
+        const waText = `*Elkys — Aviso sobre seu contrato*\n\n${clientName}, identificamos pendências financeiras que alteraram o status do seu contrato. Acesse o portal para regularizar e evitar a interrupção dos serviços.\n\nSe já efetuou o pagamento, desconsidere.\n\nAcessar financeiro: ${financeiroHref}`;
+        waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+      }
+      await tracking.finalize(result.ok, waStatus);
 
       if (result.ok) {
         const { error: updErr } = await admin

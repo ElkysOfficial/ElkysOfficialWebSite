@@ -14,6 +14,7 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
 import { getFormalGreeting } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   client_id: string;
@@ -59,7 +60,9 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .maybeSingle();
 
@@ -93,9 +96,13 @@ serve(async (req) => {
         </table>`
       : "";
 
+    // Telefone para o WhatsApp.
+    const recipientPhone = client.whatsapp || client.phone || null;
+
     const tracking = await createCommunication({
       kind: "project_completed",
       recipientEmail: client.email,
+      recipientPhone,
       clientId: client_id,
       entityType: "project",
       entityId: null,
@@ -134,7 +141,13 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Entrega concluída*\n\nO projeto "${project_name}" foi entregue e está concluído. Documentos e histórico permanecem disponíveis no portal.\n\nAcessar o projeto: ${projetosHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {

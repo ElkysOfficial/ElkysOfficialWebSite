@@ -13,6 +13,7 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 function formatDate(date: string): string {
   return new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
@@ -79,11 +80,14 @@ serve(async (req) => {
     for (const group of Object.values(byClient)) {
       const { data: client } = await admin
         .from("clients")
-        .select("full_name, email")
+        .select("full_name, email, phone, whatsapp, responsavel_financeiro_phone")
         .eq("id", group.client_id)
         .maybeSingle();
 
       if (!client?.email) continue;
+
+      // Telefone para o WhatsApp.
+      const recipientPhone = client.whatsapp || client.phone || null;
 
       const firstName = client.full_name.split(" ")[0];
       const stepsList = group.steps
@@ -96,6 +100,7 @@ serve(async (req) => {
       const tracking = await createCommunication({
         kind: "client_action",
         recipientEmail: client.email,
+        recipientPhone,
         clientId: group.client_id,
         entityType: "client",
         entityId: group.client_id,
@@ -128,7 +133,13 @@ serve(async (req) => {
         html,
       });
 
-      await tracking.finalize(result.ok);
+      // Espelha o lembrete no WhatsApp (curto + link). Falha nao afeta o e-mail.
+      let waStatus: "sent" | "failed" | "skipped" = "skipped";
+      if (recipientPhone) {
+        const waText = `*Elkys — Solicitações pendentes*\n\nVocê tem ${group.steps.length} solicitação(ões) pendente(s) que já ultrapassaram o prazo. Sua resposta é fundamental para o andamento dos projetos.\n\nAcessar meus projetos: ${projectsHref}`;
+        waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+      }
+      await tracking.finalize(result.ok, waStatus);
 
       if (result.ok) sentCount++;
 

@@ -14,6 +14,7 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
 import { getFormalGreeting } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   installment_id: string;
@@ -91,7 +92,9 @@ serve(async (req) => {
     // Fetch client
     const { data: client, error: clientError } = await admin
       .from("clients")
-      .select("full_name, email, email_financeiro, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, email_financeiro, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .maybeSingle();
 
@@ -112,10 +115,14 @@ serve(async (req) => {
     const projectUrl = `${PORTAL_URL}/projetos/${project_id}`;
 
     const recipientEmail = client.email_financeiro || client.email;
+    // Telefone para o WhatsApp: prefere o do responsavel financeiro.
+    const recipientPhone =
+      client.responsavel_financeiro_phone || client.whatsapp || client.phone || null;
 
     const tracking = await createCommunication({
       kind: "installment_paid",
       recipientEmail,
+      recipientPhone,
       clientId: client_id,
       entityType: "charge",
       entityId: installment_id,
@@ -157,7 +164,13 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o comprovante no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Pagamento confirmado*\n\nConfirmamos o pagamento da parcela ${typeLabel} (${percentage}%) do projeto ${project.name} — ${amount}. Obrigado pela confiança!\n\nDetalhes: ${projectHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {
