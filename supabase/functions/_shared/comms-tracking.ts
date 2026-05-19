@@ -40,6 +40,9 @@ function adminClient() {
 
 export type TrackingChannel = "email" | "whatsapp";
 
+/** Resultado do envio paralelo por WhatsApp. */
+export type WhatsAppStatus = "sent" | "failed" | "skipped";
+
 export interface CreateCommunicationOpts {
   /** Nome logico do envio, igual ao da edge function (ex.: invoice_due). */
   kind: string;
@@ -68,8 +71,12 @@ export interface CommunicationTracking {
    * URL original -- o e-mail sempre sai com um link funcional.
    */
   shorten(targetUrl: string, channel?: TrackingChannel): Promise<string>;
-  /** Fecha o status de e-mail da communication (sent / failed). */
-  finalize(emailOk: boolean): Promise<void>;
+  /**
+   * Fecha o status da communication. `emailOk` define `email_status`
+   * (sent / failed). `whatsappStatus`, quando informado, grava
+   * `whatsapp_status` (sent / failed / skipped).
+   */
+  finalize(emailOk: boolean, whatsappStatus?: WhatsAppStatus): Promise<void>;
 }
 
 /**
@@ -138,13 +145,14 @@ export async function createCommunication(
       return targetUrl;
     },
 
-    async finalize(emailOk: boolean) {
+    async finalize(emailOk: boolean, whatsappStatus?: WhatsAppStatus) {
       if (!admin || !commId) return;
       try {
-        await admin
-          .from("communications")
-          .update({ email_status: emailOk ? "sent" : "failed" })
-          .eq("id", commId);
+        const patch: Record<string, string> = {
+          email_status: emailOk ? "sent" : "failed",
+        };
+        if (whatsappStatus) patch.whatsapp_status = whatsappStatus;
+        await admin.from("communications").update(patch).eq("id", commId);
       } catch (err) {
         console.error("[comms-tracking] finalize failed:", err);
       }

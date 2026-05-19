@@ -14,6 +14,7 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 import { getFormalGreeting } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   client_id: string;
@@ -58,7 +59,9 @@ serve(async (req) => {
     // Fetch client email and name
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .maybeSingle();
 
@@ -78,9 +81,13 @@ serve(async (req) => {
         ? document_url
         : `${PORTAL_URL}/documentos`;
 
+    // Telefone para o WhatsApp.
+    const recipientPhone = client.whatsapp || client.phone || null;
+
     const tracking = await createCommunication({
       kind: "document_added",
       recipientEmail: client.email,
+      recipientPhone,
       clientId: client_id,
       entityType: "document",
       entityId: null,
@@ -116,7 +123,13 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Novo documento disponível*\n\nUm novo documento (${typeLabel}: ${document_label}) foi disponibilizado na sua área do portal.\n\n${document_url ? "Abrir documento" : "Acessar documentos"}: ${documentHrefTracked}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {

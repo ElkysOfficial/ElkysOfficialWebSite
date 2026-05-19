@@ -11,6 +11,7 @@ import { buildEmail, sendEmail } from "./email-template.ts";
 import { formatNotificationBody } from "./validation.ts";
 import { getFormalGreeting } from "./greeting.ts";
 import { createCommunication } from "./comms-tracking.ts";
+import { sendWhatsApp } from "./whatsapp.ts";
 
 const TYPE_LABELS: Record<string, string> = {
   manutencao: "Manutenção programada",
@@ -68,7 +69,9 @@ export async function processNotification(
   // 3. Resolve recipients based on filter_mode
   let clientQuery = adminClient
     .from("clients")
-    .select("id, user_id, full_name, email, nome_fantasia, client_type, gender")
+    .select(
+      "id, user_id, full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+    )
     .eq("is_active", true);
 
   switch (notification.filter_mode) {
@@ -136,9 +139,13 @@ export async function processNotification(
   let errorCount = 0;
 
   for (const client of clients) {
+    // Telefone para o WhatsApp.
+    const recipientPhone = client.whatsapp || client.phone || null;
+
     const tracking = await createCommunication({
       kind: "notification",
       recipientEmail: client.email,
+      recipientPhone,
       clientId: client.id,
       entityType: "notification",
       entityId: notificationId,
@@ -163,7 +170,13 @@ export async function processNotification(
 
     const result = await sendEmail({ to: client.email, subject, html });
 
-    await tracking.finalize(result.ok);
+    // Espelha o comunicado no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — ${typeLabel}*\n\n${notification.title}\n\nAcessar o portal: ${portalHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     // Update recipient record
     const updatePayload = result.ok

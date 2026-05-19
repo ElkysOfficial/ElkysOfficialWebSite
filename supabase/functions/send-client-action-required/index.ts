@@ -16,6 +16,7 @@ import { requireAdminAccess } from "../_shared/auth.ts";
 import { escapeHtml } from "../_shared/validation.ts";
 import { getFormalGreeting } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 type ActionType =
   | "geral"
@@ -221,7 +222,9 @@ serve(async (req) => {
 
     const { data: client } = await admin
       .from("clients")
-      .select("full_name, email, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .maybeSingle();
 
@@ -258,9 +261,13 @@ serve(async (req) => {
         ? meeting_link
         : `${PORTAL_URL}/projetos/${project_id}`;
 
+    // Telefone para o WhatsApp.
+    const recipientPhone = client.whatsapp || client.phone || null;
+
     const tracking = await createCommunication({
       kind: "client_action",
       recipientEmail: client.email,
+      recipientPhone,
       clientId: client_id,
       entityType: "client",
       entityId: client_id,
@@ -289,7 +296,16 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). O texto varia conforme o
+    // action_type, espelhando o titulo/intro usados no e-mail. Falha nao
+    // afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const dueLine = formattedDueDate ? `\nPrazo sugerido: ${formattedDueDate}` : "";
+      const waText = `*Elkys — ${tpl.title}*\n\n${tpl.subjectPrefix} no projeto "${project_name}": ${step_title}.${dueLine}\n\n${tpl.buttonLabel}: ${buttonTrackedHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {

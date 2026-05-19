@@ -14,6 +14,7 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess, createServiceRoleClient } from "../_shared/auth.ts";
 import { getFormalGreeting, truncateAtWord } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   contract_id: string;
@@ -42,7 +43,9 @@ serve(async (req) => {
 
     const { data: client } = await supabase
       .from("clients")
-      .select("full_name, email, nome_fantasia, client_type, gender")
+      .select(
+        "full_name, email, nome_fantasia, client_type, gender, phone, whatsapp, responsavel_financeiro_phone"
+      )
       .eq("id", client_id)
       .single();
 
@@ -59,9 +62,13 @@ serve(async (req) => {
       ? `<p style="margin:0 0 18px 0;font-size:14px;line-height:22px;color:#333333;">Escopo resumido: <strong>${truncateAtWord(scope_summary, 300)}</strong></p>`
       : "";
 
+    // Telefone para o WhatsApp.
+    const recipientPhone = client.whatsapp || client.phone || null;
+
     const tracking = await createCommunication({
       kind: "contract_validation",
       recipientEmail: client.email,
+      recipientPhone,
       clientId: client_id,
       entityType: "contract",
       entityId: contract_id,
@@ -91,7 +98,13 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Contrato para validação*\n\nO contrato do projeto "${project_name}" foi finalizado e aguarda sua revisão e aceite no portal.\n\nRevisar contrato: ${contractHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {

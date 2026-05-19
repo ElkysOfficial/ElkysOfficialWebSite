@@ -11,9 +11,10 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
-import { requireAdminAccess } from "../_shared/auth.ts";
+import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
 import { getTeamMemberGreeting, type Gender } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
 interface Payload {
   email: string;
@@ -40,9 +41,25 @@ serve(async (req) => {
 
     const PORTAL_URL = Deno.env.get("PORTAL_URL") ?? "https://elkys.com.br/portal/admin";
 
+    // Busca o telefone do membro recem-criado para espelhar no WhatsApp.
+    // O payload nao traz telefone; consultamos a tabela team_members pelo e-mail.
+    let recipientPhone: string | null = null;
+    try {
+      const admin = createServiceRoleClient();
+      const { data: memberRow } = await admin
+        .from("team_members")
+        .select("phone")
+        .eq("email", email)
+        .maybeSingle();
+      recipientPhone = memberRow?.phone || null;
+    } catch (err) {
+      console.error("[send-team-welcome] phone lookup failed:", err);
+    }
+
     const tracking = await createCommunication({
       kind: "team_welcome",
       recipientEmail: email,
+      recipientPhone,
       clientId: null,
       entityType: "team_member",
       entityId: null,
@@ -80,7 +97,14 @@ serve(async (req) => {
       html,
     });
 
-    await tracking.finalize(result.ok);
+    // Espelha as boas-vindas no WhatsApp (curto + link). Por seguranca, NAO
+    // repete a senha temporaria — apenas indica que ela foi enviada no e-mail.
+    let waStatus: "sent" | "failed" | "skipped" = "skipped";
+    if (recipientPhone) {
+      const waText = `*Elkys — Boas-vindas à equipe*\n\nSeu acesso ao painel interno da Elkys está ativo. As credenciais de acesso foram enviadas para o seu e-mail (${email}).\n\nAcessar o painel: ${panelHref}`;
+      waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+    }
+    await tracking.finalize(result.ok, waStatus);
 
     if (!result.ok) {
       return new Response(JSON.stringify({ error: result.error }), {
