@@ -3,6 +3,23 @@
 Todas as mudanças relevantes deste projeto são documentadas aqui.
 O versionamento segue a política descrita em `docs/VERSIONING.md`.
 
+## [3.0.1] - 2026-05-19
+
+Personalização e refino das comunicações.
+
+### Melhoria
+
+- Mensagens de WhatsApp reescritas em tom mais acolhedor, com saudação
+  personalizada (Bom dia/tarde/noite + Sr./Sra. + nome do cliente, via o
+  novo helper `getWhatsAppGreeting`), link em linha própria e fecho de apoio.
+- Logo dos e-mails trocada para um PNG de fundo transparente, no lugar do
+  arquivo com fundo que destoava do layout.
+
+### Correção de bug
+
+- O cadastro de cliente passa a exibir uma mensagem clara quando o e-mail já
+  pertence a outra conta do portal, em vez de um erro técnico cru.
+
 ## [3.0.0] - 2026-05-19
 
 Primeira versão sob o processo de versionamento correto: versionamento
