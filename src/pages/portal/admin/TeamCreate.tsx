@@ -160,27 +160,60 @@ export default function AdminTeamCreate() {
 
   const [managerOptions, setManagerOptions] = useState<TeamOption[]>([]);
 
+  // Carrega opcoes de "lider direto". Mantemos o filtro de ativos, mas
+  // sempre incluimos o usuario logado (mesmo que o team_members dele esteja
+  // marcado inativo ou com user_id desalinhado) — sem isso, um admin_super
+  // recem-criado nao consegue se selecionar.
   useEffect(() => {
     let active = true;
     (async () => {
       const { data } = await supabase
         .from("team_members")
-        .select("user_id, full_name")
-        .eq("is_active", true)
-        .not("user_id", "is", null)
+        .select("user_id, full_name, email, is_active")
         .order("full_name", { ascending: true });
-      if (active && data) {
-        setManagerOptions(
-          data
-            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
-            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
-        );
+
+      if (!active || !data) return;
+
+      const currentUserId = user?.id ?? null;
+      const currentUserEmail = user?.email?.toLowerCase() ?? null;
+
+      const seen = new Set<string>();
+      const opts: TeamOption[] = [];
+
+      // Inclui ativos com user_id (caso comum) + o usuario logado, ainda
+      // que o registro dele esteja inativo ou sem user_id no team_members.
+      for (const t of data) {
+        const isCurrentUser =
+          (currentUserId && t.user_id === currentUserId) ||
+          (currentUserEmail && t.email?.toLowerCase() === currentUserEmail);
+
+        if (!t.is_active && !isCurrentUser) continue;
+
+        const resolvedUserId = t.user_id ?? (isCurrentUser ? currentUserId : null);
+        if (!resolvedUserId || seen.has(resolvedUserId)) continue;
+
+        seen.add(resolvedUserId);
+        opts.push({ user_id: resolvedUserId, full_name: t.full_name });
       }
+
+      // Fallback ultimo recurso: se mesmo assim o usuario logado nao apareceu
+      // (sem nenhum team_member rastreavel), forca a entrada usando o nome
+      // dos metadados de auth — assim Lucelho sempre se ve.
+      if (currentUserId && !seen.has(currentUserId)) {
+        const metaName =
+          (user?.user_metadata?.full_name as string | undefined) ??
+          (user?.user_metadata?.name as string | undefined) ??
+          currentUserEmail ??
+          "Você";
+        opts.unshift({ user_id: currentUserId, full_name: `${metaName} (você)` });
+      }
+
+      setManagerOptions(opts);
     })();
     return () => {
       active = false;
     };
-  }, []);
+  }, [user?.id, user?.email, user?.user_metadata]);
 
   /* ── Auto-save de rascunho local ── */
   const watchedValues = watch();
