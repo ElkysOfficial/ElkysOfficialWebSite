@@ -15,6 +15,7 @@ import {
 } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import ContactLinks from "@/components/portal/shared/ContactLinks";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import NameAvatar from "@/components/portal/shared/NameAvatar";
 import Pagination from "@/components/portal/shared/Pagination";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
@@ -583,6 +584,7 @@ export default function LeadDetail() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+          <CopyLinkButton />
           {availableStatuses.map((s) => (
             <Button
               key={s}
@@ -1064,7 +1066,9 @@ export default function LeadDetail() {
                 className="flex items-center justify-between rounded-lg border border-border/50 bg-background/60 px-4 py-3 transition-colors hover:border-primary/30 hover:bg-card"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{p.title}</p>
+                  <p className="truncate text-sm font-medium text-foreground" title={p.title}>
+                    {p.title}
+                  </p>
                   <p className="text-xs text-muted-foreground">{formatPortalDate(p.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-3">

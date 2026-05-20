@@ -21,7 +21,8 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
-import { getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
+import { buildWhatsAppMessage, ctaLink } from "../_shared/whatsapp-template.ts";
 import {
   isServiceRoleRequest,
   requireOperationalAccess,
@@ -160,7 +161,9 @@ serve(async (req) => {
         entityType: "charge",
         entityId: null,
       });
-      const financeiroHref = await tracking.shorten(`${PORTAL_URL}/financeiro`);
+      const financeiroUrl = `${PORTAL_URL}/financeiro`;
+      const financeiroHref = await tracking.shorten(financeiroUrl);
+      const financeiroHrefWa = await tracking.shorten(financeiroUrl, "whatsapp");
 
       const html = buildEmail({
         preheader: "Aviso sobre o status do seu contrato.",
@@ -188,7 +191,16 @@ serve(async (req) => {
       // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
       let waStatus: "sent" | "failed" | "skipped" = "skipped";
       if (recipientPhone) {
-        const waText = `${getWhatsAppGreeting(client)}\n\nIdentificamos pendências financeiras que alteraram o status do seu contrato.\n\nPara regularizar e garantir a continuidade dos serviços, acesse o financeiro no portal.\n\nAcesse por aqui:\n${financeiroHref}\n\nSe o pagamento já foi efetuado, pode desconsiderar. Qualquer dúvida, estamos à disposição.`;
+        const waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(client),
+          paragraphs: [
+            "Identificamos pendências financeiras em aberto que alteraram o status do seu contrato com a Elkys.",
+            "Para regularizar a situação e garantir a continuidade dos serviços, acesse o portal e visualize as cobranças pendentes.",
+            "Se o pagamento já foi efetuado, por favor desconsidere este aviso.",
+          ],
+          cta: ctaLink("Acessar o financeiro", financeiroHrefWa),
+          closing: "Para qualquer dúvida ou negociação, nossa equipe financeira está à disposição.",
+        });
         waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
       }
       await tracking.finalize(result.ok, waStatus);

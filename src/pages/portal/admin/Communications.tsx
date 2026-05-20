@@ -26,12 +26,21 @@ import {
 } from "recharts";
 
 import { loadCommunications, loadTrackingEvents } from "@/lib/portal-data";
+import { useAdminClients } from "@/hooks/useAdminClients";
+import { getClientDisplayName } from "@/lib/portal";
 import { Button, Card, CardContent, cn } from "@/design-system";
 import { BarChart as BarChartIcon, Eye, ExternalLink, Send } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
 import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+
+type Channel = "all" | "email" | "whatsapp";
+const CHANNELS: { value: Channel; label: string }[] = [
+  { value: "all", label: "Todos os canais" },
+  { value: "email", label: "Somente e-mail" },
+  { value: "whatsapp", label: "Somente WhatsApp" },
+];
 
 const CHART_COLORS = {
   brand: "hsl(var(--elk-primary))",
@@ -126,6 +135,7 @@ function ChartTooltip({
 
 export default function Communications() {
   const [days, setDays] = useState<number>(30);
+  const [channel, setChannel] = useState<Channel>("all");
 
   const sinceIso = useMemo(() => new Date(Date.now() - days * 86_400_000).toISOString(), [days]);
 
@@ -143,61 +153,157 @@ export default function Communications() {
     staleTime: 60_000,
   });
 
+  // Mapa de client_id para nome — usado no breakdown por cliente.
+  const { data: clientsBundle } = useAdminClients();
+  const clientNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of clientsBundle?.clients ?? []) {
+      map.set(c.id, getClientDisplayName(c));
+    }
+    return map;
+  }, [clientsBundle]);
+
   const metrics = useMemo(() => {
     const comms = data?.communications ?? [];
     const events = data?.events ?? [];
 
-    const openSet = new Set(
+    // Eventos por canal. tracking_events.channel separa cliques email vs
+    // whatsapp (cada send-* gera 2 tracked_links, um por canal).
+    const emailClickIds = new Set(
+      events
+        .filter((e) => e.event_type === "click" && (e.channel ?? "email") === "email")
+        .map((e) => e.communication_id)
+    );
+    const waClickIds = new Set(
+      events
+        .filter((e) => e.event_type === "click" && e.channel === "whatsapp")
+        .map((e) => e.communication_id)
+    );
+    const openIds = new Set(
       events.filter((e) => e.event_type === "open").map((e) => e.communication_id)
     );
-    const clickSet = new Set(
-      events.filter((e) => e.event_type === "click").map((e) => e.communication_id)
-    );
 
-    const sentComms = comms.filter((c) => c.email_status === "sent");
-    const totalSent = sentComms.length;
-    const opens = sentComms.filter((c) => openSet.has(c.id)).length;
-    const clicks = sentComms.filter((c) => clickSet.has(c.id)).length;
+    // "Enviou" depende do canal: email_status='sent' ou whatsapp_status='sent'.
+    const emailSentComms = comms.filter((c) => c.email_status === "sent");
+    const waSentComms = comms.filter((c) => c.whatsapp_status === "sent");
 
-    // Serie temporal: envios por dia + eventos de abertura/clique por dia.
-    const byDay = new Map<string, { sent: number; open: number; click: number }>();
+    // Em modo "all", uma comunicacao conta como 1 envio para cada canal
+    // que efetivamente entregou — refletindo melhor o esforco total da
+    // operacao (uma mensma comm pode contar nos 2 canais).
+    const inScopeComms =
+      channel === "email"
+        ? emailSentComms
+        : channel === "whatsapp"
+          ? waSentComms
+          : // "all": uniao dos 2 sets — sem duplicar a mesma comm
+            (() => {
+              const seen = new Set<string>();
+              const merged: typeof comms = [];
+              for (const c of [...emailSentComms, ...waSentComms]) {
+                if (!seen.has(c.id)) {
+                  seen.add(c.id);
+                  merged.push(c);
+                }
+              }
+              return merged;
+            })();
+
+    // Helpers de "abriu/clicou" respeitando canal selecionado.
+    const didOpen = (id: string) => channel !== "whatsapp" && openIds.has(id);
+    const didClick = (id: string) => {
+      if (channel === "email") return emailClickIds.has(id);
+      if (channel === "whatsapp") return waClickIds.has(id);
+      return emailClickIds.has(id) || waClickIds.has(id);
+    };
+
+    const totalSent = inScopeComms.length;
+    const opens = inScopeComms.filter((c) => didOpen(c.id)).length;
+    const clicks = inScopeComms.filter((c) => didClick(c.id)).length;
+
+    // Serie temporal com linhas separadas por canal (mais informativa
+    // que somar — mostra qual canal esta tendo mais engajamento).
+    const byDay = new Map<
+      string,
+      {
+        emailSent: number;
+        waSent: number;
+        emailClick: number;
+        waClick: number;
+        open: number;
+      }
+    >();
     const bucket = (iso: string) => {
       const key = iso.slice(0, 10);
-      if (!byDay.has(key)) byDay.set(key, { sent: 0, open: 0, click: 0 });
+      if (!byDay.has(key))
+        byDay.set(key, { emailSent: 0, waSent: 0, emailClick: 0, waClick: 0, open: 0 });
       return byDay.get(key)!;
     };
-    for (const c of sentComms) bucket(c.created_at).sent += 1;
+    for (const c of emailSentComms) bucket(c.created_at).emailSent += 1;
+    for (const c of waSentComms) bucket(c.created_at).waSent += 1;
     for (const e of events) {
       const b = bucket(e.created_at);
       if (e.event_type === "open") b.open += 1;
-      else if (e.event_type === "click") b.click += 1;
+      else if (e.event_type === "click") {
+        if (e.channel === "whatsapp") b.waClick += 1;
+        else b.emailClick += 1;
+      }
     }
     const timeSeries = [...byDay.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, v]) => ({ label: formatDayShort(key), ...v }));
 
-    // Desempenho por tipo de comunicacao.
+    // Desempenho por tipo de comunicacao — respeita filtro de canal.
     const byKindMap = new Map<string, { sent: number; open: number; click: number }>();
-    for (const c of sentComms) {
+    for (const c of inScopeComms) {
       if (!byKindMap.has(c.kind)) byKindMap.set(c.kind, { sent: 0, open: 0, click: 0 });
       const k = byKindMap.get(c.kind)!;
       k.sent += 1;
-      if (openSet.has(c.id)) k.open += 1;
-      if (clickSet.has(c.id)) k.click += 1;
+      if (didOpen(c.id)) k.open += 1;
+      if (didClick(c.id)) k.click += 1;
     }
     const byKind = [...byKindMap.entries()]
       .map(([kind, v]) => ({ kind: kindLabel(kind), ...v }))
       .sort((a, b) => b.sent - a.sent);
 
-    // Tabela de comunicacoes recentes (ja vem ordenada desc do banco).
+    // Breakdown por cliente — top N por volume de envio. Mostra quem mais
+    // recebe comunicacao e como cada um engaja.
+    const byClientMap = new Map<
+      string,
+      { clientId: string; sent: number; open: number; click: number }
+    >();
+    for (const c of inScopeComms) {
+      const key = c.client_id ?? "__no_client__";
+      if (!byClientMap.has(key))
+        byClientMap.set(key, { clientId: key, sent: 0, open: 0, click: 0 });
+      const k = byClientMap.get(key)!;
+      k.sent += 1;
+      if (didOpen(c.id)) k.open += 1;
+      if (didClick(c.id)) k.click += 1;
+    }
+    const byClient = [...byClientMap.values()]
+      .map((v) => ({
+        ...v,
+        name:
+          v.clientId === "__no_client__"
+            ? "Sem cliente vinculado"
+            : (clientNameById.get(v.clientId) ?? "Cliente removido"),
+      }))
+      .sort((a, b) => b.sent - a.sent)
+      .slice(0, 10);
+
+    // Tabela de recentes — mostra as duas colunas de canal lado a lado.
     const recent = comms.slice(0, 50).map((c) => ({
       id: c.id,
       kind: kindLabel(c.kind),
-      recipient: c.recipient_email ?? "—",
+      recipientEmail: c.recipient_email ?? "—",
+      recipientPhone: c.recipient_phone ?? null,
+      clientName: c.client_id ? (clientNameById.get(c.client_id) ?? "—") : "—",
       createdAt: c.created_at,
       emailStatus: c.email_status,
-      opened: openSet.has(c.id),
-      clicked: clickSet.has(c.id),
+      whatsappStatus: c.whatsapp_status,
+      opened: openIds.has(c.id),
+      emailClicked: emailClickIds.has(c.id),
+      waClicked: waClickIds.has(c.id),
     }));
 
     return {
@@ -207,9 +313,10 @@ export default function Communications() {
       clicks,
       timeSeries,
       byKind,
+      byClient,
       recent,
     };
-  }, [data]);
+  }, [data, channel, clientNameById]);
 
   if (isLoading) return <PortalLoading />;
 
@@ -227,28 +334,52 @@ export default function Communications() {
 
   return (
     <div className="space-y-6">
-      {/* Seletor de periodo */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Período
-        </span>
-        {PERIODS.map((p) => (
-          <Button
-            key={p.days}
-            type="button"
-            variant={days === p.days ? "default" : "outline"}
-            size="sm"
-            onClick={() => setDays(p.days)}
-          >
-            {p.label}
-          </Button>
-        ))}
+      {/* Filtros: periodo + canal */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Período
+          </span>
+          {PERIODS.map((p) => (
+            <Button
+              key={p.days}
+              type="button"
+              variant={days === p.days ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDays(p.days)}
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:ml-4">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Canal
+          </span>
+          {CHANNELS.map((ch) => (
+            <Button
+              key={ch.value}
+              type="button"
+              variant={channel === ch.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setChannel(ch.value)}
+            >
+              {ch.label}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {/* Cards de topo */}
+      {/* Cards de topo (adaptam ao canal selecionado) */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricTile
-          label="E-mails enviados"
+          label={
+            channel === "email"
+              ? "E-mails enviados"
+              : channel === "whatsapp"
+                ? "WhatsApp enviados"
+                : "Mensagens enviadas"
+          }
           value={String(metrics.totalSent)}
           icon={Send}
           tone="primary"
@@ -263,10 +394,14 @@ export default function Communications() {
         />
         <MetricTile
           label="Taxa de abertura"
-          value={pct(metrics.opens, metrics.totalSent)}
+          value={channel === "whatsapp" ? "—" : pct(metrics.opens, metrics.totalSent)}
           icon={Eye}
           tone="accent"
-          hint={`${metrics.opens} abertura(s) — sinal indicativo`}
+          hint={
+            channel === "whatsapp"
+              ? "WhatsApp não rastreia abertura"
+              : `${metrics.opens} abertura(s) — sinal indicativo`
+          }
         />
         <MetricTile
           label="Taxa de clique"
@@ -285,13 +420,13 @@ export default function Communications() {
         />
       ) : (
         <>
-          {/* Serie temporal */}
+          {/* Serie temporal — linhas por canal */}
           <Card>
             <CardContent className="p-4 sm:p-5">
               <h2 className="mb-3 text-sm font-semibold text-foreground">
-                Envios, aberturas e cliques no tempo
+                Envios e engajamento por canal
               </h2>
-              <div className="h-[240px]">
+              <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <LineChart
                     data={metrics.timeSeries}
@@ -316,30 +451,58 @@ export default function Communications() {
                     />
                     <Tooltip content={<ChartTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Line
-                      type="monotone"
-                      dataKey="sent"
-                      name="Enviados"
-                      stroke={CHART_COLORS.brand}
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="open"
-                      name="Aberturas"
-                      stroke={CHART_COLORS.accent}
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="click"
-                      name="Cliques"
-                      stroke={CHART_COLORS.success}
-                      strokeWidth={2}
-                      dot={false}
-                    />
+                    {channel !== "whatsapp" ? (
+                      <>
+                        <Line
+                          type="monotone"
+                          dataKey="emailSent"
+                          name="E-mail enviado"
+                          stroke={CHART_COLORS.brand}
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="emailClick"
+                          name="Clique e-mail"
+                          stroke={CHART_COLORS.brand}
+                          strokeWidth={1.5}
+                          strokeDasharray="4 3"
+                          dot={false}
+                        />
+                      </>
+                    ) : null}
+                    {channel !== "email" ? (
+                      <>
+                        <Line
+                          type="monotone"
+                          dataKey="waSent"
+                          name="WhatsApp enviado"
+                          stroke={CHART_COLORS.success}
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="waClick"
+                          name="Clique WhatsApp"
+                          stroke={CHART_COLORS.success}
+                          strokeWidth={1.5}
+                          strokeDasharray="4 3"
+                          dot={false}
+                        />
+                      </>
+                    ) : null}
+                    {channel !== "whatsapp" ? (
+                      <Line
+                        type="monotone"
+                        dataKey="open"
+                        name="Abertura e-mail"
+                        stroke={CHART_COLORS.accent}
+                        strokeWidth={1.5}
+                        dot={false}
+                      />
+                    ) : null}
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -392,7 +555,62 @@ export default function Communications() {
             </CardContent>
           </Card>
 
-          {/* Tabela de recentes */}
+          {/* Top 10 clientes por volume de mensagens */}
+          {metrics.byClient.length > 0 ? (
+            <Card>
+              <CardContent className="p-4 sm:p-5">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">
+                  Top 10 clientes — engajamento
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        <th className="py-2 font-semibold">Cliente</th>
+                        <th className="px-3 py-2 text-right font-semibold">Enviadas</th>
+                        {channel !== "whatsapp" ? (
+                          <th className="px-3 py-2 text-right font-semibold">Aberturas</th>
+                        ) : null}
+                        <th className="px-3 py-2 text-right font-semibold">Cliques</th>
+                        <th className="px-3 py-2 text-right font-semibold">Taxa clique</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metrics.byClient.map((row) => (
+                        <tr
+                          key={row.clientId}
+                          className="border-b border-border/40 last:border-0 hover:bg-muted/40"
+                        >
+                          <td
+                            className="max-w-[280px] truncate py-2.5 font-medium text-foreground"
+                            title={row.name}
+                          >
+                            {row.name}
+                          </td>
+                          <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground">
+                            {row.sent}
+                          </td>
+                          {channel !== "whatsapp" ? (
+                            <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {row.open}
+                            </td>
+                          ) : null}
+                          <td className="px-3 py-2.5 text-right tabular-nums text-muted-foreground">
+                            {row.click}
+                          </td>
+                          <td className="px-3 py-2.5 text-right tabular-nums font-medium text-foreground">
+                            {pct(row.click, row.sent)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {/* Tabela de recentes — colunas separadas por canal */}
           <Card>
             <CardContent className="p-0">
               <h2 className="border-b border-border/60 px-4 py-3 text-sm font-semibold text-foreground sm:px-5">
@@ -403,9 +621,11 @@ export default function Communications() {
                   <thead>
                     <tr className="border-b border-border/60 text-[10px] uppercase tracking-wide text-muted-foreground">
                       <th className="px-4 py-2 font-semibold sm:px-5">Tipo</th>
+                      <th className="px-4 py-2 font-semibold">Cliente</th>
                       <th className="px-4 py-2 font-semibold">Destinatário</th>
                       <th className="px-4 py-2 font-semibold">Enviado em</th>
                       <th className="px-4 py-2 font-semibold">E-mail</th>
+                      <th className="px-4 py-2 font-semibold">WhatsApp</th>
                       <th className="px-4 py-2 font-semibold">Abriu</th>
                       <th className="px-4 py-2 font-semibold">Clicou</th>
                     </tr>
@@ -419,21 +639,71 @@ export default function Communications() {
                         <td className="px-4 py-2.5 font-medium text-foreground sm:px-5">
                           {row.kind}
                         </td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{row.recipient}</td>
+                        <td
+                          className="max-w-[180px] truncate px-4 py-2.5 text-muted-foreground"
+                          title={row.clientName}
+                        >
+                          {row.clientName}
+                        </td>
+                        <td
+                          className="max-w-[200px] truncate px-4 py-2.5 text-muted-foreground"
+                          title={`${row.recipientEmail}${row.recipientPhone ? ` · ${row.recipientPhone}` : ""}`}
+                        >
+                          {row.recipientEmail}
+                        </td>
                         <td className="px-4 py-2.5 text-muted-foreground">
                           {formatDateTime(row.createdAt)}
                         </td>
                         <td className="px-4 py-2.5">
                           <StatusBadge
-                            tone={row.emailStatus === "sent" ? "success" : "muted"}
-                            label={row.emailStatus === "sent" ? "Enviado" : row.emailStatus}
+                            tone={
+                              row.emailStatus === "sent"
+                                ? "success"
+                                : row.emailStatus === "failed"
+                                  ? "destructive"
+                                  : "muted"
+                            }
+                            label={
+                              row.emailStatus === "sent" ? "Enviado" : (row.emailStatus ?? "—")
+                            }
                           />
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {row.whatsappStatus ? (
+                            <StatusBadge
+                              tone={
+                                row.whatsappStatus === "sent"
+                                  ? "success"
+                                  : row.whatsappStatus === "failed"
+                                    ? "destructive"
+                                    : "muted"
+                              }
+                              label={
+                                row.whatsappStatus === "sent"
+                                  ? "Enviado"
+                                  : row.whatsappStatus === "failed"
+                                    ? "Falhou"
+                                    : "Pulado"
+                              }
+                            />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-2.5">
                           <DotIndicator on={row.opened} />
                         </td>
                         <td className="px-4 py-2.5">
-                          <DotIndicator on={row.clicked} />
+                          <span className="inline-flex items-center gap-1">
+                            <DotIndicator on={row.emailClicked || row.waClicked} />
+                            {row.emailClicked && row.waClicked ? (
+                              <span className="text-[10px] text-muted-foreground">e-mail+WA</span>
+                            ) : row.waClicked ? (
+                              <span className="text-[10px] text-muted-foreground">WA</span>
+                            ) : row.emailClicked ? (
+                              <span className="text-[10px] text-muted-foreground">e-mail</span>
+                            ) : null}
+                          </span>
                         </td>
                       </tr>
                     ))}

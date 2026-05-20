@@ -9,7 +9,8 @@
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail } from "./email-template.ts";
 import { formatNotificationBody } from "./validation.ts";
-import { getFormalGreeting, getWhatsAppGreeting } from "./greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName } from "./greeting.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "./whatsapp-template.ts";
 import { createCommunication } from "./comms-tracking.ts";
 import { sendWhatsApp } from "./whatsapp.ts";
 
@@ -151,6 +152,7 @@ export async function processNotification(
       entityId: notificationId,
     });
     const portalHref = await tracking.shorten(PORTAL_URL);
+    const portalHrefWa = await tracking.shorten(PORTAL_URL, "whatsapp");
 
     const html = buildEmail({
       preheader: `${typeLabel}: ${notification.title}`,
@@ -173,7 +175,16 @@ export async function processNotification(
     // Espelha o comunicado no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)}\n\n${typeLabel}: ${notification.title}\n\nOs detalhes completos estão no portal.\n\nAcesse por aqui:\n${portalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          "Temos um comunicado importante para você relacionado à sua conta no Portal Elkys.",
+          docHighlight(typeLabel, notification.title),
+          "O conteúdo completo, com todos os detalhes, está disponível no portal.",
+        ],
+        cta: ctaLink("Abrir comunicado no portal", portalHrefWa),
+        closing: "Para qualquer dúvida sobre esta notificação, nossa equipe está à disposição.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

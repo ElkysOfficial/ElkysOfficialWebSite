@@ -290,7 +290,10 @@ export default function AdminInternalDocuments({ audience }: { audience: Audienc
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-foreground">
+                    <p
+                      className="truncate text-sm font-semibold text-foreground"
+                      title={document.label}
+                    >
                       {document.label}
                     </p>
                     <span className="shrink-0 rounded-full border border-border/50 bg-card px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

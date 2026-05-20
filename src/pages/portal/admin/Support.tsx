@@ -38,7 +38,6 @@ interface Ticket {
   sla_deadline: string | null;
 }
 
-
 interface TicketMessage {
   id: string;
   ticket_id: string;
@@ -687,7 +686,10 @@ export default function AdminSupport() {
                             ))}
                           </span>
                         )}
-                        <p className="truncate text-sm font-semibold text-foreground">
+                        <p
+                          className="truncate text-sm font-semibold text-foreground"
+                          title={ticket.subject}
+                        >
                           {ticket.subject}
                         </p>
                       </div>

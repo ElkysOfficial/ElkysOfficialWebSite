@@ -21,9 +21,10 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
-import { getFormalGreeting, getWhatsAppGreeting, plural } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName, plural } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -140,7 +141,9 @@ serve(async (req) => {
         entityType: "charge",
         entityId: clientCharges[0].id,
       });
-      const portalHref = await tracking.shorten(`${PORTAL_URL}/financeiro`);
+      const portalUrl = `${PORTAL_URL}/financeiro`;
+      const portalHref = await tracking.shorten(portalUrl);
+      const portalHrefWa = await tracking.shorten(portalUrl, "whatsapp");
 
       const html = buildEmail({
         preheader: isInadimplente
@@ -192,8 +195,30 @@ serve(async (req) => {
       let waStatus: "sent" | "failed" | "skipped" = "skipped";
       if (recipientPhone) {
         const waText = isInadimplente
-          ? `${getWhatsAppGreeting(client)}\n\nIdentificamos uma pendência financeira em aberto na sua conta, no valor de ${amountFormatted}.\n\nPara manter tudo em dia, pedimos a regularização assim que possível.\n\nAcesse o financeiro por aqui:\n${portalHref}\n\nSe o pagamento já foi feito, pode desconsiderar. Estamos à disposição.`
-          : `${getWhatsAppGreeting(client)}\n\nPassando para lembrar: sua ${faturaLabel} de ${amountFormatted} ${verbo} em ${dueDateFormatted} (${daysLabel}).\n\nAcesse o financeiro por aqui:\n${portalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+          ? buildWhatsAppMessage({
+              greeting: getWhatsAppGreetingFullName(client),
+              paragraphs: [
+                "Identificamos uma pendência financeira em aberto na sua conta.",
+                docHighlight("Valor em aberto", amountFormatted),
+                "Para manter tudo em dia e evitar interrupção dos serviços, pedimos a regularização assim que possível.",
+                "Se o pagamento já foi efetuado, por favor desconsidere este aviso.",
+              ],
+              cta: ctaLink("Acessar o financeiro", portalHrefWa),
+              closing: "Para qualquer dúvida, nossa equipe financeira está à disposição.",
+            })
+          : buildWhatsAppMessage({
+              greeting: getWhatsAppGreetingFullName(client),
+              paragraphs: [
+                `Passando para lembrar da sua próxima ${faturaLabel}, que ${verbo} em ${daysLabel}.`,
+                docHighlight(
+                  "Próxima cobrança",
+                  `${faturaLabel} - ${amountFormatted} - vencimento em ${dueDateFormatted}`
+                ),
+                "Manter o pagamento em dia garante a continuidade dos seus projetos com a Elkys.",
+              ],
+              cta: ctaLink("Acessar o financeiro", portalHrefWa),
+              closing: "Para qualquer dúvida, estamos à disposição.",
+            });
         waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
       }
       await tracking.finalize(result.ok, waStatus);

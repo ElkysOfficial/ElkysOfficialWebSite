@@ -93,17 +93,24 @@ export default function LegalAcceptanceModal({ onAccepted }: LegalAcceptanceModa
     await signOut();
   };
 
-  // Aciona o dialogo nativo de impressao do navegador, que oferece
-  // "Salvar como PDF" como destino. Vetorial, com texto pesquisavel,
-  // sem dependencias adicionais. O conteudo impresso e somente o no
-  // marcado com #legal-print-area (regras em styles/_utilities.scss
-  // sob body.printing-legal @media print).
-  const handleDownloadPdf = () => {
-    const printRoot = document.getElementById("legal-print-area");
-    if (!printRoot) return;
-    document.body.classList.add("printing-legal");
-    window.print();
-    document.body.classList.remove("printing-legal");
+  // Geracao programatica via jsPDF — substitui window.print() que cortava
+  // conteudo no Chrome/Firefox por bugs de overflow do container scrolled
+  // e position:fixed pai. Conteudo completo, multi-pagina, tipografia
+  // juridica (Times, justificado, margem 25mm) e numeracao "Pagina X de Y".
+  // Detalhes em src/lib/legalPdf.ts.
+  const [downloading, setDownloading] = useState(false);
+  const handleDownloadPdf = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const { exportLegalPDF } = await import("@/lib/legalPdf");
+      await exportLegalPDF({ version: String(LEGAL_VERSION) });
+    } catch (err) {
+      console.error("[LegalAcceptanceModal] PDF generation failed", err);
+      toast.error("Não foi possível gerar o PDF. Tente novamente.");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -215,7 +222,12 @@ export default function LegalAcceptanceModal({ onAccepted }: LegalAcceptanceModa
               <Button variant="ghost" onClick={handleDecline} disabled={submitting}>
                 Recusar e sair
               </Button>
-              <Button variant="outline" onClick={handleDownloadPdf} disabled={submitting}>
+              <Button
+                variant="outline"
+                onClick={handleDownloadPdf}
+                disabled={submitting || downloading}
+                loading={downloading}
+              >
                 Baixar PDF
               </Button>
             </div>

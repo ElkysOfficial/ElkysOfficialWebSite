@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { CheckCircle, ExternalLink, FileText, X } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
 import {
@@ -310,9 +311,12 @@ export default function ProposalView() {
             <StatusBadge label={meta.label} tone={meta.tone} />
           </div>
         </div>
-        <Link to="/portal/cliente/propostas" className={buttonVariants({ variant: "outline" })}>
-          Voltar
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <CopyLinkButton />
+          <Link to="/portal/cliente/propostas" className={buttonVariants({ variant: "outline" })}>
+            Voltar
+          </Link>
+        </div>
       </div>
 
       {/* Proposal details */}

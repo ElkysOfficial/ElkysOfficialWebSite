@@ -110,10 +110,16 @@ function ClientRow({
             </span>
           )}
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+            <p
+              className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]"
+              title={displayName}
+            >
               {displayName}
             </p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+            <p
+              className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm"
+              title={client.email}
+            >
               {client.email}
             </p>
             <ClientRowIndicators indicators={client.indicators} className="mt-1.5" />
@@ -378,7 +384,12 @@ export default function AdminClients() {
   }));
 
   const handleExportCSV = () =>
-    exportCSV({ title: "Clientes", filename: "clientes", columns: exportColumns, rows: exportRows });
+    exportCSV({
+      title: "Clientes",
+      filename: "clientes",
+      columns: exportColumns,
+      rows: exportRows,
+    });
   const handleExportPDF = () =>
     exportPDF({
       title: "Relatorio de Clientes",

@@ -22,8 +22,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { escapeHtml } from "../_shared/validation.ts";
 import { requireAuthenticatedUser } from "../_shared/auth.ts";
-import { getTimeGreeting, nl2br, truncateAtWord } from "../_shared/greeting.ts";
+import {
+  getTimeGreeting,
+  getWhatsAppTeamGreeting,
+  nl2br,
+  truncateAtWord,
+} from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
+import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   ticket_id: string;
@@ -85,17 +92,41 @@ serve(async (req) => {
     // Truncate body preview for email (respeita fronteira de palavra)
     const bodyPreview = truncateAtWord(body, 300);
 
+    // Resolve telefones dos destinatarios cruzando os e-mails configurados
+    // com team_members (uma lista mestre — TICKET_NOTIFY_EMAILS — para os
+    // dois canais). Membros sem telefone caem em modo email-only.
+    const { data: teamMembers } = await admin
+      .from("team_members")
+      .select("email, full_name, phone, gender")
+      .in("email", notifyEmails);
+
+    const memberByEmail = new Map<
+      string,
+      { full_name: string | null; phone: string | null; gender: string | null }
+    >();
+    for (const m of teamMembers ?? []) {
+      memberByEmail.set(m.email, {
+        full_name: m.full_name,
+        phone: m.phone,
+        gender: m.gender,
+      });
+    }
+
     // Send to all configured recipients (serial para rastreio individual por destinatário)
     let failures = 0;
     for (const recipientEmail of notifyEmails) {
+      const member = memberByEmail.get(recipientEmail);
+      const recipientPhone = member?.phone || null;
       const tracking = await createCommunication({
         kind: "ticket_opened",
         recipientEmail,
+        recipientPhone,
         clientId: null,
         entityType: "ticket",
         entityId: ticket_id,
       });
       const ticketHref = await tracking.shorten(ticketUrl);
+      const ticketHrefWa = await tracking.shorten(ticketUrl, "whatsapp");
 
       const html = buildEmail({
         preheader: `Ticket aberto por ${clientName}: "${subject}".`,
@@ -126,7 +157,29 @@ serve(async (req) => {
         html,
       });
 
-      await tracking.finalize(result.ok);
+      // Espelha o alerta no WhatsApp para o time interno — agiliza
+      // resposta de SLA. Best-effort; falha de WA nao afeta o e-mail.
+      let waStatus: "sent" | "failed" | "skipped" = "skipped";
+      if (recipientPhone) {
+        const waText = buildWhatsAppMessage({
+          greeting: getWhatsAppTeamGreeting({
+            full_name: member?.full_name ?? recipientEmail,
+            gender: (member?.gender as "masculino" | "feminino" | null) ?? null,
+          }),
+          paragraphs: [
+            `O cliente *${clientName}* acabou de abrir um novo ticket de suporte e está aguardando atendimento.`,
+            docHighlight("Novo ticket", `${clientName} - ${subject}`),
+            `Resumo da solicitação: "${truncateAtWord(body, 200)}"`,
+          ],
+          cta: ctaLink("Abrir o ticket no painel", ticketHrefWa),
+          closing:
+            "Por favor, dê uma olhada e responda assim que possível para mantermos o SLA da equipe.",
+          internal: true,
+        });
+        waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
+      }
+
+      await tracking.finalize(result.ok, waStatus);
 
       if (!result.ok) failures++;
     }

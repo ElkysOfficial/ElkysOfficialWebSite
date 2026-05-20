@@ -5,7 +5,8 @@ import {
   isServiceRoleRequest,
 } from "../_shared/auth.ts";
 import { buildEmail, sendEmail, getTimeGreeting } from "../_shared/email-template.ts";
-import { getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 import { escapeAndFormat } from "../_shared/validation.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
@@ -162,6 +163,7 @@ Deno.serve(async (req: Request) => {
         entityId: charge.id,
       });
       const portalHref = await tracking.shorten(`${portalUrl}/financeiro`);
+      const portalHrefWa = await tracking.shorten(`${portalUrl}/financeiro`, "whatsapp");
 
       const subject = replaceVars(tpl.subject, vars);
       const bodyText = replaceVars(tpl.body, vars);
@@ -180,7 +182,19 @@ Deno.serve(async (req: Request) => {
       // afeta o e-mail. Nao repete o corpo do template, apenas resume.
       let waStatus: "sent" | "failed" | "skipped" = "skipped";
       if (recipientPhone) {
-        const waText = `${getWhatsAppGreeting(client)}\n\n${subject}\n\nReferente à cobrança "${vars.description}", no valor de ${vars.amount}, com vencimento em ${vars.due_date}.\n\nAcesse o financeiro por aqui:\n${portalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+        const waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(client),
+          paragraphs: [
+            subject,
+            docHighlight(
+              "Cobrança",
+              `${vars.description} - ${vars.amount} - vencimento em ${vars.due_date}`
+            ),
+            "Você pode visualizar os detalhes, baixar o comprovante quando pago ou copiar a chave PIX direto no portal.",
+          ],
+          cta: ctaLink("Acessar o financeiro", portalHrefWa),
+          closing: "Para qualquer dúvida, nossa equipe financeira está à disposição.",
+        });
         waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
       }
       await tracking.finalize(result.ok, waStatus);
@@ -322,6 +336,7 @@ Deno.serve(async (req: Request) => {
             entityId: charge.id,
           });
           const portalHref = await tracking.shorten(`${portalUrl}/financeiro`);
+          const portalHrefWa = await tracking.shorten(`${portalUrl}/financeiro`, "whatsapp");
 
           const subject = replaceVars(template.subject, vars);
           const bodyText = replaceVars(template.body, vars);
@@ -346,8 +361,34 @@ Deno.serve(async (req: Request) => {
           if (recipientPhone) {
             const waText =
               rule.trigger_days > 0
-                ? `${getWhatsAppGreeting(client)}\n\n${subject}\n\nA cobrança "${vars.description}", no valor de ${vars.amount}, venceu em ${vars.due_date} e está em aberto. Pedimos a regularização assim que possível.\n\nAcesse o financeiro por aqui:\n${portalHref}\n\nSe o pagamento já foi feito, pode desconsiderar. Estamos à disposição.`
-                : `${getWhatsAppGreeting(client)}\n\n${subject}\n\nA cobrança "${vars.description}", no valor de ${vars.amount}, tem vencimento em ${vars.due_date}.\n\nAcesse o financeiro por aqui:\n${portalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+                ? buildWhatsAppMessage({
+                    greeting: getWhatsAppGreetingFullName(client),
+                    paragraphs: [
+                      subject,
+                      docHighlight(
+                        "Cobrança em atraso",
+                        `${vars.description} - ${vars.amount} - vencimento em ${vars.due_date}`
+                      ),
+                      "Para manter sua conta em dia e evitar interrupção dos serviços, pedimos a regularização assim que possível.",
+                      "Se o pagamento já foi efetuado, por favor desconsidere este aviso.",
+                    ],
+                    cta: ctaLink("Acessar o financeiro", portalHrefWa),
+                    closing:
+                      "Para qualquer dúvida ou negociação, nosso financeiro está à disposição.",
+                  })
+                : buildWhatsAppMessage({
+                    greeting: getWhatsAppGreetingFullName(client),
+                    paragraphs: [
+                      subject,
+                      docHighlight(
+                        "Próxima cobrança",
+                        `${vars.description} - ${vars.amount} - vencimento em ${vars.due_date}`
+                      ),
+                      "Para sua comodidade, o pagamento pode ser feito direto pelo portal, com PIX copiável ou boleto.",
+                    ],
+                    cta: ctaLink("Acessar o financeiro", portalHrefWa),
+                    closing: "Para qualquer dúvida, nossa equipe está à disposição.",
+                  });
             waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
           }
           await tracking.finalize(result.ok, waStatus);

@@ -32,6 +32,9 @@ const Delinquency = lazy(() => import("@/pages/portal/admin/Delinquency"));
 const RevenueByClient = lazy(() => import("@/pages/portal/admin/RevenueByClient"));
 const FinanceGoals = lazy(() => import("@/pages/portal/admin/FinanceGoals"));
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+import InlineStatusSelect, {
+  type InlineStatusOption,
+} from "@/components/portal/shared/InlineStatusSelect";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
@@ -89,6 +92,18 @@ type FinanceTab =
 const REVENUE_PAGE_SIZE = 10;
 
 const CHARGE_STATUSES = ["pendente", "pago", "atrasado", "agendada", "cancelado"] as const;
+
+// Opcoes do inline-edit ancoradas em CHARGE_STATUS_META — preservam label
+// e tone do StatusBadge ja estabelecido. "Pago" tem hint porque abre o
+// modal de confirmacao em vez de aplicar direto (preserva o fluxo seguro
+// existente em setConfirmingPayCharge / handleQuickMarkPaid).
+const CHARGE_STATUS_OPTIONS: InlineStatusOption<PortalCharge["status"]>[] = [
+  { value: "agendada", label: "Futura", tone: "secondary" },
+  { value: "pendente", label: "Em aberto", tone: "warning" },
+  { value: "atrasado", label: "Em atraso", tone: "destructive" },
+  { value: "pago", label: "Pago", tone: "success", hint: "Abre confirmação" },
+  { value: "cancelado", label: "Cancelado", tone: "secondary" },
+];
 
 type ChargeEditor = {
   description: string;
@@ -264,7 +279,125 @@ function FinanceRevenueTab({
   };
 
   const [quickPayingId, setQuickPayingId] = useState<string | null>(null);
+  const [quickStatusChargeId, setQuickStatusChargeId] = useState<string | null>(null);
   const [confirmingPayCharge, setConfirmingPayCharge] = useState<PortalCharge | null>(null);
+
+  /**
+   * Inline-edit de status (qualquer transicao exceto "pago", que delega ao
+   * fluxo de confirmacao existente). Replica os efeitos colaterais do
+   * editor completo: sync de project_installments, notificacao de atraso
+   * quando entra em "atrasado" e undo via toast. Sem e-mail de
+   * agradecimento — esse e exclusivo da rota "pago" (handleQuickMarkPaid).
+   */
+  // Rollback de cobranca paga e sensivel: o e-mail de agradecimento ja foi
+  // enviado ao cliente, nao da pra desfazer. Antes de aplicar, mostramos
+  // AlertDialog avisando explicitamente. Decisao consciente do admin.
+  const [pendingPaidRollback, setPendingPaidRollback] = useState<{
+    charge: PortalCharge;
+    newStatus: PortalCharge["status"];
+  } | null>(null);
+
+  const handleQuickChangeStatus = async (
+    charge: PortalCharge,
+    newStatus: PortalCharge["status"]
+  ) => {
+    if (newStatus === charge.status) return;
+    if (newStatus === "pago") {
+      setConfirmingPayCharge(charge);
+      return;
+    }
+    if (quickStatusChargeId || quickPayingId) return;
+
+    // Rollback de pago precisa de confirmacao — e-mail ja saiu.
+    if (charge.status === "pago") {
+      setPendingPaidRollback({ charge, newStatus });
+      return;
+    }
+
+    await performQuickChangeStatus(charge, newStatus);
+  };
+
+  const performQuickChangeStatus = async (
+    charge: PortalCharge,
+    newStatus: PortalCharge["status"]
+  ) => {
+    setQuickStatusChargeId(charge.id);
+    const previousStatus = charge.status;
+    const previousPaidAt = charge.paid_at;
+
+    const { error } = await supabase
+      .from("charges")
+      .update({ status: newStatus, paid_at: null })
+      .eq("id", charge.id);
+
+    if (error) {
+      setQuickStatusChargeId(null);
+      toast.error("Não foi possível atualizar o status.", { description: error.message });
+      return;
+    }
+
+    if (charge.installment_id) {
+      const { error: syncError } = await supabase
+        .from("project_installments")
+        .update({
+          status: chargeStatusToInstallmentStatus(newStatus),
+          paid_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", charge.installment_id);
+      if (syncError) {
+        console.warn("[Finance.handleQuickChangeStatus] sync de parcela falhou", syncError);
+      }
+    }
+
+    if (newStatus === "atrasado" && previousStatus !== "atrasado") {
+      try {
+        const headers = await getSupabaseFunctionAuthHeaders();
+        await supabase.functions.invoke("send-charge-overdue", {
+          body: {
+            client_id: charge.client_id,
+            charge_description: charge.description,
+            charge_amount: Number(charge.amount),
+            due_date: charge.due_date,
+          },
+          headers,
+        });
+      } catch {
+        // Notificacao best-effort — nao bloqueia.
+      }
+    }
+
+    setQuickStatusChargeId(null);
+    await onReload();
+
+    toast.success("Status atualizado.", {
+      description: `${charge.description} → ${CHARGE_STATUS_META[newStatus].label}`,
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const { error: undoError } = await supabase
+            .from("charges")
+            .update({ status: previousStatus, paid_at: previousPaidAt })
+            .eq("id", charge.id);
+          if (undoError) {
+            toast.error("Não foi possível desfazer.", { description: undoError.message });
+            return;
+          }
+          if (charge.installment_id) {
+            await supabase
+              .from("project_installments")
+              .update({
+                status: chargeStatusToInstallmentStatus(previousStatus),
+                paid_at: previousPaidAt,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", charge.installment_id);
+          }
+          await onReload();
+        },
+      },
+    });
+  };
 
   /**
    * Atalho de 1 clique para marcar uma cobranca como paga sem abrir o
@@ -719,7 +852,8 @@ function FinanceRevenueTab({
           {visibleCharges.map((charge) => {
             const isEditing = editingChargeId === charge.id && editor;
             const client = clientsMap[charge.client_id];
-            const meta = CHARGE_STATUS_META[charge.status];
+            // meta agora vive dentro do InlineStatusSelect via CHARGE_STATUS_OPTIONS.
+            // CHARGE_STATUS_META segue usado em outras tabs/exports do arquivo.
 
             return (
               <article
@@ -821,7 +955,10 @@ function FinanceRevenueTab({
                     {/* Description + actions (mobile: same row) */}
                     <div className="flex items-start justify-between gap-2 lg:contents">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground sm:text-base">
+                        <p
+                          className="truncate text-sm font-semibold text-foreground sm:text-base"
+                          title={charge.description}
+                        >
                           {charge.description}
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
@@ -877,7 +1014,12 @@ function FinanceRevenueTab({
                       <span className="text-sm font-semibold text-success">
                         {formatBRL(Number(charge.amount))}
                       </span>
-                      <StatusBadge label={meta.label} tone={meta.tone} />
+                      <InlineStatusSelect
+                        value={charge.status}
+                        options={CHARGE_STATUS_OPTIONS}
+                        loading={quickStatusChargeId === charge.id || quickPayingId === charge.id}
+                        onSelect={(next) => handleQuickChangeStatus(charge, next)}
+                      />
                       <span className="text-xs text-muted-foreground">
                         {charge.is_historical ? "Histórico" : "Operacional"}
                       </span>
@@ -907,7 +1049,12 @@ function FinanceRevenueTab({
                         Status
                       </p>
                       <div className="mt-2">
-                        <StatusBadge label={meta.label} tone={meta.tone} />
+                        <InlineStatusSelect
+                          value={charge.status}
+                          options={CHARGE_STATUS_OPTIONS}
+                          loading={quickStatusChargeId === charge.id || quickPayingId === charge.id}
+                          onSelect={(next) => handleQuickChangeStatus(charge, next)}
+                        />
                       </div>
                     </div>
 
@@ -1078,6 +1225,29 @@ function FinanceRevenueTab({
           setDeleteChargeId(null);
         }}
         onConfirm={() => void handleRemoveCharge()}
+      />
+
+      {/* Confirmacao para rollback de cobranca paga — o e-mail de
+          agradecimento ja foi enviado ao cliente e nao pode ser desfeito.
+          Forcamos o admin a confirmar conscientemente. */}
+      <AlertDialog
+        open={Boolean(pendingPaidRollback)}
+        title="Reverter pagamento confirmado?"
+        description={
+          pendingPaidRollback
+            ? `Esta cobrança ("${pendingPaidRollback.charge.description}") já estava marcada como paga. O cliente recebeu a confirmação de pagamento por e-mail/WhatsApp — não conseguimos desfazer esse envio. Tem certeza que quer alterar o status para "${CHARGE_STATUS_META[pendingPaidRollback.newStatus]?.label ?? pendingPaidRollback.newStatus}"?`
+            : ""
+        }
+        confirmLabel="Sim, alterar mesmo assim"
+        cancelLabel="Cancelar"
+        destructive
+        onCancel={() => setPendingPaidRollback(null)}
+        onConfirm={() => {
+          if (!pendingPaidRollback) return;
+          const { charge, newStatus } = pendingPaidRollback;
+          setPendingPaidRollback(null);
+          void performQuickChangeStatus(charge, newStatus);
+        }}
       />
     </div>
   );

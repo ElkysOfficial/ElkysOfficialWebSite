@@ -12,9 +12,14 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess, createServiceRoleClient } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting, truncateAtWord } from "../_shared/greeting.ts";
+import {
+  getFormalGreeting,
+  getWhatsAppGreetingFullName,
+  truncateAtWord,
+} from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   contract_id: string;
@@ -73,7 +78,9 @@ serve(async (req) => {
       entityType: "contract",
       entityId: contract_id,
     });
-    const contractHref = await tracking.shorten(`${PORTAL_URL}/contratos`);
+    const contractUrl = `${PORTAL_URL}/contratos`;
+    const contractHref = await tracking.shorten(contractUrl);
+    const contractHrefWa = await tracking.shorten(contractUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: `Contrato do projeto "${project_name}" aguardando sua validação.`,
@@ -101,7 +108,17 @@ serve(async (req) => {
     // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)}\n\nO contrato do projeto "${project_name}" foi finalizado e já está disponível para a sua revisão e aceite.\n\nÉ um passo rápido e importante para darmos início às próximas etapas.\n\nRevise o contrato por aqui:\n${contractHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          "O contrato do seu projeto foi finalizado pela nossa equipe e já está disponível no portal para sua revisão e aceite formal.",
+          docHighlight("Contrato pronto para aceite", project_name),
+          "É um passo rápido, com leitura do texto completo, escopo e condições, e clique no botão de aceite quando estiver de acordo.",
+        ],
+        cta: ctaLink("Revisar e aceitar o contrato", contractHrefWa),
+        closing:
+          "Após o aceite, damos início às próximas etapas do projeto. Para qualquer dúvida, nossa equipe permanece à disposição.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);
