@@ -1640,10 +1640,16 @@ export default function AdminOverview() {
                           className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2"
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium text-foreground">
+                            <p
+                              className="truncate text-xs font-medium text-foreground"
+                              title={charge.clientName}
+                            >
                               {charge.clientName}
                             </p>
-                            <p className="truncate text-[11px] text-muted-foreground">
+                            <p
+                              className="truncate text-[11px] text-muted-foreground"
+                              title={charge.description}
+                            >
                               {charge.description}
                             </p>
                           </div>
@@ -1759,10 +1765,16 @@ export default function AdminOverview() {
                         className="flex items-center justify-between gap-3 rounded-lg border border-border/50 bg-background/60 px-3 py-2 transition-colors hover:border-primary/30"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-medium text-foreground">
+                          <p
+                            className="truncate text-xs font-medium text-foreground"
+                            title={delivery.name}
+                          >
                             {delivery.name}
                           </p>
-                          <p className="truncate text-[11px] text-muted-foreground">
+                          <p
+                            className="truncate text-[11px] text-muted-foreground"
+                            title={delivery.clientName}
+                          >
                             {delivery.clientName}
                           </p>
                         </div>

@@ -245,18 +245,18 @@ export async function loadSupportTicketsForClient(clientId: string) {
 export type CommunicationRow = Database["public"]["Tables"]["communications"]["Row"];
 export type TrackingEventRow = Pick<
   Database["public"]["Tables"]["tracking_events"]["Row"],
-  "communication_id" | "event_type" | "created_at"
+  "communication_id" | "event_type" | "created_at" | "channel"
 >;
 
 /**
- * Carrega as comunicacoes (e-mails enviados pelo portal) criadas a partir de
- * `sinceIso`. Usado pelo dashboard de comunicacoes do portal admin.
+ * Carrega as comunicacoes (e-mails + WhatsApp enviados pelo portal) criadas
+ * a partir de `sinceIso`. Usado pelo dashboard de comunicacoes do admin.
  */
 export async function loadCommunications(sinceIso: string) {
   const res = await supabase
     .from("communications")
     .select(
-      "id, kind, client_id, recipient_email, entity_type, entity_id, email_status, created_at"
+      "id, kind, client_id, recipient_email, recipient_phone, entity_type, entity_id, email_status, whatsapp_status, created_at"
     )
     .gte("created_at", sinceIso)
     .order("created_at", { ascending: false });
@@ -267,11 +267,15 @@ export async function loadCommunications(sinceIso: string) {
 /**
  * Carrega os eventos brutos de abertura/clique a partir de `sinceIso`.
  * O dashboard cruza esses eventos com as comunicacoes em memoria.
+ *
+ * O campo `channel` separa cliques originados de email vs whatsapp — cada
+ * send-* gera 2 tracked_links (um por canal), entao o mesmo destino tem
+ * slugs distintos e o track edge fn registra o canal correto.
  */
 export async function loadTrackingEvents(sinceIso: string) {
   const res = await supabase
     .from("tracking_events")
-    .select("communication_id, event_type, created_at")
+    .select("communication_id, event_type, created_at, channel")
     .gte("created_at", sinceIso);
 
   return { data: (res.data as TrackingEventRow[] | null) ?? [], error: res.error };

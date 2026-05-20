@@ -15,12 +15,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import {
   getFormalGreeting,
-  getWhatsAppGreeting,
+  getWhatsAppGreetingFullName,
   plural,
   type Gender,
 } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface ProposalRow {
   id: string;
@@ -122,7 +123,9 @@ serve(async (req) => {
         entityType: "proposal",
         entityId: proposal.id,
       });
-      const proposalHref = await tracking.shorten(`${PORTAL_URL}/propostas/${proposal.id}`);
+      const proposalUrl = `${PORTAL_URL}/propostas/${proposal.id}`;
+      const proposalHref = await tracking.shorten(proposalUrl);
+      const proposalHrefWa = await tracking.shorten(proposalUrl, "whatsapp");
 
       const html = buildEmail({
         preheader: `A proposta "${proposal.title}" perde validade em ${warningLabel}.`,
@@ -157,7 +160,20 @@ serve(async (req) => {
       // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
       let waStatus: "sent" | "failed" | "skipped" = "skipped";
       if (recipientPhone) {
-        const waText = `${getWhatsAppGreeting(client)}\n\nA proposta "${proposal.title}" está perto de expirar: ela perde a validade em ${warningLabel} (${validUntilText}).\n\nSe o interesse continua de pé, é só responder pelo portal.\n\nAnalise a proposta por aqui:\n${proposalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+        const waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(client),
+          paragraphs: [
+            "Estamos passando um aviso amigável: uma das propostas que enviamos está próxima do prazo final.",
+            docHighlight(
+              "Proposta prestes a expirar",
+              `${proposal.title} - validade até ${validUntilText} (${warningLabel})`
+            ),
+            "Se o interesse continua de pé, basta acessar o portal e registrar o aceite ou nos chamar para conversar sobre ajustes.",
+          ],
+          cta: ctaLink("Revisar a proposta", proposalHrefWa),
+          closing:
+            "Para qualquer ajuste de prazo ou escopo, nossa equipe comercial está à disposição.",
+        });
         waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
       }
       await tracking.finalize(result.ok, waStatus);

@@ -684,7 +684,9 @@ function AgendaListItem({
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <p className="truncate text-sm font-semibold text-foreground">{event.title}</p>
+            <p className="truncate text-sm font-semibold text-foreground" title={event.title}>
+              {event.title}
+            </p>
             <StatusPill status={event.status} />
           </div>
 

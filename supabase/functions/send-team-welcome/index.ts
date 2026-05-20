@@ -12,9 +12,14 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
-import { getTeamMemberGreeting, getWhatsAppGreeting, type Gender } from "../_shared/greeting.ts";
+import {
+  getTeamMemberGreeting,
+  getWhatsAppTeamGreeting,
+  type Gender,
+} from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, bulletList, ctaLink } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   email: string;
@@ -65,6 +70,7 @@ serve(async (req) => {
       entityId: null,
     });
     const panelHref = await tracking.shorten(PORTAL_URL);
+    const panelHrefWa = await tracking.shorten(PORTAL_URL, "whatsapp");
 
     const html = buildEmail({
       preheader: "Seu acesso ao painel interno da Elkys está ativo.",
@@ -101,7 +107,24 @@ serve(async (req) => {
     // repete a senha temporaria — apenas indica que ela foi enviada no e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting({ full_name: name, gender })} 👋\n\nSeu acesso ao painel interno da Elkys foi criado e já está ativo.\n\nAs credenciais de acesso foram enviadas para o seu e-mail ${email}.\n\nAcesse por aqui:\n${panelHref}\n\nQualquer dúvida no acesso, é só falar com a gente.`;
+      const waText = buildWhatsAppMessage({
+        greeting: `${getWhatsAppTeamGreeting({ full_name: name, gender })} 👋`,
+        paragraphs: [
+          "Seja muito bem-vindo(a) ao time Elkys! Seu acesso ao painel administrativo foi criado e já está ativo.",
+          "No painel você terá acesso, conforme seu perfil de função, a:",
+          bulletList([
+            "Gestão de clientes, projetos e contratos",
+            "Financeiro, cobranças e régua de automação",
+            "Tarefas e calendário integrados ao seu domínio",
+            "Comunicações, suporte e auditoria",
+          ]),
+          `As credenciais de primeiro acesso foram enviadas para seu e-mail corporativo (${email}). Por segurança, você define uma nova senha no primeiro login.`,
+        ],
+        cta: ctaLink("Acessar o painel", panelHrefWa),
+        closing:
+          "Estamos felizes com a sua chegada. Qualquer dúvida sobre o painel ou seus acessos, fale com seu gestor direto ou com a equipe de TI.",
+        internal: true,
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

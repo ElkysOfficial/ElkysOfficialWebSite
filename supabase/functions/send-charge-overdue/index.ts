@@ -14,9 +14,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { isServiceRoleRequest, requireOperationalAccess } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting, plural } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName, plural } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   client_id: string;
@@ -105,7 +106,9 @@ serve(async (req) => {
       entityType: "charge",
       entityId: null,
     });
-    const financeiroHref = await tracking.shorten(`${PORTAL_URL}/financeiro`);
+    const financeiroUrl = `${PORTAL_URL}/financeiro`;
+    const financeiroHref = await tracking.shorten(financeiroUrl);
+    const financeiroHrefWa = await tracking.shorten(financeiroUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: `Identificamos uma pendência financeira vencida há ${overdueLabel}.`,
@@ -142,7 +145,21 @@ serve(async (req) => {
     // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)}\n\nIdentificamos que a cobrança "${charge_description}", no valor de ${formatBRL(charge_amount)}, está vencida há ${overdueLabel}.\n\nPara manter sua conta em dia e evitar qualquer interrupção, pedimos a regularização assim que possível.\n\nAcesse o financeiro por aqui:\n${financeiroHref}\n\nSe o pagamento já foi feito, pode desconsiderar este aviso. Qualquer dúvida, estamos à disposição.`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          `Identificamos que a cobrança abaixo está em aberto há ${overdueLabel}.`,
+          docHighlight(
+            "Cobrança",
+            `${charge_description} - ${formatBRL(charge_amount)} - vencimento em ${formatDate(due_date)}`
+          ),
+          "Para manter sua conta em dia e evitar interrupção dos serviços, pedimos a regularização assim que possível.",
+          "Se o pagamento já foi efetuado, por favor desconsidere este aviso.",
+        ],
+        cta: ctaLink("Acessar o financeiro", financeiroHrefWa),
+        closing:
+          "Para qualquer dúvida ou negociação, nosso financeiro está à disposição pelo WhatsApp wa.me/553199738235.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

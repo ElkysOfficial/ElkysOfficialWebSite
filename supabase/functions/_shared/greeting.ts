@@ -138,6 +138,64 @@ export function getWhatsAppGreeting(client: ClientLike, now?: Date): string {
 }
 
 /**
+ * Pega "primeiro + último" nome para tratamento mais personalizado no
+ * WhatsApp ("Sr. José Ferreira" em vez de "Sr. José"). Quando o nome só
+ * tem uma palavra, retorna apenas ela.
+ */
+function getFirstAndLastName(fullName: string | null | undefined): string {
+  const cleaned = (fullName ?? "").trim();
+  if (!cleaned) return "Cliente";
+  const parts = cleaned.split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+
+/**
+ * Saudação formal com nome COMPLETO (primeiro + último). Padrão exclusivo
+ * do WhatsApp — onde o tratamento personalizado pesa mais (lista de
+ * contatos do cliente).
+ *
+ *   PF masculino  → "Bom dia, Sr. José Ferreira! Tudo bem?"
+ *   PF feminino   → "Boa tarde, Sra. Maria Souza! Tudo bem?"
+ *   PF sem gênero → "Boa noite, Prezado(a) José Ferreira! Tudo bem?"
+ *   PJ com gênero → "Bom dia, Sr. José Ferreira! Tudo bem?" (representante)
+ *   PJ sem gênero → "Bom dia, Prezado(a) Cliente Alpha! Tudo bem?" (nome fantasia)
+ */
+export function getWhatsAppGreetingFullName(client: ClientLike, now?: Date): string {
+  const timePart = getTimeGreeting(now);
+  const isPJ = client.client_type === "pj";
+
+  if (isPJ && client.gender) {
+    const repName = getFirstAndLastName(client.full_name);
+    const treatment = client.gender === "feminino" ? "Sra." : "Sr.";
+    return `${timePart}, ${treatment} ${repName}! Tudo bem?`;
+  }
+  if (isPJ) {
+    return `${timePart}, Prezado(a) ${getClientDisplayName(client)}! Tudo bem?`;
+  }
+
+  const name = getFirstAndLastName(client.full_name);
+  if (client.gender === "masculino") return `${timePart}, Sr. ${name}! Tudo bem?`;
+  if (client.gender === "feminino") return `${timePart}, Sra. ${name}! Tudo bem?`;
+  return `${timePart}, Prezado(a) ${name}! Tudo bem?`;
+}
+
+/**
+ * Variante para membros internos da equipe (WhatsApp).
+ *   "Bom dia, Sr. José Ferreira! Bem-vindo(a) à Elkys."
+ */
+export function getWhatsAppTeamGreeting(
+  member: { full_name?: string | null; gender?: Gender },
+  now?: Date
+): string {
+  const timePart = getTimeGreeting(now);
+  const name = getFirstAndLastName(member.full_name);
+  if (member.gender === "masculino") return `${timePart}, Sr. ${name}!`;
+  if (member.gender === "feminino") return `${timePart}, Sra. ${name}!`;
+  return `${timePart}, ${name}!`;
+}
+
+/**
  * Trunca uma string respeitando a fronteira de palavras e adiciona "…" ao
  * final quando cortada. Evita o típico "...scopo da propos" dos slice brutos.
  */

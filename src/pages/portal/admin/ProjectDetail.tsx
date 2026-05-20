@@ -1566,7 +1566,12 @@ export default function AdminProjectDetail() {
                     )}
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
+                      <p
+                        className="truncate text-sm font-semibold text-foreground"
+                        title={step.title}
+                      >
+                        {step.title}
+                      </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {NEXT_STEP_OWNER_LABEL[step.owner]}
                         {step.due_date ? ` · vence ${formatPortalDate(step.due_date)}` : ""}
@@ -1620,7 +1625,12 @@ export default function AdminProjectDetail() {
                     )}
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{step.title}</p>
+                      <p
+                        className="truncate text-sm font-semibold text-foreground"
+                        title={step.title}
+                      >
+                        {step.title}
+                      </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {NEXT_STEP_OWNER_LABEL[step.owner]}
                         {step.due_date ? ` · ${formatPortalDate(step.due_date)}` : ""}
@@ -2515,7 +2525,12 @@ export default function AdminProjectDetail() {
                         >
                           <path d="M4 2l4 4-4 4" />
                         </svg>
-                        <p className="truncate text-sm font-medium text-foreground">{step.title}</p>
+                        <p
+                          className="truncate text-sm font-medium text-foreground"
+                          title={step.title}
+                        >
+                          {step.title}
+                        </p>
                       </div>
                       <StatusBadge
                         label={NEXT_STEP_STATUS_LABEL[step.status]}
@@ -2660,7 +2675,10 @@ export default function AdminProjectDetail() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
+                      <p
+                        className="truncate text-sm font-semibold text-foreground"
+                        title={subscription.label}
+                      >
                         {subscription.label}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
@@ -2726,7 +2744,12 @@ export default function AdminProjectDetail() {
                       className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3 sm:grid-cols-[1fr_110px_160px]"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+                        <p
+                          className="truncate text-sm font-medium text-foreground"
+                          title={item.label}
+                        >
+                          {item.label}
+                        </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           Vence {formatPortalDate(item.dueDate)}
                         </p>

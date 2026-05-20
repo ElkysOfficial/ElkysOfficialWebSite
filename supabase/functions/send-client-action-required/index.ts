@@ -14,7 +14,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
 import { escapeHtml } from "../_shared/validation.ts";
-import { getFormalGreeting, getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
 
@@ -273,6 +274,7 @@ serve(async (req) => {
       entityId: client_id,
     });
     const buttonTrackedHref = await tracking.shorten(buttonHref);
+    const buttonTrackedHrefWa = await tracking.shorten(buttonHref, "whatsapp");
 
     const html = buildEmail({
       preheader: `${tpl.subjectPrefix} — ${step_title} (projeto ${project_name}).`,
@@ -301,8 +303,19 @@ serve(async (req) => {
     // afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const dueLine = formattedDueDate ? `\nPrazo sugerido: ${formattedDueDate}` : "";
-      const waText = `${getWhatsAppGreeting(client)}\n\n${tpl.subjectPrefix} no projeto "${project_name}": ${step_title}.${dueLine}\n\nSua ação é importante para mantermos tudo no ritmo.\n\nAcesse por aqui:\n${buttonTrackedHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+      const docRef = formattedDueDate
+        ? `${project_name} - ${step_title} - prazo até ${formattedDueDate}`
+        : `${project_name} - ${step_title}`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          `${tpl.subjectPrefix} no projeto andamento. Há uma ação aguardando sua resposta para mantermos o cronograma em dia.`,
+          docHighlight("Ação pendente", docRef),
+          "Sua participação é importante para que possamos seguir com a próxima etapa sem atrasos.",
+        ],
+        cta: ctaLink("Abrir a ação no portal", buttonTrackedHrefWa),
+        closing: "Nossa equipe permanece à disposição para esclarecer qualquer dúvida.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

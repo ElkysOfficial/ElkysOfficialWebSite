@@ -695,7 +695,10 @@ export default function ClientSupport() {
                                 {slaBadge.label}
                               </span>
                             )}
-                            <p className="truncate text-sm font-semibold text-foreground">
+                            <p
+                              className="truncate text-sm font-semibold text-foreground"
+                              title={ticket.subject}
+                            >
                               {ticket.subject}
                             </p>
                           </div>

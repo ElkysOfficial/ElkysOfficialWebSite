@@ -463,10 +463,15 @@ export default function AdminTeam() {
                         );
                       })()}
                       <div className="min-w-0">
-                        <p className="truncate text-base font-semibold text-foreground">
+                        <p
+                          className="truncate text-base font-semibold text-foreground"
+                          title={member.full_name}
+                        >
                           {member.full_name}
                         </p>
-                        <p className="truncate text-sm text-muted-foreground">{member.email}</p>
+                        <p className="truncate text-sm text-muted-foreground" title={member.email}>
+                          {member.email}
+                        </p>
                       </div>
                     </div>
 
