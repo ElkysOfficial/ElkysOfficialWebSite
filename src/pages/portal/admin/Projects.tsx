@@ -15,6 +15,9 @@ import RecurringBadge from "@/components/portal/shared/RecurringBadge";
 import { useAdminProjects } from "@/hooks/useAdminProjects";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+import InlineStatusSelect, {
+  type InlineStatusOption,
+} from "@/components/portal/shared/InlineStatusSelect";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertDialog, Button, Card, CardContent, Input, buttonVariants, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +36,18 @@ const PAGE_SIZE = 8;
 type PortalProject = Database["public"]["Tables"]["projects"]["Row"];
 type PortalClient = Database["public"]["Tables"]["clients"]["Row"];
 type StatusFilter = "all" | Database["public"]["Enums"]["project_status"];
+
+// Inline-edit de status do projeto: espelha PROJECT_STATUS_META, com
+// label/tone identicos ao StatusBadge original. Sem hints — a mutation e
+// direta (sem cascata como charges). Datas tipo delivered_at/paused_at
+// seguem vivas no editor completo do ProjectDetail.
+const PROJECT_STATUS_OPTIONS: InlineStatusOption<PortalProject["status"]>[] = [
+  { value: "negociacao", label: "Negociacao", tone: "secondary" },
+  { value: "em_andamento", label: "Em desenvolvimento", tone: "accent" },
+  { value: "pausado", label: "Pausado", tone: "warning" },
+  { value: "concluido", label: "Concluido", tone: "success" },
+  { value: "cancelado", label: "Cancelado", tone: "destructive" },
+];
 
 /* ------------------------------------------------------------------ */
 /*  Delivery urgency badge                                             */
@@ -134,15 +149,20 @@ function ProjectRow({
   hasSubscription,
   onDelete,
   canDelete,
+  onChangeStatus,
+  changingStatus,
 }: {
   project: PortalProject;
   client?: PortalClient;
   hasSubscription: boolean;
   onDelete: (project: PortalProject) => void;
   canDelete: boolean;
+  onChangeStatus: (project: PortalProject, next: PortalProject["status"]) => void;
+  changingStatus: boolean;
 }) {
   const navigate = useNavigate();
-  const meta = PROJECT_STATUS_META[project.status];
+  // meta foi substituido por InlineStatusSelect/PROJECT_STATUS_OPTIONS;
+  // PROJECT_STATUS_META segue em uso em exports e filtros desta pagina.
 
   const actions: { label: string; onClick: () => void; destructive?: boolean }[] = [
     {
@@ -172,10 +192,20 @@ function ProjectRow({
       <div className="flex items-start justify-between gap-2 md:contents">
         <div className="min-w-0">
           <Link to={`/portal/admin/projetos/${project.id}`} className="block">
-            <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+            <p
+              className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]"
+              title={project.name}
+            >
               {project.name}
             </p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
+            <p
+              className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm"
+              title={
+                client
+                  ? `${getClientDisplayName(client)}${project.solution_type ? ` · ${project.solution_type}` : ""}`
+                  : (project.solution_type ?? undefined)
+              }
+            >
               {client ? getClientDisplayName(client) : "—"}
               {project.solution_type ? ` · ${project.solution_type}` : ""}
             </p>
@@ -202,7 +232,12 @@ function ProjectRow({
       {/* Mobile: secondary info in a compact layout */}
       <div className="flex flex-col gap-2 md:hidden">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <StatusBadge label={meta.label} tone={meta.tone} />
+          <InlineStatusSelect
+            value={project.status}
+            options={PROJECT_STATUS_OPTIONS}
+            loading={changingStatus}
+            onSelect={(next) => onChangeStatus(project, next)}
+          />
           {hasSubscription ? <RecurringBadge /> : null}
           <span className="text-xs font-medium text-foreground">
             {formatPortalDate(project.expected_delivery_date)}
@@ -217,7 +252,12 @@ function ProjectRow({
 
       {/* Col 2 — Status (desktop) */}
       <div className="hidden flex-wrap items-center gap-1.5 md:flex">
-        <StatusBadge label={meta.label} tone={meta.tone} />
+        <InlineStatusSelect
+          value={project.status}
+          options={PROJECT_STATUS_OPTIONS}
+          loading={changingStatus}
+          onSelect={(next) => onChangeStatus(project, next)}
+        />
         {hasSubscription ? <StatusBadge label="Recorrente" tone="secondary" /> : null}
       </div>
 
@@ -413,6 +453,63 @@ export default function AdminProjects() {
     setStatusFilter("all");
     setTagFilter(null);
     setPage(0);
+  };
+
+  /**
+   * Inline-edit do status do projeto direto da listagem. Update simples
+   * (sem cascata) com undo via toast. Mudancas de data (delivered_at,
+   * paused_at) seguem vivendo no editor completo do ProjectDetail — aqui
+   * so refletimos a transicao de estado.
+   */
+  const [changingProjectStatusId, setChangingProjectStatusId] = useState<string | null>(null);
+  const handleQuickChangeProjectStatus = async (
+    project: PortalProject,
+    newStatus: PortalProject["status"]
+  ) => {
+    if (newStatus === project.status) return;
+    if (changingProjectStatusId) return;
+    setChangingProjectStatusId(project.id);
+    const previousStatus = project.status;
+    const previousDeliveredAt = project.delivered_at ?? null;
+
+    // Auto-popular delivered_at quando admin marca como "concluido" via
+    // inline-edit. Sem isso, status fica "concluido" mas delivered_at=null,
+    // e as metricas "Entregues este mes" / "Tempo medio de entrega"
+    // ignoram o projeto (filtram por delivered_at not null). Se ja tinha
+    // data preenchida, preserva — possivel reabertura/correcao manual.
+    const today = new Date().toISOString().slice(0, 10);
+    const updates: { status: PortalProject["status"]; delivered_at?: string | null } = {
+      status: newStatus,
+    };
+    if (newStatus === "concluido" && !previousDeliveredAt) {
+      updates.delivered_at = today;
+    }
+
+    const { error } = await supabase.from("projects").update(updates).eq("id", project.id);
+    if (error) {
+      setChangingProjectStatusId(null);
+      toast.error("Não foi possível atualizar o status.", { description: error.message });
+      return;
+    }
+    setChangingProjectStatusId(null);
+    await refetchProjects();
+    toast.success("Status do projeto atualizado.", {
+      description: `${project.name} → ${PROJECT_STATUS_META[newStatus].label}`,
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const { error: undoError } = await supabase
+            .from("projects")
+            .update({ status: previousStatus, delivered_at: previousDeliveredAt })
+            .eq("id", project.id);
+          if (undoError) {
+            toast.error("Não foi possível desfazer.", { description: undoError.message });
+            return;
+          }
+          await refetchProjects();
+        },
+      },
+    });
   };
 
   const { totalProjects, activeProjects, pausedProjects, overdueProjects, upcomingDeliveries } =
@@ -654,6 +751,8 @@ export default function AdminProjects() {
               hasSubscription={subscriptionProjectIds.has(project.id)}
               onDelete={setProjectToDelete}
               canDelete={isSuperAdmin}
+              onChangeStatus={handleQuickChangeProjectStatus}
+              changingStatus={changingProjectStatusId === project.id}
             />
           ))}
 

@@ -1,4 +1,4 @@
-import { memo, Suspense, useEffect, useMemo, useState, useCallback } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo, useState, useCallback } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import PortalErrorBoundary from "@/components/portal/shared/PortalErrorBoundary";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
@@ -8,6 +8,9 @@ import { useSidebarBadges, resolveBadgeValue } from "@/hooks/useSidebarBadges";
 import { useAuth, type AppRole } from "@/contexts/AuthContext";
 import { Button, HexAvatar, HexPattern, cn } from "@/design-system";
 import AdminNotificationBell from "@/components/portal/admin/AdminNotificationBell";
+// CommandPalette e carregado sob demanda: so monta o chunk quando o usuario
+// abre a paleta pela primeira vez. Mantem o entry do portal enxuto.
+const CommandPalette = lazy(() => import("@/components/portal/admin/CommandPalette"));
 import EnvironmentBanner from "@/components/portal/shared/EnvironmentBanner";
 import PortalBreadcrumbs from "@/components/portal/shared/PortalBreadcrumbs";
 import { resolveAdminBreadcrumbs } from "@/lib/admin-breadcrumbs";
@@ -29,11 +32,12 @@ import {
   Building2,
   CalendarX,
   CheckCircle,
+  ChevronRight,
   Code2,
   FileText,
   Folder,
   Mail,
-  Receipt,
+  Search,
   Shield,
   SuporteFill,
   Target,
@@ -43,6 +47,45 @@ import {
 } from "@/assets/icons";
 
 const SIDEBAR_STORAGE_KEY = "elkys-admin-sidebar-collapsed";
+const SIDEBAR_SECTIONS_STORAGE_KEY = "elkys-admin-sidebar-sections-collapsed";
+
+// Mapeia o role principal do usuario para o slug de dominio usado em
+// /tarefas/:domain e /calendario/:domain. Admins (admin/admin_super) recebem
+// null — significam "visao geral, sem filtro de dominio" e a rota cai pra
+// /tarefas (todas) e /calendario.
+const ROLE_TO_DOMAIN: Record<string, string> = {
+  comercial: "comercial",
+  financeiro: "financeiro",
+  juridico: "juridico",
+  marketing: "marketing",
+  support: "suporte",
+  developer: "desenvolvimento",
+  designer: "desenvolvimento",
+  po: "desenvolvimento",
+};
+
+// Precedencia clara: se o usuario acumula roles, escolhemos o dominio mais
+// "operacional" pra que Tarefas/Calendario apontem ao trabalho diario dele.
+// Admins puros caem em null e veem a visao geral (todos os dominios).
+const DOMAIN_PRIORITY: AppRole[] = [
+  "developer",
+  "designer",
+  "po",
+  "comercial",
+  "financeiro",
+  "juridico",
+  "marketing",
+  "support",
+];
+
+function resolvePrimaryDomain(roles: AppRole[]): string | null {
+  const isPureAdmin = roles.every((r) => r === "admin" || r === "admin_super") && roles.length > 0;
+  if (isPureAdmin) return null;
+  for (const r of DOMAIN_PRIORITY) {
+    if (roles.includes(r)) return ROLE_TO_DOMAIN[r] ?? null;
+  }
+  return null;
+}
 
 type NavItem = {
   label: string;
@@ -69,242 +112,175 @@ type NavSection = {
 //   Marketing      → calendario, materiais
 //   Sistema        → equipe, auditoria, documentos internos
 
-const ALL_NAV_SECTIONS: NavSection[] = [
-  {
-    items: [
-      {
-        label: "Visão Geral",
-        href: "/portal/admin",
-        icon: BarChart,
-        roles: ["admin_super", "admin"],
-      },
-    ],
-  },
-  {
-    label: "Comercial",
-    items: [
-      {
-        label: "Comercial",
-        href: "/portal/admin/crm",
-        icon: Target,
-        roles: ["admin_super", "admin", "comercial"],
-      },
-      {
-        label: "Tarefas Comercial",
-        href: "/portal/admin/tarefas/comercial",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "comercial"],
-        badge: "tasks:comercial",
-      },
-      {
-        label: "Calendário Comercial",
-        href: "/portal/admin/calendario/comercial",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "comercial"],
-      },
-    ],
-  },
-  {
-    label: "Financeiro",
-    items: [
-      {
-        label: "Visão financeira",
-        href: "/portal/admin/financeiro",
-        icon: Banknote,
-        roles: ["admin_super", "admin", "financeiro"],
-      },
-      {
-        label: "Clientes",
-        href: "/portal/admin/clientes",
-        icon: Building2,
-        roles: ["admin_super", "admin", "financeiro", "comercial"],
-      },
-      {
-        label: "Régua de cobrança",
-        href: "/portal/admin/cobranca-automatica",
-        icon: Zap,
-        roles: ["admin_super", "admin", "financeiro"],
-      },
-      {
-        label: "Projetos",
-        href: "/portal/admin/projetos",
-        icon: AgileMono,
-        roles: ["financeiro"],
-      },
-      {
-        label: "Tarefas Financeiro",
-        href: "/portal/admin/tarefas/financeiro",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "financeiro"],
-        badge: "tasks:financeiro",
-      },
-      {
-        label: "Calendário Financeiro",
-        href: "/portal/admin/calendario/financeiro",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "financeiro"],
-      },
-    ],
-  },
-  {
-    label: "Jurídico",
-    items: [
-      {
-        label: "Contratos",
-        // Query param alinha com o badge: o contador "contracts:validating"
-        // conta contratos em em_validacao, entao clicar leva direto pra lista
-        // ja filtrada por esse status.
-        href: "/portal/admin/contratos?status=em_validacao",
-        icon: FileText,
-        roles: ["admin_super", "admin", "juridico"],
-        badge: "contracts:validating",
-      },
-      {
-        label: "Tarefas Jurídico",
-        href: "/portal/admin/tarefas/juridico",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "juridico"],
-        badge: "tasks:juridico",
-      },
-      {
-        label: "Calendário Jurídico",
-        href: "/portal/admin/calendario/juridico",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "juridico"],
-      },
-    ],
-  },
-  {
-    label: "Desenvolvimento",
-    items: [
-      {
-        label: "Projetos",
-        href: "/portal/admin/projetos",
-        icon: AgileMono,
-        roles: ["admin_super", "admin", "developer", "designer", "po"],
-      },
-      {
-        label: "Tarefas Dev",
-        href: "/portal/admin/tarefas/desenvolvimento",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "developer", "designer", "po"],
-        badge: "tasks:desenvolvimento",
-      },
-      {
-        label: "Calendário Dev",
-        href: "/portal/admin/calendario/desenvolvimento",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "developer", "designer", "po"],
-      },
-      {
-        label: "Documentos Dev",
-        href: "/portal/admin/documentos/desenvolvedor",
-        icon: Code2,
-        roles: ["admin_super", "admin", "developer", "designer", "po"],
-      },
-    ],
-  },
-  {
-    label: "Pós-venda",
-    items: [
-      {
-        label: "Suporte",
-        // Query param casa com o badge "tickets:sla": clicar quando ha contagem
-        // leva direto pra lista filtrada por SLA em risco. Sem o query, o
-        // numero na side ficava desconectado do trabalho a fazer.
-        href: "/portal/admin/suporte?sla=risk",
-        icon: SuporteFill,
-        roles: ["admin_super", "admin", "support"],
-        badge: "tickets:sla",
-      },
-      {
-        label: "Projetos",
-        href: "/portal/admin/projetos",
-        icon: AgileMono,
-        roles: ["support"],
-      },
-      {
-        label: "Tarefas Suporte",
-        href: "/portal/admin/tarefas/suporte",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "support"],
-        badge: "tasks:suporte",
-      },
-      {
-        label: "Calendário Suporte",
-        href: "/portal/admin/calendario/suporte",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "support"],
-      },
-    ],
-  },
-  {
-    label: "Marketing",
-    items: [
-      {
-        label: "Calendário Marketing",
-        href: "/portal/admin/calendario/marketing",
-        icon: CalendarX,
-        roles: ["admin_super", "admin", "marketing"],
-      },
-      {
-        label: "Leads (métricas)",
-        href: "/portal/admin/crm",
-        icon: Target,
-        roles: ["marketing"],
-      },
-      {
-        label: "Tarefas Marketing",
-        href: "/portal/admin/tarefas/marketing",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin", "marketing"],
-        badge: "tasks:marketing",
-      },
-      {
-        label: "Documentos M&D",
-        href: "/portal/admin/documentos/marketing-design",
-        icon: Folder,
-        roles: ["admin_super", "admin", "marketing"],
-      },
-    ],
-  },
-  {
-    label: "Sistema",
-    items: [
-      {
-        label: "Tarefas (todas)",
-        href: "/portal/admin/tarefas",
-        icon: CheckCircle,
-        roles: ["admin_super", "admin"],
-        badge: "tasks:all",
-      },
-      {
-        label: "Calendário (geral)",
-        href: "/portal/admin/calendario",
-        icon: CalendarX,
-        roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Equipe",
-        href: "/portal/admin/equipe",
-        icon: Users,
-        roles: ["admin_super", "admin"],
-      },
-      {
-        label: "Comunicações",
-        href: "/portal/admin/comunicacoes",
-        icon: Mail,
-        roles: ["admin_super", "admin", "comercial", "financeiro"],
-      },
-      {
-        label: "Auditoria",
-        href: "/portal/admin/audit-log",
-        icon: Shield,
-        roles: ["admin_super", "admin"],
-      },
-    ],
-  },
-];
+// Sidebar consolidada (auditoria 2026-05-20): de 30+ itens repetidos por
+// dominio (Tarefas Comercial, Tarefas Financeiro...) para ~14 entradas
+// agrupadas por teor. "Tarefas" e "Calendario" sao agora links unicos com
+// href/badge resolvidos dinamicamente a partir do dominio primario do
+// usuario (resolvePrimaryDomain). Admins puros caem em /tarefas (todas).
+function buildNavSections(primaryDomain: string | null): NavSection[] {
+  const tasksHref = primaryDomain
+    ? `/portal/admin/tarefas/${primaryDomain}`
+    : "/portal/admin/tarefas";
+  const tasksBadge = primaryDomain ? `tasks:${primaryDomain}` : "tasks:all";
+  const calendarHref = primaryDomain
+    ? `/portal/admin/calendario/${primaryDomain}`
+    : "/portal/admin/calendario";
+
+  return [
+    {
+      items: [
+        {
+          label: "Visão Geral",
+          href: "/portal/admin",
+          icon: BarChart,
+          roles: ["admin_super", "admin"],
+        },
+      ],
+    },
+    {
+      label: "Comercial",
+      items: [
+        {
+          label: "CRM",
+          href: "/portal/admin/crm",
+          icon: Target,
+          roles: ["admin_super", "admin", "comercial", "marketing"],
+        },
+      ],
+    },
+    {
+      label: "Financeiro",
+      items: [
+        {
+          label: "Visão financeira",
+          href: "/portal/admin/financeiro",
+          icon: Banknote,
+          roles: ["admin_super", "admin", "financeiro"],
+        },
+        {
+          label: "Clientes",
+          href: "/portal/admin/clientes",
+          icon: Building2,
+          roles: ["admin_super", "admin", "financeiro", "comercial"],
+        },
+        {
+          label: "Régua de cobrança",
+          href: "/portal/admin/cobranca-automatica",
+          icon: Zap,
+          roles: ["admin_super", "admin", "financeiro"],
+        },
+      ],
+    },
+    {
+      label: "Jurídico",
+      items: [
+        {
+          label: "Contratos",
+          // Query param casa com o badge contracts:validating — clicar leva
+          // direto pra lista filtrada por em_validacao.
+          href: "/portal/admin/contratos?status=em_validacao",
+          icon: FileText,
+          roles: ["admin_super", "admin", "juridico"],
+          badge: "contracts:validating",
+        },
+      ],
+    },
+    {
+      label: "Operação",
+      items: [
+        {
+          label: "Projetos",
+          href: "/portal/admin/projetos",
+          icon: AgileMono,
+          roles: ["admin_super", "admin", "developer", "designer", "po", "support", "financeiro"],
+        },
+        {
+          label: "Suporte",
+          // sla=risk casa com o badge tickets:sla.
+          href: "/portal/admin/suporte?sla=risk",
+          icon: SuporteFill,
+          roles: ["admin_super", "admin", "support"],
+          badge: "tickets:sla",
+        },
+      ],
+    },
+    {
+      label: "Trabalho",
+      items: [
+        {
+          label: "Tarefas",
+          href: tasksHref,
+          icon: CheckCircle,
+          roles: [
+            "admin_super",
+            "admin",
+            "comercial",
+            "financeiro",
+            "juridico",
+            "marketing",
+            "developer",
+            "designer",
+            "po",
+            "support",
+          ],
+          badge: tasksBadge,
+        },
+        {
+          label: "Calendário",
+          href: calendarHref,
+          icon: CalendarX,
+          roles: [
+            "admin_super",
+            "admin",
+            "comercial",
+            "financeiro",
+            "juridico",
+            "marketing",
+            "developer",
+            "designer",
+            "po",
+            "support",
+          ],
+        },
+        {
+          label: "Documentos Dev",
+          href: "/portal/admin/documentos/desenvolvedor",
+          icon: Code2,
+          roles: ["admin_super", "admin", "developer", "designer", "po"],
+        },
+        {
+          label: "Documentos M&D",
+          href: "/portal/admin/documentos/marketing-design",
+          icon: Folder,
+          roles: ["admin_super", "admin", "marketing"],
+        },
+      ],
+    },
+    {
+      label: "Sistema",
+      items: [
+        {
+          label: "Equipe",
+          href: "/portal/admin/equipe",
+          icon: Users,
+          roles: ["admin_super", "admin"],
+        },
+        {
+          label: "Comunicações",
+          href: "/portal/admin/comunicacoes",
+          icon: Mail,
+          roles: ["admin_super", "admin", "comercial", "financeiro"],
+        },
+        {
+          label: "Auditoria",
+          href: "/portal/admin/audit-log",
+          icon: Shield,
+          roles: ["admin_super", "admin"],
+        },
+      ],
+    },
+  ];
+}
 
 const adminPageMeta = [
   {
@@ -551,18 +527,23 @@ const SidebarClock = memo(function SidebarClock({ className }: { className?: str
 export default function AdminLayout() {
   const { user, roles, signOut } = useAuth();
   const { data: sidebarBadges } = useSidebarBadges();
+  const primaryDomain = useMemo(() => resolvePrimaryDomain(roles), [roles]);
   const navSections = useMemo(
     () =>
-      ALL_NAV_SECTIONS.map((section) => ({
-        ...section,
-        items: section.items.filter((item) => item.roles.some((role) => roles.includes(role))),
-      })).filter((section) => section.items.length > 0),
-    [roles]
+      buildNavSections(primaryDomain)
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => item.roles.some((role) => roles.includes(role))),
+        }))
+        .filter((section) => section.items.length > 0),
+    [roles, primaryDomain]
   );
   const { resolvedTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [profileName, setProfileName] = useState("Usuário logado");
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
@@ -576,12 +557,54 @@ export default function AdminLayout() {
 
     const storedValue = window.localStorage.getItem(SIDEBAR_STORAGE_KEY);
     if (storedValue !== null) setSidebarCollapsed(storedValue === "true");
+
+    const storedSections = window.localStorage.getItem(SIDEBAR_SECTIONS_STORAGE_KEY);
+    if (storedSections) {
+      try {
+        const parsed = JSON.parse(storedSections);
+        if (parsed && typeof parsed === "object") {
+          setCollapsedSections(parsed as Record<string, boolean>);
+        }
+      } catch {
+        // ignore malformed payload — defaults para tudo expandido.
+      }
+    }
   }, []);
 
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed));
   }, [mounted, sidebarCollapsed]);
+
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    window.localStorage.setItem(SIDEBAR_SECTIONS_STORAGE_KEY, JSON.stringify(collapsedSections));
+  }, [mounted, collapsedSections]);
+
+  const toggleSection = useCallback((label: string) => {
+    setCollapsedSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  }, []);
+
+  // Atalho global Cmd+K (Mac) / Ctrl+K (Windows/Linux) abre a paleta.
+  // Tambem suporta "/" como atalho secundario quando o foco nao esta em
+  // input/textarea/contenteditable — convencao do GitHub e Discord.
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        !!target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      const isSlashShortcut = e.key === "/" && !isEditable;
+
+      if (isCmdK || isSlashShortcut) {
+        e.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -715,6 +738,19 @@ export default function AdminLayout() {
     [location.pathname]
   );
 
+  // Forca expandir a secao que contem a rota ativa, mesmo que o usuario
+  // tenha colapsado antes. Sem isso, o usuario poderia navegar via URL e
+  // perder a referencia visual de onde esta.
+  const activeSectionLabel = useMemo(() => {
+    for (const section of navSections) {
+      if (!section.label) continue;
+      if (section.items.some((item) => isItemActive(location.pathname, item.href))) {
+        return section.label;
+      }
+    }
+    return null;
+  }, [navSections, location.pathname]);
+
   const closeMobileSidebar = () => setMobileOpen(false);
 
   return (
@@ -784,111 +820,153 @@ export default function AdminLayout() {
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-2 py-1.5 sidebar-scroll">
-            <nav className={cn("space-y-0.5", sidebarCollapsed ? "space-y-0.5" : "")}>
-              {navSections.map((section) => (
-                <div
-                  key={section.label ?? "overview"}
-                  className={cn("space-y-0.5", sidebarCollapsed ? "space-y-0.5" : "")}
-                >
-                  {section.label ? (
-                    <span
-                      className={cn(
-                        "block font-semibold uppercase tracking-wider text-muted-foreground/60",
-                        sidebarCollapsed
-                          ? "px-1 py-0.5 text-center text-[7px] leading-[1.1]"
-                          : "px-3 pb-0.5 pt-1 text-[8px]"
-                      )}
-                    >
-                      {section.label}
-                    </span>
-                  ) : null}
+          <div className="flex-1 overflow-y-auto px-2 py-2 sidebar-scroll">
+            <nav className="space-y-1">
+              {navSections.map((section, sectionIdx) => {
+                const sectionKey = section.label ?? "overview";
+                const isOverviewSection = !section.label;
+                const userCollapsed = section.label
+                  ? Boolean(collapsedSections[section.label])
+                  : false;
+                const containsActive = section.label && activeSectionLabel === section.label;
+                // Em modo icon-only nunca colapsamos por dentro — a propria
+                // sidebar ja esta colapsada e remover items mais ainda
+                // confundiria. Sections sem label tambem nunca colapsam.
+                const collapsed =
+                  !sidebarCollapsed && !isOverviewSection && userCollapsed && !containsActive;
+                const showHeader = !sidebarCollapsed && !isOverviewSection;
+                const showDivider = !sidebarCollapsed && sectionIdx > 0;
 
-                  {section.items.map(({ label, href, icon: Icon, roles: _roles, badge }) => {
-                    void _roles;
-                    const active = isItemActive(location.pathname, href);
-                    const badgeCount = resolveBadgeValue(sidebarBadges, badge);
-
-                    return (
-                      <Link
-                        key={href}
-                        to={href}
-                        title={sidebarCollapsed ? label : undefined}
-                        aria-label={label}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "group relative flex items-center gap-2 overflow-hidden rounded-lg border px-2 py-1.5 transition-all duration-300 ease-out",
-                          sidebarCollapsed ? "min-h-[36px] justify-center px-0" : "min-h-[34px]",
-                          active
-                            ? "border-border/80 bg-background text-foreground"
-                            : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/65 hover:text-foreground"
-                        )}
+                return (
+                  <div
+                    key={sectionKey}
+                    className={cn(
+                      "space-y-0.5",
+                      showDivider ? "border-t border-border/40 pt-1.5 mt-1.5" : null
+                    )}
+                  >
+                    {showHeader ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(section.label!)}
+                        aria-expanded={!collapsed}
+                        aria-controls={`sidebar-section-${sectionKey}`}
+                        className="group flex w-full min-h-[32px] items-center justify-between rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 transition-colors hover:bg-background/40 hover:text-foreground lg:min-h-[26px]"
                       >
-                        {!sidebarCollapsed ? (
-                          <HexPattern
-                            variant="inline"
-                            className={cn(
-                              active
-                                ? "-right-4 -bottom-4 h-14 w-14 opacity-[0.16] transition-all duration-300 dark:opacity-[0.22]"
-                                : "-right-4 -bottom-4 h-14 w-14 opacity-[0.05] transition-all duration-300 group-hover:opacity-[0.09] dark:opacity-[0.08] dark:group-hover:opacity-[0.12]"
-                            )}
-                          />
-                        ) : (
-                          <HexPattern
-                            variant="inline"
-                            className={cn(
-                              "left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2",
-                              active
-                                ? "opacity-[0.14] transition-all duration-300 dark:opacity-[0.2]"
-                                : "opacity-[0.04] transition-all duration-300 group-hover:opacity-[0.08] dark:opacity-[0.07] dark:group-hover:opacity-[0.1]"
-                            )}
-                          />
-                        )}
-
-                        {!sidebarCollapsed && active ? (
-                          <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
-                        ) : null}
-
-                        <span
+                        <span className="truncate">{section.label}</span>
+                        <ChevronRight
+                          size={10}
                           className={cn(
-                            "relative z-10 flex shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-out",
-                            sidebarCollapsed ? "h-7 w-7" : "h-6 w-6",
-                            active
-                              ? "bg-primary/12 text-primary dark:bg-primary/18"
-                              : "bg-transparent text-muted-foreground group-hover:text-foreground"
+                            "shrink-0 opacity-60 transition-transform duration-200",
+                            collapsed ? "rotate-0" : "rotate-90"
                           )}
-                        >
-                          <Icon size={16} />
-                        </span>
+                        />
+                      </button>
+                    ) : null}
 
-                        {!sidebarCollapsed ? (
-                          <span className="relative z-10 min-w-0 flex-1 truncate text-xs font-medium">
-                            {label}
-                          </span>
-                        ) : null}
+                    {sidebarCollapsed && section.label ? (
+                      <span
+                        className="block px-1 py-0.5 text-center text-[7px] font-semibold uppercase leading-[1.1] tracking-wider text-muted-foreground/60"
+                        aria-hidden="true"
+                      >
+                        {section.label}
+                      </span>
+                    ) : null}
 
-                        {badgeCount > 0 ? (
-                          sidebarCollapsed ? (
+                    <div
+                      id={`sidebar-section-${sectionKey}`}
+                      hidden={collapsed}
+                      className="space-y-0.5"
+                    >
+                      {section.items.map(({ label, href, icon: Icon, roles: _roles, badge }) => {
+                        void _roles;
+                        const active = isItemActive(location.pathname, href);
+                        const badgeCount = resolveBadgeValue(sidebarBadges, badge);
+
+                        return (
+                          <Link
+                            key={href}
+                            to={href}
+                            title={sidebarCollapsed ? label : undefined}
+                            aria-label={label}
+                            aria-current={active ? "page" : undefined}
+                            className={cn(
+                              "group relative flex items-center gap-2 overflow-hidden rounded-lg border px-2 py-1.5 transition-all duration-300 ease-out",
+                              sidebarCollapsed
+                                ? "min-h-[44px] justify-center px-0 lg:min-h-[36px]"
+                                : "min-h-[44px] lg:min-h-[34px]",
+                              active
+                                ? "border-border/80 bg-background text-foreground"
+                                : "border-transparent text-muted-foreground hover:border-border/60 hover:bg-background/65 hover:text-foreground"
+                            )}
+                          >
+                            {!sidebarCollapsed ? (
+                              <HexPattern
+                                variant="inline"
+                                className={cn(
+                                  active
+                                    ? "-right-4 -bottom-4 h-14 w-14 opacity-[0.16] transition-all duration-300 dark:opacity-[0.22]"
+                                    : "-right-4 -bottom-4 h-14 w-14 opacity-[0.05] transition-all duration-300 group-hover:opacity-[0.09] dark:opacity-[0.08] dark:group-hover:opacity-[0.12]"
+                                )}
+                              />
+                            ) : (
+                              <HexPattern
+                                variant="inline"
+                                className={cn(
+                                  "left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2",
+                                  active
+                                    ? "opacity-[0.14] transition-all duration-300 dark:opacity-[0.2]"
+                                    : "opacity-[0.04] transition-all duration-300 group-hover:opacity-[0.08] dark:opacity-[0.07] dark:group-hover:opacity-[0.1]"
+                                )}
+                              />
+                            )}
+
+                            {!sidebarCollapsed && active ? (
+                              <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                            ) : null}
+
                             <span
-                              className="absolute right-1 top-1 z-20 flex h-2 w-2 rounded-full bg-destructive"
-                              aria-label={`${badgeCount} pendencia(s)`}
-                              title={`${badgeCount} pendencia(s)`}
-                            />
-                          ) : (
-                            <span
-                              className="relative z-10 inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-destructive/15 px-1 text-[10px] font-semibold text-destructive"
-                              aria-label={`${badgeCount} pendencia(s)`}
-                              title={`${badgeCount} pendencia(s)`}
+                              className={cn(
+                                "relative z-10 flex shrink-0 items-center justify-center rounded-md transition-all duration-300 ease-out",
+                                sidebarCollapsed ? "h-7 w-7" : "h-6 w-6",
+                                active
+                                  ? "bg-primary/12 text-primary dark:bg-primary/18"
+                                  : "bg-transparent text-muted-foreground group-hover:text-foreground"
+                              )}
                             >
-                              {badgeCount > 99 ? "99+" : badgeCount}
+                              <Icon size={16} />
                             </span>
-                          )
-                        ) : null}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ))}
+
+                            {!sidebarCollapsed ? (
+                              <span className="relative z-10 min-w-0 flex-1 truncate text-xs font-medium">
+                                {label}
+                              </span>
+                            ) : null}
+
+                            {badgeCount > 0 ? (
+                              sidebarCollapsed ? (
+                                <span
+                                  className="absolute right-1 top-1 z-20 flex h-2 w-2 rounded-full bg-destructive"
+                                  aria-label={`${badgeCount} pendencia(s)`}
+                                  title={`${badgeCount} pendencia(s)`}
+                                />
+                              ) : (
+                                <span
+                                  className="relative z-10 inline-flex h-4 min-w-[18px] items-center justify-center rounded-full bg-destructive/15 px-1 text-[10px] font-semibold text-destructive"
+                                  aria-label={`${badgeCount} pendencia(s)`}
+                                  title={`${badgeCount} pendencia(s)`}
+                                >
+                                  {badgeCount > 99 ? "99+" : badgeCount}
+                                </span>
+                              )
+                            ) : null}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </nav>
           </div>
 
@@ -1008,8 +1086,22 @@ export default function AdminLayout() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-3">
-                <p className="hidden text-right text-sm font-medium capitalize text-muted-foreground md:block">
+              <div className="flex shrink-0 items-center gap-2 md:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaletteOpen(true)}
+                  aria-label="Abrir busca rápida (Ctrl+K)"
+                  className="group inline-flex h-9 items-center gap-2 rounded-lg border border-border/75 bg-card/40 px-2 text-muted-foreground transition-colors hover:border-border hover:bg-card hover:text-foreground sm:px-3 md:w-64 lg:w-72"
+                >
+                  <Search size={14} className="shrink-0" />
+                  <span className="hidden min-w-0 flex-1 truncate text-left text-xs md:inline">
+                    Buscar ou pular para...
+                  </span>
+                  <kbd className="hidden shrink-0 rounded border border-border/75 bg-background px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground/80 group-hover:text-muted-foreground md:inline-flex">
+                    Ctrl K
+                  </kbd>
+                </button>
+                <p className="hidden text-right text-sm font-medium capitalize text-muted-foreground xl:block">
                   {todayLabel}
                 </p>
                 <AdminNotificationBell />
@@ -1033,6 +1125,12 @@ export default function AdminLayout() {
           </main>
         </div>
       </div>
+
+      {paletteOpen ? (
+        <Suspense fallback={null}>
+          <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

@@ -12,6 +12,9 @@ import ExportMenu from "@/components/portal/shared/ExportMenu";
 import RowActionMenu from "@/components/portal/shared/RowActionMenu";
 import ProposalExpiryCountdown from "@/components/portal/proposal/ProposalExpiryCountdown";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+import InlineStatusSelect, {
+  type InlineStatusOption,
+} from "@/components/portal/shared/InlineStatusSelect";
 import { AlertDialog, Button, Card, CardContent, Input, cn } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -43,6 +46,42 @@ const PROPOSAL_STATUS_META: Record<
   rejeitada: { label: "Rejeitada", tone: "destructive" },
   expirada: { label: "Expirada", tone: "warning" },
 };
+
+// Pattern hibrido: transicoes seguras (entre rascunho/expirada) sao aplicadas
+// inline; transicoes "perigosas" (enviada/aprovada/rejeitada) redirecionam
+// pro detalhe da proposta porque exigem fluxo proprio — envio de e-mail,
+// approved_at + possivel contrato, ou rejection_reason. Os hints comunicam
+// isso ao usuario no dropdown.
+const DANGEROUS_PROPOSAL_TRANSITIONS: Record<ProposalStatus, boolean> = {
+  rascunho: false,
+  enviada: true,
+  aprovada: true,
+  rejeitada: true,
+  expirada: false,
+};
+
+const PROPOSAL_STATUS_OPTIONS: InlineStatusOption<ProposalStatus>[] = [
+  { value: "rascunho", label: "Rascunho", tone: "secondary" },
+  {
+    value: "enviada",
+    label: "Enviada",
+    tone: "accent",
+    hint: "Abre detalhe para enviar e-mail",
+  },
+  {
+    value: "aprovada",
+    label: "Aprovada",
+    tone: "success",
+    hint: "Abre detalhe para confirmar",
+  },
+  {
+    value: "rejeitada",
+    label: "Rejeitada",
+    tone: "destructive",
+    hint: "Abre detalhe para registrar motivo",
+  },
+  { value: "expirada", label: "Expirada", tone: "warning" },
+];
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "Todos" },
@@ -116,15 +155,22 @@ function ProposalRow({
   proposal,
   destinationName,
   onDelete,
+  onChangeStatus,
+  changingStatus,
 }: {
   proposal: ProposalRow;
   destinationName: string;
   onDelete: (proposal: ProposalRow) => void;
+  onChangeStatus: (proposal: ProposalRow, next: ProposalStatus) => void;
+  changingStatus: boolean;
 }) {
   const navigate = useNavigate();
+  // meta segue util como fallback quando o status veio "fora" do enum esperado.
   const meta =
     PROPOSAL_STATUS_META[(proposal.status as ProposalStatus) ?? "rascunho"] ??
     PROPOSAL_STATUS_META.rascunho;
+  const proposalStatus = (proposal.status as ProposalStatus) ?? "rascunho";
+  const inSafeEnum = proposalStatus in PROPOSAL_STATUS_META;
 
   const actions: { label: string; onClick: () => void; destructive?: boolean }[] = [
     {
@@ -143,10 +189,16 @@ function ProposalRow({
       {/* Col 1 — Client/Lead */}
       <div className="flex items-start justify-between gap-2 md:contents">
         <Link to={`/portal/admin/propostas/${proposal.id}`} className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+          <p
+            className="truncate text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]"
+            title={destinationName}
+          >
             {destinationName}
           </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground md:hidden">
+          <p
+            className="mt-0.5 truncate text-xs text-muted-foreground md:hidden"
+            title={proposal.title}
+          >
             {proposal.title}
           </p>
         </Link>
@@ -159,7 +211,16 @@ function ProposalRow({
 
       {/* Mobile: secondary info */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 md:hidden">
-        <StatusBadge label={meta.label} tone={meta.tone} />
+        {inSafeEnum ? (
+          <InlineStatusSelect
+            value={proposalStatus}
+            options={PROPOSAL_STATUS_OPTIONS}
+            loading={changingStatus}
+            onSelect={(next) => onChangeStatus(proposal, next)}
+          />
+        ) : (
+          <StatusBadge label={meta.label} tone={meta.tone} />
+        )}
         <span className="text-xs font-medium text-foreground">
           {formatBRL(proposal.total_amount)}
         </span>
@@ -171,7 +232,9 @@ function ProposalRow({
       </div>
 
       {/* Col 2 — Title (desktop) */}
-      <p className="hidden truncate text-sm text-foreground md:block">{proposal.title}</p>
+      <p className="hidden truncate text-sm text-foreground md:block" title={proposal.title}>
+        {proposal.title}
+      </p>
 
       {/* Col 3 — Valor (desktop) */}
       <p className="hidden text-sm font-medium text-foreground md:block">
@@ -180,7 +243,16 @@ function ProposalRow({
 
       {/* Col 4 — Status (desktop) */}
       <div className="hidden md:block">
-        <StatusBadge label={meta.label} tone={meta.tone} />
+        {inSafeEnum ? (
+          <InlineStatusSelect
+            value={proposalStatus}
+            options={PROPOSAL_STATUS_OPTIONS}
+            loading={changingStatus}
+            onSelect={(next) => onChangeStatus(proposal, next)}
+          />
+        ) : (
+          <StatusBadge label={meta.label} tone={meta.tone} />
+        )}
       </div>
 
       {/* Col 5 — Validade (desktop) */}
@@ -302,6 +374,67 @@ export default function Proposals() {
       columns: exportColumns,
       rows: exportRows,
     });
+
+  // Inline-edit de status. Transicoes "perigosas" (enviada/aprovada/rejeitada)
+  // navegam pro detalhe pra completar o fluxo proprio com seguranca; as
+  // demais (rascunho/expirada) aplicam direto + undo.
+  const navigate = useNavigate();
+  const [quickProposalStatusId, setQuickProposalStatusId] = useState<string | null>(null);
+  const handleQuickChangeProposalStatus = async (
+    proposal: ProposalRow,
+    newStatus: ProposalStatus
+  ) => {
+    const currentStatus = (proposal.status as ProposalStatus) ?? "rascunho";
+    if (newStatus === currentStatus) return;
+    if (DANGEROUS_PROPOSAL_TRANSITIONS[newStatus]) {
+      navigate(`/portal/admin/propostas/${proposal.id}`);
+      return;
+    }
+    if (quickProposalStatusId) return;
+    setQuickProposalStatusId(proposal.id);
+
+    // Voltando pra rascunho: limpa marcadores de aprovacao/rejeicao
+    // pra deixar a proposta "como se fosse nova" do ponto de vista do
+    // workflow. expirada e o caminho de cancelamento manual; aprovada/
+    // rejeitada nao chegam aqui por causa do gate acima.
+    const updates: {
+      status: ProposalStatus;
+      approved_at?: string | null;
+      rejected_at?: string | null;
+      rejection_reason?: string | null;
+    } = { status: newStatus };
+    if (newStatus === "rascunho") {
+      updates.approved_at = null;
+      updates.rejected_at = null;
+      updates.rejection_reason = null;
+    }
+
+    const { error } = await supabase.from("proposals").update(updates).eq("id", proposal.id);
+    if (error) {
+      setQuickProposalStatusId(null);
+      toast.error("Erro ao atualizar status.", { description: error.message });
+      return;
+    }
+    setQuickProposalStatusId(null);
+    await refetchData();
+    toast.success("Status atualizado.", {
+      description: `${proposal.title} → ${PROPOSAL_STATUS_META[newStatus].label}`,
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const { error: undoError } = await supabase
+            .from("proposals")
+            .update({ status: currentStatus })
+            .eq("id", proposal.id);
+          if (undoError) {
+            toast.error("Não foi possível desfazer.", { description: undoError.message });
+            return;
+          }
+          await refetchData();
+        },
+      },
+    });
+  };
 
   const handleDeleteProposal = async () => {
     if (!proposalToDelete) return;
@@ -450,6 +583,8 @@ export default function Proposals() {
               proposal={proposal}
               destinationName={getDestinationName(proposal, clientsMap, leadsMap)}
               onDelete={setProposalToDelete}
+              onChangeStatus={handleQuickChangeProposalStatus}
+              changingStatus={quickProposalStatusId === proposal.id}
             />
           ))}
 

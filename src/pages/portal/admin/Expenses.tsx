@@ -386,7 +386,10 @@ export default function AdminExpenses() {
           <div className="space-y-2">
             {categoryBreakdown.map((item) => (
               <div key={item.category} className="flex items-center gap-3">
-                <span className="w-24 truncate text-xs font-medium text-foreground sm:w-32">
+                <span
+                  className="w-24 truncate text-xs font-medium text-foreground sm:w-32"
+                  title={CATEGORY_LABELS[item.category] ?? item.category}
+                >
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted/40">
@@ -599,7 +602,10 @@ export default function AdminExpenses() {
                     {/* Description + actions (mobile: same row) */}
                     <div className="flex items-start justify-between gap-2 md:contents">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold leading-snug text-foreground sm:text-[15px]">
+                        <p
+                          className="truncate text-sm font-semibold leading-snug text-foreground sm:text-[15px]"
+                          title={expense.description}
+                        >
                           {expense.description}
                         </p>
                         {expense.notes ? (

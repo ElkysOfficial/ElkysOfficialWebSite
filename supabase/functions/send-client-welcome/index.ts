@@ -17,12 +17,13 @@ import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
 import {
   getFormalGreeting,
-  getWhatsAppGreeting,
+  getWhatsAppGreetingFullName,
   getClientFirstName,
   type Gender,
 } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, bulletList, ctaLink } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   email: string;
@@ -83,6 +84,7 @@ serve(async (req) => {
       entityId: null,
     });
     const portalHref = await tracking.shorten(PORTAL_URL);
+    const portalHrefWa = await tracking.shorten(PORTAL_URL, "whatsapp");
 
     const html = buildEmail({
       preheader: "Seu acesso ao Portal Elkys está pronto.",
@@ -119,7 +121,23 @@ serve(async (req) => {
     // repete a senha temporaria — apenas indica que ela foi enviada no e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)} 👋\n\nSeu acesso ao Portal do Cliente da Elkys foi criado com sucesso e já está ativo.\n\nEsse portal foi preparado para facilitar seu acompanhamento, centralizar informações importantes e tornar nosso atendimento ainda mais próximo e organizado.\n\nAs credenciais de acesso foram enviadas para o e-mail ${email}.\n\nAcesse por aqui:\n${portalHref}\n\nQualquer dúvida no acesso, estamos à disposição para ajudar.`;
+      const waText = buildWhatsAppMessage({
+        greeting: `${getWhatsAppGreetingFullName(client)} 👋`,
+        paragraphs: [
+          "Seja muito bem-vindo(a) à Elkys! Seu acesso ao Portal do Cliente foi criado e já está ativo.",
+          "No portal você encontra, em um só lugar:",
+          bulletList([
+            "Acompanhamento detalhado de cada projeto",
+            "Propostas, contratos e documentos centralizados",
+            "Financeiro com cobranças, comprovantes e PIX",
+            "Suporte direto com a nossa equipe",
+          ]),
+          `As credenciais de primeiro acesso foram enviadas para o seu e-mail (${email}). Por segurança, você troca a senha no primeiro login.`,
+        ],
+        cta: ctaLink("Acessar o portal", portalHrefWa),
+        closing:
+          "Estamos muito felizes com sua parceria. Para qualquer dúvida no acesso ou no portal, nossa equipe está à disposição.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

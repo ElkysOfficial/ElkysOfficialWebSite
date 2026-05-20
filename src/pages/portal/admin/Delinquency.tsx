@@ -324,7 +324,10 @@ export default function Delinquency() {
                         {getClientDisplayName(charge.client)}
                       </Link>
                     </td>
-                    <td className="max-w-[200px] truncate px-4 py-3 text-muted-foreground">
+                    <td
+                      className="max-w-[200px] truncate px-4 py-3 text-muted-foreground"
+                      title={charge.description}
+                    >
                       {charge.description}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-foreground">

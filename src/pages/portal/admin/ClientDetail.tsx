@@ -1849,84 +1849,99 @@ export default function AdminClientDetail() {
             onSave={handleSaveGeneral}
           />
         ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
-            <Card className="border-border/70 bg-card/92">
-              <CardHeader className="border-b border-border/60">
-                <CardTitle className="text-base">Contato</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-                <InfoRow label="Nome" value={client.full_name} />
-                <div className="flex flex-col gap-1 sm:col-span-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Contato
-                  </span>
-                  <ContactLinks
-                    email={client.email}
-                    phone={client.phone}
-                    phoneDisplay={client.phone ? maskPhone(client.phone) : null}
-                    whatsappMessage={`Olá ${getClientDisplayName(client).split(" ")[0]}, aqui é da Elkys. Tudo bem?`}
+          <div className="space-y-4">
+            {/* Bug fix: antes do botao explicito, edicao so era acessivel
+                via URL ?edit=dados. Agora qualquer admin pode entrar em
+                modo edicao do registro com 1 clique. */}
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingSection("dados")}
+              >
+                Editar dados
+              </Button>
+            </div>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card className="border-border/70 bg-card/92">
+                <CardHeader className="border-b border-border/60">
+                  <CardTitle className="text-base">Contato</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
+                  <InfoRow label="Nome" value={client.full_name} />
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Contato
+                    </span>
+                    <ContactLinks
+                      email={client.email}
+                      phone={client.phone}
+                      phoneDisplay={client.phone ? maskPhone(client.phone) : null}
+                      whatsappMessage={`Olá ${getClientDisplayName(client).split(" ")[0]}, aqui é da Elkys. Tudo bem?`}
+                    />
+                  </div>
+                  <InfoRow label="CPF" value={client.cpf ? maskCPF(client.cpf) : null} />
+                  {client.client_type === "pj" ? (
+                    <>
+                      <InfoRow label="CNPJ" value={client.cnpj ? maskCNPJ(client.cnpj) : null} />
+                      <InfoRow label="Razão Social" value={client.razao_social} />
+                      <InfoRow label="Nome Fantasia" value={client.nome_fantasia} />
+                      <InfoRow label="Cargo do Representante" value={client.cargo_representante} />
+                    </>
+                  ) : null}
+                  <InfoRow
+                    label="Tipo"
+                    value={client.client_type === "pj" ? "Pessoa Jurídica" : "Pessoa Física"}
                   />
-                </div>
-                <InfoRow label="CPF" value={client.cpf ? maskCPF(client.cpf) : null} />
-                {client.client_type === "pj" ? (
-                  <>
-                    <InfoRow label="CNPJ" value={client.cnpj ? maskCNPJ(client.cnpj) : null} />
-                    <InfoRow label="Razão Social" value={client.razao_social} />
-                    <InfoRow label="Nome Fantasia" value={client.nome_fantasia} />
-                    <InfoRow label="Cargo do Representante" value={client.cargo_representante} />
-                  </>
-                ) : null}
-                <InfoRow
-                  label="Tipo"
-                  value={client.client_type === "pj" ? "Pessoa Jurídica" : "Pessoa Física"}
-                />
-                <InfoRow
-                  label="Origem"
-                  value={client.client_origin ? ORIGIN_LABEL[client.client_origin] : null}
-                />
-                <InfoRow label="Cliente desde" value={formatDate(client.client_since)} />
-              </CardContent>
-            </Card>
+                  <InfoRow
+                    label="Origem"
+                    value={client.client_origin ? ORIGIN_LABEL[client.client_origin] : null}
+                  />
+                  <InfoRow label="Cliente desde" value={formatDate(client.client_since)} />
+                </CardContent>
+              </Card>
 
-            <Card className="border-border/70 bg-card/92">
-              <CardHeader className="border-b border-border/60">
-                <CardTitle className="text-base">Endereço</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
-                <InfoRow label="CEP" value={client.cep ? maskCEP(client.cep) : null} />
-                <InfoRow label="Logradouro" value={client.logradouro} />
-                <InfoRow label="Número" value={client.numero} />
-                <InfoRow label="Complemento" value={client.complemento} />
-                <InfoRow label="Bairro" value={client.bairro} />
-                <InfoRow label="Cidade" value={client.city} />
-                <InfoRow label="Estado" value={client.state} />
-                <InfoRow label="País" value={client.country} />
-              </CardContent>
-            </Card>
+              <Card className="border-border/70 bg-card/92">
+                <CardHeader className="border-b border-border/60">
+                  <CardTitle className="text-base">Endereço</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 pt-5 sm:grid-cols-2">
+                  <InfoRow label="CEP" value={client.cep ? maskCEP(client.cep) : null} />
+                  <InfoRow label="Logradouro" value={client.logradouro} />
+                  <InfoRow label="Número" value={client.numero} />
+                  <InfoRow label="Complemento" value={client.complemento} />
+                  <InfoRow label="Bairro" value={client.bairro} />
+                  <InfoRow label="Cidade" value={client.city} />
+                  <InfoRow label="Estado" value={client.state} />
+                  <InfoRow label="País" value={client.country} />
+                </CardContent>
+              </Card>
 
-            <Card className="border-border/70 bg-card/92 xl:col-span-2">
-              <CardHeader className="border-b border-border/60">
-                <CardTitle className="text-base">Financeiro</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4 pt-5 sm:grid-cols-3">
-                <InfoRow
-                  label="Valor mensal"
-                  value={formatBRL(Number(contractSnapshot.monthly_value))}
-                />
-                <InfoRow
-                  label="Valor do projeto"
-                  value={formatBRL(Number(contractSnapshot.project_total_value))}
-                />
-                <InfoRow
-                  label="Dia de vencimento"
-                  value={
-                    contractSnapshot.payment_due_day
-                      ? `Dia ${contractSnapshot.payment_due_day}`
-                      : null
-                  }
-                />
-              </CardContent>
-            </Card>
+              <Card className="border-border/70 bg-card/92 xl:col-span-2">
+                <CardHeader className="border-b border-border/60">
+                  <CardTitle className="text-base">Financeiro</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 pt-5 sm:grid-cols-3">
+                  <InfoRow
+                    label="Valor mensal"
+                    value={formatBRL(Number(contractSnapshot.monthly_value))}
+                  />
+                  <InfoRow
+                    label="Valor do projeto"
+                    value={formatBRL(Number(contractSnapshot.project_total_value))}
+                  />
+                  <InfoRow
+                    label="Dia de vencimento"
+                    value={
+                      contractSnapshot.payment_due_day
+                        ? `Dia ${contractSnapshot.payment_due_day}`
+                        : null
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )
       ) : null}
@@ -1942,101 +1957,113 @@ export default function AdminClientDetail() {
             onSave={handleSaveContract}
           />
         ) : (
-          <Card className="border-border/70 bg-card/92">
-            <CardHeader className="border-b border-border/60">
-              <CardTitle className="text-base">Informações do contrato</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-5">
-              {!client.payment_due_day && subscriptions.length > 0 ? (
-                <div className="rounded-lg border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
-                  Alguns dados desta leitura foram preenchidos automáticamente com base nas
-                  assinaturas e contratos já vinculados ao cliente.
-                </div>
-              ) : null}
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingSection("contrato")}
+              >
+                Editar contrato
+              </Button>
+            </div>
+            <Card className="border-border/70 bg-card/92">
+              <CardHeader className="border-b border-border/60">
+                <CardTitle className="text-base">Informações do contrato</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-5">
+                {!client.payment_due_day && subscriptions.length > 0 ? (
+                  <div className="rounded-lg border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
+                    Alguns dados desta leitura foram preenchidos automáticamente com base nas
+                    assinaturas e contratos já vinculados ao cliente.
+                  </div>
+                ) : null}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <InfoRow
-                  label="Status do contrato"
-                  value={
-                    contractSnapshot.contract_status ? (
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                          contractSnapshot.contract_status === "ativo"
-                            ? "bg-success/10 text-success"
-                            : contractSnapshot.contract_status === "inadimplente"
-                              ? "bg-warning/10 text-warning"
-                              : "bg-destructive/10 text-destructive"
-                        )}
-                      >
-                        {CONTRACT_STATUS_LABEL[contractSnapshot.contract_status]}
-                      </span>
-                    ) : null
-                  }
-                />
-                <InfoRow
-                  label="Tipo de contrato"
-                  value={
-                    contractSnapshot.contract_type
-                      ? CONTRACT_TYPE_LABEL[contractSnapshot.contract_type]
-                      : null
-                  }
-                />
-                <InfoRow label="Início" value={formatDate(contractSnapshot.contract_start)} />
-                <InfoRow
-                  label="Fim"
-                  value={
-                    contractSnapshot.contract_end
-                      ? formatDate(contractSnapshot.contract_end)
-                      : "Sem data definida (renovável)"
-                  }
-                />
-                <InfoRow
-                  label="Dia de vencimento"
-                  value={
-                    contractSnapshot.payment_due_day
-                      ? `Dia ${contractSnapshot.payment_due_day}`
-                      : null
-                  }
-                />
-                <InfoRow
-                  label="Origem"
-                  value={
-                    contractSnapshot.client_origin
-                      ? ORIGIN_LABEL[contractSnapshot.client_origin]
-                      : null
-                  }
-                />
-                {client.tags.length > 0 ? (
-                  <div className="sm:col-span-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Tags
-                    </span>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {client.tags.map((tag) => (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <InfoRow
+                    label="Status do contrato"
+                    value={
+                      contractSnapshot.contract_status ? (
                         <span
-                          key={tag}
-                          className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                            contractSnapshot.contract_status === "ativo"
+                              ? "bg-success/10 text-success"
+                              : contractSnapshot.contract_status === "inadimplente"
+                                ? "bg-warning/10 text-warning"
+                                : "bg-destructive/10 text-destructive"
+                          )}
                         >
-                          {tag}
+                          {CONTRACT_STATUS_LABEL[contractSnapshot.contract_status]}
                         </span>
-                      ))}
+                      ) : null
+                    }
+                  />
+                  <InfoRow
+                    label="Tipo de contrato"
+                    value={
+                      contractSnapshot.contract_type
+                        ? CONTRACT_TYPE_LABEL[contractSnapshot.contract_type]
+                        : null
+                    }
+                  />
+                  <InfoRow label="Início" value={formatDate(contractSnapshot.contract_start)} />
+                  <InfoRow
+                    label="Fim"
+                    value={
+                      contractSnapshot.contract_end
+                        ? formatDate(contractSnapshot.contract_end)
+                        : "Sem data definida (renovável)"
+                    }
+                  />
+                  <InfoRow
+                    label="Dia de vencimento"
+                    value={
+                      contractSnapshot.payment_due_day
+                        ? `Dia ${contractSnapshot.payment_due_day}`
+                        : null
+                    }
+                  />
+                  <InfoRow
+                    label="Origem"
+                    value={
+                      contractSnapshot.client_origin
+                        ? ORIGIN_LABEL[contractSnapshot.client_origin]
+                        : null
+                    }
+                  />
+                  {client.tags.length > 0 ? (
+                    <div className="sm:col-span-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Tags
+                      </span>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {client.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
-                {contractSnapshot.scope_summary ? (
-                  <div className="sm:col-span-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Escopo
-                    </span>
-                    <p className="mt-1 text-sm leading-relaxed text-foreground">
-                      {contractSnapshot.scope_summary}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
+                  ) : null}
+                  {contractSnapshot.scope_summary ? (
+                    <div className="sm:col-span-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Escopo
+                      </span>
+                      <p className="mt-1 text-sm leading-relaxed text-foreground">
+                        {contractSnapshot.scope_summary}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )
       ) : null}
 
@@ -2182,7 +2209,10 @@ export default function AdminClientDetail() {
                               CHARGE_STATUS_META[charge.status as keyof typeof CHARGE_STATUS_META];
                             return (
                               <tr key={charge.id} className="transition-colors hover:bg-muted/20">
-                                <td className="max-w-[200px] truncate px-4 py-3 text-foreground">
+                                <td
+                                  className="max-w-[200px] truncate px-4 py-3 text-foreground"
+                                  title={charge.description}
+                                >
                                   {charge.description}
                                 </td>
                                 <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">

@@ -19,6 +19,9 @@ import MetricTile from "@/components/portal/shared/MetricTile";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ExportMenu from "@/components/portal/shared/ExportMenu";
 import StatusBadge from "@/components/portal/shared/StatusBadge";
+import InlineStatusSelect, {
+  type InlineStatusOption,
+} from "@/components/portal/shared/InlineStatusSelect";
 import { Button, Card, CardContent, Input, Field, Label, Textarea, cn } from "@/design-system";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +60,14 @@ const STATUS_MAP = Object.fromEntries(STATUS_META.map((s) => [s.key, s])) as Rec
   LeadStatus,
   (typeof STATUS_META)[number]
 >;
+
+// Espelha STATUS_META no formato esperado pelo InlineStatusSelect — mesma
+// label, mesmo tone, ordem preservada (segue o fluxo do funil).
+const LEAD_STATUS_OPTIONS: InlineStatusOption<LeadStatus>[] = STATUS_META.map((s) => ({
+  value: s.key,
+  label: s.label,
+  tone: s.tone,
+}));
 
 const COLUMN_ACCENT: Record<LeadStatus, string> = {
   novo: "border-t-secondary",
@@ -103,7 +114,10 @@ function LeadCard({ lead }: { lead: LeadRow }) {
           <h4 className="text-sm font-semibold leading-tight text-foreground line-clamp-2">
             {lead.name}
           </h4>
-          <p className="mt-1 min-h-[1.25rem] truncate text-xs text-muted-foreground">
+          <p
+            className="mt-1 min-h-[1.25rem] truncate text-xs text-muted-foreground"
+            title={lead.company ?? undefined}
+          >
             {lead.company || "\u00A0"}
           </p>
         </div>
@@ -203,6 +217,51 @@ export default function Leads() {
 
     toast.success(`Lead movido para ${STATUS_MAP[targetStatus].label}.`);
   };
+
+  // Inline-edit pela tabela (view de lista). Mesma logica do drag-drop do
+  // kanban: optimistic update + revert em erro + toast. Sem cascata: a
+  // edge function/sync (ex. conversao do lead em cliente) e disparada
+  // separadamente em LeadDetail quando o time finaliza o lead.
+  const [quickLeadStatusId, setQuickLeadStatusId] = useState<string | null>(null);
+  const handleQuickChangeLeadStatus = async (lead: LeadRow, newStatus: LeadStatus) => {
+    if (newStatus === lead.status) return;
+    if (quickLeadStatusId) return;
+    setQuickLeadStatusId(lead.id);
+    const previousStatus = lead.status as LeadStatus;
+    setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: newStatus } : l)));
+    const { error: updateError } = await supabase
+      .from("leads")
+      .update({ status: newStatus })
+      .eq("id", lead.id);
+    if (updateError) {
+      setLeads((prev) =>
+        prev.map((l) => (l.id === lead.id ? { ...l, status: previousStatus } : l))
+      );
+      setQuickLeadStatusId(null);
+      toast.error("Erro ao atualizar status.", { description: updateError.message });
+      return;
+    }
+    setQuickLeadStatusId(null);
+    toast.success("Status atualizado.", {
+      description: `${lead.name} → ${STATUS_MAP[newStatus].label}`,
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          setLeads((prev) =>
+            prev.map((l) => (l.id === lead.id ? { ...l, status: previousStatus } : l))
+          );
+          const { error: undoError } = await supabase
+            .from("leads")
+            .update({ status: previousStatus })
+            .eq("id", lead.id);
+          if (undoError) {
+            toast.error("Não foi possível desfazer.", { description: undoError.message });
+          }
+        },
+      },
+    });
+  };
+
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -744,7 +803,12 @@ export default function Leads() {
                       </td>
                       <td className="px-4 py-3">
                         {meta ? (
-                          <StatusBadge label={meta.label} tone={meta.tone} />
+                          <InlineStatusSelect
+                            value={lead.status as LeadStatus}
+                            options={LEAD_STATUS_OPTIONS}
+                            loading={quickLeadStatusId === lead.id}
+                            onSelect={(next) => handleQuickChangeLeadStatus(lead, next)}
+                          />
                         ) : (
                           <span className="text-muted-foreground">{lead.status}</span>
                         )}

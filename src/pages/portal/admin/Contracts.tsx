@@ -464,11 +464,19 @@ export default function Contracts() {
                           <Link
                             to={`/portal/admin/projetos/${project.id}`}
                             className="truncate text-sm font-semibold text-foreground hover:underline"
+                            title={project.name}
                           >
                             {project.name}
                           </Link>
                         ) : (
-                          <span className="truncate text-sm font-semibold text-muted-foreground">
+                          <span
+                            className="truncate text-sm font-semibold text-muted-foreground"
+                            title={
+                              contract.project_id
+                                ? `Projeto ${contract.project_id}`
+                                : "Aguardando ativação"
+                            }
+                          >
                             {contract.project_id
                               ? `Projeto #${contract.project_id.slice(0, 8)}`
                               : "Aguardando ativação"}
@@ -677,7 +685,10 @@ export default function Contracts() {
                   )}
 
                   <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0 truncate text-[11px] text-muted-foreground">
+                    <div
+                      className="min-w-0 truncate text-[11px] text-muted-foreground"
+                      title={`Vigência: ${contract.starts_at ?? "—"} a ${contract.ends_at ?? "—"}`}
+                    >
                       Vigência: {contract.starts_at ?? "—"} → {contract.ends_at ?? "—"}
                     </div>
                     <button

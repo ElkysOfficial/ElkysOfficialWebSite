@@ -236,8 +236,12 @@ function ClientPicker({
                 onChange={() => toggle(client.id)}
                 className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
               />
-              <span className="truncate font-medium">{client.full_name}</span>
-              <span className="ml-auto truncate text-xs text-muted-foreground">{client.email}</span>
+              <span className="truncate font-medium" title={client.full_name}>
+                {client.full_name}
+              </span>
+              <span className="ml-auto truncate text-xs text-muted-foreground" title={client.email}>
+                {client.email}
+              </span>
             </label>
           ))
         )}
@@ -769,10 +773,16 @@ export default function AdminNotifications() {
                       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.6fr)_150px_130px_100px_100px] xl:items-center">
                         {/* Title + body preview */}
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">
+                          <p
+                            className="truncate text-sm font-semibold text-foreground"
+                            title={notif.title}
+                          >
                             {notif.title}
                           </p>
-                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          <p
+                            className="mt-0.5 truncate text-xs text-muted-foreground"
+                            title={notif.body}
+                          >
                             {notif.body}
                           </p>
                         </div>

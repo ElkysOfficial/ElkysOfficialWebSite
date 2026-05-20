@@ -16,12 +16,13 @@ import { escapeHtml } from "../_shared/validation.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
 import {
   getFormalGreeting,
-  getWhatsAppGreeting,
+  getWhatsAppGreetingFullName,
   nl2br,
   truncateAtWord,
 } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 type EventType = "em_andamento" | "resolvido" | "reply";
 
@@ -193,6 +194,7 @@ serve(async (req) => {
       entityId: ticket_id,
     });
     const ticketHref = await tracking.shorten(ticketUrl);
+    const ticketHrefWa = await tracking.shorten(ticketUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: `${EVENT_SUBJECT[event]} — "${subject}".`,
@@ -221,12 +223,42 @@ serve(async (req) => {
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
       let waText: string;
+      const clientForGreeting = client ?? {};
       if (event === "em_andamento") {
-        waText = `${getWhatsAppGreeting(client ?? {})}\n\nRecebemos a sua solicitação de suporte "${subject}" e ela já está em análise pela nossa equipe.\n\nVamos te manter informado. Acompanhe o ticket por aqui:\n${ticketHref}\n\nQualquer dúvida, estamos à disposição.`;
+        waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(clientForGreeting),
+          paragraphs: [
+            "Confirmamos que sua solicitação de suporte foi recebida e já está em análise pela nossa equipe técnica.",
+            docHighlight("Ticket em análise", subject),
+            "Você será notificado a cada atualização. Todo o histórico fica acessível no portal.",
+          ],
+          cta: ctaLink("Acompanhar o ticket", ticketHrefWa),
+          closing:
+            "Nossa equipe de suporte permanece à disposição para qualquer informação adicional.",
+        });
       } else if (event === "resolvido") {
-        waText = `${getWhatsAppGreeting(client ?? {})} ✅\n\nA sua solicitação de suporte "${subject}" foi concluída e marcada como resolvida.\n\nSe precisar de algo mais, é só nos chamar. Veja o ticket por aqui:\n${ticketHref}\n\nEstamos à disposição.`;
+        waText = buildWhatsAppMessage({
+          greeting: `${getWhatsAppGreetingFullName(clientForGreeting)} ✅`,
+          paragraphs: [
+            "Sua solicitação de suporte foi concluída e marcada como resolvida pela nossa equipe.",
+            docHighlight("Ticket resolvido", subject),
+            "O histórico da resolução fica disponível no portal para futuras consultas.",
+          ],
+          cta: ctaLink("Ver detalhes do ticket", ticketHrefWa),
+          closing:
+            "Se precisar de algo mais ou tiver feedback sobre o atendimento, é só nos chamar. Estamos à disposição.",
+        });
       } else {
-        waText = `${getWhatsAppGreeting(client ?? {})}\n\nA nossa equipe registrou uma nova resposta no seu ticket "${subject}".\n\nA resposta completa está no portal. Acesse por aqui:\n${ticketHref}\n\nQualquer dúvida, estamos à disposição.`;
+        waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(clientForGreeting),
+          paragraphs: [
+            "Nossa equipe registrou uma nova resposta no seu ticket de suporte.",
+            docHighlight("Nova resposta", subject),
+            "A resposta completa, com todo o contexto, está disponível no portal.",
+          ],
+          cta: ctaLink("Ler a resposta no portal", ticketHrefWa),
+          closing: "Para continuar a conversa, basta responder no próprio ticket pelo portal.",
+        });
       }
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }

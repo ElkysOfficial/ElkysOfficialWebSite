@@ -12,9 +12,14 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting, truncateAtWord } from "../_shared/greeting.ts";
+import {
+  getFormalGreeting,
+  getWhatsAppGreetingFullName,
+  truncateAtWord,
+} from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   proposal_id: string;
@@ -101,7 +106,9 @@ serve(async (req) => {
       entityType: "proposal",
       entityId: proposal_id,
     });
-    const proposalHref = await tracking.shorten(`${PORTAL_URL}/propostas`);
+    const proposalUrl = `${PORTAL_URL}/propostas`;
+    const proposalHref = await tracking.shorten(proposalUrl);
+    const proposalHrefWa = await tracking.shorten(proposalUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: "Proposta comercial disponível para análise no portal.",
@@ -140,7 +147,17 @@ serve(async (req) => {
     // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)}\n\nPreparamos uma proposta para você: "${proposal.title}", no valor de ${formattedAmount}.\n\nEla já está disponível no portal para a sua análise, com calma e quando for melhor para você.\n\nAnalise a proposta por aqui:\n${proposalHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          "Preparamos uma proposta personalizada para o seu projeto. Ela já está disponível no portal para sua análise.",
+          docHighlight("Proposta", `${proposal.title} - ${formattedAmount}`),
+          "Analise com calma e a qualquer momento. O portal mostra o escopo completo, condições e prazos.",
+        ],
+        cta: ctaLink("Abrir a proposta", proposalHrefWa),
+        closing:
+          "Estamos à disposição para esclarecer qualquer ponto ou ajustar o que for necessário antes do seu aceite.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

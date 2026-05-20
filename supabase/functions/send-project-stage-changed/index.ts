@@ -12,9 +12,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   client_id: string;
@@ -109,7 +110,9 @@ serve(async (req) => {
       entityType: "project",
       entityId: project_id ?? null,
     });
-    const projetoHref = await tracking.shorten(`${PORTAL_URL}/projetos/${project_id}`);
+    const projetoUrl = `${PORTAL_URL}/projetos/${project_id}`;
+    const projetoHref = await tracking.shorten(projetoUrl);
+    const projetoHrefWa = await tracking.shorten(projetoUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: isStageChange
@@ -137,8 +140,26 @@ serve(async (req) => {
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
       const waText = isStageChange
-        ? `${getWhatsAppGreeting(client)}\n\nBoas notícias: o projeto "${project_name}" avançou para a etapa "${to_value}".\n\nAcompanhe o progresso por aqui:\n${projetoHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`
-        : `${getWhatsAppGreeting(client)}\n\nO status do projeto "${project_name}" foi atualizado para "${to_value}".\n\nVeja os detalhes por aqui:\n${projetoHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+        ? buildWhatsAppMessage({
+            greeting: getWhatsAppGreetingFullName(client),
+            paragraphs: [
+              "Boas notícias: seu projeto avançou e está em uma nova etapa.",
+              docHighlight("Etapa atual", `${project_name} - ${to_value}`),
+              "Você pode acompanhar tudo em tempo real pelo portal — incluindo entregas, documentos e próximos marcos.",
+            ],
+            cta: ctaLink("Acompanhar o progresso", projetoHrefWa),
+            closing: "Para qualquer dúvida sobre essa etapa, nossa equipe está à disposição.",
+          })
+        : buildWhatsAppMessage({
+            greeting: getWhatsAppGreetingFullName(client),
+            paragraphs: [
+              "Houve uma atualização no status do seu projeto.",
+              docHighlight("Status atual", `${project_name} - ${to_value}`),
+              "Acesse o portal para ver os detalhes completos da mudança.",
+            ],
+            cta: ctaLink("Ver detalhes do projeto", projetoHrefWa),
+            closing: "Para qualquer dúvida, nossa equipe permanece à disposição.",
+          });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

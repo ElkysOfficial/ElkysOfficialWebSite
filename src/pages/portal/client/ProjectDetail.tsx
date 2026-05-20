@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { FileText } from "@/assets/icons";
 import AdminEmptyState from "@/components/portal/admin/AdminEmptyState";
+import CopyLinkButton from "@/components/portal/shared/CopyLinkButton";
 import Pagination from "@/components/portal/shared/Pagination";
 import PortalLoading from "@/components/portal/shared/PortalLoading";
 import ProjectSiteLink from "@/components/portal/project/ProjectSiteLink";
@@ -317,9 +318,15 @@ export default function ClientProjectDetail() {
               <ProjectSiteLink url={project.production_url} />
             </div>
 
-            <Link to="/portal/cliente/projetos" className={buttonVariants({ variant: "outline" })}>
-              Voltar
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <CopyLinkButton />
+              <Link
+                to="/portal/cliente/projetos"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Voltar
+              </Link>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 pt-6 text-sm text-muted-foreground md:flex-row md:flex-wrap md:items-center md:gap-4">
@@ -560,7 +567,10 @@ export default function ClientProjectDetail() {
                       className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">
+                        <p
+                          className="truncate text-sm font-semibold text-foreground"
+                          title={subscription.label}
+                        >
                           {subscription.label}
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -608,7 +618,10 @@ export default function ClientProjectDetail() {
                             className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/60 px-4 py-3"
                           >
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-foreground">
+                              <p
+                                className="truncate text-sm font-medium text-foreground"
+                                title={item.label}
+                              >
                                 {item.label}
                               </p>
                               <p className="mt-0.5 text-xs text-muted-foreground">

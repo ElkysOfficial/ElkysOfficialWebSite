@@ -12,9 +12,10 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireOperationalAccess } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   client_id: string;
@@ -79,7 +80,9 @@ serve(async (req) => {
       entityType: "project",
       entityId: null,
     });
-    const projetosHref = await tracking.shorten(`${PORTAL_URL}/projetos`);
+    const projetosUrl = `${PORTAL_URL}/projetos`;
+    const projetosHref = await tracking.shorten(projetosUrl);
+    const projetosHrefWa = await tracking.shorten(projetosUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: `O projeto "${project_name}" foi vinculado à sua conta.`,
@@ -108,7 +111,17 @@ serve(async (req) => {
     // Espelha o aviso no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)}\n\nO projeto "${project_name}" foi vinculado à sua conta no Portal Elkys.\n\nPor lá você acompanha as etapas, os documentos e todo o andamento, com tudo centralizado num só lugar.\n\nAcesse o projeto por aqui:\n${projetosHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+      const waText = buildWhatsAppMessage({
+        greeting: getWhatsAppGreetingFullName(client),
+        paragraphs: [
+          "Temos uma novidade boa para compartilhar: um novo projeto foi vinculado à sua conta no Portal Elkys.",
+          docHighlight("Projeto criado", project_name),
+          "No portal você acompanha as etapas, documentos, financeiro e todo o andamento centralizado em um só lugar.",
+        ],
+        cta: ctaLink("Abrir o projeto no portal", projetosHrefWa),
+        closing:
+          "Estamos animados para começar essa jornada com você. Qualquer dúvida, nossa equipe está à disposição.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);

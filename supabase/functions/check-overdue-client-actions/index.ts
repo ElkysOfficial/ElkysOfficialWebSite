@@ -13,8 +13,9 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildEmail, sendEmail, CORS, getTimeGreeting } from "../_shared/email-template.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
-import { getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 function formatDate(date: string): string {
   return new Date(`${date}T00:00:00`).toLocaleDateString("pt-BR", {
@@ -108,7 +109,9 @@ serve(async (req) => {
         entityType: "client",
         entityId: group.client_id,
       });
-      const projectsHref = await tracking.shorten(`${PORTAL_URL}/projetos`);
+      const projectsUrl = `${PORTAL_URL}/projetos`;
+      const projectsHref = await tracking.shorten(projectsUrl);
+      const projectsHrefWa = await tracking.shorten(projectsUrl, "whatsapp");
 
       const html = buildEmail({
         preheader: `Você tem ${group.steps.length} solicitação(ões) pendente(s) que precisam da sua atenção.`,
@@ -139,7 +142,21 @@ serve(async (req) => {
       // Espelha o lembrete no WhatsApp (curto + link). Falha nao afeta o e-mail.
       let waStatus: "sent" | "failed" | "skipped" = "skipped";
       if (recipientPhone) {
-        const waText = `${getWhatsAppGreeting(client)}\n\nVocê tem ${group.steps.length} solicitação(ões) pendente(s) que já passaram do prazo.\n\nSua resposta é importante para mantermos o andamento dos seus projetos em dia.\n\nAcesse seus projetos por aqui:\n${projectsHref}\n\nQualquer dúvida, estamos à disposição para ajudar.`;
+        const pendingLabel =
+          group.steps.length === 1
+            ? "1 solicitação pendente"
+            : `${group.steps.length} solicitações pendentes`;
+        const waText = buildWhatsAppMessage({
+          greeting: getWhatsAppGreetingFullName(client),
+          paragraphs: [
+            "Algumas solicitações que estamos aguardando da sua parte já passaram do prazo previsto.",
+            docHighlight("Ações vencidas aguardando você", pendingLabel),
+            "Sua resposta é importante para mantermos o andamento dos seus projetos em dia. Acessando o portal, você vê o detalhe de cada item e responde diretamente por lá.",
+          ],
+          cta: ctaLink("Resolver agora no portal", projectsHrefWa),
+          closing:
+            "Se já enviou os retornos, por favor desconsidere este lembrete. Nossa equipe está à disposição para qualquer dúvida.",
+        });
         waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
       }
       await tracking.finalize(result.ok, waStatus);

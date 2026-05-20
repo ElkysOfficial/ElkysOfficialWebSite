@@ -12,9 +12,10 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { buildEmail, sendEmail, CORS } from "../_shared/email-template.ts";
 import { requireAdminAccess, createServiceRoleClient } from "../_shared/auth.ts";
-import { getFormalGreeting, getWhatsAppGreeting } from "../_shared/greeting.ts";
+import { getFormalGreeting, getWhatsAppGreetingFullName } from "../_shared/greeting.ts";
 import { createCommunication } from "../_shared/comms-tracking.ts";
 import { sendWhatsApp } from "../_shared/whatsapp.ts";
+import { buildWhatsAppMessage, ctaLink, docHighlight } from "../_shared/whatsapp-template.ts";
 
 interface Payload {
   installment_id: string;
@@ -128,6 +129,7 @@ serve(async (req) => {
       entityId: installment_id,
     });
     const projectHref = await tracking.shorten(projectUrl);
+    const projectHrefWa = await tracking.shorten(projectUrl, "whatsapp");
 
     const html = buildEmail({
       preheader: `Confirmamos o recebimento da parcela de ${typeLabel.toLowerCase()} no valor de ${amount}.`,
@@ -167,7 +169,19 @@ serve(async (req) => {
     // Espelha o comprovante no WhatsApp (curto + link). Falha nao afeta o e-mail.
     let waStatus: "sent" | "failed" | "skipped" = "skipped";
     if (recipientPhone) {
-      const waText = `${getWhatsAppGreeting(client)} ✅\n\nConfirmamos o pagamento da parcela ${typeLabel} (${percentage}%) do projeto ${project.name}, no valor de ${amount}.\n\nObrigado pela confiança e pela parceria!\n\nVeja os detalhes por aqui:\n${projectHref}\n\nQualquer dúvida, estamos à disposição.`;
+      const waText = buildWhatsAppMessage({
+        greeting: `${getWhatsAppGreetingFullName(client)} ✅`,
+        paragraphs: [
+          "Confirmamos o recebimento do pagamento da parcela abaixo. Obrigado pela parceria e pela confiança.",
+          docHighlight(
+            "Pagamento confirmado",
+            `${typeLabel} (${percentage}%) - ${project.name} - ${amount}`
+          ),
+          "O comprovante e o histórico financeiro completo ficam disponíveis no seu portal.",
+        ],
+        cta: ctaLink("Ver detalhes do projeto", projectHrefWa),
+        closing: "Para qualquer dúvida, nossa equipe permanece à disposição.",
+      });
       waStatus = (await sendWhatsApp(recipientPhone, waText)) ? "sent" : "failed";
     }
     await tracking.finalize(result.ok, waStatus);
