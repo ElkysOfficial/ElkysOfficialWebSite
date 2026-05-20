@@ -21,6 +21,7 @@ import {
   Label,
 } from "@/design-system";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   formatDateInput,
   isValidCPF,
@@ -126,6 +127,7 @@ type TeamForm = z.infer<typeof teamSchema>;
 export default function AdminTeamEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [member, setMember] = useState<TeamMember | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,11 +150,11 @@ export default function AdminTeamEdit() {
     void (async () => {
       const [memberRes, managersRes] = await Promise.all([
         supabase.from("team_members").select("*").eq("id", id).single(),
+        // Pega todos para conseguir incluir o usuario logado como lider
+        // mesmo se o team_members dele estiver inativo ou sem user_id.
         supabase
           .from("team_members")
-          .select("user_id, full_name")
-          .eq("is_active", true)
-          .not("user_id", "is", null)
+          .select("user_id, full_name, email, is_active")
           .order("full_name", { ascending: true }),
       ]);
 
@@ -164,12 +166,48 @@ export default function AdminTeamEdit() {
       }
 
       if (managersRes.data) {
-        setManagerOptions(
-          managersRes.data
-            .filter((t): t is { user_id: string; full_name: string } => !!t.user_id)
-            .filter((t) => t.user_id !== data.user_id)
-            .map((t) => ({ user_id: t.user_id, full_name: t.full_name }))
-        );
+        const currentUserId = user?.id ?? null;
+        const currentUserEmail = user?.email?.toLowerCase() ?? null;
+        const editedUserId = data.user_id;
+
+        const seen = new Set<string>();
+        const opts: ManagerOption[] = [];
+
+        for (const t of managersRes.data) {
+          const isCurrentUser =
+            (currentUserId && t.user_id === currentUserId) ||
+            (currentUserEmail && t.email?.toLowerCase() === currentUserEmail);
+
+          // Pula inativos, exceto se for o usuario logado (queremos que o
+          // admin_super possa sempre se atribuir como lider).
+          if (!t.is_active && !isCurrentUser) continue;
+
+          const resolvedUserId = t.user_id ?? (isCurrentUser ? currentUserId : null);
+          if (!resolvedUserId) continue;
+
+          // Nao pode ser lider de si mesmo.
+          if (editedUserId && resolvedUserId === editedUserId) continue;
+          if (seen.has(resolvedUserId)) continue;
+
+          seen.add(resolvedUserId);
+          opts.push({ user_id: resolvedUserId, full_name: t.full_name });
+        }
+
+        // Garante o usuario logado mesmo se ele nao consta no team_members.
+        if (
+          currentUserId &&
+          !seen.has(currentUserId) &&
+          (!editedUserId || editedUserId !== currentUserId)
+        ) {
+          const metaName =
+            (user?.user_metadata?.full_name as string | undefined) ??
+            (user?.user_metadata?.name as string | undefined) ??
+            currentUserEmail ??
+            "Você";
+          opts.unshift({ user_id: currentUserId, full_name: `${metaName} (você)` });
+        }
+
+        setManagerOptions(opts);
       }
 
       setMember(data);
@@ -194,7 +232,7 @@ export default function AdminTeamEdit() {
       });
       setLoading(false);
     })();
-  }, [id, reset]);
+  }, [id, reset, user?.id, user?.email, user?.user_metadata]);
 
   const selectedRole = watch("system_role");
   const roleInfo = ROLE_OPTIONS.find((r) => r.value === selectedRole);
