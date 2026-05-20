@@ -3,6 +3,81 @@
 Todas as mudanças relevantes deste projeto são documentadas aqui.
 O versionamento segue a política descrita em `docs/VERSIONING.md`.
 
+## [3.2.0] - 2026-05-20
+
+Dashboard de Comunicações repensado por canal e audiência, correção do bug do
+"Líder direto" no cadastro de equipe e auditoria de cálculos financeiros do
+admin documentada.
+
+### Novidades
+
+- Tela `/portal/admin/comunicacoes` ganhou 3 abas dedicadas (Clientes, Equipe
+  Elkys e Sistema). Cada aba filtra todas as métricas, gráficos e tabelas para
+  aquela audiência. Antes a mistura mascarava qualquer decisão de canal,
+  agora a operação consegue olhar separadamente para o relacionamento com
+  cliente versus alertas internos versus fluxos automáticos.
+- Funis de engajamento agora são dois, lado a lado: um para e-mail
+  (Tentados, Entregues, Abertos, Clicados) e outro para WhatsApp
+  (Tentados, Entregues, Clicados, já que WhatsApp não mede abertura).
+  Cada canal mostra suas próprias taxas, sempre apples-to-apples.
+- Três novas pizzas na aba Clientes:
+  - Volume por canal: quanto da operação roda em cada canal.
+  - Preferência de canal por cliente: seis buckets (só clica e-mail,
+    prefere e-mail multi-canal, engaja igual nos dois, prefere WhatsApp,
+    só clica WhatsApp, recebe e não clica). É o sinal de decisão para
+    saber onde investir engajamento por cliente.
+  - Cobertura de contato: cobertura dupla versus contato single-channel
+    apenas. Mostra risco operacional quando um único canal falha.
+- Cliques separados por canal em todos os gráficos: dia da semana,
+  desempenho por tipo de comunicação e tabela Top 10 clientes (que ganhou
+  coluna "Preferência" com chip colorido).
+- Tabela "Comunicações recentes" passou a ter "Clicou e-mail" e "Clicou
+  WhatsApp" em colunas independentes, já que uma mesma comunicação sai
+  pelos dois canais e os cliques são independentes.
+
+### Correção de bug
+
+- "Cliente arquivado" aparecia para todos os clientes no dashboard de
+  comunicações. O código lia `clientsBundle?.clients` mas o hook
+  `useAdminClients` retorna o array direto, então o map ficava sempre
+  vazio. Agora resolve o nome real, marcando "(arquivado)" no select
+  quando o cliente está inativo.
+- "Equipe Elkys" genérico aparecia em todos os envios internos.
+  Adicionada resolução `email -> full_name` em `team_members` para
+  mostrar o nome do membro que recebeu o envio.
+- Pessoas que clicaram no e-mail sem o pixel disparar (Outlook, proxy do
+  Gmail/Apple Mail, modo offline) agora são listadas nominalmente em vez
+  de apenas contagem. Gestor consegue acionar individualmente.
+- Empty state explícito no gráfico de série temporal quando há 0 ou 1
+  dia com atividade no período. Antes o LineChart renderizava vazio
+  porque linhas precisam de pelo menos 2 pontos.
+- Bug do "Líder direto" em `TeamCreate` e `TeamEdit`: o dropdown filtrava
+  `is_active=true AND user_id IS NOT NULL`, escondendo o admin_super
+  logado quando o registro dele em `team_members` estava desalinhado.
+  Resultado: você não conseguia se selecionar como líder de um novo
+  membro. Agora inclui o usuário logado sempre, com fallback resolvendo
+  `user_id` via auth context. Em `TeamEdit` continua excluindo o
+  próprio membro editado (não pode ser líder de si).
+
+### Tela
+
+- Removidos os em-dashes (—) da UI da tela de Comunicações. Substituídos
+  por pontuação adequada (vírgula, ponto, dois pontos) na prosa, e por
+  "n/a" nas células de tabela quando o canal não foi disparado.
+- Texto explicativo da etapa "Clicados sem abrir" agora especifica
+  quantas pessoas foram (singular versus plural) e abre uma lista com
+  nome do destinatário, tipo de comunicação e data, tornando o sinal
+  acionável.
+
+### Documentação
+
+- `docs/AUDIT-FINANCEIRO-2026-05.md`: auditoria de cálculos do dashboard
+  admin (Overview, Finance, Clients, Charges via Delinquency, Contracts e
+  Communications). 14 achados documentados com `arquivo:linha`,
+  severidade e proposta de fix. Quatro bugs já corrigidos nesta versão;
+  os demais (1 bug-potencial sobre dependência de trigger de DB, 3 UX e
+  4 nits) ficam abertos para PRs isolados a partir de `develop`.
+
 ## [3.1.1] - 2026-05-20
 
 Patch de segurança e clareza no dashboard de Comunicações.
