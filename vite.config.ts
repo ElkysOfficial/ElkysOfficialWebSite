@@ -89,7 +89,8 @@ function landingCssAndPreloads(): Plugin {
         /^ScrollToTop-/,
         /^CookieConsent-/,
         /^react-vendor-/,
-        /^query-vendor-/,
+        // query-vendor (React Query) NAO entra: o provider foi movido pro
+        // PortalShell (lazy), entao o chunk nunca carrega na landing.
         /^form-vendor-/,
       ];
 
@@ -160,16 +161,15 @@ function landingCssAndPreloads(): Plugin {
       );
 
       if (entryTagMatch) {
-        // Passo 3b: modulepreload hints ANTES do <style> inline pros chunks
-        // auxiliares (react-vendor, query-vendor). O entry em si NAO precisa
-        // de hint porque sera inlinado no passo 3c. Browser encontra o JS
-        // dos vendors enquanto ainda parseia o <style>.
+        // Passo 3b: modulepreload hint ANTES do <style> inline pro chunk
+        // auxiliar react-vendor (unico vendor que o entry importa de forma
+        // estatica). O entry em si NAO precisa de hint porque sera inlinado
+        // no passo 3c. Browser encontra o JS do vendor enquanto ainda
+        // parseia o <style>. query-vendor saiu daqui: o provider do React
+        // Query foi movido pro PortalShell (lazy), entao nao carrega no boot.
         const files = fs.readdirSync(assetsDir);
         const hints: string[] = [];
-        const auxPatterns: RegExp[] = [
-          /^react-vendor-[A-Za-z0-9_-]+\.js$/,
-          /^query-vendor-[A-Za-z0-9_-]+\.js$/,
-        ];
+        const auxPatterns: RegExp[] = [/^react-vendor-[A-Za-z0-9_-]+\.js$/];
         for (const pattern of auxPatterns) {
           const chunk = files.find((f) => f.endsWith(".js") && pattern.test(f));
           if (chunk) {
@@ -229,7 +229,7 @@ function landingCssAndPreloads(): Plugin {
         `✅ CSS split: landing inline ${purgedKb}KB (era ${fullKb}KB full). Portal CSS continua em ${cssFileName} (lazy via PortalShell).`
       );
       console.log(
-        `✅ Entry JS inlinado no HTML + modulepreload hints pros vendors (react-vendor, query-vendor) ANTES do <style> inline.`
+        `✅ Entry JS inlinado no HTML + modulepreload hint pro react-vendor ANTES do <style> inline.`
       );
     },
   };
