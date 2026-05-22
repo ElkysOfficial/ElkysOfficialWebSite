@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "@/components/ScrollToTop";
 import RootErrorBoundary from "@/components/RootErrorBoundary";
@@ -22,6 +21,13 @@ const CookieConsent = lazy(() => import("@/components/CookieConsent"));
 // No portal, PortalShell.tsx monta. Tira ~10KB gzip do entry na landing
 // pra visitantes que nao chegam em form/portal.
 
+// React Query (QueryClientProvider) removido do root. Nenhuma pagina
+// publica (Index, Cases, ServiceDetail, ContactForm...) consome React
+// Query — so o portal usa (AuthContext + hooks useAdmin*/useClient*).
+// O provider agora vive em PortalShell.tsx, que ja e lazy. Visitantes
+// que nao entram no portal nao baixam o chunk query-vendor (~9KB gzip)
+// nem pagam o modulepreload hint dele competindo com fonts/CSS no boot.
+
 // Public pages (exceto Index, ver acima)
 const Cases = lazy(() => import("./pages/Cases"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
@@ -31,98 +37,78 @@ const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
 const ComoTrabalhamos = lazy(() => import("./pages/ComoTrabalhamos"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Portal shell (AuthProvider loaded only when a portal/auth route matches)
+// Portal shell (AuthProvider + QueryClientProvider loaded only when a
+// portal/auth route matches)
 const PortalShell = lazy(() => import("./pages/PortalShell"));
 const Login = lazy(() => import("./pages/Login"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const PortalRoutes = lazy(() => import("./pages/PortalRoutes"));
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Data stays fresh for 2 minutes — no refetch during this window
-      staleTime: 2 * 60 * 1000,
-      // Keep inactive data in memory for 10 minutes
-      gcTime: 10 * 60 * 1000,
-      // Background refetch when user returns to tab — apenas se stale
-      // (coerente com staleTime; antes estava "always", que forcava refetch
-      // mesmo dentro da janela fresca, contradizendo a intencao do staleTime).
-      refetchOnWindowFocus: true,
-      // Don't refetch on mount if data is still fresh
-      refetchOnMount: true,
-      // Single retry on failure
-      retry: 1,
-    },
-  },
-});
 
 const App = () => (
   // HelmetProvider removido: o componente SEO agora e imperativo (useEffect
   // + document.querySelector), sem dependencia de react-helmet-async. Tira
   // o virtual DOM paralelo de <head> do bundle inicial (~15 KB gzip).
   <RootErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <ScrollToTop />
-        <Suspense fallback={null}>
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<Index />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/cookie-policy" element={<CookiePolicy />} />
-            <Route path="/servicos/:slug" element={<ServiceDetail />} />
-            <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ScrollToTop />
+      <Suspense fallback={null}>
+        <Routes>
+          {/* Public */}
+          <Route path="/" element={<Index />} />
+          <Route path="/cases" element={<Cases />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/servicos/:slug" element={<ServiceDetail />} />
+          <Route path="/como-trabalhamos" element={<ComoTrabalhamos />} />
 
-            {/*
-             * Portal shell — pathless layout route.
-             * Renders AuthProvider (+ Supabase) only when a child route matches.
-             * Login and ForgotPassword are direct children so they are NOT
-             * wrapped in a path-consuming <Route>, avoiding the React Router
-             * descendant-Routes path-stripping bug.
-             */}
+          {/*
+           * Portal shell — pathless layout route.
+           * Renders AuthProvider (+ Supabase) and QueryClientProvider only
+           * when a child route matches. Login and ForgotPassword are direct
+           * children so they are NOT wrapped in a path-consuming <Route>,
+           * avoiding the React Router descendant-Routes path-stripping bug.
+           */}
+          <Route
+            element={
+              <Suspense fallback={null}>
+                <PortalShell />
+              </Suspense>
+            }
+          >
             <Route
+              path="/login"
               element={
                 <Suspense fallback={null}>
-                  <PortalShell />
+                  <Login />
                 </Suspense>
               }
-            >
-              <Route
-                path="/login"
-                element={
-                  <Suspense fallback={null}>
-                    <Login />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/forgot-password"
-                element={
-                  <Suspense fallback={null}>
-                    <ForgotPassword />
-                  </Suspense>
-                }
-              />
-              <Route
-                path="/portal/*"
-                element={
-                  <Suspense fallback={null}>
-                    <PortalRoutes />
-                  </Suspense>
-                }
-              />
-            </Route>
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <Suspense fallback={null}>
+                  <ForgotPassword />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/portal/*"
+              element={
+                <Suspense fallback={null}>
+                  <PortalRoutes />
+                </Suspense>
+              }
+            />
+          </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-        <Suspense fallback={null}>
-          <CookieConsent />
-        </Suspense>
-      </BrowserRouter>
-    </QueryClientProvider>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      <Suspense fallback={null}>
+        <CookieConsent />
+      </Suspense>
+    </BrowserRouter>
   </RootErrorBoundary>
 );
 
