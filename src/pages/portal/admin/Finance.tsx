@@ -2040,7 +2040,7 @@ function FinanceAnaliseTab() {
       avgDeliveryDays,
       projectStatusCounts,
       pipelineValue,
-      pipelineCount: negIds.size + pendingProposals.length + leadsInProposta.length,
+      pipelineCount: pipelineSummary.count,
       openTickets,
       resolvedTicketsThisMonth,
       monthlySeries,
