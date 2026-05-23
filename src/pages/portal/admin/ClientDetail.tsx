@@ -315,8 +315,17 @@ function getGeneralFormDefaults(client: Client): GeneralFormValues {
 function deriveContractSnapshot(
   client: Client,
   contracts: ProjectContract[] = [],
-  subscriptions: ProjectSubscription[] = []
+  subscriptions: ProjectSubscription[] = [],
+  summary: ClientFinancialSummary | null = null
 ) {
+  // Prioridade dos dados de contrato (auditoria 2026-05-23):
+  //   1. client_financial_summary (view calculada em tempo real, fonte de verdade
+  //      pos PROBLEMA 10) — sempre que disponivel, vence.
+  //   2. snapshot legado em `clients` (drift conhecido — mantido por compat).
+  //   3. derivacao a partir de contratos/subscriptions ativos.
+  //
+  // Sem a view, o form mostrava 'ativo' enquanto o header mostrava 'inadimplente'
+  // pra clientes com cobrancas atrasadas (incidente Alexandre, 2026-05-23).
   const latestContract =
     [...contracts].sort((left, right) => right.created_at.localeCompare(left.created_at))[0] ??
     null;
@@ -326,16 +335,25 @@ function deriveContractSnapshot(
   const primarySubscription = activeSubscriptions[0] ?? subscriptions[0] ?? null;
 
   const derivedMonthlyValue =
-    Number(client.monthly_value) > 0
-      ? Number(client.monthly_value)
-      : activeSubscriptions.reduce((sum, subscription) => sum + toCents(subscription.amount), 0) /
-        100;
+    summary && Number(summary.monthly_value) > 0
+      ? Number(summary.monthly_value)
+      : Number(client.monthly_value) > 0
+        ? Number(client.monthly_value)
+        : activeSubscriptions.reduce((sum, subscription) => sum + toCents(subscription.amount), 0) /
+          100;
   const derivedProjectTotal =
-    Number(client.project_total_value) > 0
-      ? Number(client.project_total_value)
-      : Number(latestContract?.total_amount ?? 0);
-  const derivedDueDay = client.payment_due_day ?? primarySubscription?.due_day ?? null;
+    summary && Number(summary.project_total_value) > 0
+      ? Number(summary.project_total_value)
+      : Number(client.project_total_value) > 0
+        ? Number(client.project_total_value)
+        : Number(latestContract?.total_amount ?? 0);
+  const derivedDueDay =
+    summary?.payment_due_day_calculated ??
+    client.payment_due_day ??
+    primarySubscription?.due_day ??
+    null;
   const derivedContractType =
+    summary?.contract_type_calculated ??
     client.contract_type ??
     (derivedProjectTotal > 0 && derivedMonthlyValue > 0
       ? "hibrido"
@@ -345,6 +363,7 @@ function deriveContractSnapshot(
           ? "projeto"
           : "");
   const derivedContractStatus =
+    summary?.contract_status_calculated ??
     client.contract_status ??
     (derivedProjectTotal > 0 || derivedMonthlyValue > 0
       ? client.is_active
@@ -352,14 +371,23 @@ function deriveContractSnapshot(
         : "cancelado"
       : "");
   const derivedContractStart =
+    summary?.contract_start_calculated ??
     client.contract_start ??
     latestContract?.starts_at ??
     latestContract?.signed_at ??
     primarySubscription?.starts_on ??
     client.client_since;
   const derivedContractEnd =
-    client.contract_end ?? latestContract?.ends_at ?? primarySubscription?.ends_on ?? null;
-  const derivedScopeSummary = client.scope_summary ?? latestContract?.scope_summary ?? "";
+    summary?.contract_end_calculated ??
+    client.contract_end ??
+    latestContract?.ends_at ??
+    primarySubscription?.ends_on ??
+    null;
+  const derivedScopeSummary =
+    summary?.scope_summary_calculated ??
+    client.scope_summary ??
+    latestContract?.scope_summary ??
+    "";
 
   return {
     monthly_value: derivedMonthlyValue,
@@ -378,9 +406,10 @@ function deriveContractSnapshot(
 function getContractFormDefaults(
   client: Client,
   contracts: ProjectContract[] = [],
-  subscriptions: ProjectSubscription[] = []
+  subscriptions: ProjectSubscription[] = [],
+  summary: ClientFinancialSummary | null = null
 ): ContractFormValues {
-  const snapshot = deriveContractSnapshot(client, contracts, subscriptions);
+  const snapshot = deriveContractSnapshot(client, contracts, subscriptions, summary);
 
   return {
     monthly_value: formatBRL(Number(snapshot.monthly_value ?? 0)),
@@ -1050,6 +1079,7 @@ function ContractClientForm({
   client,
   contracts,
   subscriptions,
+  summary,
   saving,
   onCancel,
   onSave,
@@ -1057,19 +1087,20 @@ function ContractClientForm({
   client: Client;
   contracts: ProjectContract[];
   subscriptions: ProjectSubscription[];
+  summary: ClientFinancialSummary | null;
   saving: boolean;
   onCancel: () => void;
   onSave: (values: ContractFormValues) => Promise<void>;
 }) {
   const [form, setForm] = useState<ContractFormValues>(() =>
-    getContractFormDefaults(client, contracts, subscriptions)
+    getContractFormDefaults(client, contracts, subscriptions, summary)
   );
   const [errors, setErrors] = useState<ContractFormErrors>({});
 
   useEffect(() => {
-    setForm(getContractFormDefaults(client, contracts, subscriptions));
+    setForm(getContractFormDefaults(client, contracts, subscriptions, summary));
     setErrors({});
-  }, [client, contracts, subscriptions]);
+  }, [client, contracts, subscriptions, summary]);
 
   const setField = <K extends keyof ContractFormValues>(field: K, value: ContractFormValues[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -1706,7 +1737,7 @@ export default function AdminClientDetail() {
       : client.is_active
         ? "Ao inativar, o cliente sai da carteira ativa e o acesso ao portal é bloqueado enquanto o cadastro permanece salvo."
         : "Ao reativar, o cliente volta para a carteira ativa e o acesso ao portal é restaurado quando existir usuário vinculado.";
-  const contractSnapshot = deriveContractSnapshot(client, contracts, subscriptions);
+  const contractSnapshot = deriveContractSnapshot(client, contracts, subscriptions, clientSummary);
 
   return (
     <div className="space-y-6">
@@ -1952,6 +1983,7 @@ export default function AdminClientDetail() {
             client={client}
             contracts={contracts}
             subscriptions={subscriptions}
+            summary={clientSummary}
             saving={actionLoading === "contract"}
             onCancel={() => setEditingSection(null)}
             onSave={handleSaveContract}
