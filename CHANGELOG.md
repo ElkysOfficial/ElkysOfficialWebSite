@@ -3,6 +3,20 @@
 Todas as mudanças relevantes deste projeto são documentadas aqui.
 O versionamento segue a política descrita em `docs/VERSIONING.md`.
 
+## [3.4.1] - 2026-05-23
+
+Hotfix da v3.4.0 — corrige ReferenceError que quebrava a aba Análise do Finance.
+
+### Correções
+
+- `pipelineCount` no `loadAnalise` da aba Análise (`/portal/admin/financeiro`)
+  ainda referenciava variáveis intermediárias (`negIds`, `pendingProposals`,
+  `leadsInProposta`) que foram removidas no refactor pra `computePipelineSummary`.
+  Resultado: `Uncaught (in promise) ReferenceError: negIds is not defined`
+  derrubando a tela inteira. Troca de 1 linha pra `pipelineSummary.count`.
+- Causa-raiz do não-pegar-no-CI: projeto tem `strict: false` em
+  `tsconfig.app.json` — issue separada vai propor migrar pra strict.
+
 ## [3.4.0] - 2026-05-23
 
 Auditoria minuciosa em 5 fases sobre todos os cálculos financeiros e do CRM
