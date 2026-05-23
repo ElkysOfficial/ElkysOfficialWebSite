@@ -9,16 +9,16 @@ tags: [issues, debt, moc]
 
 ## 🔴 HIGH
 
-| #   | Issue                                                                     | Categoria      |
-| --- | ------------------------------------------------------------------------- | -------------- |
-| H1  | [[no-observability]] — Sem Sentry/PostHog em prod                         | observability  |
-| H2  | [[no-tests-units-integration]] — Apenas E2E, sem Vitest                   | testing        |
-| H3  | [[security-roles-in-db]] — Roles em `user_roles`, não JWT (SPOF)          | auth           |
-| H4  | [[security-csp-missing]] — Sem Content-Security-Policy                    | security       |
-| ~~H5~~ | ✅ Resolvido — [[_resolved/charges-status-agendada-stuck]] (cron promove `agendada → pendente`) | data-integrity |
-| ~~H6~~ | ✅ Resolvido — [[_resolved/dead-pages]] (páginas reorganizadas em `src/pages/portal/admin/`)    | tech-debt      |
-| H7  | [[colors-hardcoded-tasks]] — Tasks.tsx com 8+ cores Tailwind cruas        | DS             |
-| H8  | [[no-staging-environment]] — `develop` sem host separado                  | DX/safety      |
+| #      | Issue                                                                                                    | Categoria      |
+| ------ | -------------------------------------------------------------------------------------------------------- | -------------- |
+| H1     | [[no-observability]] — Sem Sentry/PostHog em prod                                                        | observability  |
+| ~~H2~~ | ✅ Resolvido — [[_resolved/2026-05-financial-metrics-audit]] (Vitest + 121 testes nos cálculos críticos) | testing        |
+| H3     | [[security-roles-in-db]] — Roles em `user_roles`, não JWT (SPOF)                                         | auth           |
+| H4     | [[security-csp-missing]] — Sem Content-Security-Policy                                                   | security       |
+| ~~H5~~ | ✅ Resolvido — [[_resolved/charges-status-agendada-stuck]] (cron promove `agendada → pendente`)          | data-integrity |
+| ~~H6~~ | ✅ Resolvido — [[_resolved/dead-pages]] (páginas reorganizadas em `src/pages/portal/admin/`)             | tech-debt      |
+| H7     | [[colors-hardcoded-tasks]] — Tasks.tsx com 8+ cores Tailwind cruas                                       | DS             |
+| H8     | [[no-staging-environment]] — `develop` sem host separado                                                 | DX/safety      |
 
 ## 🟠 MEDIUM
 
