@@ -21,5 +21,6 @@ tags: [adr, decisions, moc]
 | [[ADR-012-communication-tracking]]        | Rastreio de e-mail: encurtador próprio + pixel                     | Aceito (parcial — sem WhatsApp) |
 | [[ADR-013-query-provider-in-portalshell]] | QueryClientProvider no PortalShell lazy, não no root               | Aceito (v3.3.2)                 |
 | [[ADR-014-centralized-metrics-libs]]      | Métricas financeiras e CRM centralizadas em `src/lib/*-metrics.ts` | Aceito (v3.4.0)                 |
+| [[ADR-015-bff-migration-postponed]]       | Adiar migração para BFF (Spring Boot na VPS) até Q4 2026           | Aceito (com revisão programada) |
 
 Padrão: cada ADR contém Contexto → Decisão → Alternativas → Consequências.
