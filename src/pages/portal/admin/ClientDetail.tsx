@@ -334,27 +334,21 @@ function deriveContractSnapshot(
   );
   const primarySubscription = activeSubscriptions[0] ?? subscriptions[0] ?? null;
 
+  // Auditoria 2026-05-25 (Onda 3.1): colunas snapshot foram removidas de clients.
+  // Fonte unica: view client_financial_summary (campos _calculated).
+  // Fallback secundario: agregar das entidades primarias (contracts + subscriptions).
   const derivedMonthlyValue =
     summary && Number(summary.monthly_value) > 0
       ? Number(summary.monthly_value)
-      : Number(client.monthly_value) > 0
-        ? Number(client.monthly_value)
-        : activeSubscriptions.reduce((sum, subscription) => sum + toCents(subscription.amount), 0) /
-          100;
+      : activeSubscriptions.reduce((sum, subscription) => sum + toCents(subscription.amount), 0) /
+        100;
   const derivedProjectTotal =
     summary && Number(summary.project_total_value) > 0
       ? Number(summary.project_total_value)
-      : Number(client.project_total_value) > 0
-        ? Number(client.project_total_value)
-        : Number(latestContract?.total_amount ?? 0);
-  const derivedDueDay =
-    summary?.payment_due_day_calculated ??
-    client.payment_due_day ??
-    primarySubscription?.due_day ??
-    null;
+      : Number(latestContract?.total_amount ?? 0);
+  const derivedDueDay = summary?.payment_due_day_calculated ?? primarySubscription?.due_day ?? null;
   const derivedContractType =
     summary?.contract_type_calculated ??
-    client.contract_type ??
     (derivedProjectTotal > 0 && derivedMonthlyValue > 0
       ? "hibrido"
       : derivedMonthlyValue > 0
@@ -364,7 +358,6 @@ function deriveContractSnapshot(
           : "");
   const derivedContractStatus =
     summary?.contract_status_calculated ??
-    client.contract_status ??
     (derivedProjectTotal > 0 || derivedMonthlyValue > 0
       ? client.is_active
         ? "ativo"
@@ -372,22 +365,17 @@ function deriveContractSnapshot(
       : "");
   const derivedContractStart =
     summary?.contract_start_calculated ??
-    client.contract_start ??
     latestContract?.starts_at ??
     latestContract?.signed_at ??
     primarySubscription?.starts_on ??
     client.client_since;
   const derivedContractEnd =
     summary?.contract_end_calculated ??
-    client.contract_end ??
     latestContract?.ends_at ??
     primarySubscription?.ends_on ??
     null;
   const derivedScopeSummary =
-    summary?.scope_summary_calculated ??
-    client.scope_summary ??
-    latestContract?.scope_summary ??
-    "";
+    summary?.scope_summary_calculated ?? latestContract?.scope_summary ?? "";
 
   return {
     monthly_value: derivedMonthlyValue,
@@ -1806,7 +1794,7 @@ export default function AdminClientDetail() {
         {/* PROBLEMA 10: prefere o valor CALCULADO da view (verdade unica)
             sobre o snapshot legado em clients.contract_status. */}
         {(() => {
-          const status = clientSummary?.contract_status_calculated ?? client.contract_status;
+          const status = clientSummary?.contract_status_calculated;
           if (!status) return null;
           return (
             <span
@@ -1826,7 +1814,7 @@ export default function AdminClientDetail() {
         })()}
 
         {(() => {
-          const type = clientSummary?.contract_type_calculated ?? client.contract_type;
+          const type = clientSummary?.contract_type_calculated;
           if (!type) return null;
           return (
             <span
@@ -2005,7 +1993,7 @@ export default function AdminClientDetail() {
                 <CardTitle className="text-base">Informações do contrato</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-5">
-                {!client.payment_due_day && subscriptions.length > 0 ? (
+                {!contractSnapshot.payment_due_day && subscriptions.length > 0 ? (
                   <div className="rounded-lg border border-border/70 bg-background/60 p-4 text-sm text-muted-foreground">
                     Alguns dados desta leitura foram preenchidos automáticamente com base nas
                     assinaturas e contratos já vinculados ao cliente.
